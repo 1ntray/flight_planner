@@ -123,7 +123,75 @@ h2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin: 1rem 0;
+  margin: 1rem 0 0.75rem;
+}
+
+.navigation-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.4rem;
+}
+
+.navigation-inputs legend {
+  padding: 0 0.25rem;
+  color: #526175;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.navigation-inputs__scope,
+.navigation-inputs__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.navigation-inputs__scope {
+  color: #68778a;
+}
+
+.navigation-inputs__error {
+  color: #a12c27;
+}
+
+.navigation-inputs label {
+  display: grid;
+  gap: 0.25rem;
+  color: #526175;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.navigation-inputs__control {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+  color: #68778a;
+  font-weight: 500;
+}
+
+.navigation-inputs input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.38rem;
+  border: 1px solid #aebccc;
+  border-radius: 0.3rem;
+  color: #26384c;
+  background: #ffffff;
+}
+
+.navigation-inputs input:focus-visible {
+  outline: 3px solid #e08b28;
+  outline-offset: 1px;
+}
+
+.navigation-inputs input[aria-invalid="true"] {
+  border-color: #c76661;
 }
 
 .button {
@@ -157,6 +225,7 @@ h2 {
 
 .route-table-wrap {
   min-height: 0;
+  flex: 1;
   overflow: auto;
   border: 1px solid #dbe3eb;
   border-radius: 0.4rem;
@@ -165,13 +234,16 @@ h2 {
 .route-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.86rem;
+  table-layout: fixed;
+  font-size: 0.78rem;
 }
 
 .route-table th,
 .route-table td {
-  padding: 0.65rem 0.55rem;
+  overflow: hidden;
+  padding: 0.6rem 0.25rem;
   border-bottom: 1px solid #e4e9ef;
+  text-overflow: ellipsis;
   text-align: left;
   white-space: nowrap;
 }
@@ -186,10 +258,15 @@ h2 {
   letter-spacing: 0.06em;
 }
 
-.route-table td:nth-child(3),
-.route-table td:nth-child(4),
-.route-table th:nth-child(3),
-.route-table th:nth-child(4) {
+.route-table__unit {
+  display: block;
+  color: #7a8797;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.route-table td:nth-child(n + 3),
+.route-table th:nth-child(n + 3) {
   text-align: right;
 }
 

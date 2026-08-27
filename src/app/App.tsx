@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 import type { Position, Waypoint } from '../domain';
 import { FlightMap } from './map/FlightMap';
-import { RouteTable } from './route/RouteTable';
+import { NavigationLog } from './navigation/NavigationLog';
 import {
   appendWaypoint,
   moveWaypointById,
@@ -48,7 +48,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.1</p>
+          <p className="eyebrow">MVP 0.2</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -97,7 +97,7 @@ export function App() {
             </button>
           </div>
 
-          <RouteTable waypoints={waypoints} />
+          <NavigationLog waypoints={waypoints} />
         </aside>
       </div>
     </main>

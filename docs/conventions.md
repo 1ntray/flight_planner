@@ -54,6 +54,8 @@ middle deletion from creating a duplicate name.
   direction is undefined.
 - Positions separated by 1 mm or less according to the WGS84 inverse result are
   treated as effectively identical. Their reported distance is exactly `0`.
+- Wind, heading, speed, and elapsed-time conventions are documented in
+  [`navigation-conventions.md`](navigation-conventions.md).
 
 ## TypeScript and testing
 
