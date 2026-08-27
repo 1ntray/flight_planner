@@ -1,6 +1,7 @@
 # Flight Planner
 
-Browser-based flight planning, currently at the MVP 0.1 foundation milestone.
+Browser-based flight planning with an interactive waypoint map and derived
+navigation log for MVP 0.1.
 
 ## Development
 

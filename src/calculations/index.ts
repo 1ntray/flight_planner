@@ -5,5 +5,4 @@ export {
   normalizeTrackDeg,
 } from './geodesy';
 export type { InverseGeodesicResult } from './geodesy';
-export { calculateFlightPlanLegs, calculateLeg } from './route';
-
+export { calculateFlightPlanLegs, calculateLeg, calculateRoute } from './route';

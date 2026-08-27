@@ -2,13 +2,15 @@
 
 ## Goal
 
-MVP 0.1 establishes a dependable browser-project foundation for flight planning.
-It includes the Vite, React, TypeScript, Vitest, Leaflet, and React-Leaflet stack,
-the core route domain, and deterministic route calculations.
+MVP 0.1 establishes a dependable browser-based route planning workflow. It
+includes the Vite, React, TypeScript, Vitest, Leaflet, and React-Leaflet stack,
+the core route domain, deterministic route calculations, and a functional map
+and navigation log.
 
 ## Included
 
-- A minimal React application shell
+- A desktop React application shell with an approximately 70/30 map and route
+  panel layout
 - `Position`, `Waypoint`, `FlightPlan`, and `CalculatedLeg` domain concepts
 - An ordered waypoint array as the only route source of truth
 - WGS84 inverse geodesic calculations through `geographiclib-geodesic`
@@ -17,17 +19,26 @@ the core route domain, and deterministic route calculations.
 - Explicit zero-distance and `null`-track handling for effectively identical
   coordinates
 - Adjacent-leg derivation from the current waypoint order
+- A React-Leaflet map initially centered between Tromsø and Bardufoss
+- Kartverket topo WMTS tiles with the required attribution
+- Click-to-add, drag-to-move, select, delete, and clear waypoint interactions
+- Stable random waypoint IDs and sequential `WP01`, `WP02`, ... display names
+- A display polyline between adjacent waypoints
+- A derived route table with formatted true track, leg distance, and total
+  unrounded route distance
 - Vitest coverage for geodesy and route calculations
+- Vitest coverage for non-UI naming, formatting, and total-distance helpers
 
 ## Deliberately excluded
 
-The interactive Leaflet map UI is not part of this initial task. Weather,
-aircraft performance, wind calculations, fuel calculations, PDF generation, a
-backend, and persistence are also outside MVP 0.1.
+Weather, aircraft performance, wind calculations, fuel calculations, magnetic
+variation, altitude, aircraft data, PDF generation, a backend, and persistence
+are outside MVP 0.1.
 
-## Next milestone boundary
+## Architecture boundary
 
-A later milestone may introduce a React-Leaflet map and waypoint-editing UI. That
-UI should edit only `FlightPlan.waypoints` and call the pure route calculation
-layer to display legs. It must not introduce independently mutable leg state.
-
+The UI edits only the ordered waypoint array. `calculateRoute(waypoints)` derives
+legs for the navigation log on render; legs are never stored in React state. The
+Leaflet polyline uses waypoint coordinates for display only. All distance and
+true-track values continue to come from the pure WGS84 calculation layer rather
+than Leaflet, pixels, tile coordinates, or Web Mercator.

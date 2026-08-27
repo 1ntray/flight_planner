@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FlightPlan } from '../domain';
-import { calculateFlightPlanLegs } from './route';
+import { calculateFlightPlanLegs, calculateRoute } from './route';
 
 describe('calculateFlightPlanLegs', () => {
   it.each([
@@ -99,5 +99,23 @@ describe('calculateFlightPlanLegs', () => {
       { fromId: 'B', toId: 'A', trueTrackDeg: 270 },
     );
   });
-});
 
+  it('derives the route directly from a waypoint array', () => {
+    const waypoints = [
+      {
+        id: 'A',
+        name: 'First',
+        position: { latitude: 69, longitude: 18 },
+      },
+      {
+        id: 'B',
+        name: 'Second',
+        position: { latitude: 69.5, longitude: 19 },
+      },
+    ];
+
+    expect(calculateRoute(waypoints)).toEqual(
+      calculateFlightPlanLegs({ waypoints }),
+    );
+  });
+});

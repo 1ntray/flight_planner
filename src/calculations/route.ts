@@ -15,8 +15,14 @@ export function calculateLeg(from: Waypoint, to: Waypoint): CalculatedLeg {
 export function calculateFlightPlanLegs(
   flightPlan: FlightPlan,
 ): CalculatedLeg[] {
-  return flightPlan.waypoints.slice(1).map((to, index) => {
-    const from = flightPlan.waypoints[index];
+  return calculateRoute(flightPlan.waypoints);
+}
+
+export function calculateRoute(
+  waypoints: readonly Waypoint[],
+): CalculatedLeg[] {
+  return waypoints.slice(1).map((to, index) => {
+    const from = waypoints[index];
 
     if (from === undefined) {
       throw new Error('A calculated leg must have a starting waypoint');
@@ -25,4 +31,3 @@ export function calculateFlightPlanLegs(
     return calculateLeg(from, to);
   });
 }
-

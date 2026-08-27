@@ -7,7 +7,7 @@
 - `src/calculations` contains pure functions. Calculation modules do not read or
   modify UI state.
 - `src/app` contains the React application shell. Map and feature-specific UI
-  folders can be added here as later milestones require them.
+  code is grouped under `src/app/map` and `src/app/route`.
 - Calculation tests live beside their modules as `*.test.ts` files.
 
 ## Route state
@@ -19,6 +19,24 @@ application state. This prevents waypoint and leg data from becoming inconsisten
 
 Domain collections are exposed as readonly arrays to calculation code. Pure
 calculation functions return new values and do not mutate their inputs.
+
+The top-level `App` component owns the ordered waypoint array and the selected
+waypoint ID. Selection is UI state; calculated legs are not. UI consumers call
+`calculateRoute(waypoints)` to derive legs from the latest route.
+
+Waypoint IDs are generated independently of waypoint names and remain stable
+when markers move. Automatic names use `WP01`, `WP02`, and so on. The next name
+continues after the highest generated name still in the route, preventing a
+middle deletion from creating a duplicate name.
+
+## Map
+
+- The base-map source is isolated in `src/app/map/tileSource.ts` so it can be
+  replaced without changing map interaction code.
+- Leaflet latitude/longitude from click and drag events may update waypoint
+  positions, and waypoint positions may be projected for marker/polyline display.
+- Navigation distance and track must never be calculated with Leaflet geometry,
+  pixel distances, tile coordinates, or Web Mercator.
 
 ## Units and angles
 
@@ -35,5 +53,6 @@ calculation functions return new values and do not mutate their inputs.
 
 Strict TypeScript is required. New domain calculations should be pure and covered
 by Vitest tests, including nominal values, boundary cases, and degenerate input.
+Non-UI helpers for route naming, formatting, and totals should also have focused
+unit tests. Snapshot tests are not a default requirement.
 Run `pnpm typecheck` and `pnpm test` before merging changes.
-
