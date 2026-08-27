@@ -1,5 +1,6 @@
 import { divIcon } from 'leaflet';
 import type { LatLngTuple, Marker as LeafletMarker } from 'leaflet';
+import { useState } from 'react';
 import {
   MapContainer,
   Marker,
@@ -10,7 +11,14 @@ import {
 } from 'react-leaflet';
 
 import type { Position, Waypoint } from '../../domain';
+import {
+  buildRouteDisplayPositions,
+  getWaypointDisplayPosition,
+} from './routeDisplay';
+import type { DraggedWaypointPosition } from './routeDisplay';
+import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
+import './rasterTileSeamWorkaround.css';
 
 const INITIAL_CENTER: LatLngTuple = [69.35, 18.75];
 const INITIAL_ZOOM = 8;
@@ -59,10 +67,12 @@ export function FlightMap({
   onMoveWaypoint,
   onSelectWaypoint,
 }: FlightMapProps) {
-  const routePositions: LatLngTuple[] = waypoints.map((waypoint) => [
-    waypoint.position.latitude,
-    waypoint.position.longitude,
-  ]);
+  const [draggedWaypoint, setDraggedWaypoint] =
+    useState<DraggedWaypointPosition | null>(null);
+  const routePositions: LatLngTuple[] = buildRouteDisplayPositions(
+    waypoints,
+    draggedWaypoint,
+  );
 
   return (
     <MapContainer
@@ -75,6 +85,7 @@ export function FlightMap({
         url={KARTVERKET_TOPO_TILE_SOURCE.url}
         attribution={KARTVERKET_TOPO_TILE_SOURCE.attribution}
         maxZoom={KARTVERKET_TOPO_TILE_SOURCE.maxZoom}
+        className={getChromiumRasterSeamClassName(navigator.userAgent)}
       />
 
       <MapClickHandler onAddWaypoint={onAddWaypoint} />
@@ -86,47 +97,68 @@ export function FlightMap({
         />
       ) : null}
 
-      {waypoints.map((waypoint) => (
-        <Marker
-          key={waypoint.id}
-          position={[
-            waypoint.position.latitude,
-            waypoint.position.longitude,
-          ]}
-          icon={
-            waypoint.id === selectedWaypointId
-              ? selectedWaypointIcon
-              : waypointIcon
-          }
-          draggable
-          bubblingMouseEvents={false}
-          title={waypoint.name}
-          alt={waypoint.name}
-          eventHandlers={{
-            click: () => onSelectWaypoint(waypoint.id),
-            dragend: (event) => {
-              const marker = event.target as LeafletMarker;
-              const position = marker.getLatLng();
+      {waypoints.map((waypoint) => {
+        const displayPosition = getWaypointDisplayPosition(
+          waypoint,
+          draggedWaypoint,
+        );
+        const updateDraggedPosition = (marker: LeafletMarker) => {
+          const position = marker.getLatLng();
 
-              onMoveWaypoint(waypoint.id, {
-                latitude: position.lat,
-                longitude: position.lng,
-              });
+          setDraggedWaypoint({
+            waypointId: waypoint.id,
+            position: {
+              latitude: position.lat,
+              longitude: position.lng,
             },
-          }}
-        >
-          <Tooltip
-            className="waypoint-label"
-            direction="top"
-            offset={[0, -14]}
-            opacity={1}
-            permanent
+          });
+        };
+
+        return (
+          <Marker
+            key={waypoint.id}
+            position={[displayPosition.latitude, displayPosition.longitude]}
+            icon={
+              waypoint.id === selectedWaypointId
+                ? selectedWaypointIcon
+                : waypointIcon
+            }
+            draggable
+            bubblingMouseEvents={false}
+            title={waypoint.name}
+            alt={waypoint.name}
+            eventHandlers={{
+              click: () => onSelectWaypoint(waypoint.id),
+              dragstart: (event) => {
+                updateDraggedPosition(event.target as LeafletMarker);
+              },
+              drag: (event) => {
+                updateDraggedPosition(event.target as LeafletMarker);
+              },
+              dragend: (event) => {
+                const marker = event.target as LeafletMarker;
+                const position = marker.getLatLng();
+
+                onMoveWaypoint(waypoint.id, {
+                  latitude: position.lat,
+                  longitude: position.lng,
+                });
+                setDraggedWaypoint(null);
+              },
+            }}
           >
-            {waypoint.name}
-          </Tooltip>
-        </Marker>
-      ))}
+            <Tooltip
+              className="waypoint-label"
+              direction="top"
+              offset={[0, -14]}
+              opacity={1}
+              permanent
+            >
+              {waypoint.name}
+            </Tooltip>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 }
-

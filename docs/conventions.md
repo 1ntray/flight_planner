@@ -37,6 +37,12 @@ middle deletion from creating a duplicate name.
   positions, and waypoint positions may be projected for marker/polyline display.
 - Navigation distance and track must never be calculated with Leaflet geometry,
   pixel distances, tile coordinates, or Web Mercator.
+- A marker's in-progress drag position is local map presentation state. It may
+  temporarily replace that waypoint when rendering the marker and polyline, but
+  it is committed to `FlightPlan.waypoints` only on `dragend` and is never stored
+  as a second route.
+- Raster tile seam investigation and workaround policy are documented in
+  [`map-rendering.md`](map-rendering.md).
 
 ## Units and angles
 

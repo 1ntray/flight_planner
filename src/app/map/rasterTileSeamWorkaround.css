@@ -1,0 +1,15 @@
+/*
+ * Chromium subpixel raster tile seam workaround.
+ *
+ * Leaflet positions the 256 px raster tiles correctly, but Chromium can expose
+ * hairline gaps while compositing fractional device-pixel boundaries. Overlap
+ * only this Chromium Kartverket layer by the smallest practical amount. The
+ * class is not applied in Firefox, and no Leaflet geometry is changed. Leaflet's
+ * plus-lighter mitigation must be disabled here because it brightens the small
+ * intentional overlap and turns tile boundaries into visible lines.
+ */
+.kartverket-topo-tiles--chromium-seam-fix .leaflet-tile {
+  width: 256.5px !important;
+  height: 256.5px !important;
+  mix-blend-mode: normal !important;
+}
