@@ -1,28 +1,78 @@
 import type { LatLngTuple } from 'leaflet';
 
-import type { Position, Waypoint } from '../../domain';
+import type { FlightPlan, Position, RouteShapingPoint } from '../../domain';
 
-export interface DraggedWaypointPosition {
-  waypointId: string;
-  position: Position;
+export type DraggedRoutePointPosition =
+  | { kind: 'waypoint'; pointId: string; position: Position }
+  | { kind: 'shaping-point'; pointId: string; position: Position };
+
+export interface PendingRouteShapingPoint {
+  fromWaypointId: string;
+  toWaypointId: string;
+  insertionIndex: number;
+  point: RouteShapingPoint;
 }
 
-export function getWaypointDisplayPosition(
-  waypoint: Waypoint,
-  draggedWaypoint: DraggedWaypointPosition | null,
+export interface RouteDisplayLeg {
+  fromWaypointId: string;
+  toWaypointId: string;
+  positions: LatLngTuple[];
+}
+
+export function getRoutePointDisplayPosition(
+  pointId: string,
+  position: Position,
+  draggedPoint: DraggedRoutePointPosition | null,
 ): Position {
-  return draggedWaypoint?.waypointId === waypoint.id
-    ? draggedWaypoint.position
-    : waypoint.position;
+  return draggedPoint?.pointId === pointId
+    ? draggedPoint.position
+    : position;
 }
 
-export function buildRouteDisplayPositions(
-  waypoints: readonly Waypoint[],
-  draggedWaypoint: DraggedWaypointPosition | null,
-): LatLngTuple[] {
-  return waypoints.map((waypoint) => {
-    const position = getWaypointDisplayPosition(waypoint, draggedWaypoint);
-    return [position.latitude, position.longitude];
+function toLatLngTuple(position: Position): LatLngTuple {
+  return [position.latitude, position.longitude];
+}
+
+export function buildRouteDisplayLegs(
+  flightPlan: FlightPlan,
+  draggedPoint: DraggedRoutePointPosition | null,
+  pendingPoint: PendingRouteShapingPoint | null,
+): RouteDisplayLeg[] {
+  return flightPlan.waypoints.slice(1).map((to, index) => {
+    const from = flightPlan.waypoints[index];
+
+    if (from === undefined) {
+      throw new Error('A displayed route leg must have a starting waypoint');
+    }
+
+    const shape = flightPlan.legShapes.find(
+      (candidate) =>
+        candidate.fromWaypointId === from.id &&
+        candidate.toWaypointId === to.id,
+    );
+    const geometry = [
+      getRoutePointDisplayPosition(from.id, from.position, draggedPoint),
+      ...(shape?.points.map((point) =>
+        getRoutePointDisplayPosition(point.id, point.position, draggedPoint),
+      ) ?? []),
+      getRoutePointDisplayPosition(to.id, to.position, draggedPoint),
+    ];
+
+    if (
+      pendingPoint?.fromWaypointId === from.id &&
+      pendingPoint.toWaypointId === to.id
+    ) {
+      geometry.splice(
+        pendingPoint.insertionIndex + 1,
+        0,
+        pendingPoint.point.position,
+      );
+    }
+
+    return {
+      fromWaypointId: from.id,
+      toWaypointId: to.id,
+      positions: geometry.map(toLatLngTuple),
+    };
   });
 }
-

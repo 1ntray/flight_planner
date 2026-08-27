@@ -12,17 +12,24 @@
 
 ## Route state
 
-`FlightPlan.waypoints` is the single source of truth for a route. Its array order
-is the flight order. A `CalculatedLeg` is derived from each adjacent pair whenever
-it is needed; calculated legs must not be stored or independently updated as
-application state. This prevents waypoint and leg data from becoming inconsistent.
+`FlightPlan` is the single source of truth for route input. Its ordered
+`waypoints` array contains real navigation waypoints and defines the flight and
+navlog leg order. Its `legShapes` collection contains optional ordered route
+shaping points associated with a specific adjacent real-waypoint pair. Shaping
+points are not waypoints and never create navlog legs.
+
+A `CalculatedLeg` is derived from each adjacent real-waypoint pair whenever it
+is needed; calculated legs and expanded route geometry must not be stored or
+independently updated as application state. This prevents waypoint, shaping,
+and leg data from becoming inconsistent.
 
 Domain collections are exposed as readonly arrays to calculation code. Pure
 calculation functions return new values and do not mutate their inputs.
 
-The top-level `App` component owns the ordered waypoint array and the selected
-waypoint ID. Selection is UI state; calculated legs are not. UI consumers call
-`calculateRoute(waypoints)` to derive legs from the latest route.
+The top-level `App` component owns the `FlightPlan` and the selected route-point
+descriptor. Selection and in-progress drag positions are UI state; calculated
+legs are not. UI consumers call `calculateRoute(flightPlan)` to derive legs
+from the latest route input.
 
 Waypoint IDs are generated independently of waypoint names and remain stable
 when markers move. Automatic names use `WP01`, `WP02`, and so on. The next name
@@ -38,9 +45,13 @@ middle deletion from creating a duplicate name.
 - Navigation distance and track must never be calculated with Leaflet geometry,
   pixel distances, tile coordinates, or Web Mercator.
 - A marker's in-progress drag position is local map presentation state. It may
-  temporarily replace that waypoint when rendering the marker and polyline, but
-  it is committed to `FlightPlan.waypoints` only on `dragend` and is never stored
-  as a second route.
+  temporarily replace that real or shaping point when rendering the marker and
+  polyline, but it is committed to `FlightPlan` only on `dragend` and is never
+  stored as a second route.
+- Dragging an interactive route segment creates a temporary shaping-point draft
+  associated with that real leg and segment index. It is committed once on
+  pointer release. Leaflet supplies WGS84 input coordinates but never supplies
+  navigation distances or tracks.
 - Raster tile seam investigation and workaround policy are documented in
   [`map-rendering.md`](map-rendering.md).
 

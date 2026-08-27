@@ -56,7 +56,10 @@ describe('waypoint state helpers', () => {
       originalWaypoints,
       'stable-b',
     );
-    const legs = calculateRoute(remainingWaypoints);
+    const legs = calculateRoute({
+      waypoints: remainingWaypoints,
+      legShapes: [],
+    });
 
     expect(remainingWaypoints.map((waypoint) => waypoint.id)).toEqual([
       'stable-a',

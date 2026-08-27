@@ -52,3 +52,39 @@ export function calculateInverseGeodesic(
     trueTrackDeg: normalizeTrackDeg(initialAzimuthDeg),
   };
 }
+
+export function calculateGeodesicMidpoint(
+  from: Position,
+  to: Position,
+): Position {
+  const line = Geodesic.WGS84.InverseLine(
+    from.latitude,
+    from.longitude,
+    to.latitude,
+    to.longitude,
+  );
+  const distanceMeters = line.s13;
+
+  if (!Number.isFinite(distanceMeters)) {
+    throw new RangeError('Geodesic calculation did not return a finite distance');
+  }
+
+  if (distanceMeters <= EFFECTIVELY_IDENTICAL_DISTANCE_METERS) {
+    return { ...from };
+  }
+
+  const midpoint = line.Position(distanceMeters / 2);
+  const latitude = midpoint.lat2;
+  const longitude = midpoint.lon2;
+
+  if (
+    latitude === undefined ||
+    longitude === undefined ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    throw new RangeError('Geodesic calculation did not return a finite midpoint');
+  }
+
+  return { latitude, longitude };
+}

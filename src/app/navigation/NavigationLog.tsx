@@ -1,22 +1,58 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { Waypoint } from '../../domain';
+import { calculateNavigationRoute } from '../../calculations';
+import type { FlightPlan } from '../../domain';
 import { RouteTable } from '../route/RouteTable';
 import {
-  DEFAULT_NAVIGATION_INPUT_DRAFT,
+  createDefaultNavigationInputDraft,
   parseNavigationInputDraft,
 } from './navigationInput';
 import type { NavigationInputDraft } from './navigationInput';
+import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
+import {
+  FORECAST_SOURCE_LABEL,
+  formatForecastRetrievalTime,
+  formatForecastValidTimeRange,
+} from './weatherFormatting';
 
 export interface NavigationLogProps {
-  waypoints: readonly Waypoint[];
+  flightPlan: FlightPlan;
 }
 
-export function NavigationLog({ waypoints }: NavigationLogProps) {
+export function NavigationLog({ flightPlan }: NavigationLogProps) {
   const [draft, setDraft] = useState<NavigationInputDraft>(
-    DEFAULT_NAVIGATION_INPUT_DRAFT,
+    createDefaultNavigationInputDraft,
   );
-  const parsedInputs = parseNavigationInputDraft(draft);
+  const [useForecastWinds, setUseForecastWinds] = useState(false);
+  const parsedInputs = useMemo(
+    () => parseNavigationInputDraft(draft),
+    [draft],
+  );
+  const manualWindRoute = useMemo(
+    () =>
+      calculateNavigationRoute({
+        flightPlan,
+        planning:
+          parsedInputs.status === 'valid' ? parsedInputs.value : null,
+      }),
+    [flightPlan, parsedInputs],
+  );
+  const forecast = useOpenMeteoRouteWinds({
+    enabled: useForecastWinds,
+    flightPlan,
+    planning: parsedInputs.status === 'valid' ? parsedInputs.value : null,
+    preliminaryRoute: manualWindRoute,
+  });
+  const calculatedRoute = useMemo(
+    () =>
+      calculateNavigationRoute({
+        flightPlan,
+        planning:
+          parsedInputs.status === 'valid' ? parsedInputs.value : null,
+        legWinds: forecast.legWinds,
+      }),
+    [flightPlan, forecast.legWinds, parsedInputs],
+  );
 
   const updateDraft = (field: keyof NavigationInputDraft, value: string) => {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -25,8 +61,26 @@ export function NavigationLog({ waypoints }: NavigationLogProps) {
   return (
     <>
       <fieldset className="navigation-inputs">
-        <legend>Leg planning inputs</legend>
-        <p className="navigation-inputs__scope">Constant for all route legs</p>
+        <legend>Route planning inputs</legend>
+        <p className="navigation-inputs__scope">
+          TAS and altitude are route-wide. Manual wind is the forecast fallback.
+        </p>
+
+        <label className="navigation-inputs__departure">
+          <span>Departure</span>
+          <span className="navigation-inputs__control">
+            <input
+              type="datetime-local"
+              step="60"
+              value={draft.departureTimeUtc}
+              aria-invalid={parsedInputs.status === 'invalid'}
+              onChange={(event) =>
+                updateDraft('departureTimeUtc', event.currentTarget.value)
+              }
+            />
+            <span>UTC</span>
+          </span>
+        </label>
 
         <label>
           <span>TAS</span>
@@ -42,6 +96,26 @@ export function NavigationLog({ waypoints }: NavigationLogProps) {
               }
             />
             <span>kt</span>
+          </span>
+        </label>
+
+        <label>
+          <span>Planned altitude</span>
+          <span className="navigation-inputs__control">
+            <input
+              type="number"
+              min="0"
+              step="100"
+              value={draft.plannedAltitudeFtMsl}
+              aria-invalid={parsedInputs.status === 'invalid'}
+              onChange={(event) =>
+                updateDraft(
+                  'plannedAltitudeFtMsl',
+                  event.currentTarget.value,
+                )
+              }
+            />
+            <span>ft MSL</span>
           </span>
         </label>
 
@@ -81,6 +155,57 @@ export function NavigationLog({ waypoints }: NavigationLogProps) {
           </span>
         </label>
 
+        <label className="navigation-inputs__forecast-toggle">
+          <input
+            type="checkbox"
+            checked={useForecastWinds}
+            onChange={(event) =>
+              setUseForecastWinds(event.currentTarget.checked)
+            }
+          />
+          <span>Use ECMWF upper-air winds at each leg midpoint</span>
+        </label>
+
+        {useForecastWinds &&
+        forecast.status.status === 'loading' ? (
+          <p className="navigation-inputs__weather-status" role="status">
+            Loading Open-Meteo forecast…
+          </p>
+        ) : null}
+
+        {useForecastWinds &&
+        forecast.status.status === 'success' ? (
+          <div className="navigation-inputs__weather-status" role="status">
+            <p>
+              {FORECAST_SOURCE_LABEL} winds applied to{' '}
+              {forecast.status.winds.length}{' '}
+              {forecast.status.winds.length === 1 ? 'leg' : 'legs'}
+              {forecast.status.refined ? ' after one timing refinement' : ''}.
+            </p>
+            <p className="navigation-inputs__weather-detail">
+              Valid {formatForecastValidTimeRange(forecast.status.winds)};
+              retrieved {formatForecastRetrievalTime(forecast.status.winds)}.
+              {forecast.status.winds.some((wind) => wind.altitudeClamped)
+                ? ' Nearest usable pressure level used where needed.'
+                : ''}{' '}
+              <a
+                href="https://open-meteo.com/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Source
+              </a>
+            </p>
+          </div>
+        ) : null}
+
+        {useForecastWinds &&
+        forecast.status.status === 'error' ? (
+          <p className="navigation-inputs__error" role="alert">
+            Open-Meteo unavailable: {forecast.status.message}. Using manual wind.
+          </p>
+        ) : null}
+
         {parsedInputs.status === 'invalid' ? (
           <p className="navigation-inputs__error" role="alert">
             {parsedInputs.message}
@@ -89,9 +214,10 @@ export function NavigationLog({ waypoints }: NavigationLogProps) {
       </fieldset>
 
       <RouteTable
-        waypoints={waypoints}
-        navigationParameters={
-          parsedInputs.status === 'valid' ? parsedInputs.value : null
+        waypoints={flightPlan.waypoints}
+        route={calculatedRoute}
+        forecastWinds={
+          forecast.status.status === 'success' ? forecast.status.winds : []
         }
       />
     </>

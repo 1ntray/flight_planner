@@ -40,6 +40,23 @@ function requireFiniteNumber(value: number, name: string): void {
   }
 }
 
+export function validateNavigationParameters({
+  trueAirspeedKt,
+  wind,
+}: NavigationParameters): void {
+  requireFiniteNumber(trueAirspeedKt, 'True airspeed');
+  requireFiniteNumber(wind.directionFromTrueDeg, 'Wind direction');
+  requireFiniteNumber(wind.speedKt, 'Wind speed');
+
+  if (trueAirspeedKt <= 0) {
+    throw new RangeError('True airspeed must be greater than zero');
+  }
+
+  if (wind.speedKt < 0) {
+    throw new RangeError('Wind speed must not be negative');
+  }
+}
+
 export function calculateWindAdjustedLeg({
   trueTrackDeg,
   distanceNm,
@@ -48,20 +65,10 @@ export function calculateWindAdjustedLeg({
 }: WindAdjustedLegInput): WindAdjustedLegResult {
   requireFiniteNumber(trueTrackDeg, 'True track');
   requireFiniteNumber(distanceNm, 'Distance');
-  requireFiniteNumber(trueAirspeedKt, 'True airspeed');
-  requireFiniteNumber(wind.directionFromTrueDeg, 'Wind direction');
-  requireFiniteNumber(wind.speedKt, 'Wind speed');
+  validateNavigationParameters({ trueAirspeedKt, wind });
 
   if (distanceNm < 0) {
     throw new RangeError('Distance must not be negative');
-  }
-
-  if (trueAirspeedKt <= 0) {
-    throw new RangeError('True airspeed must be greater than zero');
-  }
-
-  if (wind.speedKt < 0) {
-    throw new RangeError('Wind speed must not be negative');
   }
 
   const normalizedTrackDeg = normalizeTrackDeg(trueTrackDeg);

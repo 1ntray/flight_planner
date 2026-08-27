@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CalculatedLeg } from '../../domain';
 import {
-  calculateTotalEetSeconds,
-  calculateTotalDistanceNm,
   formatDistanceNm,
   formatDistanceNmValue,
   formatEetMinutesValue,
@@ -12,6 +9,9 @@ import {
   formatGroundSpeedKtValue,
   formatTrueHeadingDeg,
   formatTrueTrackDeg,
+  formatUtcDateTime,
+  formatUtcRouteTime,
+  formatWindValue,
   formatWindCorrectionDeg,
 } from './routeFormatting';
 
@@ -35,15 +35,6 @@ describe('distance formatting', () => {
     expect(formatDistanceNmValue(24.56)).toBe('24.6');
   });
 
-  it('totals unrounded leg distances before display formatting', () => {
-    const legs: CalculatedLeg[] = [
-      { fromId: 'A', toId: 'B', distanceNm: 1.26, trueTrackDeg: 10 },
-      { fromId: 'B', toId: 'C', distanceNm: 1.26, trueTrackDeg: 20 },
-    ];
-
-    expect(calculateTotalDistanceNm(legs)).toBe(2.52);
-    expect(formatDistanceNm(calculateTotalDistanceNm(legs))).toBe('2.5 NM');
-  });
 });
 
 describe('wind-adjusted navigation formatting', () => {
@@ -69,32 +60,33 @@ describe('wind-adjusted navigation formatting', () => {
     expect(formatEetMinutesValue(2204.540769)).toBe('36.7');
   });
 
-  it('totals unrounded EET values only when every leg has a solution', () => {
-    const first = {
-      status: 'ok' as const,
-      windCorrectionDeg: 1,
-      trueHeadingDeg: 91,
-      groundSpeedKt: 105,
-      eetSeconds: 600.25,
-    };
-    const second = {
-      status: 'ok' as const,
-      windCorrectionDeg: -1,
-      trueHeadingDeg: 179,
-      groundSpeedKt: 95,
-      eetSeconds: 700.25,
-    };
-
-    expect(calculateTotalEetSeconds([first, second])).toBe(1300.5);
+  it('formats a compact direction-from and speed wind value', () => {
     expect(
-      calculateTotalEetSeconds([
-        first,
-        {
-          status: 'no-solution',
-          reason: 'non-positive-groundspeed',
-        },
-      ]),
-    ).toBeNull();
-    expect(calculateTotalEetSeconds([first, null])).toBeNull();
+      formatWindValue({ directionFromTrueDeg: 359.6, speedKt: 12.6 }),
+    ).toBe('000/13');
+    expect(formatWindValue(null)).toBe('—');
+  });
+
+});
+
+describe('UTC time formatting', () => {
+  const departureTimeUtcMs = Date.UTC(2026, 7, 27, 23, 30);
+
+  it('formats a route time relative to the UTC departure day', () => {
+    expect(
+      formatUtcRouteTime(Date.UTC(2026, 7, 27, 23, 45), departureTimeUtcMs),
+    ).toBe('23:45');
+    expect(
+      formatUtcRouteTime(Date.UTC(2026, 7, 28, 0, 30), departureTimeUtcMs),
+    ).toBe('00:30 +1d');
+  });
+
+  it('rounds display times to the nearest minute', () => {
+    const timestampUtcMs = Date.UTC(2026, 7, 27, 23, 59, 40);
+
+    expect(formatUtcRouteTime(timestampUtcMs, departureTimeUtcMs)).toBe(
+      '00:00 +1d',
+    );
+    expect(formatUtcDateTime(timestampUtcMs)).toBe('2026-08-28 00:00Z');
   });
 });

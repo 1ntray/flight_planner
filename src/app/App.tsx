@@ -1,69 +1,115 @@
 import { useCallback, useState } from 'react';
 
-import type { Position, Waypoint } from '../domain';
+import type { FlightPlan, Position, RouteShapingPoint } from '../domain';
 import { FlightMap } from './map/FlightMap';
+import type { SelectedRoutePoint } from './map/FlightMap';
 import { NavigationLog } from './navigation/NavigationLog';
 import {
-  appendWaypoint,
-  moveWaypointById,
-  removeWaypointById,
-} from './route/waypointState';
+  appendWaypointToFlightPlan,
+  insertRouteShapingPoint,
+  moveRouteShapingPoint,
+  moveWaypointInFlightPlan,
+  removeRouteShapingPoint,
+  removeWaypointFromFlightPlan,
+} from './route/flightPlanState';
 
 export function App() {
-  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
-  const [selectedWaypointId, setSelectedWaypointId] = useState<string | null>(
-    null,
-  );
+  const [flightPlan, setFlightPlan] = useState<FlightPlan>({
+    waypoints: [],
+    legShapes: [],
+  });
+  const [selectedRoutePoint, setSelectedRoutePoint] =
+    useState<SelectedRoutePoint | null>(null);
 
   const addWaypoint = useCallback((position: Position) => {
     const id = crypto.randomUUID();
-    setWaypoints((currentWaypoints) =>
-      appendWaypoint(currentWaypoints, position, id),
+    setFlightPlan((currentFlightPlan) =>
+      appendWaypointToFlightPlan(currentFlightPlan, position, id),
     );
   }, []);
 
   const moveWaypoint = useCallback((id: string, position: Position) => {
-    setWaypoints((currentWaypoints) =>
-      moveWaypointById(currentWaypoints, id, position),
+    setFlightPlan((currentFlightPlan) =>
+      moveWaypointInFlightPlan(currentFlightPlan, id, position),
     );
   }, []);
 
-  const deleteSelectedWaypoint = () => {
-    if (selectedWaypointId === null) {
+  const addShapingPoint = useCallback(
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      insertionIndex: number,
+      point: RouteShapingPoint,
+    ) => {
+      setFlightPlan((currentFlightPlan) =>
+        insertRouteShapingPoint(
+          currentFlightPlan,
+          fromWaypointId,
+          toWaypointId,
+          insertionIndex,
+          point,
+        ),
+      );
+    },
+    [],
+  );
+
+  const moveShapingPoint = useCallback((id: string, position: Position) => {
+    setFlightPlan((currentFlightPlan) =>
+      moveRouteShapingPoint(currentFlightPlan, id, position),
+    );
+  }, []);
+
+  const deleteSelectedRoutePoint = () => {
+    if (selectedRoutePoint === null) {
       return;
     }
 
-    setWaypoints((currentWaypoints) =>
-      removeWaypointById(currentWaypoints, selectedWaypointId),
+    setFlightPlan((currentFlightPlan) =>
+      selectedRoutePoint.kind === 'waypoint'
+        ? removeWaypointFromFlightPlan(
+            currentFlightPlan,
+            selectedRoutePoint.id,
+          )
+        : removeRouteShapingPoint(
+            currentFlightPlan,
+            selectedRoutePoint.id,
+          ),
     );
-    setSelectedWaypointId(null);
+    setSelectedRoutePoint(null);
   };
 
   const clearRoute = () => {
-    setWaypoints([]);
-    setSelectedWaypointId(null);
+    setFlightPlan({ waypoints: [], legShapes: [] });
+    setSelectedRoutePoint(null);
   };
+  const shapingPointCount = flightPlan.legShapes.reduce(
+    (total, shape) => total + shape.points.length,
+    0,
+  );
 
   return (
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.2</p>
+          <p className="eyebrow">MVP 0.5</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
-          Click the map to add waypoints. Drag markers to adjust the route.
+          Click the map to add waypoints. Drag the route line to shape a leg.
         </p>
       </header>
 
       <div className="planner-workspace">
         <section className="map-panel" aria-label="Flight planning map">
           <FlightMap
-            waypoints={waypoints}
-            selectedWaypointId={selectedWaypointId}
+            flightPlan={flightPlan}
+            selectedRoutePoint={selectedRoutePoint}
             onAddWaypoint={addWaypoint}
             onMoveWaypoint={moveWaypoint}
-            onSelectWaypoint={setSelectedWaypointId}
+            onAddShapingPoint={addShapingPoint}
+            onMoveShapingPoint={moveShapingPoint}
+            onSelectRoutePoint={setSelectedRoutePoint}
           />
         </section>
 
@@ -74,7 +120,11 @@ export function App() {
               <h2 id="route-heading">Navigation log</h2>
             </div>
             <span className="waypoint-count">
-              {waypoints.length} {waypoints.length === 1 ? 'waypoint' : 'waypoints'}
+              {flightPlan.waypoints.length}{' '}
+              {flightPlan.waypoints.length === 1 ? 'waypoint' : 'waypoints'}
+              {shapingPointCount === 0
+                ? ''
+                : ` · ${shapingPointCount} ${shapingPointCount === 1 ? 'shaping point' : 'shaping points'}`}
             </span>
           </div>
 
@@ -82,22 +132,24 @@ export function App() {
             <button
               type="button"
               className="button button--danger"
-              disabled={selectedWaypointId === null}
-              onClick={deleteSelectedWaypoint}
+              disabled={selectedRoutePoint === null}
+              onClick={deleteSelectedRoutePoint}
             >
-              Delete waypoint
+              {selectedRoutePoint?.kind === 'shaping-point'
+                ? 'Delete shaping point'
+                : 'Delete waypoint'}
             </button>
             <button
               type="button"
               className="button"
-              disabled={waypoints.length === 0}
+              disabled={flightPlan.waypoints.length === 0}
               onClick={clearRoute}
             >
               Clear route
             </button>
           </div>
 
-          <NavigationLog waypoints={waypoints} />
+          <NavigationLog flightPlan={flightPlan} />
         </aside>
       </div>
     </main>

@@ -46,13 +46,21 @@ patch Leaflet globals or private `GridLayer` behavior.
 
 ## Marker dragging
 
-`FlightPlan.waypoints` remains canonical route state. While a marker is being
-dragged, `FlightMap` stores only that marker's temporary WGS84 latitude and
-longitude. Marker and polyline display positions substitute this temporary value
-until `dragend`, when the final position is committed to the canonical waypoint
-array and the temporary value is cleared.
+`FlightPlan` remains canonical route state. Its waypoint array defines real
+navlog points; its leg shapes define ordered intermediate route geometry. While
+a real or shaping marker is being dragged, `FlightMap` stores only that marker's
+temporary WGS84 latitude and longitude. Marker and polyline display positions
+substitute this temporary value until `dragend`, when the final position is
+committed and the temporary value is cleared.
 
-The temporary position is presentation state only. Calculated navigation legs
-remain derived from the canonical waypoint array through the WGS84 geodesy layer;
+Each displayed real-waypoint leg has a normal visible polyline and wider,
+nearly transparent interactive segment overlays. Pressing and dragging a
+segment creates a presentation-only shaping-point draft at that segment's
+insertion index. Map panning is disabled for the gesture. On pointer release,
+the draft is committed once to the matching `LegShape`; background map clicks
+remain reserved for creating real waypoints.
+
+Temporary positions are presentation state only. Calculated navigation legs
+remain derived from the canonical `FlightPlan` through the WGS84 geodesy layer;
 Leaflet pixel coordinates and Web Mercator coordinates are never used for
 distance or true-track calculations.

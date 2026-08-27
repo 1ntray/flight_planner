@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calculateGeodesicMidpoint,
   calculateInverseGeodesic,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
@@ -15,6 +16,36 @@ describe('normalizeTrackDeg', () => {
     { input: 721.5, expected: 1.5 },
   ])('normalizes $input° to $expected°', ({ input, expected }) => {
     expect(normalizeTrackDeg(input)).toBe(expected);
+  });
+});
+
+describe('calculateGeodesicMidpoint', () => {
+  it('returns the halfway point by distance along a WGS84 geodesic', () => {
+    const midpoint = calculateGeodesicMidpoint(
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 2 },
+    );
+
+    expect(midpoint.latitude).toBeCloseTo(0, 12);
+    expect(midpoint.longitude).toBeCloseTo(1, 12);
+  });
+
+  it('takes the short geodesic across the antimeridian', () => {
+    const midpoint = calculateGeodesicMidpoint(
+      { latitude: 10, longitude: 179 },
+      { latitude: 10, longitude: -179 },
+    );
+
+    expect(midpoint.latitude).toBeGreaterThan(10);
+    expect(Math.abs(midpoint.longitude)).toBeCloseTo(180, 10);
+  });
+
+  it('returns a copy of an effectively identical starting position', () => {
+    const position = { latitude: 69.35, longitude: 18.75 };
+    const midpoint = calculateGeodesicMidpoint(position, position);
+
+    expect(midpoint).toEqual(position);
+    expect(midpoint).not.toBe(position);
   });
 });
 
@@ -64,4 +95,3 @@ describe('calculateInverseGeodesic', () => {
     expect(result).toEqual({ distanceNm: 0, trueTrackDeg: null });
   });
 });
-

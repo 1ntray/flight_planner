@@ -1,4 +1,5 @@
 export {
+  calculateGeodesicMidpoint,
   calculateInverseGeodesic,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
@@ -16,4 +17,17 @@ export type {
   WindAdjustedLegResult,
   WindAdjustedLegSolution,
 } from './navigation';
-export { calculateFlightPlanLegs, calculateLeg, calculateRoute } from './route';
+export { calculateNavigationRoute } from './navigationRoute';
+export type {
+  CalculatedNavigationRoute,
+  CalculatedNavigationRouteLeg,
+  LegWindOverride,
+  NavigationRouteCalculationInput,
+  NavigationWindSource,
+} from './navigationRoute';
+export {
+  buildLegGeometry,
+  calculateFlightPlanLegs,
+  calculateLeg,
+  calculateRoute,
+} from './route';

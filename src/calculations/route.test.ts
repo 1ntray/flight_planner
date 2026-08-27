@@ -16,10 +16,12 @@ describe('calculateFlightPlanLegs', () => {
       ],
       description: 'one waypoint',
     },
-  ] satisfies Array<FlightPlan & { description: string }>) (
+  ].map((value) => ({ ...value, legShapes: [] })) satisfies Array<
+    FlightPlan & { description: string }
+  >)(
     'returns no legs for $description',
-    ({ waypoints }) => {
-      expect(calculateFlightPlanLegs({ waypoints })).toEqual([]);
+    ({ waypoints, legShapes }) => {
+      expect(calculateFlightPlanLegs({ waypoints, legShapes })).toEqual([]);
     },
   );
 
@@ -42,6 +44,7 @@ describe('calculateFlightPlanLegs', () => {
           position: { latitude: 1, longitude: 1 },
         },
       ],
+      legShapes: [],
     };
 
     const legs = calculateFlightPlanLegs(flightPlan);
@@ -68,12 +71,14 @@ describe('calculateFlightPlanLegs', () => {
         { id: 'A', name: 'First', position },
         { id: 'B', name: 'Second', position },
       ],
+      legShapes: [],
     };
 
     expect(calculateFlightPlanLegs(flightPlan)).toEqual([
       {
         fromId: 'A',
         toId: 'B',
+        geometry: [position, position],
         distanceNm: 0,
         trueTrackDeg: null,
       },
@@ -92,12 +97,12 @@ describe('calculateFlightPlanLegs', () => {
       position: { latitude: 0, longitude: 1 },
     };
 
-    expect(calculateFlightPlanLegs({ waypoints: [first, second] })[0]).toMatchObject(
-      { fromId: 'A', toId: 'B', trueTrackDeg: 90 },
-    );
-    expect(calculateFlightPlanLegs({ waypoints: [second, first] })[0]).toMatchObject(
-      { fromId: 'B', toId: 'A', trueTrackDeg: 270 },
-    );
+    expect(
+      calculateFlightPlanLegs({ waypoints: [first, second], legShapes: [] })[0],
+    ).toMatchObject({ fromId: 'A', toId: 'B', trueTrackDeg: 90 });
+    expect(
+      calculateFlightPlanLegs({ waypoints: [second, first], legShapes: [] })[0],
+    ).toMatchObject({ fromId: 'B', toId: 'A', trueTrackDeg: 270 });
   });
 
   it('derives the route directly from a waypoint array', () => {
@@ -114,8 +119,77 @@ describe('calculateFlightPlanLegs', () => {
       },
     ];
 
-    expect(calculateRoute(waypoints)).toEqual(
-      calculateFlightPlanLegs({ waypoints }),
+    expect(calculateRoute({ waypoints, legShapes: [] })).toEqual(
+      calculateFlightPlanLegs({ waypoints, legShapes: [] }),
     );
+  });
+
+  it('keeps direct true track while summing unrounded shaped segments', () => {
+    const waypoints = [
+      {
+        id: 'A',
+        name: 'Start',
+        position: { latitude: 0, longitude: 0 },
+      },
+      {
+        id: 'B',
+        name: 'Finish',
+        position: { latitude: 0, longitude: 2 },
+      },
+    ];
+    const shapingPoints = [
+      { id: 'G1', position: { latitude: 0.5, longitude: 0.5 } },
+      { id: 'G2', position: { latitude: 0.5, longitude: 1.5 } },
+    ];
+    const directLeg = calculateRoute({ waypoints, legShapes: [] })[0]!;
+    const shapedLeg = calculateRoute({
+      waypoints,
+      legShapes: [
+        { fromWaypointId: 'A', toWaypointId: 'B', points: shapingPoints },
+      ],
+    })[0]!;
+    const expectedDistance =
+      calculateRoute({
+        waypoints: [
+          waypoints[0]!,
+          { id: 'G1', name: 'unused', position: shapingPoints[0]!.position },
+          { id: 'G2', name: 'unused', position: shapingPoints[1]!.position },
+          waypoints[1]!,
+        ],
+        legShapes: [],
+      }).reduce((total, leg) => total + leg.distanceNm, 0);
+
+    expect(shapedLeg.trueTrackDeg).toBe(directLeg.trueTrackDeg);
+    expect(shapedLeg.trueTrackDeg).toBeCloseTo(90, 12);
+    expect(shapedLeg.distanceNm).toBeCloseTo(expectedDistance, 12);
+    expect(shapedLeg.distanceNm).toBeGreaterThan(directLeg.distanceNm);
+    expect(shapedLeg.geometry).toEqual([
+      waypoints[0]!.position,
+      shapingPoints[0]!.position,
+      shapingPoints[1]!.position,
+      waypoints[1]!.position,
+    ]);
+  });
+
+  it('rejects duplicate and orphaned leg shapes', () => {
+    const waypoints = [
+      { id: 'A', name: 'A', position: { latitude: 0, longitude: 0 } },
+      { id: 'B', name: 'B', position: { latitude: 0, longitude: 1 } },
+    ];
+    const shape = {
+      fromWaypointId: 'A',
+      toWaypointId: 'B',
+      points: [{ id: 'G1', position: { latitude: 0.5, longitude: 0.5 } }],
+    };
+
+    expect(() =>
+      calculateRoute({ waypoints, legShapes: [shape, shape] }),
+    ).toThrow('Duplicate route shape');
+    expect(() =>
+      calculateRoute({
+        waypoints,
+        legShapes: [{ ...shape, toWaypointId: 'missing' }],
+      }),
+    ).toThrow('does not match an adjacent waypoint leg');
   });
 });

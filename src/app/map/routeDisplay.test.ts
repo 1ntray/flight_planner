@@ -1,66 +1,104 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Waypoint } from '../../domain';
+import type { FlightPlan } from '../../domain';
 import {
-  buildRouteDisplayPositions,
-  getWaypointDisplayPosition,
+  buildRouteDisplayLegs,
+  getRoutePointDisplayPosition,
 } from './routeDisplay';
 
-const waypoints: Waypoint[] = [
-  {
-    id: 'stable-a',
-    name: 'WP01',
-    position: { latitude: 69, longitude: 18 },
-  },
-  {
-    id: 'stable-b',
-    name: 'WP02',
-    position: { latitude: 69.2, longitude: 18.5 },
-  },
-  {
-    id: 'stable-c',
-    name: 'WP03',
-    position: { latitude: 69.4, longitude: 19 },
-  },
-];
+const flightPlan: FlightPlan = {
+  waypoints: [
+    {
+      id: 'stable-a',
+      name: 'WP01',
+      position: { latitude: 69, longitude: 18 },
+    },
+    {
+      id: 'stable-b',
+      name: 'WP02',
+      position: { latitude: 69.2, longitude: 18.5 },
+    },
+    {
+      id: 'stable-c',
+      name: 'WP03',
+      position: { latitude: 69.4, longitude: 19 },
+    },
+  ],
+  legShapes: [
+    {
+      fromWaypointId: 'stable-a',
+      toWaypointId: 'stable-b',
+      points: [
+        {
+          id: 'shape-1',
+          position: { latitude: 69.1, longitude: 18.15 },
+        },
+      ],
+    },
+  ],
+};
 
-describe('route display positions', () => {
-  it('uses canonical waypoint coordinates when no marker is being dragged', () => {
-    expect(buildRouteDisplayPositions(waypoints, null)).toEqual([
-      [69, 18],
-      [69.2, 18.5],
-      [69.4, 19],
+describe('route display geometry', () => {
+  it('builds one geometry per real-waypoint leg with shaping points included', () => {
+    expect(buildRouteDisplayLegs(flightPlan, null, null)).toEqual([
+      {
+        fromWaypointId: 'stable-a',
+        toWaypointId: 'stable-b',
+        positions: [
+          [69, 18],
+          [69.1, 18.15],
+          [69.2, 18.5],
+        ],
+      },
+      {
+        fromWaypointId: 'stable-b',
+        toWaypointId: 'stable-c',
+        positions: [
+          [69.2, 18.5],
+          [69.4, 19],
+        ],
+      },
     ]);
   });
 
-  it('substitutes only the temporary dragged position', () => {
-    const draggedWaypoint = {
-      waypointId: 'stable-b',
-      position: { latitude: 69.3, longitude: 18.8 },
-    };
-
-    expect(buildRouteDisplayPositions(waypoints, draggedWaypoint)).toEqual([
-      [69, 18],
-      [69.3, 18.8],
-      [69.4, 19],
-    ]);
-    expect(getWaypointDisplayPosition(waypoints[1]!, draggedWaypoint)).toBe(
-      draggedWaypoint.position,
+  it('substitutes a dragged point without mutating canonical input', () => {
+    const position = { latitude: 69.15, longitude: 18.3 };
+    const display = buildRouteDisplayLegs(
+      flightPlan,
+      { kind: 'shaping-point', pointId: 'shape-1', position },
+      null,
     );
-    expect(waypoints[1]?.position).toEqual({ latitude: 69.2, longitude: 18.5 });
+
+    expect(display[0]?.positions[1]).toEqual([69.15, 18.3]);
+    expect(
+      getRoutePointDisplayPosition('shape-1', { latitude: 0, longitude: 0 }, {
+        kind: 'shaping-point',
+        pointId: 'shape-1',
+        position,
+      }),
+    ).toBe(position);
+    expect(flightPlan.legShapes[0]?.points[0]?.position).toEqual({
+      latitude: 69.1,
+      longitude: 18.15,
+    });
   });
 
-  it('ignores temporary state for a waypoint that is not in the route', () => {
-    expect(
-      buildRouteDisplayPositions(waypoints, {
-        waypointId: 'removed-waypoint',
-        position: { latitude: 70, longitude: 20 },
-      }),
-    ).toEqual([
+  it('inserts a pending shaping point at the selected segment index', () => {
+    const display = buildRouteDisplayLegs(flightPlan, null, {
+      fromWaypointId: 'stable-a',
+      toWaypointId: 'stable-b',
+      insertionIndex: 1,
+      point: {
+        id: 'pending',
+        position: { latitude: 69.18, longitude: 18.4 },
+      },
+    });
+
+    expect(display[0]?.positions).toEqual([
       [69, 18],
+      [69.1, 18.15],
+      [69.18, 18.4],
       [69.2, 18.5],
-      [69.4, 19],
     ]);
   });
 });
-
