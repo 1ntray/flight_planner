@@ -282,6 +282,7 @@ describe('calculatePerformanceRoute', () => {
           waypointId: 'B',
           elevationFtMsl: 500,
           weather: { qnhHpa: 1005, isaDeviationC: 5 },
+          stopDurationMinutes: 30,
         }],
       },
       profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
@@ -295,10 +296,40 @@ describe('calculatePerformanceRoute', () => {
       expect(result.sectors[1]?.legs[0]?.startAltitudeFtMsl).toBe(500);
       expect(result.sectors[1]?.legs[0]?.phases[0]?.phase).toBe('climb');
       expect(result.sectors[1]?.departureTimeUtcMs)
-        .toBe(result.sectors[0]?.estimatedArrivalTimeUtcMs);
+        .toBe(result.sectors[0]!.estimatedArrivalTimeUtcMs + 30 * 60_000);
       expect(result.sectors[0]?.environment).not.toEqual(
         result.sectors[1]?.environment,
       );
+    }
+  });
+
+  it('treats an omitted stop duration as an immediate onward departure', () => {
+    const result = calculatePerformanceRoute({
+      flightPlan: {
+        waypoints: [
+          longLeg.waypoints[0]!,
+          { id: 'B', name: 'STOP', position: { latitude: 0, longitude: 2 } },
+          { id: 'C', name: 'FINISH', position: { latitude: 0, longitude: 4 } },
+        ],
+        legShapes: [],
+        sectorBoundaryWaypointIds: ['B'],
+      },
+      navigation,
+      performance: {
+        ...performance,
+        sectorStopPlans: [{
+          waypointId: 'B',
+          elevationFtMsl: 500,
+          weather: { qnhHpa: 1005, isaDeviationC: 5 },
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      expect(result.sectors[1]?.departureTimeUtcMs)
+        .toBe(result.sectors[0]?.estimatedArrivalTimeUtcMs);
     }
   });
 

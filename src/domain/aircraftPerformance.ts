@@ -73,7 +73,12 @@ export interface SectorStopPlan {
   readonly waypointId: string;
   readonly elevationFtMsl: number;
   readonly weather: AerodromePlanningWeather;
-  /** If omitted, the onward sector starts at the preceding sector's arrival time. */
+  /** Ground time after the preceding sector arrives. If omitted, the stop is instantaneous. */
+  readonly stopDurationMinutes?: number;
+  /**
+   * Compatibility with schema version 4. New plans use stopDurationMinutes.
+   * If both are absent, the onward sector starts at the preceding arrival.
+   */
   readonly onwardDepartureTimeUtcMs?: number;
 }
 

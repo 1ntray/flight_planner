@@ -56,6 +56,7 @@ export type AeronauticalLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 export interface AeronauticalLayersProps {
   repository: AeronauticalDataRepository;
   visibility: AeronauticalLayerVisibility;
+  anchoringEnabled: boolean;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
   onDatasetChange: (dataset: AeronauticalDatasetRef | null) => void;
   onStatusChange: (status: AeronauticalLoadStatus) => void;
@@ -89,6 +90,7 @@ function stopMapClick(event: LeafletMouseEvent): void {
 export function AeronauticalLayers({
   repository,
   visibility,
+  anchoringEnabled,
   onAnchorPoint,
   onDatasetChange,
   onStatusChange,
@@ -218,12 +220,16 @@ export function AeronauticalLayers({
             pane="aeronautical-points"
             icon={pointIconByKind[feature.pointKind]}
             bubblingMouseEvents={false}
-            title={`${feature.identifier} — click to add anchored waypoint`}
+            title={`${feature.identifier} — ${anchoringEnabled ? 'click to add anchored waypoint' : 'aeronautical feature'}`}
             alt={feature.identifier}
             eventHandlers={{
               click: (event) => {
                 stopMapClick(event);
-                onAnchorPoint(feature);
+                if (anchoringEnabled) {
+                  onAnchorPoint(feature);
+                } else {
+                  event.target.openPopup();
+                }
               },
             }}
           >
@@ -231,6 +237,14 @@ export function AeronauticalLayers({
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
+            <Popup>
+              <strong>{feature.identifier}</strong>
+              {feature.name === undefined ? null : <><br />{feature.name}</>}
+              <br />
+              {anchoringEnabled
+                ? 'Click the symbol to add an anchored waypoint'
+                : 'Switch to Add waypoint mode to use this feature'}
+            </Popup>
           </Marker>
         ))}
       </Pane>

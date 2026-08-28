@@ -60,7 +60,7 @@ describe('performance input parsing', () => {
         elevationFtMsl: '350',
         qnhHpa: '1008',
         isaDeviationC: '3',
-        onwardDepartureTimeUtc: '2026-08-28T12:30',
+        stopDurationMinutes: '30',
       }],
     };
 
@@ -71,13 +71,31 @@ describe('performance input parsing', () => {
           waypointId: 'B',
           elevationFtMsl: 350,
           weather: { qnhHpa: 1008, isaDeviationC: 3 },
-          onwardDepartureTimeUtcMs: Date.UTC(2026, 7, 28, 12, 30),
+          stopDurationMinutes: 30,
         }],
       },
     });
     expect(parsePerformanceInputDraft(draft, ['B', 'C'])).toMatchObject({
       status: 'invalid',
       message: expect.stringContaining('every intermediate airport'),
+    });
+  });
+
+  it('rejects a negative intermediate-airport stop duration', () => {
+    const draft = {
+      ...createPerformanceInputDraft(inputs),
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: '350',
+        qnhHpa: '1008',
+        isaDeviationC: '3',
+        stopDurationMinutes: '-1',
+      }],
+    };
+
+    expect(parsePerformanceInputDraft(draft, ['B'])).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('at least 0'),
     });
   });
 });

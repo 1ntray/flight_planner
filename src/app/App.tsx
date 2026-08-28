@@ -21,14 +21,18 @@ import {
 } from '../persistence';
 import type { LocalDraftStorage } from '../persistence';
 import { FlightMap } from './map/FlightMap';
-import type { SelectedRoutePoint } from './map/routeDisplay';
+import type {
+  MapSelection,
+  MapTool,
+  SelectedRoutePoint,
+} from './map/routeDisplay';
 import {
   insertWaypointIntoFlightPlan,
 } from './route/routeInsertion';
 import type {
   RouteWaypointInsertionCandidate,
 } from './route/routeInsertion';
-import { NavigationLog } from './navigation/NavigationLog';
+import type { NavigationLogProps } from './navigation/NavigationLog';
 import {
   createDefaultNavigationInputDraft,
   createNavigationInputDraft,
@@ -44,13 +48,17 @@ import {
 import type { PerformanceInputDraft } from './navigation/performanceInput';
 import {
   removeAltitudePlansTouchingWaypoint,
+  setLegAltitudeOverride,
   setLegAltitudeTargetDistance,
   splitLegAltitudePlanForWaypointInsertion,
 } from './navigation/altitudePlanState';
 import type { AltitudePlacementLeg } from './navigation/altitudePlanState';
 import { usePlanningCalculations } from './navigation/usePlanningCalculations';
-import { FlightPlanFileControls } from './persistence/FlightPlanFileControls';
 import type { LocalDraftStatus } from './persistence/FlightPlanFileControls';
+import { usePlannerShortcuts } from './interaction/usePlannerShortcuts';
+import type { PlannerShortcutAction } from './interaction/plannerShortcuts';
+import { PlannerSidebar } from './layout/PlannerSidebar';
+import { NavlogDock } from './layout/NavlogDock';
 import {
   appendAnchoredWaypointToFlightPlan,
   appendWaypointToFlightPlan,
@@ -63,7 +71,6 @@ import {
   removeWaypointFromFlightPlan,
   setWaypointSectorBoundary,
 } from './route/flightPlanState';
-import { WaypointEditor } from './route/WaypointEditor';
 
 const aeronauticalRepository = getConfiguredAeronauticalRepository(
   window.location.search,
@@ -173,8 +180,11 @@ export function App() {
   );
   const [aircraftDefinition, setAircraftDefinition] =
     useState<AircraftDefinition>(initialPlanningState.aircraftDefinition);
-  const [selectedRoutePoint, setSelectedRoutePoint] =
-    useState<SelectedRoutePoint | null>(null);
+  const [mapSelection, setMapSelection] = useState<MapSelection | null>(null);
+  const [mapTool, setMapTool] = useState<MapTool>({ kind: 'select' });
+  const [activeSidebarTab, setActiveSidebarTab] =
+    useState<'planning' | 'shortcuts'>('planning');
+  const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
   const [navigationInputDraft, setNavigationInputDraft] =
     useState<NavigationInputDraft>(
       initialPlanningState.navigationInputDraft,
@@ -186,8 +196,6 @@ export function App() {
     useState<PerformanceInputDraft>(
       initialPlanningState.performanceInputDraft,
     );
-  const [altitudePlacementLeg, setAltitudePlacementLeg] =
-    useState<AltitudePlacementLeg | null>(null);
   const [localDraftStatus, setLocalDraftStatus] =
     useState<LocalDraftStatus>(initialPlanningState.localDraftStatus);
   const lastSavedDocumentJsonRef = useRef<string | null>(
@@ -300,7 +308,6 @@ export function App() {
       setFlightPlan((currentFlightPlan) =>
         appendAnchoredWaypointToFlightPlan(currentFlightPlan, feature, id),
       );
-      setSelectedRoutePoint({ kind: 'waypoint', id });
     },
     [],
   );
@@ -356,16 +363,21 @@ export function App() {
         ),
       }));
       setFlightPlan(insertWaypointIntoFlightPlan(flightPlan, candidate, id));
-      setSelectedRoutePoint({ kind: 'waypoint', id });
-      setAltitudePlacementLeg(null);
+      setMapSelection({ kind: 'waypoint', id });
+      setMapTool({ kind: 'select' });
     },
     [flightPlan],
   );
 
-  const deleteSelectedRoutePoint = () => {
-    if (selectedRoutePoint === null) {
+  const deleteSelectedRoutePoint = useCallback(() => {
+    if (
+      mapSelection === null ||
+      mapSelection.kind === 'leg'
+    ) {
       return;
     }
+
+    const selectedRoutePoint: SelectedRoutePoint = mapSelection;
 
     if (
       selectedRoutePoint.kind === 'waypoint' &&
@@ -404,9 +416,9 @@ export function App() {
         ),
       }));
     }
-    setSelectedRoutePoint(null);
-    setAltitudePlacementLeg(null);
-  };
+    setMapSelection(null);
+    setMapTool({ kind: 'select' });
+  }, [mapSelection, performanceInputDraft.legAltitudePlans]);
 
   const clearRoute = () => {
     setFlightPlan({
@@ -419,8 +431,8 @@ export function App() {
       legAltitudePlans: [],
       sectorStopPlans: [],
     }));
-    setSelectedRoutePoint(null);
-    setAltitudePlacementLeg(null);
+    setMapSelection(null);
+    setMapTool({ kind: 'select' });
   };
   const startNewPlan = useCallback(() => {
     const freshState = createFreshPlanningState();
@@ -436,8 +448,8 @@ export function App() {
     setNavigationInputDraft(freshState.navigationInputDraft);
     setPerformanceInputDraft(freshState.performanceInputDraft);
     setUseForecastWinds(freshState.useForecastWinds);
-    setSelectedRoutePoint(null);
-    setAltitudePlacementLeg(null);
+    setMapSelection(null);
+    setMapTool({ kind: 'select' });
     setLocalDraftStatus(
       clearResult.status === 'success'
         ? {
@@ -463,15 +475,15 @@ export function App() {
           : createPerformanceInputDraft(document.performanceInputs),
       );
       setUseForecastWinds(document.useForecastWinds);
-      setSelectedRoutePoint(null);
-      setAltitudePlacementLeg(null);
+      setMapSelection(null);
+      setMapTool({ kind: 'select' });
     },
     [],
   );
   const selectedWaypoint =
-    selectedRoutePoint?.kind === 'waypoint'
+    mapSelection?.kind === 'waypoint'
       ? flightPlan.waypoints.find(
-          (waypoint) => waypoint.id === selectedRoutePoint.id,
+          (waypoint) => waypoint.id === mapSelection.id,
         )
       : undefined;
   const selectedWaypointIndex = selectedWaypoint === undefined
@@ -482,43 +494,48 @@ export function App() {
   const selectedWaypointCanBeSectorBoundary =
     selectedWaypointIndex > 0 &&
     selectedWaypointIndex < flightPlan.waypoints.length - 1;
-  const selectedWaypointIsSectorBoundary =
-    selectedWaypoint !== undefined &&
-    (flightPlan.sectorBoundaryWaypointIds ?? []).includes(selectedWaypoint.id);
-  const toggleSelectedWaypointSectorBoundary = () => {
-    if (selectedWaypoint === undefined || !selectedWaypointCanBeSectorBoundary) {
+  const toggleWaypointSectorBoundary = useCallback((waypointId: string) => {
+    const waypointIndex = flightPlan.waypoints.findIndex(
+      ({ id }) => id === waypointId,
+    );
+
+    if (waypointIndex <= 0 || waypointIndex >= flightPlan.waypoints.length - 1) {
       return;
     }
 
-    const enabled = !selectedWaypointIsSectorBoundary;
+    const enabled = !(flightPlan.sectorBoundaryWaypointIds ?? []).includes(
+      waypointId,
+    );
     setFlightPlan((currentFlightPlan) =>
-      setWaypointSectorBoundary(currentFlightPlan, selectedWaypoint.id, enabled),
+      setWaypointSectorBoundary(currentFlightPlan, waypointId, enabled),
     );
     setPerformanceInputDraft((currentDraft) => ({
       ...currentDraft,
       sectorStopPlans: enabled
         ? currentDraft.sectorStopPlans.some(
-            (stop) => stop.waypointId === selectedWaypoint.id,
+            (stop) => stop.waypointId === waypointId,
           )
           ? currentDraft.sectorStopPlans
           : [
               ...currentDraft.sectorStopPlans,
-              createEmptySectorStopInputDraft(selectedWaypoint.id),
+              createEmptySectorStopInputDraft(waypointId),
             ]
         : currentDraft.sectorStopPlans.filter(
-            (stop) => stop.waypointId !== selectedWaypoint.id,
+            (stop) => stop.waypointId !== waypointId,
           ),
     }));
-  };
-  const detachSelectedWaypoint = () => {
-    if (selectedWaypoint?.anchor === undefined) {
+  }, [flightPlan]);
+  const detachWaypoint = useCallback((waypointId: string) => {
+    const waypoint = flightPlan.waypoints.find(({ id }) => id === waypointId);
+
+    if (waypoint?.anchor === undefined) {
       return;
     }
 
     setFlightPlan((currentFlightPlan) =>
-      detachWaypointInFlightPlan(currentFlightPlan, selectedWaypoint.id),
+      detachWaypointInFlightPlan(currentFlightPlan, waypointId),
     );
-  };
+  }, [flightPlan.waypoints]);
   const shapingPointCount = flightPlan.legShapes.reduce(
     (total, shape) => total + shape.points.length,
     0,
@@ -538,22 +555,160 @@ export function App() {
           distanceFromStartNm,
         ),
       }));
-      setAltitudePlacementLeg(null);
+      setMapTool({ kind: 'select' });
     },
     [],
   );
+  const setLegAltitude = useCallback(
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      altitudeFtMsl: number | null,
+    ) => {
+      setPerformanceInputDraft((currentDraft) => ({
+        ...currentDraft,
+        legAltitudePlans: setLegAltitudeOverride(
+          currentDraft.legAltitudePlans,
+          fromWaypointId,
+          toWaypointId,
+          altitudeFtMsl,
+        ),
+      }));
+    },
+    [],
+  );
+  const resetAltitudeTarget = useCallback(
+    (fromWaypointId: string, toWaypointId: string) => {
+      setPerformanceInputDraft((currentDraft) => ({
+        ...currentDraft,
+        legAltitudePlans: setLegAltitudeTargetDistance(
+          currentDraft.legAltitudePlans,
+          fromWaypointId,
+          toWaypointId,
+          null,
+        ),
+      }));
+    },
+    [],
+  );
+  const altitudePlacementLeg: AltitudePlacementLeg | null =
+    mapTool.kind === 'place-altitude-target'
+      ? {
+          fromWaypointId: mapTool.fromWaypointId,
+          toWaypointId: mapTool.toWaypointId,
+        }
+      : null;
+  const setAltitudePlacementLeg = useCallback(
+    (leg: AltitudePlacementLeg | null) => {
+      setMapTool(
+        leg === null
+          ? { kind: 'select' }
+          : { kind: 'place-altitude-target', ...leg },
+      );
+    },
+    [],
+  );
+  const changeMapTool = useCallback((tool: MapTool) => {
+    setMapTool(tool);
+    if (tool.kind === 'add-waypoint') {
+      setMapSelection(null);
+    }
+  }, []);
+  const handlePlannerShortcut = useCallback(
+    (action: PlannerShortcutAction) => {
+      switch (action) {
+        case 'cancel':
+          if (mapTool.kind !== 'select') {
+            setMapTool({ kind: 'select' });
+          } else {
+            setMapSelection(null);
+          }
+          break;
+        case 'delete-selection':
+          deleteSelectedRoutePoint();
+          break;
+        case 'insert-waypoint':
+          if (mapSelection?.kind === 'leg') {
+            insertWaypoint(mapSelection.candidate);
+          }
+          break;
+        case 'edit-altitude':
+          if (mapSelection?.kind === 'leg') {
+            setMapTool({ kind: 'select' });
+            setAltitudeFocusRequest((current) => current + 1);
+          }
+          break;
+        case 'place-altitude-target':
+          if (mapSelection?.kind === 'leg') {
+            setMapTool({
+              kind: 'place-altitude-target',
+              fromWaypointId: mapSelection.candidate.fromWaypointId,
+              toWaypointId: mapSelection.candidate.toWaypointId,
+            });
+          }
+          break;
+        case 'toggle-add-waypoint':
+          changeMapTool(
+            mapTool.kind === 'add-waypoint'
+              ? { kind: 'select' }
+              : { kind: 'add-waypoint' },
+          );
+          break;
+        case 'select-mode':
+          setMapTool({ kind: 'select' });
+          break;
+        case 'toggle-landing':
+          if (selectedWaypointCanBeSectorBoundary && selectedWaypoint !== undefined) {
+            toggleWaypointSectorBoundary(selectedWaypoint.id);
+          }
+          break;
+        case 'show-shortcuts':
+          setActiveSidebarTab('shortcuts');
+          break;
+      }
+    },
+    [
+      changeMapTool,
+      deleteSelectedRoutePoint,
+      insertWaypoint,
+      mapSelection,
+      mapTool.kind,
+      selectedWaypoint,
+      selectedWaypointCanBeSectorBoundary,
+      toggleWaypointSectorBoundary,
+    ],
+  );
+
+  usePlannerShortcuts({
+    selection: mapSelection,
+    tool: mapTool,
+    onAction: handlePlannerShortcut,
+  });
+  const navigationLogProps = {
+    flightPlan,
+    aircraftDefinition,
+    draft: navigationInputDraft,
+    performanceDraft: performanceInputDraft,
+    useForecastWinds,
+    onDraftChange: setNavigationInputDraft,
+    onAircraftDefinitionChange: setAircraftDefinition,
+    onPerformanceDraftChange: setPerformanceInputDraft,
+    onUseForecastWindsChange: setUseForecastWinds,
+    altitudePlacementLeg,
+    onAltitudePlacementLegChange: setAltitudePlacementLeg,
+    calculations,
+  } satisfies Omit<NavigationLogProps, 'section'>;
 
   return (
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.14</p>
+          <p className="eyebrow">MVP 0.16</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
-          Click empty map to add a free waypoint. Click an aeronautical point
-          to anchor it. Click a route line to insert a waypoint, or drag it to
-          shape the leg.
+          Select/edit is the safe default. Press W to add waypoints, click a
+          route leg to edit it, or drag the line to shape it.
         </p>
       </header>
 
@@ -562,9 +717,11 @@ export function App() {
           <FlightMap
             flightPlan={flightPlan}
             aeronauticalRepository={aeronauticalRepository}
-            selectedRoutePoint={selectedRoutePoint}
+            selection={mapSelection}
+            tool={mapTool}
             altitudePlans={performanceInputDraft.legAltitudePlans}
-            altitudePlacementLeg={altitudePlacementLeg}
+            defaultAltitudeFtMsl={performanceInputDraft.defaultAltitudeFtMsl}
+            altitudeFocusRequest={altitudeFocusRequest}
             performanceRoute={calculations.performanceRoute}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}
@@ -572,94 +729,35 @@ export function App() {
             onAddShapingPoint={addShapingPoint}
             onMoveShapingPoint={moveShapingPoint}
             onInsertWaypoint={insertWaypoint}
-            onSelectRoutePoint={setSelectedRoutePoint}
+            onSelectionChange={setMapSelection}
+            onToolChange={changeMapTool}
+            onRenameWaypoint={renameWaypoint}
+            onDeleteSelection={deleteSelectedRoutePoint}
+            onDetachWaypoint={detachWaypoint}
+            onToggleWaypointSectorBoundary={toggleWaypointSectorBoundary}
+            onSetLegAltitude={setLegAltitude}
+            onResetAltitudeTarget={resetAltitudeTarget}
             onSetAltitudeTarget={setAltitudeTarget}
           />
         </section>
 
-        <aside className="route-panel" aria-labelledby="route-heading">
-          <div className="route-panel__header">
-            <div>
-              <p className="eyebrow">Route</p>
-              <h2 id="route-heading">Navigation log</h2>
-            </div>
-            <span className="waypoint-count">
-              {flightPlan.waypoints.length}{' '}
-              {flightPlan.waypoints.length === 1 ? 'waypoint' : 'waypoints'}
-              {shapingPointCount === 0
-                ? ''
-                : ` · ${shapingPointCount} ${shapingPointCount === 1 ? 'shaping point' : 'shaping points'}`}
-            </span>
-          </div>
+        <PlannerSidebar
+          activeTab={activeSidebarTab}
+          waypointCount={flightPlan.waypoints.length}
+          shapingPointCount={shapingPointCount}
+          planningDocument={planningDocument}
+          localDraftStatus={localDraftStatus}
+          navigationLogProps={navigationLogProps}
+          onActiveTabChange={setActiveSidebarTab}
+          onClearRoute={clearRoute}
+          onImport={importPlanningDocument}
+          onNewPlan={startNewPlan}
+        />
 
-          <div className="route-controls">
-            <button
-              type="button"
-              className="button button--danger"
-              disabled={selectedRoutePoint === null}
-              onClick={deleteSelectedRoutePoint}
-            >
-              {selectedRoutePoint?.kind === 'shaping-point'
-                ? 'Delete shaping point'
-                : 'Delete waypoint'}
-            </button>
-            <button
-              type="button"
-              className="button"
-              disabled={selectedWaypoint?.anchor === undefined}
-              onClick={detachSelectedWaypoint}
-            >
-              Detach waypoint
-            </button>
-            <button
-              type="button"
-              className={`button${selectedWaypointIsSectorBoundary ? ' button--active' : ''}`}
-              disabled={!selectedWaypointCanBeSectorBoundary}
-              onClick={toggleSelectedWaypointSectorBoundary}
-            >
-              {selectedWaypointIsSectorBoundary
-                ? 'Remove landing'
-                : 'Mark landing'}
-            </button>
-            <button
-              type="button"
-              className="button"
-              disabled={flightPlan.waypoints.length === 0}
-              onClick={clearRoute}
-            >
-              Clear route
-            </button>
-          </div>
-
-          <FlightPlanFileControls
-            document={planningDocument}
-            localDraftStatus={localDraftStatus}
-            onImport={importPlanningDocument}
-            onNewPlan={startNewPlan}
-          />
-
-          {selectedWaypoint === undefined ? null : (
-            <WaypointEditor
-              waypoint={selectedWaypoint}
-              onRename={renameWaypoint}
-            />
-          )}
-
-          <NavigationLog
-            flightPlan={flightPlan}
-            aircraftDefinition={aircraftDefinition}
-            draft={navigationInputDraft}
-            performanceDraft={performanceInputDraft}
-            useForecastWinds={useForecastWinds}
-            onDraftChange={setNavigationInputDraft}
-            onAircraftDefinitionChange={setAircraftDefinition}
-            onPerformanceDraftChange={setPerformanceInputDraft}
-            onUseForecastWindsChange={setUseForecastWinds}
-            altitudePlacementLeg={altitudePlacementLeg}
-            onAltitudePlacementLegChange={setAltitudePlacementLeg}
-            calculations={calculations}
-          />
-        </aside>
+        <NavlogDock
+          waypointCount={flightPlan.waypoints.length}
+          navigationLogProps={navigationLogProps}
+        />
       </div>
     </main>
   );

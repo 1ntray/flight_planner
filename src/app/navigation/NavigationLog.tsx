@@ -15,6 +15,7 @@ import {
 } from './weatherFormatting';
 
 export interface NavigationLogProps {
+  section?: 'all' | 'controls' | 'tables';
   flightPlan: FlightPlan;
   aircraftDefinition: AircraftDefinition;
   draft: NavigationInputDraft;
@@ -30,6 +31,7 @@ export interface NavigationLogProps {
 }
 
 export function NavigationLog({
+  section = 'all',
   flightPlan,
   aircraftDefinition,
   draft,
@@ -57,9 +59,13 @@ export function NavigationLog({
   ) => {
     onDraftChange({ ...draft, [field]: value });
   };
+  const showControls = section !== 'tables';
+  const showTables = section !== 'controls';
 
   return (
     <>
+      {showControls ? (
+        <>
       <fieldset className="navigation-inputs">
         <legend>Route planning inputs</legend>
         <p className="navigation-inputs__scope">
@@ -238,6 +244,11 @@ export function NavigationLog({
         onPlacementLegChange={onAltitudePlacementLegChange}
       />
 
+        </>
+      ) : null}
+
+      {showTables ? (
+        <>
       {performanceRoute?.status === 'no-solution' ? (
         <p className="navigation-inputs__error performance-route-error" role="alert">
           Performance profile unavailable for {performanceRoute.legFromId} →{' '}
@@ -253,6 +264,8 @@ export function NavigationLog({
           forecast.status.status === 'success' ? forecast.status.winds : []
         }
       />
+        </>
+      ) : null}
     </>
   );
 }

@@ -31,6 +31,7 @@ export {
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
 } from './flightPlanningDocument';
 export type {
   FlightPlanningDocument,
@@ -38,6 +39,7 @@ export type {
   FlightPlanningDocumentV2,
   FlightPlanningDocumentV3,
   FlightPlanningDocumentV4,
+  FlightPlanningDocumentV5,
   LegacyAircraftPerformancePlanInputsV3,
   LegacyAircraftPerformanceProfileV2,
   LegacyFlightPlanV3,

@@ -31,7 +31,9 @@ button:focus-visible,
 
 .app-shell {
   display: flex;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
@@ -83,13 +85,14 @@ h3 {
   min-height: 0;
   flex: 1;
   grid-template-columns: minmax(0, 3fr) minmax(28rem, 2fr);
+  grid-template-rows: minmax(22rem, 1fr) minmax(13rem, 32vh);
   gap: 1rem;
 }
 
 .map-panel,
-.route-panel {
+.route-panel,
+.navlog-dock {
   min-height: 0;
-  overflow: hidden;
   border: 1px solid #cad5e1;
   border-radius: 0.65rem;
   background: #ffffff;
@@ -98,21 +101,31 @@ h3 {
 
 .map-panel {
   position: relative;
+  overflow: hidden;
 }
 
 .flight-map {
   width: 100%;
-  height: calc(100vh - 6.4rem);
-  min-height: 34rem;
+  height: 100%;
+  min-height: 0;
   background: #dfe7ed;
 }
 
 .route-panel {
   display: flex;
-  height: calc(100vh - 6.4rem);
-  min-height: 34rem;
+  min-height: 0;
+  overflow: hidden;
   flex-direction: column;
   padding: 1rem;
+}
+
+.route-panel__content {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 0.75rem;
+  scrollbar-gutter: stable;
 }
 
 .route-panel__header {
@@ -133,6 +146,67 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 1rem 0 0.75rem;
+}
+
+.planning-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.8rem;
+  border-bottom: 1px solid #cad5e1;
+}
+
+.sidebar-tabs__tab {
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: #617084;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.sidebar-tabs__tab--active {
+  border-bottom-color: #176da5;
+  color: #176da5;
+}
+
+.sidebar-tabs__tab kbd,
+.map-tool-control kbd,
+.leg-map-popup kbd {
+  margin-left: 0.3rem;
+}
+
+.navlog-dock {
+  display: flex;
+  min-height: 0;
+  grid-column: 1 / -1;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+}
+
+.navlog-dock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.55rem;
+}
+
+.navlog-dock__content {
+  display: flex;
+  min-height: 0;
+  overflow: auto;
+  flex: 1;
+  flex-direction: column;
+  overscroll-behavior: contain;
 }
 
 .plan-file-controls {
@@ -440,6 +514,69 @@ h3 {
   background: #176da5;
 }
 
+kbd {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0.08rem 0.3rem;
+  border: 1px solid #aebccc;
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  color: #34465a;
+  background: #ffffff;
+  font: 700 0.68rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-align: center;
+}
+
+.button--active kbd {
+  border-color: rgb(255 255 255 / 65%);
+  color: #ffffff;
+  background: rgb(255 255 255 / 14%);
+}
+
+.shortcut-reference {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.shortcut-reference__intro {
+  margin: 0;
+  color: #617084;
+  font-size: 0.78rem;
+}
+
+.shortcut-reference dl {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.shortcut-reference dl > div {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.5rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.35rem;
+  background: #f8fafc;
+}
+
+.shortcut-reference dt,
+.shortcut-reference dd {
+  margin: 0;
+}
+
+.shortcut-reference dd {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.76rem;
+}
+
+.shortcut-reference dd span {
+  color: #738195;
+  font-size: 0.67rem;
+}
+
 .leg-altitude-controls {
   display: grid;
   gap: 0.5rem;
@@ -644,6 +781,130 @@ h3 {
   box-shadow: 0 1px 7px rgb(0 0 0 / 24%);
   color: #26384c;
   font-size: 0.72rem;
+}
+
+.map-tool-control {
+  position: absolute;
+  z-index: 1001;
+  top: 0.75rem;
+  left: 3.5rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.35rem;
+  border: 1px solid rgb(73 91 110 / 42%);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 95%);
+  box-shadow: 0 1px 7px rgb(0 0 0 / 24%);
+}
+
+.map-tool-control .button {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+.map-tool-control__placement {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid #cad5e1;
+  color: #34465a;
+  font-size: 0.7rem;
+}
+
+.leaflet-popup.waypoint-map-popup .leaflet-popup-content,
+.leaflet-popup.leg-map-popup .leaflet-popup-content,
+.leaflet-popup.route-point-map-popup .leaflet-popup-content {
+  display: grid;
+  width: min(20rem, 70vw);
+  gap: 0.6rem;
+  margin: 0.75rem;
+}
+
+.waypoint-map-popup .waypoint-editor {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.waypoint-map-popup__details {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.7rem;
+}
+
+.waypoint-map-popup__details > div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.waypoint-map-popup__details dt {
+  color: #68778a;
+  font-weight: 700;
+}
+
+.waypoint-map-popup__details dd {
+  margin: 0;
+}
+
+.map-popup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.map-popup-actions--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.map-popup-actions .button {
+  min-height: 2rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.7rem;
+}
+
+.route-point-map-popup p,
+.leg-map-popup p {
+  margin: 0;
+  color: #526175;
+  font-size: 0.75rem;
+}
+
+.leg-map-popup__heading {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.leg-map-popup__heading > span {
+  color: #68778a;
+  font-size: 0.68rem;
+}
+
+.leg-map-popup label {
+  display: grid;
+  gap: 0.25rem;
+  color: #526175;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.leg-map-popup input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem;
+  border: 1px solid #aebccc;
+  border-radius: 0.3rem;
+}
+
+.flight-map--tool-add-waypoint,
+.flight-map--tool-add-waypoint .leaflet-interactive {
+  cursor: crosshair;
 }
 
 .aeronautical-layer-control legend {
@@ -889,6 +1150,11 @@ h3 {
 }
 
 @media (max-width: 900px) {
+  .app-shell {
+    height: auto;
+    overflow: visible;
+  }
+
   .app-header {
     align-items: start;
     flex-direction: column;
@@ -897,11 +1163,31 @@ h3 {
 
   .planner-workspace {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 
   .flight-map,
   .route-panel {
     height: 65vh;
     min-height: 28rem;
+  }
+
+  .navlog-dock {
+    max-height: 60vh;
+    grid-column: 1;
+  }
+
+  .map-tool-control {
+    right: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .map-tool-control__placement {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 0.35rem;
+    padding-left: 0;
+    border-top: 1px solid #cad5e1;
+    border-left: 0;
   }
 }

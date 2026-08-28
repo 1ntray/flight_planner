@@ -62,6 +62,15 @@ identifier remains available in the separate anchor snapshot.
 
 ## Map
 
+- Select/Edit is the default map tool. Empty-map clicks do not mutate the route
+  unless explicit Add waypoint mode is active.
+- Add waypoint and altitude-target placement are mutually exclusive tools.
+  Altitude placement cannot create a waypoint, and Escape returns to Select/Edit.
+- Waypoint, shaping-point, and leg selection are transient UI state. A selected
+  leg stores endpoint IDs and one snapped WGS84 route location for map actions;
+  it is not persistent route or calculation state.
+- Keyboard shortcuts are ignored while an input, textarea, select, or editable
+  element has focus.
 - The base-map source is isolated in `src/app/map/tileSource.ts` so it can be
   replaced without changing map interaction code.
 - Aeronautical overlay components consume normalized domain features through
@@ -123,8 +132,8 @@ Run `pnpm typecheck` and `pnpm test` before merging changes.
   catalog data must not be consulted at calculation or load time in a way that
   silently changes an existing plan.
 - Intermediate sector-stop inputs contain only airport elevation, weather, and
-  an optional onward departure time. Calculated sector legs and navlog totals
-  remain derived.
+  a non-negative stop duration. Calculated onward departure times, sector legs,
+  and navlog totals remain derived.
 - Calculated legs, expanded geometry, forecast responses, loading state,
   selection, and drag state are derived or transient and must not be saved.
 - Imported JSON crosses an untrusted input boundary and must be validated by

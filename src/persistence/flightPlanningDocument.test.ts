@@ -12,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   flightPlan: {
     waypoints: [
       {
@@ -125,8 +125,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 5 }),
-    ).toThrow('Unsupported flight-planning document schema version 5');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 6 }),
+    ).toThrow('Unsupported flight-planning document schema version 6');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -294,7 +294,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       planningInputs: document.planningInputs,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
@@ -322,7 +322,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: document.performanceInputs,
     });
@@ -342,7 +342,7 @@ describe('flight-planning document persistence', () => {
       useForecastWinds: document.useForecastWinds,
     });
 
-    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.schemaVersion).toBe(5);
     expect(migrated.flightPlan.sectorBoundaryWaypointIds).toEqual([]);
     expect(migrated.performanceInputs?.sectorStopPlans).toEqual([]);
   });
@@ -368,7 +368,7 @@ describe('flight-planning document persistence', () => {
           waypointId: 'B',
           elevationFtMsl: 250,
           weather: { qnhHpa: 1009, isaDeviationC: 3 },
-          onwardDepartureTimeUtcMs: Date.UTC(2026, 7, 28, 12),
+          stopDurationMinutes: 30,
         }],
       },
     };
@@ -383,6 +383,39 @@ describe('flight-planning document persistence', () => {
         sectorStopPlans: [],
       },
     })).toThrow('must provide every route sector boundary');
+  });
+
+  it('migrates the V4 fixed onward departure without changing its meaning', () => {
+    const legacyDepartureTime = Date.UTC(2026, 7, 28, 12);
+    const migrated = parseFlightPlanningDocument({
+      ...document,
+      schemaVersion: 4,
+      flightPlan: {
+        ...document.flightPlan,
+        waypoints: [
+          ...document.flightPlan.waypoints,
+          {
+            id: 'C',
+            name: 'DESTINATION',
+            position: { latitude: 69.8, longitude: 20 },
+          },
+        ],
+        sectorBoundaryWaypointIds: ['B'],
+      },
+      performanceInputs: {
+        ...document.performanceInputs!,
+        sectorStopPlans: [{
+          waypointId: 'B',
+          elevationFtMsl: 250,
+          weather: { qnhHpa: 1009, isaDeviationC: 3 },
+          onwardDepartureTimeUtcMs: legacyDepartureTime,
+        }],
+      },
+    });
+
+    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.performanceInputs?.sectorStopPlans?.[0])
+      .toMatchObject({ onwardDepartureTimeUtcMs: legacyDepartureTime });
   });
 
   it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {

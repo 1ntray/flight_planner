@@ -31,7 +31,10 @@ export function SectorStopControls({
 
   const updateStop = (
     waypointId: string,
-    field: Exclude<keyof SectorStopInputDraft, 'waypointId'>,
+    field: Exclude<
+      keyof SectorStopInputDraft,
+      'waypointId' | 'legacyOnwardDepartureTimeUtcMs'
+    >,
     value: string,
   ) => {
     const existing = draft.sectorStopPlans.find(
@@ -57,8 +60,8 @@ export function SectorStopControls({
         <p className="eyebrow">Intermediate airports</p>
         <p className="plan-file-controls__description">
           Each landing ends one navlog at pattern altitude. The next sector
-          starts at aerodrome elevation. Blank onward departure uses the
-          preceding arrival time.
+          starts at aerodrome elevation after the entered ground time. Blank
+          means an immediate onward departure.
         </p>
       </div>
 
@@ -115,23 +118,32 @@ export function SectorStopControls({
               </span>
             </label>
             <label>
-              <span>Onward departure</span>
+              <span>Stop duration</span>
               <span className="navigation-inputs__control">
                 <input
-                  type="datetime-local"
-                  step="60"
-                  value={stop.onwardDepartureTimeUtc}
+                  type="number"
+                  min="0"
+                  step="5"
+                  placeholder="0"
+                  value={stop.stopDurationMinutes}
                   onChange={(event) =>
                     updateStop(
                       waypoint.id,
-                      'onwardDepartureTimeUtc',
+                      'stopDurationMinutes',
                       event.currentTarget.value,
                     )
                   }
                 />
-                <span>UTC</span>
+                <span>min</span>
               </span>
             </label>
+            {stop.legacyOnwardDepartureTimeUtcMs !== undefined &&
+            stop.stopDurationMinutes.trim() === '' ? (
+              <p className="plan-file-controls__description">
+                This imported plan still uses its saved fixed onward departure.
+                Enter a duration to replace it.
+              </p>
+            ) : null}
           </fieldset>
         );
       })}

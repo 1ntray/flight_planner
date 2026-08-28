@@ -2,17 +2,15 @@ import type {
   AircraftPerformancePlanInputs,
   LegAltitudePlan,
 } from '../../domain';
-import {
-  formatUtcDateTimeInput,
-  parseUtcDateTimeInput,
-} from './navigationInput';
 
 export interface SectorStopInputDraft {
   waypointId: string;
   elevationFtMsl: string;
   qnhHpa: string;
   isaDeviationC: string;
-  onwardDepartureTimeUtc: string;
+  stopDurationMinutes: string;
+  /** Preserved only while editing a schema-v4 plan that used a fixed UTC departure. */
+  legacyOnwardDepartureTimeUtcMs?: number;
 }
 
 export interface PerformanceInputDraft {
@@ -73,10 +71,13 @@ export function createPerformanceInputDraft(
       elevationFtMsl: String(stop.elevationFtMsl),
       qnhHpa: String(stop.weather.qnhHpa),
       isaDeviationC: String(stop.weather.isaDeviationC),
-      onwardDepartureTimeUtc:
-        stop.onwardDepartureTimeUtcMs === undefined
+      stopDurationMinutes:
+        stop.stopDurationMinutes === undefined
           ? ''
-          : formatUtcDateTimeInput(stop.onwardDepartureTimeUtcMs),
+          : String(stop.stopDurationMinutes),
+      ...(stop.onwardDepartureTimeUtcMs === undefined
+        ? {}
+        : { legacyOnwardDepartureTimeUtcMs: stop.onwardDepartureTimeUtcMs }),
     })),
   };
 }
@@ -89,7 +90,7 @@ export function createEmptySectorStopInputDraft(
     elevationFtMsl: '',
     qnhHpa: '',
     isaDeviationC: '',
-    onwardDepartureTimeUtc: '',
+    stopDurationMinutes: '',
   };
 }
 
@@ -177,7 +178,7 @@ export function parsePerformanceInputDraft(
         stop.elevationFtMsl,
         stop.qnhHpa,
         stop.isaDeviationC,
-        stop.onwardDepartureTimeUtc,
+        stop.stopDurationMinutes,
       ].every((value) => value.trim() === ''),
     )
   ) {
@@ -260,25 +261,28 @@ export function parsePerformanceInputDraft(
       return { status: 'invalid', message: isaDeviationC };
     }
 
-    const onwardDepartureTimeUtcMs =
-      stop.onwardDepartureTimeUtc.trim() === ''
+    const stopDurationMinutes =
+      stop.stopDurationMinutes.trim() === ''
         ? undefined
-        : parseUtcDateTimeInput(stop.onwardDepartureTimeUtc);
+        : parseNumber(
+            stop.stopDurationMinutes,
+            `Sector stop ${index + 1} duration`,
+            0,
+          );
 
-    if (onwardDepartureTimeUtcMs === null) {
-      return {
-        status: 'invalid',
-        message: `Sector stop ${index + 1} onward departure must be a valid UTC date and time`,
-      };
+    if (typeof stopDurationMinutes === 'string') {
+      return { status: 'invalid', message: stopDurationMinutes };
     }
 
     sectorStopPlans.push({
       waypointId: stop.waypointId,
       elevationFtMsl,
       weather: { qnhHpa, isaDeviationC },
-      ...(onwardDepartureTimeUtcMs === undefined
-        ? {}
-        : { onwardDepartureTimeUtcMs }),
+      ...(stopDurationMinutes === undefined
+        ? stop.legacyOnwardDepartureTimeUtcMs === undefined
+          ? {}
+          : { onwardDepartureTimeUtcMs: stop.legacyOnwardDepartureTimeUtcMs }
+        : { stopDurationMinutes }),
     });
   }
 

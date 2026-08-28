@@ -2,14 +2,14 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 4 contains the route,
+The exported format is a versioned JSON document. Version 5 contains the route,
 route-wide navigation inputs, the complete selected aircraft-definition
 snapshot, optional performance inputs, and the forecast preference. Versions
-1, 2, and 3 are validated and explicitly migrated on load.
+1 through 4 are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV4 {
-  schemaVersion: 4;
+interface FlightPlanningDocumentV5 {
+  schemaVersion: 5;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
@@ -25,9 +25,12 @@ global altitude, and sparse per-adjacent-leg altitude/target overrides in their
 documented internal units.
 
 Each sector boundary with active performance inputs has one intermediate-airport
-snapshot containing elevation, QNH, ISA deviation, and an optional onward UTC
-departure. Navlog sectors, calculated legs, ETAs, phase boundaries, and totals
-are derived and are not persisted.
+snapshot containing elevation, QNH, ISA deviation, and a non-negative stop
+duration in minutes. The following sector departure is derived from arrival
+plus that duration. Version-four documents used an optional fixed onward UTC
+departure instead.
+Navlog sectors, calculated legs, ETAs, phase boundaries, and totals are derived
+and are not persisted.
 
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
@@ -100,7 +103,9 @@ phase speeds, fuel flows, descent rate, identity, and revision. They receive
 the authoritative project climb-rate coefficients because the older schema
 had no field capable of storing them. Schema-three documents gain empty sector
 boundary and intermediate-airport collections, preserving their original
-single-sector meaning.
+single-sector meaning. Schema-four fixed onward UTC departures are retained as
+legacy compatibility values so importing an existing plan does not change its
+timeline; entering a stop duration replaces that legacy value.
 
 ## AIRAC stability
 

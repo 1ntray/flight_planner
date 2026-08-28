@@ -9,7 +9,8 @@ import type { RoutePlanningInputs } from './navigation';
 export const LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 1 as const;
 export const LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION = 2 as const;
 export const LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION = 3 as const;
-export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 4 as const;
+export const LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION = 4 as const;
+export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 5 as const;
 
 export type LegacyFlightPlanV3 = Omit<
   FlightPlan,
@@ -59,6 +60,15 @@ export interface FlightPlanningDocumentV3 {
 }
 
 export interface FlightPlanningDocumentV4 {
+  readonly schemaVersion: typeof LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION;
+  readonly flightPlan: FlightPlan;
+  readonly planningInputs: RoutePlanningInputs;
+  readonly aircraftDefinition: AircraftDefinition;
+  readonly performanceInputs: AircraftPerformancePlanInputs | null;
+  readonly useForecastWinds: boolean;
+}
+
+export interface FlightPlanningDocumentV5 {
   readonly schemaVersion: typeof FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION;
   readonly flightPlan: FlightPlan;
   readonly planningInputs: RoutePlanningInputs;
@@ -67,4 +77,4 @@ export interface FlightPlanningDocumentV4 {
   readonly useForecastWinds: boolean;
 }
 
-export type FlightPlanningDocument = FlightPlanningDocumentV4;
+export type FlightPlanningDocument = FlightPlanningDocumentV5;

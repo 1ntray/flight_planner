@@ -2,10 +2,28 @@ import type { LatLngTuple } from 'leaflet';
 
 import type { FlightPlan, Position, RouteShapingPoint } from '../../domain';
 import type { RouteGeometryPointRef } from '../route/routeInsertion';
+import type { RouteWaypointInsertionCandidate } from '../route/routeInsertion';
 
 export type SelectedRoutePoint =
   | { kind: 'waypoint'; id: string }
   | { kind: 'shaping-point'; id: string };
+
+export interface SelectedRouteLeg {
+  kind: 'leg';
+  candidate: RouteWaypointInsertionCandidate;
+  distanceFromStartNm: number;
+}
+
+export type MapSelection = SelectedRoutePoint | SelectedRouteLeg;
+
+export type MapTool =
+  | { kind: 'select' }
+  | { kind: 'add-waypoint' }
+  | {
+      kind: 'place-altitude-target';
+      fromWaypointId: string;
+      toWaypointId: string;
+    };
 
 export type DraggedRoutePointPosition =
   | { kind: 'waypoint'; pointId: string; position: Position }

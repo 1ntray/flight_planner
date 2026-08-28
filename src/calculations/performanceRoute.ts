@@ -874,10 +874,21 @@ export function calculatePerformanceRoute(
       };
     }
 
+    if (
+      departureStop?.stopDurationMinutes !== undefined &&
+      (!Number.isFinite(departureStop.stopDurationMinutes) ||
+        departureStop.stopDurationMinutes < 0)
+    ) {
+      throw new RangeError('Sector stop duration must be a non-negative number');
+    }
+
     const departureTimeUtcMs =
       sector.sectorIndex === 0
         ? input.navigation.departureTimeUtcMs
-        : departureStop!.onwardDepartureTimeUtcMs ?? previousArrivalTimeUtcMs!;
+        : departureStop!.stopDurationMinutes !== undefined
+          ? previousArrivalTimeUtcMs! +
+            departureStop!.stopDurationMinutes * 60_000
+          : departureStop!.onwardDepartureTimeUtcMs ?? previousArrivalTimeUtcMs!;
 
     if (
       previousArrivalTimeUtcMs !== null &&

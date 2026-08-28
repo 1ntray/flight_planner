@@ -56,8 +56,10 @@ therefore never be reused as route waypoint IDs.
 ## Map interaction and layers
 
 Aeronautical point and area clicks do not bubble to the empty-map waypoint
-handler. Point clicks add one anchored waypoint. Area clicks may show feature
-information but cannot add a waypoint.
+handler. In Select/Edit mode, point and area clicks show feature information.
+In explicit Add waypoint mode, point clicks add one anchored waypoint at the
+published coordinate. Area features remain information-only and cannot add a
+waypoint in any mode.
 
 Layer visibility is presentation state, independent of the `FlightPlan`.
 Aerodromes, reporting points, navaids/designated points, and airspace have
@@ -75,4 +77,3 @@ During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
 name identifies it as synthetic and not for navigation. It exists only for UI
 and interaction verification.
-

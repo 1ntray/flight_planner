@@ -57,9 +57,10 @@ boundary closes one flight sector at the airport's pattern altitude. The next
 sector is calculated independently from that airport's field elevation, using
 its weather as the inbound destination environment and outbound departure
 environment. If an onward departure time is omitted, it defaults to the
-preceding calculated arrival time; supplied departure times earlier than the
-arrival are rejected. One mass is still used for all sectors in the current
-model.
+preceding calculated arrival time plus the airport's stop duration. A blank
+duration means zero minutes. Stop time shifts the following sector's UTC
+timeline and weather sampling, but is not airborne EET and consumes no fuel in
+the current model. One mass is still used for all sectors.
 
 An optional target distance says where along the shaped WGS84 leg the requested
 altitude must have been reached. Automatic climbs begin at FROM; automatic

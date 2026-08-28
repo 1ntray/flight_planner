@@ -20,6 +20,7 @@ import {
   LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
   PROJECT_AIRCRAFT_DEFINITION,
   PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
@@ -770,6 +771,14 @@ function requirePerformanceInputs(
     seenStopIds.add(waypointId);
 
     let onwardDepartureTimeUtcMs: number | undefined;
+    let stopDurationMinutes: number | undefined;
+
+    if (stopRecord.stopDurationMinutes !== undefined) {
+      stopDurationMinutes = requireNonNegativeNumber(
+        stopRecord.stopDurationMinutes,
+        `${stopPath}.stopDurationMinutes`,
+      );
+    }
 
     if (stopRecord.onwardDepartureTimeUtcMs !== undefined) {
       onwardDepartureTimeUtcMs = requireFiniteNumber(
@@ -784,6 +793,15 @@ function requirePerformanceInputs(
       }
     }
 
+    if (
+      stopDurationMinutes !== undefined &&
+      onwardDepartureTimeUtcMs !== undefined
+    ) {
+      throw new RangeError(
+        `${stopPath} cannot contain both stopDurationMinutes and onwardDepartureTimeUtcMs`,
+      );
+    }
+
     return {
       waypointId,
       elevationFtMsl: requireNonNegativeNumber(
@@ -794,6 +812,7 @@ function requirePerformanceInputs(
         stopRecord.weather,
         `${stopPath}.weather`,
       ),
+      ...(stopDurationMinutes === undefined ? {} : { stopDurationMinutes }),
       ...(onwardDepartureTimeUtcMs === undefined
         ? {}
         : { onwardDepartureTimeUtcMs }),
@@ -847,6 +866,7 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION
@@ -863,7 +883,8 @@ export function parseFlightPlanningDocument(
   const flightPlan = requireFlightPlan(
     record.flightPlan,
     'document.flightPlan',
-    record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+    record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION ||
+      record.schemaVersion === LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   );
 
   if (record.schemaVersion === LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION) {
@@ -932,6 +953,30 @@ export function parseFlightPlanningDocument(
         'document.performanceInputs',
         flightPlan,
         false,
+      ),
+      useForecastWinds: record.useForecastWinds,
+    };
+  }
+
+  if (
+    record.schemaVersion === LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION
+  ) {
+    return {
+      schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+      flightPlan,
+      planningInputs: requireRoutePlanningInputs(
+        record.planningInputs,
+        'document.planningInputs',
+      ),
+      aircraftDefinition: requireAircraftDefinition(
+        record.aircraftDefinition,
+        'document.aircraftDefinition',
+      ),
+      performanceInputs: requirePerformanceInputs(
+        record.performanceInputs,
+        'document.performanceInputs',
+        flightPlan,
+        true,
       ),
       useForecastWinds: record.useForecastWinds,
     };

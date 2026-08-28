@@ -6,6 +6,7 @@ import type { FlightPlan, Position } from '../../domain';
 import { getRoutePointDisplayPosition } from './routeDisplay';
 import type {
   DraggedRoutePointPosition,
+  MapSelection,
   PendingRouteShapingPoint,
   SelectedRoutePoint,
 } from './routeDisplay';
@@ -49,7 +50,7 @@ const selectedShapingPointIcon = divIcon({
 
 export interface RoutePointMarkersProps {
   flightPlan: FlightPlan;
-  selectedRoutePoint: SelectedRoutePoint | null;
+  selectedRoutePoint: MapSelection | null;
   draggedPoint: DraggedRoutePointPosition | null;
   pendingShapingPoint: PendingRouteShapingPoint | null;
   onDraggedPointChange: (
