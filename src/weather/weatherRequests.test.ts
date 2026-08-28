@@ -9,6 +9,7 @@ import type {
   NavigationPlanInputs,
   Waypoint,
 } from '../domain';
+import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
 import type { ForecastLegWind } from './types';
 import {
   buildPerformanceWeatherSampleRequests,
@@ -112,6 +113,7 @@ describe('performance-profile weather samples', () => {
       flightPlan: { waypoints, legShapes: [] },
       navigation: planning,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
     const requests = buildPerformanceWeatherSampleRequests(route);
 

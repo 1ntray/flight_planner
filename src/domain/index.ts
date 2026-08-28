@@ -14,22 +14,28 @@ export type {
 export type { FlightPlan } from './flightPlan';
 export type {
   AerodromePlanningWeather,
+  AircraftDefinition,
   AircraftPerformancePlanInputs,
   AircraftPerformanceProfile,
   AltitudeTargetPlacement,
   FlightPhase,
+  ClimbRateModel,
+  EffectiveAltitudeLinearMassClimbRateModel,
   LegAltitudePlan,
   PlanningEnvironment,
   WindSampleQuery,
 } from './aircraftPerformance';
 export {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
 } from './flightPlanningDocument';
 export type {
   FlightPlanningDocument,
   FlightPlanningDocumentV1,
   FlightPlanningDocumentV2,
+  FlightPlanningDocumentV3,
+  LegacyAircraftPerformanceProfileV2,
 } from './flightPlanningDocument';
 export type {
   NavigationParameters,
@@ -39,6 +45,10 @@ export type {
 } from './navigation';
 export type { Position } from './position';
 export type { LegShape, RouteShapingPoint } from './routeShape';
-export { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from './projectAircraftPerformanceProfile';
+export {
+  AIRCRAFT_CATALOG,
+  PROJECT_AIRCRAFT_DEFINITION,
+  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+} from './projectAircraftPerformanceProfile';
 export { MAX_WAYPOINT_NAME_LENGTH } from './waypoint';
 export type { AeronauticalWaypointAnchor, Waypoint } from './waypoint';

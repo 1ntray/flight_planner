@@ -1,28 +1,12 @@
-import { useMemo } from 'react';
-
-import {
-  calculateNavigationRoute,
-  calculatePerformanceRoute,
-  calculatePlanningEnvironment,
-  calculateTasFromIas,
-  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
-} from '../../calculations';
-import type { FlightPlan } from '../../domain';
+import type { AircraftDefinition, FlightPlan } from '../../domain';
 import { RouteTable } from '../route/RouteTable';
-import {
-  parseNavigationInputDraft,
-} from './navigationInput';
 import type { NavigationInputDraft } from './navigationInput';
 import { AircraftPerformanceInputs } from './AircraftPerformanceInputs';
+import { AircraftSelector } from './AircraftSelector';
 import { LegAltitudeControls } from './LegAltitudeControls';
 import type { AltitudePlacementLeg } from './altitudePlanState';
-import {
-  parsePerformanceInputDraft,
-} from './performanceInput';
 import type { PerformanceInputDraft } from './performanceInput';
-import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
-import { useOpenMeteoPerformanceWinds } from './useOpenMeteoPerformanceWinds';
-import { createSampledWindResolver } from '../../weather';
+import type { PlanningCalculations } from './usePlanningCalculations';
 import {
   FORECAST_SOURCE_LABEL,
   formatForecastRetrievalTime,
@@ -31,136 +15,40 @@ import {
 
 export interface NavigationLogProps {
   flightPlan: FlightPlan;
+  aircraftDefinition: AircraftDefinition;
   draft: NavigationInputDraft;
   performanceDraft: PerformanceInputDraft;
   useForecastWinds: boolean;
   onDraftChange: (draft: NavigationInputDraft) => void;
+  onAircraftDefinitionChange: (aircraft: AircraftDefinition) => void;
   onPerformanceDraftChange: (draft: PerformanceInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
+  calculations: PlanningCalculations;
 }
 
 export function NavigationLog({
   flightPlan,
+  aircraftDefinition,
   draft,
   performanceDraft,
   useForecastWinds,
   onDraftChange,
+  onAircraftDefinitionChange,
   onPerformanceDraftChange,
   onUseForecastWindsChange,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
+  calculations,
 }: NavigationLogProps) {
-  const parsedInputs = useMemo(
-    () => parseNavigationInputDraft(draft),
-    [draft],
-  );
-  const parsedPerformance = useMemo(
-    () => parsePerformanceInputDraft(performanceDraft),
-    [performanceDraft],
-  );
-  const legacyPlanning = useMemo(() => {
-    if (
-      parsedInputs.status !== 'valid' ||
-      parsedPerformance.status !== 'valid'
-    ) {
-      return null;
-    }
-
-    const environment = calculatePlanningEnvironment(
-      parsedPerformance.value.departureWeather,
-      parsedPerformance.value.destinationWeather,
-    );
-
-    return {
-      ...parsedInputs.value,
-      trueAirspeedKt: calculateTasFromIas(
-        PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.cruiseIasKt,
-        parsedPerformance.value.defaultAltitudeFtMsl,
-        environment.qnhHpa,
-        environment.isaDeviationC,
-      ),
-      plannedAltitudeFtMsl:
-        parsedPerformance.value.defaultAltitudeFtMsl,
-    };
-  }, [parsedInputs, parsedPerformance]);
-  const manualWindRoute = useMemo(
-    () =>
-      calculateNavigationRoute({
-        flightPlan,
-        planning: legacyPlanning,
-      }),
-    [flightPlan, legacyPlanning],
-  );
-  const manualPerformanceRoute = useMemo(() => {
-    if (
-      parsedInputs.status !== 'valid' ||
-      parsedPerformance.status !== 'valid'
-    ) {
-      return null;
-    }
-
-    return calculatePerformanceRoute({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-    });
-  }, [flightPlan, parsedInputs, parsedPerformance]);
-  const legForecast = useOpenMeteoRouteWinds({
-    enabled: useForecastWinds && parsedPerformance.status !== 'valid',
-    flightPlan,
-    planning: legacyPlanning,
-    preliminaryRoute: manualWindRoute,
-  });
-  const performanceForecast = useOpenMeteoPerformanceWinds({
-    enabled: useForecastWinds && parsedPerformance.status === 'valid',
-    flightPlan,
-    navigation:
-      parsedInputs.status === 'valid' ? parsedInputs.value : null,
-    performance:
-      parsedPerformance.status === 'valid'
-        ? parsedPerformance.value
-        : null,
-    preliminaryRoute: manualPerformanceRoute,
-  });
-  const forecast =
-    parsedPerformance.status === 'valid'
-      ? performanceForecast
-      : {
-          winds:
-            legForecast.status.status === 'success'
-              ? legForecast.status.winds
-              : [],
-          status: legForecast.status,
-        };
-  const calculatedRoute = useMemo(
-    () =>
-      calculateNavigationRoute({
-        flightPlan,
-        planning: legacyPlanning,
-        legWinds: forecast.winds,
-      }),
-    [flightPlan, forecast.winds, legacyPlanning],
-  );
-  const performanceRoute = useMemo(() => {
-    if (
-      parsedInputs.status !== 'valid' ||
-      parsedPerformance.status !== 'valid'
-    ) {
-      return null;
-    }
-
-    return calculatePerformanceRoute({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-      resolveWind: createSampledWindResolver(
-        forecast.winds,
-        parsedInputs.value.wind,
-      ),
-    });
-  }, [flightPlan, forecast.winds, parsedInputs, parsedPerformance]);
+  const {
+    parsedInputs,
+    parsedPerformance,
+    calculatedRoute,
+    performanceRoute,
+    forecast,
+  } = calculations;
 
   const updateDraft = <Field extends keyof NavigationInputDraft>(
     field: Field,
@@ -321,8 +209,14 @@ export function NavigationLog({
         ) : null}
       </fieldset>
 
+      <AircraftSelector
+        aircraftDefinition={aircraftDefinition}
+        onChange={onAircraftDefinitionChange}
+      />
+
       <AircraftPerformanceInputs
         draft={performanceDraft}
+        profile={aircraftDefinition.performance}
         {...(parsedPerformance.status === 'invalid'
           ? { errorMessage: parsedPerformance.message }
           : {})}

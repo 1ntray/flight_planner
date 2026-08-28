@@ -16,6 +16,7 @@ import {
   calculateNearestPointOnGeometry,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
 } from '../../calculations';
+import type { CalculatedPerformanceRoute } from '../../calculations';
 import type {
   AeronauticalDatasetRef,
   AeronauticalPointFeature,
@@ -50,6 +51,7 @@ import type {
 } from '../route/routeInsertion';
 import { RoutePointMarkers } from './RoutePointMarkers';
 import { AltitudeTargetMarkers } from './AltitudeTargetMarkers';
+import { PerformancePhaseMarkers } from './PerformancePhaseMarkers';
 import type { AltitudePlacementLeg } from '../navigation/altitudePlanState';
 import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
 import './rasterTileSeamWorkaround.css';
@@ -371,6 +373,7 @@ export interface FlightMapProps {
   selectedRoutePoint: SelectedRoutePoint | null;
   altitudePlans: readonly LegAltitudePlan[];
   altitudePlacementLeg: AltitudePlacementLeg | null;
+  performanceRoute: CalculatedPerformanceRoute | null;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
@@ -396,6 +399,7 @@ export function FlightMap({
   selectedRoutePoint,
   altitudePlans,
   altitudePlacementLeg,
+  performanceRoute,
   onAddWaypoint,
   onAddAnchoredWaypoint,
   onMoveWaypoint,
@@ -561,9 +565,15 @@ export function FlightMap({
           onMoveShapingPoint={onMoveShapingPoint}
           onSelectRoutePoint={selectRoutePoint}
         />
+        <PerformancePhaseMarkers
+          flightPlan={flightPlan}
+          performanceRoute={performanceRoute}
+          altitudePlans={altitudePlans}
+        />
         <AltitudeTargetMarkers
           flightPlan={flightPlan}
           plans={altitudePlans}
+          performanceRoute={performanceRoute}
           onSetTargetDistance={onSetAltitudeTarget}
         />
       </MapContainer>

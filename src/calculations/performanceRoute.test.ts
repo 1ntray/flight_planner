@@ -5,6 +5,7 @@ import type {
   FlightPlan,
   NavigationPlanInputs,
 } from '../domain';
+import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
 import { calculatePerformanceRoute } from './performanceRoute';
 
 const navigation: NavigationPlanInputs = {
@@ -40,6 +41,7 @@ describe('calculatePerformanceRoute', () => {
       flightPlan: longLeg,
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result.status).toBe('ok');
@@ -68,6 +70,7 @@ describe('calculatePerformanceRoute', () => {
       flightPlan: longLeg,
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result.status).toBe('ok');
@@ -97,6 +100,7 @@ describe('calculatePerformanceRoute', () => {
           },
         }],
       },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result.status).toBe('ok');
@@ -129,6 +133,7 @@ describe('calculatePerformanceRoute', () => {
           altitudeFtMsl: 7000,
         }],
       },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result.status).toBe('ok');
@@ -149,11 +154,13 @@ describe('calculatePerformanceRoute', () => {
       flightPlan: longLeg,
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
     const changingWind = calculatePerformanceRoute({
       flightPlan: longLeg,
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
       resolveWind: ({ altitudeFtMsl }) => ({
         directionFromTrueDeg: 90,
         speedKt: altitudeFtMsl / 500,
@@ -174,6 +181,40 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('uses the supplied aircraft phase data', () => {
+    const levelPerformance = {
+      ...performance,
+      defaultAltitudeFtMsl: 1000,
+      departureElevationFtMsl: 1000,
+    };
+    const baseline = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance: levelPerformance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+    const doubledCruiseFlow = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance: levelPerformance,
+      profile: {
+        ...PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+        cruise: {
+          ...PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.cruise,
+          fuelFlowLph:
+            PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.cruise.fuelFlowLph * 2,
+        },
+      },
+    });
+
+    expect(baseline.status).toBe('ok');
+    expect(doubledCruiseFlow.status).toBe('ok');
+    if (baseline.status === 'ok' && doubledCruiseFlow.status === 'ok') {
+      expect(doubledCruiseFlow.totalFuelLitres)
+        .toBeCloseTo(baseline.totalFuelLitres * 2, 12);
+    }
+  });
+
   it('uses shaped WGS84 distance and produces finite phase results', () => {
     const result = calculatePerformanceRoute({
       flightPlan: {
@@ -189,6 +230,7 @@ describe('calculatePerformanceRoute', () => {
       },
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result.status).toBe('ok');
@@ -210,6 +252,7 @@ describe('calculatePerformanceRoute', () => {
       },
       navigation,
       performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     });
 
     expect(result).toMatchObject({

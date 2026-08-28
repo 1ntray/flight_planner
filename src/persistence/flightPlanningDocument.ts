@@ -2,11 +2,13 @@ import type {
   AeronauticalDatasetRef,
   AeronauticalFeatureKind,
   AeronauticalWaypointAnchor,
+  AircraftDefinition,
   AircraftPerformancePlanInputs,
   AircraftPerformanceProfile,
   FlightPlan,
   FlightPlanningDocument,
   LegShape,
+  LegacyAircraftPerformanceProfileV2,
   NavigationPlanInputs,
   Position,
   RoutePlanningInputs,
@@ -15,8 +17,10 @@ import type {
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
+  PROJECT_AIRCRAFT_DEFINITION,
   PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
 } from '../domain';
 
@@ -446,10 +450,10 @@ function requireNonNegativeNumber(value: unknown, path: string): number {
   return result;
 }
 
-function requireAircraftPerformanceProfile(
+function requireLegacyAircraftPerformanceProfileV2(
   value: unknown,
   path: string,
-): AircraftPerformanceProfile {
+): LegacyAircraftPerformanceProfileV2 {
   const record = requireRecord(value, path);
   const revision = requireFiniteNumber(record.revision, `${path}.revision`);
 
@@ -479,6 +483,136 @@ function requireAircraftPerformanceProfile(
       record.descentRateFtPerMin,
       `${path}.descentRateFtPerMin`,
     ),
+  };
+}
+
+function requireAircraftPerformanceProfile(
+  value: unknown,
+  path: string,
+): AircraftPerformanceProfile {
+  const record = requireRecord(value, path);
+  const climb = requireRecord(record.climb, `${path}.climb`);
+  const cruise = requireRecord(record.cruise, `${path}.cruise`);
+  const descent = requireRecord(record.descent, `${path}.descent`);
+  const rateModel = requireRecord(
+    climb.rateModel,
+    `${path}.climb.rateModel`,
+  );
+
+  if (rateModel.kind !== 'effective-altitude-linear-mass') {
+    throw new RangeError(`${path}.climb.rateModel.kind is not supported`);
+  }
+
+  return {
+    climb: {
+      iasKt: requirePositiveNumber(climb.iasKt, `${path}.climb.iasKt`),
+      fuelFlowLph: requireNonNegativeNumber(
+        climb.fuelFlowLph,
+        `${path}.climb.fuelFlowLph`,
+      ),
+      rateModel: {
+        kind: 'effective-altitude-linear-mass',
+        isaAltitudeFactorFtPerC: requireFiniteNumber(
+          rateModel.isaAltitudeFactorFtPerC,
+          `${path}.climb.rateModel.isaAltitudeFactorFtPerC`,
+        ),
+        referenceMassKg: requirePositiveNumber(
+          rateModel.referenceMassKg,
+          `${path}.climb.rateModel.referenceMassKg`,
+        ),
+        baseRateFtPerMin: requireFiniteNumber(
+          rateModel.baseRateFtPerMin,
+          `${path}.climb.rateModel.baseRateFtPerMin`,
+        ),
+        altitudeCoefficientPerFt: requireFiniteNumber(
+          rateModel.altitudeCoefficientPerFt,
+          `${path}.climb.rateModel.altitudeCoefficientPerFt`,
+        ),
+        massCoefficientPerKg: requireFiniteNumber(
+          rateModel.massCoefficientPerKg,
+          `${path}.climb.rateModel.massCoefficientPerKg`,
+        ),
+        altitudeMassCoefficientPerFtKg: requireFiniteNumber(
+          rateModel.altitudeMassCoefficientPerFtKg,
+          `${path}.climb.rateModel.altitudeMassCoefficientPerFtKg`,
+        ),
+      },
+    },
+    cruise: {
+      iasKt: requirePositiveNumber(cruise.iasKt, `${path}.cruise.iasKt`),
+      fuelFlowLph: requireNonNegativeNumber(
+        cruise.fuelFlowLph,
+        `${path}.cruise.fuelFlowLph`,
+      ),
+    },
+    descent: {
+      iasKt: requirePositiveNumber(descent.iasKt, `${path}.descent.iasKt`),
+      fuelFlowLph: requireNonNegativeNumber(
+        descent.fuelFlowLph,
+        `${path}.descent.fuelFlowLph`,
+      ),
+      rateFtPerMin: requirePositiveNumber(
+        descent.rateFtPerMin,
+        `${path}.descent.rateFtPerMin`,
+      ),
+    },
+  };
+}
+
+function requireAircraftDefinition(
+  value: unknown,
+  path: string,
+): AircraftDefinition {
+  const record = requireRecord(value, path);
+  const revision = requireFiniteNumber(record.revision, `${path}.revision`);
+
+  if (!Number.isInteger(revision) || revision <= 0) {
+    throw new RangeError(`${path}.revision must be a positive integer`);
+  }
+
+  return {
+    aircraftId: requireString(record.aircraftId, `${path}.aircraftId`),
+    revision,
+    displayName: requireString(record.displayName, `${path}.displayName`),
+    ...(record.registration === undefined
+      ? {}
+      : { registration: requireString(record.registration, `${path}.registration`) }),
+    performance: requireAircraftPerformanceProfile(
+      record.performance,
+      `${path}.performance`,
+    ),
+  };
+}
+
+function migrateLegacyAircraftProfile(
+  profile: LegacyAircraftPerformanceProfileV2,
+): AircraftDefinition {
+  const isProjectProfile = profile.profileId === 'project-aircraft-performance';
+
+  return {
+    aircraftId: isProjectProfile
+      ? PROJECT_AIRCRAFT_DEFINITION.aircraftId
+      : profile.profileId,
+    revision: profile.revision,
+    displayName: isProjectProfile
+      ? PROJECT_AIRCRAFT_DEFINITION.displayName
+      : `Imported ${profile.profileId}`,
+    performance: {
+      climb: {
+        iasKt: profile.climbIasKt,
+        fuelFlowLph: profile.climbFuelFlowLph,
+        rateModel: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.climb.rateModel,
+      },
+      cruise: {
+        iasKt: profile.cruiseIasKt,
+        fuelFlowLph: profile.cruiseFuelFlowLph,
+      },
+      descent: {
+        iasKt: profile.descentIasKt,
+        fuelFlowLph: profile.descentFuelFlowLph,
+        rateFtPerMin: profile.descentRateFtPerMin,
+      },
+    },
   };
 }
 
@@ -614,6 +748,7 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION
   ) {
     throw new RangeError(
@@ -644,8 +779,33 @@ export function parseFlightPlanningDocument(
         magneticVariationDegEast: legacyPlanning.magneticVariationDegEast,
         wind: legacyPlanning.wind,
       },
-      aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
+      useForecastWinds: record.useForecastWinds,
+    };
+  }
+
+  if (
+    record.schemaVersion === LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION
+  ) {
+    return {
+      schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+      flightPlan,
+      planningInputs: requireRoutePlanningInputs(
+        record.planningInputs,
+        'document.planningInputs',
+      ),
+      aircraftDefinition: migrateLegacyAircraftProfile(
+        requireLegacyAircraftPerformanceProfileV2(
+          record.aircraftPerformanceProfile,
+          'document.aircraftPerformanceProfile',
+        ),
+      ),
+      performanceInputs: requirePerformanceInputs(
+        record.performanceInputs,
+        'document.performanceInputs',
+        flightPlan,
+      ),
       useForecastWinds: record.useForecastWinds,
     };
   }
@@ -657,9 +817,9 @@ export function parseFlightPlanningDocument(
       record.planningInputs,
       'document.planningInputs',
     ),
-    aircraftPerformanceProfile: requireAircraftPerformanceProfile(
-      record.aircraftPerformanceProfile,
-      'document.aircraftPerformanceProfile',
+    aircraftDefinition: requireAircraftDefinition(
+      record.aircraftDefinition,
+      'document.aircraftDefinition',
     ),
     performanceInputs: requirePerformanceInputs(
       record.performanceInputs,

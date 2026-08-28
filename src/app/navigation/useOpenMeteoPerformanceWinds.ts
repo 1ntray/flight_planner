@@ -4,6 +4,7 @@ import { calculatePerformanceRoute } from '../../calculations';
 import type { CalculatedPerformanceRoute } from '../../calculations';
 import type {
   AircraftPerformancePlanInputs,
+  AircraftPerformanceProfile,
   FlightPlan,
   RoutePlanningInputs,
 } from '../../domain';
@@ -29,6 +30,7 @@ export interface UseOpenMeteoPerformanceWindsInput {
   flightPlan: FlightPlan;
   navigation: RoutePlanningInputs | null;
   performance: AircraftPerformancePlanInputs | null;
+  profile: AircraftPerformanceProfile;
   preliminaryRoute: CalculatedPerformanceRoute | null;
 }
 
@@ -46,12 +48,13 @@ export function useOpenMeteoPerformanceWinds({
   flightPlan,
   navigation,
   performance,
+  profile,
   preliminaryRoute,
 }: UseOpenMeteoPerformanceWindsInput): UseOpenMeteoPerformanceWindsResult {
   const [stored, setStored] = useState<StoredState>({ status: 'idle' });
   const contextKey = useMemo(
-    () => JSON.stringify({ flightPlan, navigation, performance }),
-    [flightPlan, navigation, performance],
+    () => JSON.stringify({ flightPlan, navigation, performance, profile }),
+    [flightPlan, navigation, performance, profile],
   );
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export function useOpenMeteoPerformanceWinds({
             flightPlan,
             navigation,
             performance,
+            profile,
             resolveWind: createSampledWindResolver(winds, navigation.wind),
           });
           const refinedRequests = buildPerformanceWeatherSampleRequests(firstRoute);
@@ -116,7 +120,15 @@ export function useOpenMeteoPerformanceWinds({
       window.clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [contextKey, enabled, flightPlan, navigation, performance, preliminaryRoute]);
+  }, [
+    contextKey,
+    enabled,
+    flightPlan,
+    navigation,
+    performance,
+    preliminaryRoute,
+    profile,
+  ]);
 
   if (!enabled || stored.status === 'idle' || stored.contextKey !== contextKey) {
     return { winds: [], status: { status: 'idle' } };

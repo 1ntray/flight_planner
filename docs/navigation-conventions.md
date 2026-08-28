@@ -114,6 +114,10 @@ They are calculation contracts rather than display preferences.
 - Forecast winds are first applied to the preliminary manual-wind route or
   performance profile. If this changes sample positions or times, one additional
   forecast selection pass is allowed. There is no unbounded convergence loop.
+- A performance profile can produce several position, altitude, and time samples
+  within one waypoint leg. Those samples are resolved by the performance wind
+  resolver; they are not passed into the summary navigation route's
+  one-override-per-leg interface.
 - A forecast failure is not a navigation-calculation failure. The UI reports
   the failure and continues to calculate with manual wind.
 - Responses are cached in memory for ten minutes by their full request URL.

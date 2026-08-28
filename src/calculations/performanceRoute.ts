@@ -15,7 +15,6 @@ import {
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
-  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
 } from './aircraftPerformance';
 import type { VerticalInterval } from './aircraftPerformance';
 import {
@@ -106,7 +105,7 @@ export interface PerformanceRouteCalculationInput {
   readonly flightPlan: FlightPlan;
   readonly navigation: RoutePlanningInputs;
   readonly performance: AircraftPerformancePlanInputs;
-  readonly profile?: AircraftPerformanceProfile;
+  readonly profile: AircraftPerformanceProfile;
   readonly resolveWind?: WindResolver;
 }
 
@@ -177,12 +176,12 @@ function calculateVerticalSteps(
   let timeCursorUtcMs = startTimeUtcMs;
   const indicatedAirspeedKt =
     phase === 'climb'
-      ? context.profile.climbIasKt
-      : context.profile.descentIasKt;
+      ? context.profile.climb.iasKt
+      : context.profile.descent.iasKt;
   const fuelFlowLph =
     phase === 'climb'
-      ? context.profile.climbFuelFlowLph
-      : context.profile.descentFuelFlowLph;
+      ? context.profile.climb.fuelFlowLph
+      : context.profile.descent.fuelFlowLph;
 
   for (const interval of intervals) {
     const trueAirspeedKt = calculateTasFromIas(
@@ -288,7 +287,7 @@ function calculateCruiseStep(
   }
 
   const trueAirspeedKt = calculateTasFromIas(
-    context.profile.cruiseIasKt,
+    context.profile.cruise.iasKt,
     altitudeFtMsl,
     context.environment.qnhHpa,
     context.environment.isaDeviationC,
@@ -344,7 +343,7 @@ function calculateCruiseStep(
       durationSeconds: durationMinutes * 60,
       fuelLitres: calculatePhaseFuel(
         durationMinutes,
-        context.profile.cruiseFuelFlowLph,
+        context.profile.cruise.fuelFlowLph,
       ),
       trueAirspeedKt,
       wind: refined.wind,
@@ -399,7 +398,7 @@ export function calculatePerformanceRoute({
   flightPlan,
   navigation,
   performance,
-  profile = PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+  profile,
   resolveWind = () => navigation.wind,
 }: PerformanceRouteCalculationInput): CalculatedPerformanceRoute {
   requireFinite(performance.massKg, 'Aircraft mass');
@@ -530,13 +529,14 @@ export function calculatePerformanceRoute({
               toAltitudeFtMsl,
               environment.isaDeviationC,
               performance.massKg,
+              profile.climb.rateModel,
             )
           : {
               status: 'ok' as const,
               intervals: createDescentIntervals(
                 fromAltitudeFtMsl,
                 toAltitudeFtMsl,
-                profile.descentRateFtPerMin,
+                profile.descent.rateFtPerMin,
               ),
             };
 

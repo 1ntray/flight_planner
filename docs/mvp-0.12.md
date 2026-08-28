@@ -15,9 +15,11 @@ and an editable multi-leg altitude schedule.
 - Automatic or explicit altitude-attainment distance on shaped WGS84 geometry
 - Map selection and draggable altitude-target handles distinct from waypoints
   and shaping points
+- Derived, colour-coded BOC/TOC and TOD/BOD markers
 - Arrival at destination pattern altitude, defined as destination elevation plus
   editable pattern height AGL
 - Phase EET, effective groundspeed, fuel, and route totals in the navlog
+- Cruise-representative or duration-averaged navlog wind and heading summaries
 - Position/altitude/time-aware Open-Meteo sampling with one refinement pass and
   manual-wind fallback
 - Version-two saved documents and migration of version-one files/local drafts

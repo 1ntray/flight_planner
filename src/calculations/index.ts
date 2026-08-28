@@ -20,7 +20,6 @@ export {
   calculateTasFromIas,
   createDescentIntervals,
   PERFORMANCE_ALTITUDE_STEP_FT,
-  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
 } from './aircraftPerformance';
 export type {
   ClimbCalculation,

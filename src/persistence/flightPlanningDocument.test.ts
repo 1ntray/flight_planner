@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FlightPlanningDocument } from '../domain';
-import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
+import {
+  PROJECT_AIRCRAFT_DEFINITION,
+  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+} from '../domain';
 import {
   parseFlightPlanningDocument,
   parseFlightPlanningDocumentJson,
@@ -9,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   flightPlan: {
     waypoints: [
       {
@@ -60,7 +63,7 @@ const document: FlightPlanningDocument = {
     magneticVariationDegEast: 8.5,
     wind: { directionFromTrueDeg: 240, speedKt: 18 },
   },
-  aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+  aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
   performanceInputs: {
     massKg: 820,
     defaultAltitudeFtMsl: 4500,
@@ -103,7 +106,7 @@ describe('flight-planning document persistence', () => {
       'schemaVersion',
       'flightPlan',
       'planningInputs',
-      'aircraftPerformanceProfile',
+      'aircraftDefinition',
       'performanceInputs',
       'useForecastWinds',
     ]);
@@ -120,8 +123,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 3 }),
-    ).toThrow('Unsupported flight-planning document schema version 3');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 4 }),
+    ).toThrow('Unsupported flight-planning document schema version 4');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -289,11 +292,62 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       planningInputs: document.planningInputs,
-      aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
     });
+  });
+
+  it('migrates the V2 flat performance profile into an aircraft snapshot', () => {
+    const migrated = parseFlightPlanningDocument({
+      schemaVersion: 2,
+      flightPlan: document.flightPlan,
+      planningInputs: document.planningInputs,
+      aircraftPerformanceProfile: {
+        profileId: 'project-aircraft-performance',
+        revision: 1,
+        climbIasKt: 80,
+        cruiseIasKt: 103,
+        descentIasKt: 103,
+        climbFuelFlowLph: 61,
+        cruiseFuelFlowLph: 36,
+        descentFuelFlowLph: 26.5,
+        descentRateFtPerMin: 500,
+      },
+      performanceInputs: document.performanceInputs,
+      useForecastWinds: true,
+    });
+
+    expect(migrated).toMatchObject({
+      schemaVersion: 3,
+      aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
+      performanceInputs: document.performanceInputs,
+    });
+  });
+
+  it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {
+    const customDocument = {
+      ...document,
+      aircraftDefinition: {
+        ...document.aircraftDefinition,
+        aircraftId: 'test-aircraft',
+        displayName: 'Test aircraft',
+        performance: {
+          ...PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+          climb: {
+            ...PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.climb,
+            rateModel: {
+              ...PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.climb.rateModel,
+              baseRateFtPerMin: 999,
+            },
+          },
+        },
+      },
+    };
+
+    expect(parseFlightPlanningDocument(customDocument).aircraftDefinition)
+      .toEqual(customDocument.aircraftDefinition);
   });
 
   it('validates performance inputs and adjacent leg altitude plans', () => {

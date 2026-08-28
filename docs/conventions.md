@@ -33,8 +33,9 @@ and leg data from becoming inconsistent.
 Domain collections are exposed as readonly arrays to calculation code. Pure
 calculation functions return new values and do not mutate their inputs.
 
-The top-level `App` component owns the `FlightPlan`, navigation and aircraft
-performance input drafts, forecast-source preference, and selected route-point
+The top-level `App` component owns the `FlightPlan`, selected serializable
+aircraft-definition snapshot, navigation and aircraft performance input drafts,
+forecast-source preference, and selected route-point
 descriptor. Selection and
 in-progress drag positions are UI state; calculated legs are not. UI consumers
 call the pure calculation layer to derive legs from the latest route and
@@ -111,6 +112,9 @@ Run `pnpm typecheck` and `pnpm test` before merging changes.
   not replace its canonical route semantics.
 - Persistence stores semantic numeric planning inputs in their documented
   internal units, never HTML input strings.
+- The selected aircraft definition is snapshotted in the document. Aircraft
+  catalog data must not be consulted at calculation or load time in a way that
+  silently changes an existing plan.
 - Calculated legs, expanded geometry, forecast responses, loading state,
   selection, and drag state are derived or transient and must not be saved.
 - Imported JSON crosses an untrusted input boundary and must be validated by

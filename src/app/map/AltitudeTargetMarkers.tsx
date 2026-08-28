@@ -7,18 +7,28 @@ import {
   calculatePositionAlongGeometry,
   calculateRoute,
 } from '../../calculations';
+import type { CalculatedPerformanceRoute } from '../../calculations';
 import type { FlightPlan, LegAltitudePlan, Position } from '../../domain';
 
-const altitudeTargetIcon = divIcon({
-  className: 'altitude-target-marker',
-  html: '<span>ALT</span>',
-  iconAnchor: [15, 15],
-  iconSize: [30, 30],
-});
+function targetIcon(className: string, label: string) {
+  return divIcon({
+    className: `altitude-target-marker ${className}`,
+    html: `<span>${label}</span>`,
+    iconAnchor: [15, 15],
+    iconSize: [30, 30],
+  });
+}
+
+const altitudeTargetIcons = {
+  ALT: targetIcon('altitude-target-marker--alt', 'ALT'),
+  TOC: targetIcon('altitude-target-marker--toc', 'TOC'),
+  BOD: targetIcon('altitude-target-marker--bod', 'BOD'),
+} as const;
 
 export interface AltitudeTargetMarkersProps {
   flightPlan: FlightPlan;
   plans: readonly LegAltitudePlan[];
+  performanceRoute: CalculatedPerformanceRoute | null;
   onSetTargetDistance: (
     fromWaypointId: string,
     toWaypointId: string,
@@ -34,6 +44,7 @@ function markerPosition(marker: LeafletMarker): Position {
 export function AltitudeTargetMarkers({
   flightPlan,
   plans,
+  performanceRoute,
   onSetTargetDistance,
 }: AltitudeTargetMarkersProps) {
   const legs = calculateRoute(flightPlan);
@@ -59,6 +70,27 @@ export function AltitudeTargetMarkers({
           leg.geometry,
           plan.targetPlacement.distanceFromStartNm,
         );
+        const performanceLeg =
+          performanceRoute?.status === 'ok'
+            ? performanceRoute.legs.find(
+                (candidate) =>
+                  candidate.fromId === plan.fromWaypointId &&
+                  candidate.toId === plan.toWaypointId,
+              )
+            : undefined;
+        const matchingTransition = performanceLeg?.steps.find(
+          (step) =>
+            step.phase !== 'cruise' &&
+            Math.abs(
+              step.endDistanceFromLegNm - target.distanceFromStartNm,
+            ) <= 1e-6,
+        );
+        const targetLabel =
+          matchingTransition?.phase === 'climb'
+            ? 'TOC'
+            : matchingTransition?.phase === 'descent'
+              ? 'BOD'
+              : 'ALT';
         const snapMarker = (marker: LeafletMarker) => {
           const snapped = calculateNearestPointOnGeometry(
             leg.geometry,
@@ -75,7 +107,7 @@ export function AltitudeTargetMarkers({
           <Marker
             key={`${plan.fromWaypointId}:${plan.toWaypointId}`}
             position={[target.position.latitude, target.position.longitude]}
-            icon={altitudeTargetIcon}
+            icon={altitudeTargetIcons[targetLabel]}
             draggable
             bubblingMouseEvents={false}
             title="Altitude target — drag along route"
@@ -93,7 +125,8 @@ export function AltitudeTargetMarkers({
             }}
           >
             <Tooltip direction="top" offset={[0, -15]} opacity={0.95}>
-              Reach altitude at {target.distanceFromStartNm.toFixed(1)} NM
+              {targetLabel} · reach altitude at{' '}
+              {target.distanceFromStartNm.toFixed(1)} NM
             </Tooltip>
           </Marker>,
         ];

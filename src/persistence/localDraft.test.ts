@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FlightPlanningDocument } from '../domain';
-import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
+import { PROJECT_AIRCRAFT_DEFINITION } from '../domain';
 import {
   clearLocalDraft,
   LEGACY_LOCAL_DRAFT_STORAGE_KEY,
@@ -12,7 +12,7 @@ import {
 import type { LocalDraftStorage } from './localDraft';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   flightPlan: {
     waypoints: [
       {
@@ -33,7 +33,7 @@ const document: FlightPlanningDocument = {
     magneticVariationDegEast: 8,
     wind: { directionFromTrueDeg: 230, speedKt: 15 },
   },
-  aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+  aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
   performanceInputs: null,
   useForecastWinds: false,
 };
@@ -71,7 +71,7 @@ describe('local flight-planning draft storage', () => {
       document,
     });
     expect(storage.values.get(LOCAL_DRAFT_STORAGE_KEY)).toContain(
-      '"schemaVersion": 2',
+      '"schemaVersion": 3',
     );
   });
 
@@ -91,7 +91,7 @@ describe('local flight-planning draft storage', () => {
     const result = loadLocalDraft(storage);
 
     expect(result.status).toBe('loaded');
-    expect(result.status === 'loaded' ? result.document.schemaVersion : null).toBe(2);
+    expect(result.status === 'loaded' ? result.document.schemaVersion : null).toBe(3);
     expect(result.status === 'loaded' ? result.document.performanceInputs : 'missing').toBeNull();
   });
 

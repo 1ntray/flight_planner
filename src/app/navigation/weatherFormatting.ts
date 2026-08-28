@@ -64,3 +64,17 @@ export function formatForecastWindDetails(
 
   return `${FORECAST_SOURCE_LABEL}; valid ${formatUtcDateTime(forecast.sampledTimeUtcMs)}; ${altitudeDescription}; retrieved ${formatUtcDateTime(forecast.retrievedAtUtcMs)}`;
 }
+
+export function formatForecastWindCollectionDetails(
+  forecasts: readonly ForecastLegWind[],
+): string {
+  if (forecasts.length === 0) {
+    return '—';
+  }
+
+  if (forecasts.length === 1) {
+    return formatForecastWindDetails(forecasts[0]!);
+  }
+
+  return `${FORECAST_SOURCE_LABEL}; ${forecasts.length} performance samples across this leg; valid ${formatForecastValidTimeRange(forecasts)}; retrieved ${formatForecastRetrievalTime(forecasts)}`;
+}

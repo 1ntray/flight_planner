@@ -1,12 +1,10 @@
 import type {
   AerodromePlanningWeather,
+  ClimbRateModel,
   PlanningEnvironment,
 } from '../domain';
-import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
 
 export const PERFORMANCE_ALTITUDE_STEP_FT = 100;
-
-export { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE };
 
 export interface VerticalInterval {
   readonly startAltitudeFt: number;
@@ -38,27 +36,57 @@ function requireFinite(value: number, label: string): void {
   }
 }
 
+function validateClimbRateModel(model: ClimbRateModel): void {
+  requireFinite(
+    model.isaAltitudeFactorFtPerC,
+    'Climb-rate ISA altitude factor',
+  );
+  requireFinite(model.referenceMassKg, 'Climb-rate reference mass');
+  requireFinite(model.baseRateFtPerMin, 'Climb-rate base rate');
+  requireFinite(
+    model.altitudeCoefficientPerFt,
+    'Climb-rate altitude coefficient',
+  );
+  requireFinite(
+    model.massCoefficientPerKg,
+    'Climb-rate mass coefficient',
+  );
+  requireFinite(
+    model.altitudeMassCoefficientPerFtKg,
+    'Climb-rate altitude-mass coefficient',
+  );
+
+  if (model.referenceMassKg <= 0) {
+    throw new RangeError('Climb-rate reference mass must be greater than zero');
+  }
+}
+
 export function calculateClimbRate(
   altitudeFt: number,
   isaDeviationC: number,
   massKg: number,
+  model: ClimbRateModel,
 ): number {
   requireFinite(altitudeFt, 'Altitude');
   requireFinite(isaDeviationC, 'ISA deviation');
   requireFinite(massKg, 'Aircraft mass');
+  validateClimbRateModel(model);
 
   if (massKg <= 0) {
     throw new RangeError('Aircraft mass must be greater than zero');
   }
 
-  const effectiveAltitudeFt = altitudeFt + 120 * isaDeviationC;
-  const massDifferenceKg = massKg - 820;
+  const effectiveAltitudeFt =
+    altitudeFt + model.isaAltitudeFactorFtPerC * isaDeviationC;
+  const massDifferenceKg = massKg - model.referenceMassKg;
 
   return (
-    1210 -
-    0.047 * effectiveAltitudeFt -
-    1.55 * massDifferenceKg -
-    0.000035 * effectiveAltitudeFt * massDifferenceKg
+    model.baseRateFtPerMin +
+    model.altitudeCoefficientPerFt * effectiveAltitudeFt +
+    model.massCoefficientPerKg * massDifferenceKg +
+    model.altitudeMassCoefficientPerFtKg *
+      effectiveAltitudeFt *
+      massDifferenceKg
   );
 }
 
@@ -67,6 +95,7 @@ export function calculateClimbTime(
   endAltitudeFt: number,
   isaDeviationC: number,
   massKg: number,
+  model: ClimbRateModel,
 ): ClimbCalculationResult {
   requireFinite(startAltitudeFt, 'Start altitude');
   requireFinite(endAltitudeFt, 'End altitude');
@@ -86,6 +115,7 @@ export function calculateClimbTime(
       altitudeFt,
       isaDeviationC,
       massKg,
+      model,
     );
 
     if (rocFtPerMin <= 0) {

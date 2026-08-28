@@ -7,7 +7,8 @@ import type {
 } from '../../calculations';
 import type { Waypoint } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
-import { formatForecastWindDetails } from '../navigation/weatherFormatting';
+import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
+import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
 import {
   formatDistanceNmValue,
   formatEetMinutesValue,
@@ -58,16 +59,22 @@ export function RouteTable({
     () => new Map(waypoints.map((waypoint) => [waypoint.id, waypoint.name])),
     [waypoints],
   );
-  const forecastByLeg = useMemo(
-    () =>
-      new Map(
-        forecastWinds.map((forecast) => [
-          legKey(forecast.fromId, forecast.toId),
-          forecast,
-        ]),
-      ),
-    [forecastWinds],
-  );
+  const forecastsByLeg = useMemo(() => {
+    const grouped = new Map<string, ForecastLegWind[]>();
+
+    for (const forecast of forecastWinds) {
+      const key = legKey(forecast.fromId, forecast.toId);
+      const existing = grouped.get(key);
+
+      if (existing === undefined) {
+        grouped.set(key, [forecast]);
+      } else {
+        existing.push(forecast);
+      }
+    }
+
+    return grouped;
+  }, [forecastWinds]);
   const performanceByLeg = useMemo(
     () =>
       new Map(
@@ -144,10 +151,10 @@ export function RouteTable({
               const performanceLeg = performanceByLeg.get(
                 legKey(leg.fromId, leg.toId),
               );
-              const singlePerformanceStep =
-                performanceLeg?.steps.length === 1
-                  ? performanceLeg.steps[0]
-                  : undefined;
+              const performanceNavigation =
+                performanceLeg === undefined
+                  ? null
+                  : calculatePerformanceLegNavigationSummary(performanceLeg);
               const solution =
                 navigation?.status === 'ok' ? navigation : null;
               const noSolutionMessage =
@@ -173,15 +180,14 @@ export function RouteTable({
                 (effectiveEetSeconds === null
                   ? undefined
                   : `${formatEetMinutesValue(effectiveEetSeconds)} minutes${etaDateTime === null ? '' : `, ETA ${etaDateTime}`}`);
-              const forecastWind = forecastByLeg.get(
-                legKey(leg.fromId, leg.toId),
-              );
+              const legForecasts =
+                forecastsByLeg.get(legKey(leg.fromId, leg.toId)) ?? [];
               const windDetails =
-                forecastWind === undefined
+                legForecasts.length === 0
                   ? leg.windSource === 'manual'
                     ? 'Manual wind'
                     : undefined
-                  : formatForecastWindDetails(forecastWind);
+                  : formatForecastWindCollectionDetails(legForecasts);
 
               return (
                 <tr key={`${leg.fromId}:${leg.toId}`}>
@@ -196,37 +202,36 @@ export function RouteTable({
                   <td
                     title={windDetails}
                     aria-label={
-                      leg.wind === null
+                      (performanceNavigation?.wind ?? leg.wind) === null
                         ? undefined
-                        : `${leg.wind.directionFromTrueDeg.toFixed(1)} degrees true at ${leg.wind.speedKt.toFixed(1)} knots, ${windDetails ?? `${leg.windSource ?? 'unknown'} wind`}`
+                        : `${(performanceNavigation?.wind ?? leg.wind)!.directionFromTrueDeg.toFixed(1)} degrees true at ${(performanceNavigation?.wind ?? leg.wind)!.speedKt.toFixed(1)} knots, ${performanceNavigation?.source === 'cruise' ? 'longest cruise portion' : performanceNavigation?.source === 'average' ? 'duration-weighted leg average' : windDetails ?? `${leg.windSource ?? 'unknown'} wind`}`
                     }
                   >
-                    {singlePerformanceStep === undefined
-                      ? performanceLeg === undefined
-                        ? formatWindValue(leg.wind)
-                        : 'VARIES'
-                      : formatWindValue(singlePerformanceStep.wind)}
-                    {forecastWind === undefined ? null : (
+                    {formatWindValue(performanceNavigation?.wind ?? leg.wind)}
+                    {performanceNavigation === null && legForecasts.length === 0 ? null : (
                       <span className="route-table__secondary-value">
-                        ECMWF
+                        {[
+                          performanceNavigation?.source === 'cruise'
+                            ? 'CRZ'
+                            : performanceNavigation?.source === 'average'
+                              ? 'AVG'
+                              : null,
+                          legForecasts.length === 0 ? null : 'ECMWF',
+                        ].filter(Boolean).join(' · ')}
                       </span>
                     )}
                   </td>
-                  <td>
-                    {singlePerformanceStep === undefined && performanceLeg !== undefined
-                      ? 'VARIES'
-                      : formatTrueHeadingDeg(
-                          singlePerformanceStep?.trueHeadingDeg ??
-                            solution?.trueHeadingDeg ??
-                            null,
-                        )}
+                  <td title={performanceNavigation?.source === 'average' ? 'Duration-weighted circular-average heading' : performanceNavigation?.source === 'cruise' ? 'Heading for the longest cruise portion' : undefined}>
+                    {formatTrueHeadingDeg(
+                      performanceNavigation?.trueHeadingDeg ??
+                        solution?.trueHeadingDeg ??
+                        null,
+                    )}
                     <span className="route-table__secondary-value">
-                      {singlePerformanceStep === undefined && performanceLeg !== undefined
-                        ? 'VARIES'
-                        : formatMagneticHeadingDeg(
-                            singlePerformanceStep?.magneticHeadingDeg ??
-                              leg.magneticHeadingDeg,
-                          )}
+                      {formatMagneticHeadingDeg(
+                        performanceNavigation?.magneticHeadingDeg ??
+                          leg.magneticHeadingDeg,
+                      )}
                     </span>
                   </td>
                   <td>

@@ -2,17 +2,17 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 2 contains the route,
-route-wide navigation inputs, the aircraft profile snapshot, optional
-performance inputs, and the forecast preference. Version 1 documents are
-validated and explicitly migrated on load.
+The exported format is a versioned JSON document. Version 3 contains the route,
+route-wide navigation inputs, the complete selected aircraft-definition
+snapshot, optional performance inputs, and the forecast preference. Version 1
+and 2 documents are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV2 {
-  schemaVersion: 2;
+interface FlightPlanningDocumentV3 {
+  schemaVersion: 3;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
-  aircraftPerformanceProfile: AircraftPerformanceProfile;
+  aircraftDefinition: AircraftDefinition;
   performanceInputs: AircraftPerformancePlanInputs | null;
   useForecastWinds: boolean;
 }
@@ -22,6 +22,11 @@ interface FlightPlanningDocumentV2 {
 `legShapes`. Performance inputs store mass, endpoint weather/elevations, the
 global altitude, and sparse per-adjacent-leg altitude/target overrides in their
 documented internal units.
+
+`aircraftDefinition` includes identity and revision metadata plus all phase
+speeds, fuel flows, descent rate, and climb-rate coefficients used by the
+calculation. Loading a plan uses this snapshot even if the local catalog later
+contains a newer revision of the same aircraft.
 
 Text-field drafts are not persisted. Export is disabled while the current draft
 is invalid.
@@ -65,8 +70,8 @@ for the restored route, time, and altitude.
 
 ## Validation
 
-JSON is parsed as untrusted data before application state changes. Version 1
-validation protects:
+JSON is parsed as untrusted data before application state changes. Validation
+protects:
 
 - the exact supported schema version,
 - finite WGS84 coordinates and coordinate bounds,
@@ -76,13 +81,18 @@ validation protects:
 - one optional non-empty shape per real leg,
 - point-feature-only anchor references and complete dataset provenance,
 - navigation and performance input units and numeric bounds,
+- aircraft identity, revision, phase values, and climb-model coefficients,
 - unique altitude plans associated only with adjacent real-waypoint legs,
 - the forecast preference boolean.
 
 Unknown top-level and nested fields are ignored when a validated normalized
 document is constructed. Schema-one documents migrate without inventing
-aircraft inputs: their legacy fixed TAS and altitude are discarded, and
-`performanceInputs` is `null` until the required values are supplied.
+flight-specific performance inputs: their legacy fixed TAS and altitude are
+discarded, the current project aircraft definition is snapshotted, and
+`performanceInputs` remains `null`. Schema-two documents preserve their flat
+phase speeds, fuel flows, descent rate, identity, and revision. They receive
+the authoritative project climb-rate coefficients because the older schema
+had no field capable of storing them.
 
 ## AIRAC stability
 

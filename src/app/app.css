@@ -330,6 +330,10 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.aircraft-selector label {
+  grid-column: 1 / -1;
+}
+
 .navigation-inputs__forecast-toggle {
   display: flex;
   align-items: center;
@@ -750,6 +754,70 @@ h3 {
   font-size: 0.48rem;
   font-weight: 800;
   place-items: center;
+}
+
+.altitude-target-marker--toc {
+  background: #247a51;
+  box-shadow:
+    0 0 0 3px rgb(36 122 81 / 32%),
+    0 1px 5px rgb(0 0 0 / 45%);
+}
+
+.altitude-target-marker--bod {
+  background: #a94037;
+  box-shadow:
+    0 0 0 3px rgb(169 64 55 / 32%),
+    0 1px 5px rgb(0 0 0 / 45%);
+}
+
+.performance-boundary-marker {
+  display: grid;
+  border: 2px solid #ffffff;
+  border-radius: 0.28rem;
+  color: #ffffff;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 42%);
+  font-size: 0.48rem;
+  font-weight: 850;
+  place-items: center;
+  transform: rotate(45deg);
+}
+
+.performance-boundary-marker span {
+  transform: rotate(-45deg);
+}
+
+.performance-boundary-marker--boc {
+  background: #55a97a;
+}
+
+.performance-boundary-marker--toc {
+  background: #247a51;
+}
+
+.performance-boundary-marker--tod {
+  background: #d4812f;
+}
+
+.performance-boundary-marker--bod {
+  background: #a94037;
+}
+
+.leaflet-tooltip.performance-boundary-label {
+  padding: 0.12rem 0.3rem;
+  border: 1px solid rgb(255 255 255 / 75%);
+  border-radius: 0.2rem;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.leaflet-tooltip.performance-boundary-label--climb {
+  background: rgb(36 122 81 / 92%);
+}
+
+.leaflet-tooltip.performance-boundary-label--descent {
+  background: rgb(169 64 55 / 92%);
 }
 
 .leaflet-popup.route-insertion-popup .leaflet-popup-content {

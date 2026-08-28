@@ -2,16 +2,45 @@ import type { Position } from './position';
 
 export type FlightPhase = 'climb' | 'cruise' | 'descent';
 
+export interface EffectiveAltitudeLinearMassClimbRateModel {
+  readonly kind: 'effective-altitude-linear-mass';
+  readonly isaAltitudeFactorFtPerC: number;
+  readonly referenceMassKg: number;
+  readonly baseRateFtPerMin: number;
+  readonly altitudeCoefficientPerFt: number;
+  readonly massCoefficientPerKg: number;
+  readonly altitudeMassCoefficientPerFtKg: number;
+}
+
+/**
+ * Discriminated so a future aircraft can use a different published model
+ * without changing the route integration API.
+ */
+export type ClimbRateModel = EffectiveAltitudeLinearMassClimbRateModel;
+
 export interface AircraftPerformanceProfile {
-  readonly profileId: string;
+  readonly climb: {
+    readonly iasKt: number;
+    readonly fuelFlowLph: number;
+    readonly rateModel: ClimbRateModel;
+  };
+  readonly cruise: {
+    readonly iasKt: number;
+    readonly fuelFlowLph: number;
+  };
+  readonly descent: {
+    readonly iasKt: number;
+    readonly fuelFlowLph: number;
+    readonly rateFtPerMin: number;
+  };
+}
+
+export interface AircraftDefinition {
+  readonly aircraftId: string;
   readonly revision: number;
-  readonly climbIasKt: number;
-  readonly cruiseIasKt: number;
-  readonly descentIasKt: number;
-  readonly climbFuelFlowLph: number;
-  readonly cruiseFuelFlowLph: number;
-  readonly descentFuelFlowLph: number;
-  readonly descentRateFtPerMin: number;
+  readonly displayName: string;
+  readonly registration?: string;
+  readonly performance: AircraftPerformanceProfile;
 }
 
 export interface AerodromePlanningWeather {
@@ -58,4 +87,3 @@ export interface WindSampleQuery {
   readonly altitudeFtMsl: number;
   readonly timeUtcMs: number;
 }
-

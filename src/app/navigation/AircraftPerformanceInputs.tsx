@@ -1,7 +1,9 @@
+import type { AircraftPerformanceProfile } from '../../domain';
 import type { PerformanceInputDraft } from './performanceInput';
 
 export interface AircraftPerformanceInputsProps {
   draft: PerformanceInputDraft;
+  profile: AircraftPerformanceProfile;
   errorMessage?: string;
   onChange: (draft: PerformanceInputDraft) => void;
 }
@@ -49,6 +51,7 @@ function NumericField({
 
 export function AircraftPerformanceInputs({
   draft,
+  profile,
   errorMessage,
   onChange,
 }: AircraftPerformanceInputsProps) {
@@ -58,8 +61,11 @@ export function AircraftPerformanceInputs({
     <fieldset className="navigation-inputs aircraft-performance-inputs">
       <legend>Aircraft performance</legend>
       <p className="navigation-inputs__scope">
-        IAS 80/103/103 kt · fuel flow 61/36/26.5 L/h · descent 500 ft/min.
-        Complete these flight-specific inputs to calculate phases and fuel.
+        IAS {profile.climb.iasKt}/{profile.cruise.iasKt}/
+        {profile.descent.iasKt} kt · fuel flow {profile.climb.fuelFlowLph}/
+        {profile.cruise.fuelFlowLph}/{profile.descent.fuelFlowLph} L/h ·
+        descent {profile.descent.rateFtPerMin} ft/min. Complete these
+        flight-specific inputs to calculate phases and fuel.
       </p>
 
       <NumericField

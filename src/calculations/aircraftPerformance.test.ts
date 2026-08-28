@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
+
 import {
   calculateClimbRate,
   calculateClimbTime,
@@ -8,33 +10,62 @@ import {
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
-  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
 } from './aircraftPerformance';
+
+const climbRateModel = PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.climb.rateModel;
+const climbRate = (altitudeFt: number, isaDeviationC: number, massKg: number) =>
+  calculateClimbRate(altitudeFt, isaDeviationC, massKg, climbRateModel);
+const climbTime = (
+  startAltitudeFt: number,
+  endAltitudeFt: number,
+  isaDeviationC: number,
+  massKg: number,
+) => calculateClimbTime(
+  startAltitudeFt,
+  endAltitudeFt,
+  isaDeviationC,
+  massKg,
+  climbRateModel,
+);
 
 describe('project aircraft performance', () => {
   describe('calculateClimbRate', () => {
     it('uses the supplied 820 kg ISA reference formula', () => {
-      expect(calculateClimbRate(0, 0, 820)).toBe(1210);
-      expect(calculateClimbRate(5000, 0, 820)).toBe(975);
+      expect(climbRate(0, 0, 820)).toBe(1210);
+      expect(climbRate(5000, 0, 820)).toBe(975);
     });
 
     it('reduces ROC with altitude, mass, and positive ISA deviation', () => {
-      const reference = calculateClimbRate(3000, 0, 820);
+      const reference = climbRate(3000, 0, 820);
 
-      expect(calculateClimbRate(5000, 0, 820)).toBeLessThan(reference);
-      expect(calculateClimbRate(3000, 0, 900)).toBeLessThan(reference);
-      expect(calculateClimbRate(3000, 10, 820)).toBeLessThan(reference);
-      expect(calculateClimbRate(3000, -10, 820)).toBeGreaterThan(reference);
+      expect(climbRate(5000, 0, 820)).toBeLessThan(reference);
+      expect(climbRate(3000, 0, 900)).toBeLessThan(reference);
+      expect(climbRate(3000, 10, 820)).toBeLessThan(reference);
+      expect(climbRate(3000, -10, 820)).toBeGreaterThan(reference);
     });
 
     it('returns zero or negative ROC without clamping', () => {
-      expect(calculateClimbRate(30_000, 0, 820)).toBeLessThan(0);
+      expect(climbRate(30_000, 0, 820)).toBeLessThan(0);
+    });
+
+    it('uses the supplied aircraft coefficients rather than hidden constants', () => {
+      expect(calculateClimbRate(0, 0, 820, {
+        ...climbRateModel,
+        baseRateFtPerMin: 900,
+      })).toBe(900);
+    });
+
+    it('rejects an invalid aircraft coefficient explicitly', () => {
+      expect(() => calculateClimbRate(0, 0, 820, {
+        ...climbRateModel,
+        altitudeCoefficientPerFt: Number.NaN,
+      })).toThrow('Climb-rate altitude coefficient must be a finite number');
     });
   });
 
   describe('calculateClimbTime', () => {
     it('returns zero for no altitude gain', () => {
-      expect(calculateClimbTime(3000, 3000, 0, 820)).toEqual({
+      expect(climbTime(3000, 3000, 0, 820)).toEqual({
         status: 'ok',
         timeMinutes: 0,
         intervals: [],
@@ -42,22 +73,22 @@ describe('project aircraft performance', () => {
     });
 
     it('uses a partial final interval without overshooting', () => {
-      const result = calculateClimbTime(0, 250, 0, 820);
+      const result = climbTime(0, 250, 0, 820);
 
       expect(result.status).toBe('ok');
       if (result.status === 'ok') {
         expect(result.intervals.map((interval) => interval.endAltitudeFt))
           .toEqual([100, 200, 250]);
         expect(result.intervals.at(-1)?.durationMinutes).toBe(
-          50 / calculateClimbRate(200, 0, 820),
+          50 / climbRate(200, 0, 820),
         );
       }
     });
 
     it('takes longer with greater mass and positive ISA deviation', () => {
-      const reference = calculateClimbTime(0, 5000, 0, 820);
-      const heavy = calculateClimbTime(0, 5000, 0, 900);
-      const hot = calculateClimbTime(0, 5000, 10, 820);
+      const reference = climbTime(0, 5000, 0, 820);
+      const heavy = climbTime(0, 5000, 0, 900);
+      const hot = climbTime(0, 5000, 10, 820);
 
       expect(reference.status).toBe('ok');
       expect(heavy.status).toBe('ok');
@@ -73,7 +104,7 @@ describe('project aircraft performance', () => {
     });
 
     it('returns an explicit impossible result instead of Infinity or NaN', () => {
-      const result = calculateClimbTime(29_000, 31_000, 0, 820);
+      const result = climbTime(29_000, 31_000, 0, 820);
 
       expect(result).toMatchObject({
         status: 'impossible',
@@ -111,12 +142,12 @@ describe('project aircraft performance', () => {
     it('uses the authoritative IAS values for every phase', () => {
       const profile = PROJECT_AIRCRAFT_PERFORMANCE_PROFILE;
 
-      expect(profile.climbIasKt).toBe(80);
-      expect(profile.cruiseIasKt).toBe(103);
-      expect(profile.descentIasKt).toBe(103);
-      expect(calculateTasFromIas(profile.climbIasKt, 3000, 1013.25, 0))
+      expect(profile.climb.iasKt).toBe(80);
+      expect(profile.cruise.iasKt).toBe(103);
+      expect(profile.descent.iasKt).toBe(103);
+      expect(calculateTasFromIas(profile.climb.iasKt, 3000, 1013.25, 0))
         .toBeLessThan(
-          calculateTasFromIas(profile.cruiseIasKt, 3000, 1013.25, 0),
+          calculateTasFromIas(profile.cruise.iasKt, 3000, 1013.25, 0),
         );
     });
   });
@@ -153,4 +184,3 @@ describe('project aircraft performance', () => {
     });
   });
 });
-

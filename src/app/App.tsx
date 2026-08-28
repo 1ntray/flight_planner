@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getConfiguredAeronauticalRepository } from '../aeronautical';
 import type {
   AeronauticalPointFeature,
+  AircraftDefinition,
   FlightPlan,
   FlightPlanningDocument,
   Position,
@@ -10,7 +11,7 @@ import type {
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
-  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+  PROJECT_AIRCRAFT_DEFINITION,
 } from '../domain';
 import {
   clearLocalDraft,
@@ -46,6 +47,7 @@ import {
   splitLegAltitudePlanForWaypointInsertion,
 } from './navigation/altitudePlanState';
 import type { AltitudePlacementLeg } from './navigation/altitudePlanState';
+import { usePlanningCalculations } from './navigation/usePlanningCalculations';
 import { FlightPlanFileControls } from './persistence/FlightPlanFileControls';
 import type { LocalDraftStatus } from './persistence/FlightPlanFileControls';
 import {
@@ -74,6 +76,7 @@ const browserLocalDraftStorage: LocalDraftStorage = {
 
 interface PlanningState {
   flightPlan: FlightPlan;
+  aircraftDefinition: AircraftDefinition;
   navigationInputDraft: NavigationInputDraft;
   performanceInputDraft: PerformanceInputDraft;
   useForecastWinds: boolean;
@@ -99,6 +102,7 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
 
   return {
     flightPlan,
+    aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
     navigationInputDraft,
     performanceInputDraft,
     useForecastWinds: false,
@@ -106,7 +110,7 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
       schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
       flightPlan,
       planningInputs: parsedPlanningInputs.value,
-      aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
       useForecastWinds: false,
     },
@@ -119,6 +123,7 @@ function createInitialPlanningState(): InitialPlanningState {
   if (result.status === 'loaded') {
     return {
       flightPlan: result.document.flightPlan,
+      aircraftDefinition: result.document.aircraftDefinition,
       navigationInputDraft: createNavigationInputDraft(
         result.document.planningInputs,
       ),
@@ -160,6 +165,8 @@ export function App() {
   const [flightPlan, setFlightPlan] = useState<FlightPlan>(
     initialPlanningState.flightPlan,
   );
+  const [aircraftDefinition, setAircraftDefinition] =
+    useState<AircraftDefinition>(initialPlanningState.aircraftDefinition);
   const [selectedRoutePoint, setSelectedRoutePoint] =
     useState<SelectedRoutePoint | null>(null);
   const [navigationInputDraft, setNavigationInputDraft] =
@@ -195,6 +202,13 @@ export function App() {
     () => parsePerformanceInputDraft(performanceInputDraft),
     [performanceInputDraft],
   );
+  const calculations = usePlanningCalculations({
+    flightPlan,
+    aircraftDefinition,
+    navigationDraft: navigationInputDraft,
+    performanceDraft: performanceInputDraft,
+    useForecastWinds,
+  });
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
       parsedPlanningInputs.status === 'valid' &&
@@ -203,8 +217,7 @@ export function App() {
             schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
             flightPlan,
             planningInputs: parsedPlanningInputs.value,
-            aircraftPerformanceProfile:
-              PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+            aircraftDefinition,
             performanceInputs:
               parsedPerformanceInputs.status === 'valid'
                 ? parsedPerformanceInputs.value
@@ -214,6 +227,7 @@ export function App() {
         : null,
     [
       flightPlan,
+      aircraftDefinition,
       parsedPerformanceInputs,
       parsedPlanningInputs,
       useForecastWinds,
@@ -401,6 +415,7 @@ export function App() {
     lastSavedDocumentJsonRef.current = null;
     untouchedFreshDocumentJsonRef.current = freshDocumentJson;
     setFlightPlan(freshState.flightPlan);
+    setAircraftDefinition(freshState.aircraftDefinition);
     setNavigationInputDraft(freshState.navigationInputDraft);
     setPerformanceInputDraft(freshState.performanceInputDraft);
     setUseForecastWinds(freshState.useForecastWinds);
@@ -421,6 +436,7 @@ export function App() {
   const importPlanningDocument = useCallback(
     (document: FlightPlanningDocument) => {
       setFlightPlan(document.flightPlan);
+      setAircraftDefinition(document.aircraftDefinition);
       setNavigationInputDraft(
         createNavigationInputDraft(document.planningInputs),
       );
@@ -478,7 +494,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.12</p>
+          <p className="eyebrow">MVP 0.13</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -496,6 +512,7 @@ export function App() {
             selectedRoutePoint={selectedRoutePoint}
             altitudePlans={performanceInputDraft.legAltitudePlans}
             altitudePlacementLeg={altitudePlacementLeg}
+            performanceRoute={calculations.performanceRoute}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}
             onMoveWaypoint={moveWaypoint}
@@ -567,14 +584,17 @@ export function App() {
 
           <NavigationLog
             flightPlan={flightPlan}
+            aircraftDefinition={aircraftDefinition}
             draft={navigationInputDraft}
             performanceDraft={performanceInputDraft}
             useForecastWinds={useForecastWinds}
             onDraftChange={setNavigationInputDraft}
+            onAircraftDefinitionChange={setAircraftDefinition}
             onPerformanceDraftChange={setPerformanceInputDraft}
             onUseForecastWindsChange={setUseForecastWinds}
             altitudePlacementLeg={altitudePlacementLeg}
             onAltitudePlacementLegChange={setAltitudePlacementLeg}
+            calculations={calculations}
           />
         </aside>
       </div>

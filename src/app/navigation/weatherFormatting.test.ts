@@ -5,6 +5,7 @@ import {
   FORECAST_SOURCE_LABEL,
   formatForecastRetrievalTime,
   formatForecastValidTimeRange,
+  formatForecastWindCollectionDetails,
   formatForecastWindDetails,
 } from './weatherFormatting';
 
@@ -63,8 +64,23 @@ describe('forecast provenance formatting', () => {
     ).toContain('clamped to 3281 ft MSL at 900 hPa');
   });
 
+  it('summarizes multiple performance samples for the same leg', () => {
+    const laterForecast: ForecastLegWind = {
+      ...forecast,
+      sampledTimeUtcMs: Date.UTC(2026, 7, 27, 13, 45),
+      retrievedAtUtcMs: Date.UTC(2026, 7, 27, 11, 57),
+    };
+
+    expect(
+      formatForecastWindCollectionDetails([forecast, laterForecast]),
+    ).toBe(
+      'ECMWF IFS 0.25° via Open-Meteo; 2 performance samples across this leg; valid 2026-08-27 12:30Z – 2026-08-27 13:45Z; retrieved 2026-08-27 11:57Z',
+    );
+  });
+
   it('uses an em dash for an empty forecast collection', () => {
     expect(formatForecastValidTimeRange([])).toBe('—');
     expect(formatForecastRetrievalTime([])).toBe('—');
+    expect(formatForecastWindCollectionDetails([])).toBe('—');
   });
 });
