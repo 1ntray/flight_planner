@@ -6,7 +6,7 @@ directions, a storage-neutral aeronautical-layer/waypoint-anchoring boundary,
 real-waypoint insertion into existing route geometry, and selected-waypoint
 renaming, versioned JSON flight-plan import/export, and a validated local
 working draft, and interval-integrated climb/cruise/descent performance for
-MVP 0.13.
+MVP 0.14.
 
 ## Development
 
@@ -40,7 +40,7 @@ pnpm test
 pnpm build
 ```
 
-See [`docs/mvp-0.13.md`](docs/mvp-0.13.md) for current scope and
+See [`docs/mvp-0.14.md`](docs/mvp-0.14.md) for current scope and
 [`docs/conventions.md`](docs/conventions.md) for project conventions. Aviation
 calculation definitions are recorded in
 [`docs/navigation-conventions.md`](docs/navigation-conventions.md).

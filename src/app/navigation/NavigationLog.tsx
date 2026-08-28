@@ -1,9 +1,10 @@
 import type { AircraftDefinition, FlightPlan } from '../../domain';
-import { RouteTable } from '../route/RouteTable';
+import { SectorRouteTables } from '../route/SectorRouteTables';
 import type { NavigationInputDraft } from './navigationInput';
 import { AircraftPerformanceInputs } from './AircraftPerformanceInputs';
 import { AircraftSelector } from './AircraftSelector';
 import { LegAltitudeControls } from './LegAltitudeControls';
+import { SectorStopControls } from './SectorStopControls';
 import type { AltitudePlacementLeg } from './altitudePlanState';
 import type { PerformanceInputDraft } from './performanceInput';
 import type { PlanningCalculations } from './usePlanningCalculations';
@@ -223,6 +224,12 @@ export function NavigationLog({
         onChange={onPerformanceDraftChange}
       />
 
+      <SectorStopControls
+        flightPlan={flightPlan}
+        draft={performanceDraft}
+        onDraftChange={onPerformanceDraftChange}
+      />
+
       <LegAltitudeControls
         flightPlan={flightPlan}
         draft={performanceDraft}
@@ -238,8 +245,8 @@ export function NavigationLog({
         </p>
       ) : null}
 
-      <RouteTable
-        waypoints={flightPlan.waypoints}
+      <SectorRouteTables
+        flightPlan={flightPlan}
         route={calculatedRoute}
         performanceRoute={performanceRoute}
         forecastWinds={

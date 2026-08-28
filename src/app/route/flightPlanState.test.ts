@@ -10,6 +10,7 @@ import {
   renameWaypointInFlightPlan,
   removeRouteShapingPoint,
   removeWaypointFromFlightPlan,
+  setWaypointSectorBoundary,
 } from './flightPlanState';
 
 const flightPlan: FlightPlan = {
@@ -134,6 +135,18 @@ describe('flight plan shaping state helpers', () => {
     expect(result.waypoints.map((waypoint) => waypoint.id)).toEqual(['A', 'C']);
     expect(result.legShapes).toEqual([]);
     expect(calculateRoute(result)).toHaveLength(1);
+  });
+
+  it('marks only intermediate waypoints as sector boundaries and cleans them on deletion', () => {
+    const marked = setWaypointSectorBoundary(flightPlan, 'B', true);
+
+    expect(marked.sectorBoundaryWaypointIds).toEqual(['B']);
+    expect(setWaypointSectorBoundary(marked, 'B', false).sectorBoundaryWaypointIds)
+      .toEqual([]);
+    expect(removeWaypointFromFlightPlan(marked, 'B').sectorBoundaryWaypointIds)
+      .toEqual([]);
+    expect(() => setWaypointSectorBoundary(flightPlan, 'A', true))
+      .toThrow('intermediate waypoint');
   });
 
   it('rejects non-adjacent legs, duplicate IDs, and invalid insertion indexes', () => {

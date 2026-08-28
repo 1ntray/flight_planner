@@ -71,6 +71,9 @@ They are calculation contracts rather than display preferences.
 
 - Planned departure time is input data. Leg start, midpoint, and end times are
   derived cumulatively from unrounded leg EET values.
+- An explicit intermediate landing starts a new sector timeline. Its onward
+  departure may be supplied independently; otherwise it equals the preceding
+  arrival. Ground time is not included in airborne EET or fuel totals.
 - The midpoint position is halfway by distance along the direct WGS84 geodesic
   between the real leg endpoints. It is not an arithmetic average of latitude
   and longitude, and shaping points do not change it.

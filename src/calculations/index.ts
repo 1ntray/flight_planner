@@ -57,6 +57,8 @@ export {
   calculateNearestPointOnGeometry,
   calculatePositionAlongGeometry,
 } from './routeProgress';
+export { deriveFlightPlanSectors } from './flightSectors';
+export type { FlightPlanSector } from './flightSectors';
 export type {
   NearestPointOnGeometry,
   PositionAlongGeometry,
@@ -66,6 +68,7 @@ export type {
   CalculatedLegPhase,
   CalculatedPerformanceLeg,
   CalculatedPerformanceRoute,
+  CalculatedPerformanceSector,
   CalculatedPerformanceRouteNoSolution,
   CalculatedPerformanceRouteSuccess,
   CalculatedPerformanceStep,

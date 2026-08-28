@@ -69,6 +69,14 @@ export interface LegAltitudePlan {
   readonly targetPlacement?: AltitudeTargetPlacement;
 }
 
+export interface SectorStopPlan {
+  readonly waypointId: string;
+  readonly elevationFtMsl: number;
+  readonly weather: AerodromePlanningWeather;
+  /** If omitted, the onward sector starts at the preceding sector's arrival time. */
+  readonly onwardDepartureTimeUtcMs?: number;
+}
+
 export interface AircraftPerformancePlanInputs {
   readonly massKg: number;
   readonly defaultAltitudeFtMsl: number;
@@ -78,6 +86,7 @@ export interface AircraftPerformancePlanInputs {
   readonly departureWeather: AerodromePlanningWeather;
   readonly destinationWeather: AerodromePlanningWeather;
   readonly legAltitudePlans: readonly LegAltitudePlan[];
+  readonly sectorStopPlans?: readonly SectorStopPlan[];
 }
 
 export interface WindSampleQuery {

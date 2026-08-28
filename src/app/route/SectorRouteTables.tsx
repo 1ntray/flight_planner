@@ -1,0 +1,137 @@
+import { useMemo } from 'react';
+
+import { deriveFlightPlanSectors } from '../../calculations';
+import type {
+  CalculatedNavigationRoute,
+  CalculatedPerformanceRoute,
+  CalculatedPerformanceRouteSuccess,
+} from '../../calculations';
+import type { FlightPlan } from '../../domain';
+import type { ForecastLegWind } from '../../weather';
+import { RouteTable } from './RouteTable';
+
+export interface SectorRouteTablesProps {
+  flightPlan: FlightPlan;
+  route: CalculatedNavigationRoute;
+  performanceRoute?: CalculatedPerformanceRoute | null;
+  forecastWinds?: readonly ForecastLegWind[];
+}
+
+function sectorNavigationRoute(
+  route: CalculatedNavigationRoute,
+  waypointIds: ReadonlySet<string>,
+  departureTimeUtcMs: number | null,
+): CalculatedNavigationRoute {
+  const legs = route.legs.filter(
+    (leg) => waypointIds.has(leg.fromId) && waypointIds.has(leg.toId),
+  );
+  const totalEetSeconds = legs.every((leg) => leg.eetSeconds !== null)
+    ? legs.reduce((total, leg) => total + leg.eetSeconds!, 0)
+    : null;
+
+  return {
+    departureTimeUtcMs,
+    legs,
+    totalDistanceNm: legs.reduce((total, leg) => total + leg.distanceNm, 0),
+    totalEetSeconds,
+    estimatedArrivalTimeUtcMs: legs.at(-1)?.endTimeUtcMs ?? null,
+  };
+}
+
+function sectorPerformanceRoute(
+  route: CalculatedPerformanceRoute | null | undefined,
+  sectorIndex: number,
+): CalculatedPerformanceRoute | null {
+  if (route === null || route === undefined || route.status === 'no-solution') {
+    return route ?? null;
+  }
+
+  const sector = route.sectors[sectorIndex];
+
+  if (sector === undefined) {
+    return null;
+  }
+
+  const result: CalculatedPerformanceRouteSuccess = {
+    status: 'ok',
+    environment: sector.environment,
+    legs: sector.legs,
+    sectors: [sector],
+    totalDistanceNm: sector.totalDistanceNm,
+    totalEetSeconds: sector.totalEetSeconds,
+    totalFuelLitres: sector.totalFuelLitres,
+    estimatedArrivalTimeUtcMs: sector.estimatedArrivalTimeUtcMs,
+    arrivalTargetAltitudeFtMsl: sector.arrivalTargetAltitudeFtMsl,
+  };
+
+  return result;
+}
+
+export function SectorRouteTables({
+  flightPlan,
+  route,
+  performanceRoute = null,
+  forecastWinds = [],
+}: SectorRouteTablesProps) {
+  const sectors = useMemo(
+    () => deriveFlightPlanSectors(flightPlan),
+    [flightPlan],
+  );
+
+  if (sectors.length <= 1) {
+    return (
+      <RouteTable
+        waypoints={flightPlan.waypoints}
+        route={route}
+        performanceRoute={performanceRoute}
+        forecastWinds={forecastWinds}
+      />
+    );
+  }
+
+  return (
+    <div className="sector-navlogs">
+      {sectors.map((sector) => {
+        const waypointIds = new Set(
+          sector.flightPlan.waypoints.map((waypoint) => waypoint.id),
+        );
+        const performance = sectorPerformanceRoute(
+          performanceRoute,
+          sector.sectorIndex,
+        );
+        const performanceSector =
+          performance?.status === 'ok' ? performance.sectors[0] : undefined;
+        const navigation = sectorNavigationRoute(
+          route,
+          waypointIds,
+          performanceSector?.departureTimeUtcMs ??
+            route.legs[sector.waypointStartIndex]?.startTimeUtcMs ??
+            route.departureTimeUtcMs,
+        );
+        const fromName = sector.flightPlan.waypoints[0]!.name;
+        const toName = sector.flightPlan.waypoints.at(-1)!.name;
+
+        return (
+          <section
+            key={`${sector.fromWaypointId}:${sector.toWaypointId}`}
+            className="sector-navlog"
+            aria-labelledby={`sector-navlog-${sector.sectorIndex}`}
+          >
+            <div className="sector-navlog__heading">
+              <p className="eyebrow">Sector {sector.sectorIndex + 1}</p>
+              <h3 id={`sector-navlog-${sector.sectorIndex}`}>
+                {fromName} → {toName}
+              </h3>
+            </div>
+            <RouteTable
+              waypoints={sector.flightPlan.waypoints}
+              route={navigation}
+              performanceRoute={performance}
+              forecastWinds={forecastWinds}
+            />
+          </section>
+        );
+      })}
+    </div>
+  );
+}

@@ -262,4 +262,65 @@ describe('calculatePerformanceRoute', () => {
       legToId: 'SHORT',
     });
   });
+
+  it('calculates independent descent and climb profiles around an intermediate airport', () => {
+    const result = calculatePerformanceRoute({
+      flightPlan: {
+        waypoints: [
+          longLeg.waypoints[0]!,
+          { id: 'B', name: 'STOP', position: { latitude: 0, longitude: 2 } },
+          { id: 'C', name: 'FINISH', position: { latitude: 0, longitude: 4 } },
+        ],
+        legShapes: [],
+        sectorBoundaryWaypointIds: ['B'],
+      },
+      navigation,
+      performance: {
+        ...performance,
+        destinationWeather: { qnhHpa: 1020, isaDeviationC: -2 },
+        sectorStopPlans: [{
+          waypointId: 'B',
+          elevationFtMsl: 500,
+          weather: { qnhHpa: 1005, isaDeviationC: 5 },
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      expect(result.sectors).toHaveLength(2);
+      expect(result.sectors[0]?.arrivalTargetAltitudeFtMsl).toBe(1500);
+      expect(result.sectors[0]?.legs.at(-1)?.phases.at(-1)?.phase).toBe('descent');
+      expect(result.sectors[1]?.legs[0]?.startAltitudeFtMsl).toBe(500);
+      expect(result.sectors[1]?.legs[0]?.phases[0]?.phase).toBe('climb');
+      expect(result.sectors[1]?.departureTimeUtcMs)
+        .toBe(result.sectors[0]?.estimatedArrivalTimeUtcMs);
+      expect(result.sectors[0]?.environment).not.toEqual(
+        result.sectors[1]?.environment,
+      );
+    }
+  });
+
+  it('does not calculate a sector without its intermediate-airport data', () => {
+    const result = calculatePerformanceRoute({
+      flightPlan: {
+        waypoints: [
+          longLeg.waypoints[0]!,
+          longLeg.waypoints[1]!,
+          { id: 'C', name: 'C', position: { latitude: 0, longitude: 4 } },
+        ],
+        legShapes: [],
+        sectorBoundaryWaypointIds: ['B'],
+      },
+      navigation,
+      performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result).toMatchObject({
+      status: 'no-solution',
+      reason: 'missing-sector-stop-plan',
+    });
+  });
 });

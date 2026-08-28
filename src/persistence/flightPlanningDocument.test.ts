@@ -12,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   flightPlan: {
     waypoints: [
       {
@@ -57,6 +57,7 @@ const document: FlightPlanningDocument = {
         ],
       },
     ],
+    sectorBoundaryWaypointIds: [],
   },
   planningInputs: {
     departureTimeUtcMs: Date.UTC(2026, 7, 28, 9),
@@ -81,6 +82,7 @@ const document: FlightPlanningDocument = {
         distanceFromStartNm: 12.5,
       },
     }],
+    sectorStopPlans: [],
   },
   useForecastWinds: true,
 };
@@ -123,8 +125,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 4 }),
-    ).toThrow('Unsupported flight-planning document schema version 4');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 5 }),
+    ).toThrow('Unsupported flight-planning document schema version 5');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -292,7 +294,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
       planningInputs: document.planningInputs,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
@@ -320,10 +322,67 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: document.performanceInputs,
     });
+  });
+
+  it('migrates V3 by adding empty sector collections', () => {
+    const { sectorBoundaryWaypointIds: _boundaries, ...legacyFlightPlan } =
+      document.flightPlan;
+    const { sectorStopPlans: _stops, ...legacyPerformanceInputs } =
+      document.performanceInputs!;
+    const migrated = parseFlightPlanningDocument({
+      schemaVersion: 3,
+      flightPlan: legacyFlightPlan,
+      planningInputs: document.planningInputs,
+      aircraftDefinition: document.aircraftDefinition,
+      performanceInputs: legacyPerformanceInputs,
+      useForecastWinds: document.useForecastWinds,
+    });
+
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.flightPlan.sectorBoundaryWaypointIds).toEqual([]);
+    expect(migrated.performanceInputs?.sectorStopPlans).toEqual([]);
+  });
+
+  it('round-trips an intermediate airport and validates its planning data', () => {
+    const sectorDocument: FlightPlanningDocument = {
+      ...document,
+      flightPlan: {
+        ...document.flightPlan,
+        waypoints: [
+          ...document.flightPlan.waypoints,
+          {
+            id: 'C',
+            name: 'DESTINATION',
+            position: { latitude: 69.8, longitude: 20 },
+          },
+        ],
+        sectorBoundaryWaypointIds: ['B'],
+      },
+      performanceInputs: {
+        ...document.performanceInputs!,
+        sectorStopPlans: [{
+          waypointId: 'B',
+          elevationFtMsl: 250,
+          weather: { qnhHpa: 1009, isaDeviationC: 3 },
+          onwardDepartureTimeUtcMs: Date.UTC(2026, 7, 28, 12),
+        }],
+      },
+    };
+
+    expect(parseFlightPlanningDocumentJson(
+      serializeFlightPlanningDocument(sectorDocument),
+    )).toEqual(sectorDocument);
+    expect(() => parseFlightPlanningDocument({
+      ...sectorDocument,
+      performanceInputs: {
+        ...sectorDocument.performanceInputs!,
+        sectorStopPlans: [],
+      },
+    })).toThrow('must provide every route sector boundary');
   });
 
   it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {

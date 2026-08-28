@@ -37,6 +37,7 @@ import {
 import type { NavigationInputDraft } from './navigation/navigationInput';
 import {
   createEmptyPerformanceInputDraft,
+  createEmptySectorStopInputDraft,
   createPerformanceInputDraft,
   parsePerformanceInputDraft,
 } from './navigation/performanceInput';
@@ -60,6 +61,7 @@ import {
   renameWaypointInFlightPlan,
   removeRouteShapingPoint,
   removeWaypointFromFlightPlan,
+  setWaypointSectorBoundary,
 } from './route/flightPlanState';
 import { WaypointEditor } from './route/WaypointEditor';
 
@@ -89,7 +91,11 @@ interface InitialPlanningState extends PlanningState {
 }
 
 function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
-  const flightPlan: FlightPlan = { waypoints: [], legShapes: [] };
+  const flightPlan: FlightPlan = {
+    waypoints: [],
+    legShapes: [],
+    sectorBoundaryWaypointIds: [],
+  };
   const navigationInputDraft = createDefaultNavigationInputDraft(nowUtcMs);
   const performanceInputDraft = createEmptyPerformanceInputDraft();
   const parsedPlanningInputs = parseNavigationInputDraft(
@@ -199,8 +205,11 @@ export function App() {
     [navigationInputDraft],
   );
   const parsedPerformanceInputs = useMemo(
-    () => parsePerformanceInputDraft(performanceInputDraft),
-    [performanceInputDraft],
+    () => parsePerformanceInputDraft(
+      performanceInputDraft,
+      flightPlan.sectorBoundaryWaypointIds ?? [],
+    ),
+    [flightPlan.sectorBoundaryWaypointIds, performanceInputDraft],
   );
   const calculations = usePlanningCalculations({
     flightPlan,
@@ -390,6 +399,9 @@ export function App() {
           currentDraft.legAltitudePlans,
           selectedRoutePoint.id,
         ),
+        sectorStopPlans: currentDraft.sectorStopPlans.filter(
+          (stop) => stop.waypointId !== selectedRoutePoint.id,
+        ),
       }));
     }
     setSelectedRoutePoint(null);
@@ -397,10 +409,15 @@ export function App() {
   };
 
   const clearRoute = () => {
-    setFlightPlan({ waypoints: [], legShapes: [] });
+    setFlightPlan({
+      waypoints: [],
+      legShapes: [],
+      sectorBoundaryWaypointIds: [],
+    });
     setPerformanceInputDraft((currentDraft) => ({
       ...currentDraft,
       legAltitudePlans: [],
+      sectorStopPlans: [],
     }));
     setSelectedRoutePoint(null);
     setAltitudePlacementLeg(null);
@@ -457,6 +474,42 @@ export function App() {
           (waypoint) => waypoint.id === selectedRoutePoint.id,
         )
       : undefined;
+  const selectedWaypointIndex = selectedWaypoint === undefined
+    ? -1
+    : flightPlan.waypoints.findIndex(
+        (waypoint) => waypoint.id === selectedWaypoint.id,
+      );
+  const selectedWaypointCanBeSectorBoundary =
+    selectedWaypointIndex > 0 &&
+    selectedWaypointIndex < flightPlan.waypoints.length - 1;
+  const selectedWaypointIsSectorBoundary =
+    selectedWaypoint !== undefined &&
+    (flightPlan.sectorBoundaryWaypointIds ?? []).includes(selectedWaypoint.id);
+  const toggleSelectedWaypointSectorBoundary = () => {
+    if (selectedWaypoint === undefined || !selectedWaypointCanBeSectorBoundary) {
+      return;
+    }
+
+    const enabled = !selectedWaypointIsSectorBoundary;
+    setFlightPlan((currentFlightPlan) =>
+      setWaypointSectorBoundary(currentFlightPlan, selectedWaypoint.id, enabled),
+    );
+    setPerformanceInputDraft((currentDraft) => ({
+      ...currentDraft,
+      sectorStopPlans: enabled
+        ? currentDraft.sectorStopPlans.some(
+            (stop) => stop.waypointId === selectedWaypoint.id,
+          )
+          ? currentDraft.sectorStopPlans
+          : [
+              ...currentDraft.sectorStopPlans,
+              createEmptySectorStopInputDraft(selectedWaypoint.id),
+            ]
+        : currentDraft.sectorStopPlans.filter(
+            (stop) => stop.waypointId !== selectedWaypoint.id,
+          ),
+    }));
+  };
   const detachSelectedWaypoint = () => {
     if (selectedWaypoint?.anchor === undefined) {
       return;
@@ -494,7 +547,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.13</p>
+          <p className="eyebrow">MVP 0.14</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -557,6 +610,16 @@ export function App() {
               onClick={detachSelectedWaypoint}
             >
               Detach waypoint
+            </button>
+            <button
+              type="button"
+              className={`button${selectedWaypointIsSectorBoundary ? ' button--active' : ''}`}
+              disabled={!selectedWaypointCanBeSectorBoundary}
+              onClick={toggleSelectedWaypointSectorBoundary}
+            >
+              {selectedWaypointIsSectorBoundary
+                ? 'Remove landing'
+                : 'Mark landing'}
             </button>
             <button
               type="button"

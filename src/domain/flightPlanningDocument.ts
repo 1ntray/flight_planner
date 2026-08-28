@@ -8,7 +8,17 @@ import type { RoutePlanningInputs } from './navigation';
 
 export const LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 1 as const;
 export const LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION = 2 as const;
-export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 3 as const;
+export const LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION = 3 as const;
+export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 4 as const;
+
+export type LegacyFlightPlanV3 = Omit<
+  FlightPlan,
+  'sectorBoundaryWaypointIds'
+>;
+export type LegacyAircraftPerformancePlanInputsV3 = Omit<
+  AircraftPerformancePlanInputs,
+  'sectorStopPlans'
+>;
 
 export interface LegacyAircraftPerformanceProfileV2 {
   readonly profileId: string;
@@ -24,28 +34,37 @@ export interface LegacyAircraftPerformanceProfileV2 {
 
 export interface FlightPlanningDocumentV1 {
   readonly schemaVersion: typeof LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION;
-  readonly flightPlan: FlightPlan;
+  readonly flightPlan: LegacyFlightPlanV3;
   readonly planningInputs: NavigationPlanInputs;
   readonly useForecastWinds: boolean;
 }
 
 export interface FlightPlanningDocumentV2 {
   readonly schemaVersion: typeof LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION;
-  readonly flightPlan: FlightPlan;
+  readonly flightPlan: LegacyFlightPlanV3;
   readonly planningInputs: RoutePlanningInputs;
   readonly aircraftPerformanceProfile: LegacyAircraftPerformanceProfileV2;
-  readonly performanceInputs: AircraftPerformancePlanInputs | null;
+  readonly performanceInputs: LegacyAircraftPerformancePlanInputsV3 | null;
   readonly useForecastWinds: boolean;
 }
 
 export interface FlightPlanningDocumentV3 {
+  readonly schemaVersion: typeof LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION;
+  readonly flightPlan: LegacyFlightPlanV3;
+  readonly planningInputs: RoutePlanningInputs;
+  /** Immutable snapshot used by this saved plan. */
+  readonly aircraftDefinition: AircraftDefinition;
+  readonly performanceInputs: LegacyAircraftPerformancePlanInputsV3 | null;
+  readonly useForecastWinds: boolean;
+}
+
+export interface FlightPlanningDocumentV4 {
   readonly schemaVersion: typeof FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION;
   readonly flightPlan: FlightPlan;
   readonly planningInputs: RoutePlanningInputs;
-  /** Immutable snapshot used by this saved plan. */
   readonly aircraftDefinition: AircraftDefinition;
   readonly performanceInputs: AircraftPerformancePlanInputs | null;
   readonly useForecastWinds: boolean;
 }
 
-export type FlightPlanningDocument = FlightPlanningDocumentV3;
+export type FlightPlanningDocument = FlightPlanningDocumentV4;

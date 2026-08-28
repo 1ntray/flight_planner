@@ -10,7 +10,10 @@ export interface AircraftPerformanceInputsProps {
 
 interface NumericFieldProps {
   label: string;
-  field: Exclude<keyof PerformanceInputDraft, 'legAltitudePlans'>;
+  field: Exclude<
+    keyof PerformanceInputDraft,
+    'legAltitudePlans' | 'sectorStopPlans'
+  >;
   unit: string;
   min?: string;
   step?: string;

@@ -24,6 +24,7 @@ import {
 import type { WindAdjustedLegSolution } from './navigation';
 import { calculateRoute } from './route';
 import { calculatePositionAlongGeometry } from './routeProgress';
+import { deriveFlightPlanSectors } from './flightSectors';
 
 const MILLISECONDS_PER_MINUTE = 60_000;
 const TARGET_DISTANCE_TOLERANCE_NM = 1e-7;
@@ -76,7 +77,23 @@ export type PerformanceRouteNoSolutionReason =
   | 'non-positive-climb-rate'
   | 'wind-triangle-no-solution'
   | 'insufficient-leg-distance'
-  | 'phase-overlap';
+  | 'phase-overlap'
+  | 'missing-sector-stop-plan'
+  | 'sector-departure-before-arrival';
+
+export interface CalculatedPerformanceSector {
+  readonly sectorIndex: number;
+  readonly fromWaypointId: string;
+  readonly toWaypointId: string;
+  readonly environment: PlanningEnvironment;
+  readonly legs: readonly CalculatedPerformanceLeg[];
+  readonly totalDistanceNm: number;
+  readonly totalEetSeconds: number;
+  readonly totalFuelLitres: number;
+  readonly departureTimeUtcMs: number;
+  readonly estimatedArrivalTimeUtcMs: number;
+  readonly arrivalTargetAltitudeFtMsl: number;
+}
 
 export interface CalculatedPerformanceRouteSuccess {
   readonly status: 'ok';
@@ -87,6 +104,7 @@ export interface CalculatedPerformanceRouteSuccess {
   readonly totalFuelLitres: number;
   readonly estimatedArrivalTimeUtcMs: number;
   readonly arrivalTargetAltitudeFtMsl: number;
+  readonly sectors: readonly CalculatedPerformanceSector[];
 }
 
 export interface CalculatedPerformanceRouteNoSolution {
@@ -394,13 +412,17 @@ function legKey(fromId: string, toId: string): string {
   return `${fromId}\u0000${toId}`;
 }
 
-export function calculatePerformanceRoute({
+type CalculatedSingleSectorPerformanceRoute =
+  | Omit<CalculatedPerformanceRouteSuccess, 'sectors'>
+  | CalculatedPerformanceRouteNoSolution;
+
+function calculateSingleSectorPerformanceRoute({
   flightPlan,
   navigation,
   performance,
   profile,
   resolveWind = () => navigation.wind,
-}: PerformanceRouteCalculationInput): CalculatedPerformanceRoute {
+}: PerformanceRouteCalculationInput): CalculatedSingleSectorPerformanceRoute {
   requireFinite(performance.massKg, 'Aircraft mass');
   requireFinite(performance.defaultAltitudeFtMsl, 'Default altitude');
   requireFinite(performance.departureElevationFtMsl, 'Departure elevation');
@@ -792,5 +814,159 @@ export function calculatePerformanceRoute({
     totalFuelLitres,
     estimatedArrivalTimeUtcMs: currentTimeUtcMs,
     arrivalTargetAltitudeFtMsl,
+  };
+}
+
+export function calculatePerformanceRoute(
+  input: PerformanceRouteCalculationInput,
+): CalculatedPerformanceRoute {
+  const sectors = deriveFlightPlanSectors(input.flightPlan);
+
+  if (sectors.length === 0) {
+    const result = calculateSingleSectorPerformanceRoute(input);
+    return result.status === 'ok' ? { ...result, sectors: [] } : result;
+  }
+
+  const stopPlansByWaypointId = new Map(
+    (input.performance.sectorStopPlans ?? []).map((stop) => [stop.waypointId, stop]),
+  );
+  const boundaryIds = new Set(input.flightPlan.sectorBoundaryWaypointIds ?? []);
+
+  for (const stop of input.performance.sectorStopPlans ?? []) {
+    if (!boundaryIds.has(stop.waypointId)) {
+      throw new RangeError(
+        `Sector stop plan ${stop.waypointId} is not a route sector boundary`,
+      );
+    }
+  }
+
+  const calculatedSectors: CalculatedPerformanceSector[] = [];
+  const calculatedLegs: CalculatedPerformanceLeg[] = [];
+  let previousArrivalTimeUtcMs: number | null = null;
+
+  for (const sector of sectors) {
+    const departureStop =
+      sector.sectorIndex === 0
+        ? null
+        : stopPlansByWaypointId.get(sector.fromWaypointId) ?? null;
+    const destinationStop =
+      sector.sectorIndex === sectors.length - 1
+        ? null
+        : stopPlansByWaypointId.get(sector.toWaypointId) ?? null;
+
+    if (sector.sectorIndex > 0 && departureStop === null) {
+      return {
+        status: 'no-solution',
+        reason: 'missing-sector-stop-plan',
+        legFromId: sector.fromWaypointId,
+        legToId: sector.toWaypointId,
+        message: `Intermediate airport ${sector.fromWaypointId} needs elevation and weather`,
+      };
+    }
+
+    if (sector.sectorIndex < sectors.length - 1 && destinationStop === null) {
+      return {
+        status: 'no-solution',
+        reason: 'missing-sector-stop-plan',
+        legFromId: sector.fromWaypointId,
+        legToId: sector.toWaypointId,
+        message: `Intermediate airport ${sector.toWaypointId} needs elevation and weather`,
+      };
+    }
+
+    const departureTimeUtcMs =
+      sector.sectorIndex === 0
+        ? input.navigation.departureTimeUtcMs
+        : departureStop!.onwardDepartureTimeUtcMs ?? previousArrivalTimeUtcMs!;
+
+    if (
+      previousArrivalTimeUtcMs !== null &&
+      departureTimeUtcMs < previousArrivalTimeUtcMs
+    ) {
+      return {
+        status: 'no-solution',
+        reason: 'sector-departure-before-arrival',
+        legFromId: sector.fromWaypointId,
+        legToId: sector.toWaypointId,
+        message: `Onward departure from ${sector.fromWaypointId} is before the preceding arrival`,
+      };
+    }
+
+    const sectorWaypointIds = new Set(
+      sector.flightPlan.waypoints.map((waypoint) => waypoint.id),
+    );
+    const result = calculateSingleSectorPerformanceRoute({
+      ...input,
+      flightPlan: sector.flightPlan,
+      navigation: {
+        ...input.navigation,
+        departureTimeUtcMs,
+      },
+      performance: {
+        ...input.performance,
+        departureElevationFtMsl:
+          departureStop?.elevationFtMsl ??
+          input.performance.departureElevationFtMsl,
+        destinationElevationFtMsl:
+          destinationStop?.elevationFtMsl ??
+          input.performance.destinationElevationFtMsl,
+        departureWeather:
+          departureStop?.weather ?? input.performance.departureWeather,
+        destinationWeather:
+          destinationStop?.weather ?? input.performance.destinationWeather,
+        legAltitudePlans: input.performance.legAltitudePlans.filter(
+          (plan) =>
+            sectorWaypointIds.has(plan.fromWaypointId) &&
+            sectorWaypointIds.has(plan.toWaypointId),
+        ),
+        sectorStopPlans: [],
+      },
+    });
+
+    if (result.status === 'no-solution') {
+      return result;
+    }
+
+    const calculatedSector: CalculatedPerformanceSector = {
+      sectorIndex: sector.sectorIndex,
+      fromWaypointId: sector.fromWaypointId,
+      toWaypointId: sector.toWaypointId,
+      environment: result.environment,
+      legs: result.legs,
+      totalDistanceNm: result.totalDistanceNm,
+      totalEetSeconds: result.totalEetSeconds,
+      totalFuelLitres: result.totalFuelLitres,
+      departureTimeUtcMs,
+      estimatedArrivalTimeUtcMs: result.estimatedArrivalTimeUtcMs,
+      arrivalTargetAltitudeFtMsl: result.arrivalTargetAltitudeFtMsl,
+    };
+
+    calculatedSectors.push(calculatedSector);
+    calculatedLegs.push(...result.legs);
+    previousArrivalTimeUtcMs = result.estimatedArrivalTimeUtcMs;
+  }
+
+  const firstSector = calculatedSectors[0]!;
+  const finalSector = calculatedSectors.at(-1)!;
+
+  return {
+    status: 'ok',
+    environment: firstSector.environment,
+    legs: calculatedLegs,
+    sectors: calculatedSectors,
+    totalDistanceNm: calculatedSectors.reduce(
+      (total, sector) => total + sector.totalDistanceNm,
+      0,
+    ),
+    totalEetSeconds: calculatedSectors.reduce(
+      (total, sector) => total + sector.totalEetSeconds,
+      0,
+    ),
+    totalFuelLitres: calculatedSectors.reduce(
+      (total, sector) => total + sector.totalFuelLitres,
+      0,
+    ),
+    estimatedArrivalTimeUtcMs: finalSector.estimatedArrivalTimeUtcMs,
+    arrivalTargetAltitudeFtMsl: finalSector.arrivalTargetAltitudeFtMsl,
   };
 }

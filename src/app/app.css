@@ -334,6 +334,32 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.sector-stop-controls,
+.sector-navlogs {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sector-stop-controls__airport {
+  margin-bottom: 0;
+}
+
+.sector-navlog {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sector-navlog__heading h3,
+.sector-navlog__heading p {
+  margin: 0;
+}
+
+.sector-navlog__heading h3 {
+  color: #26384c;
+  font-size: 0.9rem;
+}
+
 .navigation-inputs__forecast-toggle {
   display: flex;
   align-items: center;

@@ -65,7 +65,7 @@ function parseRequiredNumber(value: string, label: string): number | string {
   return Number.isFinite(parsed) ? parsed : `${label} must be a number`;
 }
 
-function parseUtcDateTime(value: string): number | null {
+export function parseUtcDateTimeInput(value: string): number | null {
   const match = UTC_DATE_TIME_PATTERN.exec(value);
 
   if (match === null) {
@@ -95,7 +95,7 @@ function parseUtcDateTime(value: string): number | null {
 export function parseNavigationInputDraft(
   draft: NavigationInputDraft,
 ): NavigationInputParseResult {
-  const departureTimeUtcMs = parseUtcDateTime(draft.departureTimeUtc);
+  const departureTimeUtcMs = parseUtcDateTimeInput(draft.departureTimeUtc);
 
   if (departureTimeUtcMs === null) {
     return {

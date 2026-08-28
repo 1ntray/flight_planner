@@ -20,6 +20,7 @@ const inputs = {
     altitudeFtMsl: 4500,
     targetPlacement: { mode: 'distance-along-leg' as const, distanceFromStartNm: 8 },
   }],
+  sectorStopPlans: [],
 };
 
 describe('performance input parsing', () => {
@@ -49,5 +50,34 @@ describe('performance input parsing', () => {
         targetPlacement: { mode: 'distance-along-leg', distanceFromStartNm: -1 },
       }],
     })).toMatchObject({ status: 'invalid', message: expect.stringContaining('non-negative') });
+  });
+
+  it('parses intermediate-airport data and requires every marked stop', () => {
+    const draft = {
+      ...createPerformanceInputDraft(inputs),
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: '350',
+        qnhHpa: '1008',
+        isaDeviationC: '3',
+        onwardDepartureTimeUtc: '2026-08-28T12:30',
+      }],
+    };
+
+    expect(parsePerformanceInputDraft(draft, ['B'])).toMatchObject({
+      status: 'valid',
+      value: {
+        sectorStopPlans: [{
+          waypointId: 'B',
+          elevationFtMsl: 350,
+          weather: { qnhHpa: 1008, isaDeviationC: 3 },
+          onwardDepartureTimeUtcMs: Date.UTC(2026, 7, 28, 12, 30),
+        }],
+      },
+    });
+    expect(parsePerformanceInputDraft(draft, ['B', 'C'])).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('every intermediate airport'),
+    });
   });
 });

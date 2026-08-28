@@ -31,7 +31,7 @@ export const PROJECT_AIRCRAFT_PERFORMANCE_PROFILE: AircraftPerformanceProfile = 
 export const PROJECT_AIRCRAFT_DEFINITION: AircraftDefinition = {
   aircraftId: 'project-aircraft',
   revision: 1,
-  displayName: 'Project aircraft',
+  displayName: 'Zlin Z242',
   performance: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
 };
 

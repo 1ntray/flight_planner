@@ -124,6 +124,37 @@ export function removeWaypointFromFlightPlan(
       (shape) =>
         shape.fromWaypointId !== id && shape.toWaypointId !== id,
     ),
+    sectorBoundaryWaypointIds: (flightPlan.sectorBoundaryWaypointIds ?? []).filter(
+      (waypointId) => waypointId !== id,
+    ),
+  };
+}
+
+export function setWaypointSectorBoundary(
+  flightPlan: FlightPlan,
+  waypointId: string,
+  enabled: boolean,
+): FlightPlan {
+  const waypointIndex = flightPlan.waypoints.findIndex(
+    (waypoint) => waypoint.id === waypointId,
+  );
+
+  if (waypointIndex <= 0 || waypointIndex >= flightPlan.waypoints.length - 1) {
+    throw new RangeError('A sector boundary must be an intermediate waypoint');
+  }
+
+  const boundaries = flightPlan.sectorBoundaryWaypointIds ?? [];
+  const existing = boundaries.includes(waypointId);
+
+  if (existing === enabled) {
+    return flightPlan;
+  }
+
+  return {
+    ...flightPlan,
+    sectorBoundaryWaypointIds: enabled
+      ? [...boundaries, waypointId]
+      : boundaries.filter((id) => id !== waypointId),
   };
 }
 

@@ -12,7 +12,7 @@ import {
 import type { LocalDraftStorage } from './localDraft';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   flightPlan: {
     waypoints: [
       {
@@ -27,6 +27,7 @@ const document: FlightPlanningDocument = {
       },
     ],
     legShapes: [],
+    sectorBoundaryWaypointIds: [],
   },
   planningInputs: {
     departureTimeUtcMs: Date.UTC(2026, 7, 28, 10),
@@ -71,7 +72,7 @@ describe('local flight-planning draft storage', () => {
       document,
     });
     expect(storage.values.get(LOCAL_DRAFT_STORAGE_KEY)).toContain(
-      '"schemaVersion": 3',
+      '"schemaVersion": 4',
     );
   });
 
@@ -91,7 +92,7 @@ describe('local flight-planning draft storage', () => {
     const result = loadLocalDraft(storage);
 
     expect(result.status).toBe('loaded');
-    expect(result.status === 'loaded' ? result.document.schemaVersion : null).toBe(3);
+    expect(result.status === 'loaded' ? result.document.schemaVersion : null).toBe(4);
     expect(result.status === 'loaded' ? result.document.performanceInputs : 'missing').toBeNull();
   });
 

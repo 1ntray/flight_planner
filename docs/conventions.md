@@ -18,6 +18,13 @@ navlog leg order. Its `legShapes` collection contains optional ordered route
 shaping points associated with a specific adjacent real-waypoint pair. Shaping
 points are not waypoints and never create navlog legs.
 
+`sectorBoundaryWaypointIds` identifies intermediate real waypoints at which a
+landing ends one flight sector and a new sector begins. It does not duplicate
+waypoints, geometry, or calculated legs. Sectors are derived by slicing the
+canonical waypoint order; the boundary airport is shared as the inbound TO and
+outbound FROM waypoint. Merely anchoring a waypoint to an aerodrome does not
+imply a landing because an aerodrome may be overflown.
+
 A real waypoint may optionally contain an aeronautical-feature anchor. Its
 stored WGS84 `position` remains the route's coordinate snapshot and is never
 resolved dynamically from the current aeronautical dataset. The anchor records
@@ -115,6 +122,9 @@ Run `pnpm typecheck` and `pnpm test` before merging changes.
 - The selected aircraft definition is snapshotted in the document. Aircraft
   catalog data must not be consulted at calculation or load time in a way that
   silently changes an existing plan.
+- Intermediate sector-stop inputs contain only airport elevation, weather, and
+  an optional onward departure time. Calculated sector legs and navlog totals
+  remain derived.
 - Calculated legs, expanded geometry, forecast responses, loading state,
   selection, and drag state are derived or transient and must not be saved.
 - Imported JSON crosses an untrusted input boundary and must be validated by

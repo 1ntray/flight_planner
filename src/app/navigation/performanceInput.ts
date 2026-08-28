@@ -2,6 +2,18 @@ import type {
   AircraftPerformancePlanInputs,
   LegAltitudePlan,
 } from '../../domain';
+import {
+  formatUtcDateTimeInput,
+  parseUtcDateTimeInput,
+} from './navigationInput';
+
+export interface SectorStopInputDraft {
+  waypointId: string;
+  elevationFtMsl: string;
+  qnhHpa: string;
+  isaDeviationC: string;
+  onwardDepartureTimeUtc: string;
+}
 
 export interface PerformanceInputDraft {
   massKg: string;
@@ -14,6 +26,7 @@ export interface PerformanceInputDraft {
   destinationQnhHpa: string;
   destinationIsaDeviationC: string;
   legAltitudePlans: readonly LegAltitudePlan[];
+  sectorStopPlans: readonly SectorStopInputDraft[];
 }
 
 export type PerformanceInputParseResult =
@@ -33,6 +46,7 @@ export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
     destinationQnhHpa: '',
     destinationIsaDeviationC: '',
     legAltitudePlans: [],
+    sectorStopPlans: [],
   };
 }
 
@@ -54,6 +68,28 @@ export function createPerformanceInputDraft(
       inputs.destinationWeather.isaDeviationC,
     ),
     legAltitudePlans: inputs.legAltitudePlans,
+    sectorStopPlans: (inputs.sectorStopPlans ?? []).map((stop) => ({
+      waypointId: stop.waypointId,
+      elevationFtMsl: String(stop.elevationFtMsl),
+      qnhHpa: String(stop.weather.qnhHpa),
+      isaDeviationC: String(stop.weather.isaDeviationC),
+      onwardDepartureTimeUtc:
+        stop.onwardDepartureTimeUtcMs === undefined
+          ? ''
+          : formatUtcDateTimeInput(stop.onwardDepartureTimeUtcMs),
+    })),
+  };
+}
+
+export function createEmptySectorStopInputDraft(
+  waypointId: string,
+): SectorStopInputDraft {
+  return {
+    waypointId,
+    elevationFtMsl: '',
+    qnhHpa: '',
+    isaDeviationC: '',
+    onwardDepartureTimeUtc: '',
   };
 }
 
@@ -113,6 +149,7 @@ function validateLegAltitudePlans(
 
 export function parsePerformanceInputDraft(
   draft: PerformanceInputDraft,
+  sectorBoundaryWaypointIds: readonly string[] = [],
 ): PerformanceInputParseResult {
   const legPlanError = validateLegAltitudePlans(draft.legAltitudePlans);
 
@@ -134,7 +171,15 @@ export function parsePerformanceInputDraft(
 
   if (
     scalarValues.every((value) => value.trim() === '') &&
-    draft.legAltitudePlans.length === 0
+    draft.legAltitudePlans.length === 0 &&
+    draft.sectorStopPlans.every((stop) =>
+      [
+        stop.elevationFtMsl,
+        stop.qnhHpa,
+        stop.isaDeviationC,
+        stop.onwardDepartureTimeUtc,
+      ].every((value) => value.trim() === ''),
+    )
   ) {
     return { status: 'empty' };
   }
@@ -174,6 +219,81 @@ export function parsePerformanceInputDraft(
     return { status: 'invalid', message: 'Destination QNH must be greater than zero' };
   }
 
+  const stopWaypointIds = new Set<string>();
+  const sectorStopPlans = [];
+
+  for (const [index, stop] of draft.sectorStopPlans.entries()) {
+    if (stopWaypointIds.has(stop.waypointId)) {
+      return { status: 'invalid', message: 'Each sector stop may appear only once' };
+    }
+    stopWaypointIds.add(stop.waypointId);
+
+    const elevationFtMsl = parseNumber(
+      stop.elevationFtMsl,
+      `Sector stop ${index + 1} elevation`,
+      0,
+    );
+    const qnhHpa = parseNumber(
+      stop.qnhHpa,
+      `Sector stop ${index + 1} QNH`,
+      null,
+    );
+    const isaDeviationC = parseNumber(
+      stop.isaDeviationC,
+      `Sector stop ${index + 1} ISA deviation`,
+      null,
+    );
+
+    if (typeof elevationFtMsl === 'string') {
+      return { status: 'invalid', message: elevationFtMsl };
+    }
+    if (typeof qnhHpa === 'string') {
+      return { status: 'invalid', message: qnhHpa };
+    }
+    if (qnhHpa <= 0) {
+      return {
+        status: 'invalid',
+        message: `Sector stop ${index + 1} QNH must be greater than zero`,
+      };
+    }
+    if (typeof isaDeviationC === 'string') {
+      return { status: 'invalid', message: isaDeviationC };
+    }
+
+    const onwardDepartureTimeUtcMs =
+      stop.onwardDepartureTimeUtc.trim() === ''
+        ? undefined
+        : parseUtcDateTimeInput(stop.onwardDepartureTimeUtc);
+
+    if (onwardDepartureTimeUtcMs === null) {
+      return {
+        status: 'invalid',
+        message: `Sector stop ${index + 1} onward departure must be a valid UTC date and time`,
+      };
+    }
+
+    sectorStopPlans.push({
+      waypointId: stop.waypointId,
+      elevationFtMsl,
+      weather: { qnhHpa, isaDeviationC },
+      ...(onwardDepartureTimeUtcMs === undefined
+        ? {}
+        : { onwardDepartureTimeUtcMs }),
+    });
+  }
+
+  const requiredStopIds = new Set(sectorBoundaryWaypointIds);
+
+  if (
+    sectorStopPlans.some((stop) => !requiredStopIds.has(stop.waypointId)) ||
+    sectorStopPlans.length !== requiredStopIds.size
+  ) {
+    return {
+      status: 'invalid',
+      message: 'Enter elevation and weather for every intermediate airport',
+    };
+  }
+
   return {
     status: 'valid',
     value: {
@@ -191,6 +311,7 @@ export function parsePerformanceInputDraft(
         isaDeviationC: parsed.get('destinationIsaDeviationC')!,
       },
       legAltitudePlans: draft.legAltitudePlans,
+      sectorStopPlans,
     },
   };
 }

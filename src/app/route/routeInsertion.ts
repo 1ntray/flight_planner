@@ -160,5 +160,6 @@ export function insertWaypointIntoFlightPlan(
                 )
               : [item],
           ),
+    sectorBoundaryWaypointIds: flightPlan.sectorBoundaryWaypointIds ?? [],
   };
 }

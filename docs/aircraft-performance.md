@@ -5,7 +5,8 @@
 An `AircraftDefinition` owns stable aircraft identity, a revision, a display
 name, and a serializable performance profile. The current catalog contains one
 project aircraft, but selection and calculation boundaries accept any complete
-definition. A saved plan contains the selected definition as an immutable
+definition. The current entry is the Zlin Z242. A saved plan contains the
+selected definition as an immutable
 snapshot; calculations never depend on a later catalog lookup.
 
 The first project-specific profile uses climb IAS 80 kt, cruise IAS 103 kt,
@@ -50,6 +51,15 @@ can be overridden per leg. The aircraft begins at departure aerodrome elevation;
 the final leg ends at destination elevation plus the editable pattern height
 (normally 1000 ft AGL). This supports any sequence of climb, cruise, and descent
 across successive legs rather than assuming one climb and one descent.
+
+The route may also contain explicit intermediate landing boundaries. Each
+boundary closes one flight sector at the airport's pattern altitude. The next
+sector is calculated independently from that airport's field elevation, using
+its weather as the inbound destination environment and outbound departure
+environment. If an onward departure time is omitted, it defaults to the
+preceding calculated arrival time; supplied departure times earlier than the
+arrival are rejected. One mass is still used for all sectors in the current
+model.
 
 An optional target distance says where along the shaped WGS84 leg the requested
 altitude must have been reached. Automatic climbs begin at FROM; automatic

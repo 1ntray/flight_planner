@@ -23,11 +23,13 @@ export type {
   EffectiveAltitudeLinearMassClimbRateModel,
   LegAltitudePlan,
   PlanningEnvironment,
+  SectorStopPlan,
   WindSampleQuery,
 } from './aircraftPerformance';
 export {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
 } from './flightPlanningDocument';
 export type {
@@ -35,7 +37,10 @@ export type {
   FlightPlanningDocumentV1,
   FlightPlanningDocumentV2,
   FlightPlanningDocumentV3,
+  FlightPlanningDocumentV4,
+  LegacyAircraftPerformancePlanInputsV3,
   LegacyAircraftPerformanceProfileV2,
+  LegacyFlightPlanV3,
 } from './flightPlanningDocument';
 export type {
   NavigationParameters,

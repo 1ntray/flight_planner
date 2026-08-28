@@ -17,6 +17,7 @@ import type {
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
@@ -262,7 +263,11 @@ function legKey(fromWaypointId: string, toWaypointId: string): string {
   return `${fromWaypointId}\u0000${toWaypointId}`;
 }
 
-function requireFlightPlan(value: unknown, path: string): FlightPlan {
+function requireFlightPlan(
+  value: unknown,
+  path: string,
+  requireSectorBoundaries: boolean,
+): FlightPlan {
   const record = requireRecord(value, path);
   const waypoints = requireArray(record.waypoints, `${path}.waypoints`).map(
     (waypoint, index) =>
@@ -271,6 +276,18 @@ function requireFlightPlan(value: unknown, path: string): FlightPlan {
   const legShapes = requireArray(record.legShapes, `${path}.legShapes`).map(
     (shape, index) => requireLegShape(shape, `${path}.legShapes[${index}]`),
   );
+  const sectorBoundaryWaypointIds =
+    record.sectorBoundaryWaypointIds === undefined && !requireSectorBoundaries
+      ? []
+      : requireArray(
+          record.sectorBoundaryWaypointIds,
+          `${path}.sectorBoundaryWaypointIds`,
+        ).map((waypointId, index) =>
+          requireString(
+            waypointId,
+            `${path}.sectorBoundaryWaypointIds[${index}]`,
+          ),
+        );
   const routePointIds = new Set<string>();
 
   for (const waypoint of waypoints) {
@@ -311,7 +328,26 @@ function requireFlightPlan(value: unknown, path: string): FlightPlan {
     }
   }
 
-  return { waypoints, legShapes };
+  const boundaryIds = new Set<string>();
+
+  for (const waypointId of sectorBoundaryWaypointIds) {
+    if (boundaryIds.has(waypointId)) {
+      throw new RangeError(`Duplicate sector boundary waypoint ${waypointId}`);
+    }
+
+    const waypointIndex = waypoints.findIndex(
+      (waypoint) => waypoint.id === waypointId,
+    );
+
+    if (waypointIndex <= 0 || waypointIndex >= waypoints.length - 1) {
+      throw new RangeError(
+        `Sector boundary ${waypointId} must identify an intermediate waypoint`,
+      );
+    }
+    boundaryIds.add(waypointId);
+  }
+
+  return { waypoints, legShapes, sectorBoundaryWaypointIds };
 }
 
 function requirePlanningInputs(
@@ -632,6 +668,7 @@ function requirePerformanceInputs(
   value: unknown,
   path: string,
   flightPlan: FlightPlan,
+  requireSectorStopPlans: boolean,
 ): AircraftPerformancePlanInputs | null {
   if (value === null) {
     return null;
@@ -710,6 +747,67 @@ function requirePerformanceInputs(
       ...(targetPlacement === undefined ? {} : { targetPlacement }),
     };
   });
+  const rawSectorStopPlans =
+    record.sectorStopPlans === undefined && !requireSectorStopPlans
+      ? []
+      : requireArray(record.sectorStopPlans, `${path}.sectorStopPlans`);
+  const boundaryIds = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
+  const seenStopIds = new Set<string>();
+  const sectorStopPlans = rawSectorStopPlans.map((value, index) => {
+    const stopPath = `${path}.sectorStopPlans[${index}]`;
+    const stopRecord = requireRecord(value, stopPath);
+    const waypointId = requireString(
+      stopRecord.waypointId,
+      `${stopPath}.waypointId`,
+    );
+
+    if (!boundaryIds.has(waypointId)) {
+      throw new RangeError(`${stopPath} is not a route sector boundary`);
+    }
+    if (seenStopIds.has(waypointId)) {
+      throw new RangeError(`${stopPath} duplicates a sector stop plan`);
+    }
+    seenStopIds.add(waypointId);
+
+    let onwardDepartureTimeUtcMs: number | undefined;
+
+    if (stopRecord.onwardDepartureTimeUtcMs !== undefined) {
+      onwardDepartureTimeUtcMs = requireFiniteNumber(
+        stopRecord.onwardDepartureTimeUtcMs,
+        `${stopPath}.onwardDepartureTimeUtcMs`,
+      );
+
+      if (!Number.isFinite(new Date(onwardDepartureTimeUtcMs).getTime())) {
+        throw new RangeError(
+          `${stopPath}.onwardDepartureTimeUtcMs must be a valid UTC timestamp`,
+        );
+      }
+    }
+
+    return {
+      waypointId,
+      elevationFtMsl: requireNonNegativeNumber(
+        stopRecord.elevationFtMsl,
+        `${stopPath}.elevationFtMsl`,
+      ),
+      weather: requirePlanningWeather(
+        stopRecord.weather,
+        `${stopPath}.weather`,
+      ),
+      ...(onwardDepartureTimeUtcMs === undefined
+        ? {}
+        : { onwardDepartureTimeUtcMs }),
+    };
+  });
+
+  if (
+    requireSectorStopPlans &&
+    sectorStopPlans.length !== (flightPlan.sectorBoundaryWaypointIds ?? []).length
+  ) {
+    throw new RangeError(
+      `${path}.sectorStopPlans must provide every route sector boundary`,
+    );
+  }
 
   return {
     massKg: requirePositiveNumber(record.massKg, `${path}.massKg`),
@@ -738,6 +836,7 @@ function requirePerformanceInputs(
       `${path}.destinationWeather`,
     ),
     legAltitudePlans,
+    sectorStopPlans,
   };
 }
 
@@ -748,6 +847,7 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION
   ) {
@@ -763,6 +863,7 @@ export function parseFlightPlanningDocument(
   const flightPlan = requireFlightPlan(
     record.flightPlan,
     'document.flightPlan',
+    record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   );
 
   if (record.schemaVersion === LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION) {
@@ -805,6 +906,32 @@ export function parseFlightPlanningDocument(
         record.performanceInputs,
         'document.performanceInputs',
         flightPlan,
+        false,
+      ),
+      useForecastWinds: record.useForecastWinds,
+    };
+  }
+
+  if (
+    record.schemaVersion ===
+    LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION
+  ) {
+    return {
+      schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+      flightPlan,
+      planningInputs: requireRoutePlanningInputs(
+        record.planningInputs,
+        'document.planningInputs',
+      ),
+      aircraftDefinition: requireAircraftDefinition(
+        record.aircraftDefinition,
+        'document.aircraftDefinition',
+      ),
+      performanceInputs: requirePerformanceInputs(
+        record.performanceInputs,
+        'document.performanceInputs',
+        flightPlan,
+        false,
       ),
       useForecastWinds: record.useForecastWinds,
     };
@@ -825,6 +952,7 @@ export function parseFlightPlanningDocument(
       record.performanceInputs,
       'document.performanceInputs',
       flightPlan,
+      true,
     ),
     useForecastWinds: record.useForecastWinds,
   };

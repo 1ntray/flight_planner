@@ -2,14 +2,14 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 3 contains the route,
+The exported format is a versioned JSON document. Version 4 contains the route,
 route-wide navigation inputs, the complete selected aircraft-definition
-snapshot, optional performance inputs, and the forecast preference. Version 1
-and 2 documents are validated and explicitly migrated on load.
+snapshot, optional performance inputs, and the forecast preference. Versions
+1, 2, and 3 are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV3 {
-  schemaVersion: 3;
+interface FlightPlanningDocumentV4 {
+  schemaVersion: 4;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
@@ -19,9 +19,15 @@ interface FlightPlanningDocumentV3 {
 ```
 
 `FlightPlan` retains the ordered real `waypoints` and optional per-leg
-`legShapes`. Performance inputs store mass, endpoint weather/elevations, the
+`legShapes`, plus references to intermediate waypoints explicitly marked as
+sector boundaries. Performance inputs store mass, endpoint weather/elevations, the
 global altitude, and sparse per-adjacent-leg altitude/target overrides in their
 documented internal units.
+
+Each sector boundary with active performance inputs has one intermediate-airport
+snapshot containing elevation, QNH, ISA deviation, and an optional onward UTC
+departure. Navlog sectors, calculated legs, ETAs, phase boundaries, and totals
+are derived and are not persisted.
 
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
@@ -92,7 +98,9 @@ discarded, the current project aircraft definition is snapshotted, and
 `performanceInputs` remains `null`. Schema-two documents preserve their flat
 phase speeds, fuel flows, descent rate, identity, and revision. They receive
 the authoritative project climb-rate coefficients because the older schema
-had no field capable of storing them.
+had no field capable of storing them. Schema-three documents gain empty sector
+boundary and intermediate-airport collections, preserving their original
+single-sector meaning.
 
 ## AIRAC stability
 

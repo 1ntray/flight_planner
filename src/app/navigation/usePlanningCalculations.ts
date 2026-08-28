@@ -62,8 +62,11 @@ export function usePlanningCalculations({
     [navigationDraft],
   );
   const parsedPerformance = useMemo(
-    () => parsePerformanceInputDraft(performanceDraft),
-    [performanceDraft],
+    () => parsePerformanceInputDraft(
+      performanceDraft,
+      flightPlan.sectorBoundaryWaypointIds ?? [],
+    ),
+    [flightPlan.sectorBoundaryWaypointIds, performanceDraft],
   );
   const legacyPlanning = useMemo(() => {
     if (
