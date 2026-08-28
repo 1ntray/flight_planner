@@ -1,72 +1,65 @@
-import { divIcon, DomEvent } from 'leaflet';
-import type {
-  LatLngTuple,
-  LeafletMouseEvent,
-  Marker as LeafletMarker,
-} from 'leaflet';
-import { useCallback, useEffect, useState } from 'react';
+import { DomEvent } from 'leaflet';
+import type { LatLngTuple, LeafletMouseEvent } from 'leaflet';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
-  Marker,
+  Pane,
   Polyline,
+  Popup,
   TileLayer,
-  Tooltip,
   useMap,
   useMapEvents,
 } from 'react-leaflet';
 
+import {
+  calculateNearestPointOnGeodesicSegment,
+  EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
+} from '../../calculations';
 import type {
+  AeronauticalDatasetRef,
+  AeronauticalPointFeature,
   FlightPlan,
   Position,
   RouteShapingPoint,
 } from '../../domain';
+import type { AeronauticalDataRepository } from '../../aeronautical';
+import { AeronauticalLayerControl } from './AeronauticalLayerControl';
+import {
+  AeronauticalLayers,
+} from './AeronauticalLayers';
+import type { AeronauticalLoadStatus } from './AeronauticalLayers';
+import {
+  DEFAULT_AERONAUTICAL_LAYER_VISIBILITY,
+} from './aeronauticalLayerConfig';
+import type { AeronauticalLayerId } from './aeronauticalLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
-  getRoutePointDisplayPosition,
 } from './routeDisplay';
 import type {
   DraggedRoutePointPosition,
   PendingRouteShapingPoint,
   RouteDisplayLeg,
+  RouteDisplaySegment,
+  SelectedRoutePoint,
 } from './routeDisplay';
+import type {
+  RouteWaypointInsertionCandidate,
+} from '../route/routeInsertion';
+import { RoutePointMarkers } from './RoutePointMarkers';
 import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
 import './rasterTileSeamWorkaround.css';
 
 const INITIAL_CENTER: LatLngTuple = [69.35, 18.75];
 const INITIAL_ZOOM = 8;
-
-const waypointIcon = divIcon({
-  className: 'waypoint-marker',
-  iconAnchor: [13, 13],
-  iconSize: [26, 26],
-});
-
-const selectedWaypointIcon = divIcon({
-  className: 'waypoint-marker waypoint-marker--selected',
-  iconAnchor: [13, 13],
-  iconSize: [26, 26],
-});
-
-const shapingPointIcon = divIcon({
-  className: 'route-shaping-marker',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
-
-const selectedShapingPointIcon = divIcon({
-  className: 'route-shaping-marker route-shaping-marker--selected',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
-
-export type SelectedRoutePoint =
-  | { kind: 'waypoint'; id: string }
-  | { kind: 'shaping-point'; id: string };
+const ROUTE_LINE_DRAG_THRESHOLD_PIXELS = 5;
 
 interface MapClickHandlerProps {
   enabled: boolean;
+  insertionCandidateActive: boolean;
   onAddWaypoint: (position: Position) => void;
+  onDismissInsertionCandidate: () => void;
+  consumeSuppressedClick: () => boolean;
 }
 
 function toPosition(event: LeafletMouseEvent): Position {
@@ -76,12 +69,29 @@ function toPosition(event: LeafletMouseEvent): Position {
   };
 }
 
-function MapClickHandler({ enabled, onAddWaypoint }: MapClickHandlerProps) {
+function MapClickHandler({
+  enabled,
+  insertionCandidateActive,
+  onAddWaypoint,
+  onDismissInsertionCandidate,
+  consumeSuppressedClick,
+}: MapClickHandlerProps) {
   useMapEvents({
     click(event) {
-      if (enabled) {
-        onAddWaypoint(toPosition(event));
+      if (consumeSuppressedClick()) {
+        return;
       }
+
+      if (!enabled) {
+        return;
+      }
+
+      if (insertionCandidateActive) {
+        onDismissInsertionCandidate();
+        return;
+      }
+
+      onAddWaypoint(toPosition(event));
     },
   });
 
@@ -91,15 +101,29 @@ function MapClickHandler({ enabled, onAddWaypoint }: MapClickHandlerProps) {
 interface RouteLineProps {
   legs: readonly RouteDisplayLeg[];
   interactionEnabled: boolean;
-  onBeginShapingPointDrag: (
-    pendingPoint: PendingRouteShapingPoint,
-  ) => void;
+  onBeginInteraction: (interaction: RouteLinePress) => void;
 }
+
+interface RouteLinePress {
+  mode: 'pressed';
+  fromWaypointId: string;
+  toWaypointId: string;
+  segment: RouteDisplaySegment;
+  startContainerPoint: { x: number; y: number };
+  shapingPointId: string;
+}
+
+interface RouteLineShapingDrag {
+  mode: 'shaping';
+  pendingPoint: PendingRouteShapingPoint;
+}
+
+type RouteLineInteraction = RouteLinePress | RouteLineShapingDrag;
 
 function RouteLines({
   legs,
   interactionEnabled,
-  onBeginShapingPointDrag,
+  onBeginInteraction,
 }: RouteLineProps) {
   const map = useMap();
 
@@ -115,17 +139,11 @@ function RouteLines({
 
       {interactionEnabled
         ? legs.flatMap((leg) =>
-            leg.positions.slice(1).map((position, segmentIndex) => {
-              const previousPosition = leg.positions[segmentIndex];
-
-              if (previousPosition === undefined) {
-                return null;
-              }
-
+            leg.segments.map((segment) => {
               return (
                 <Polyline
-                  key={`hit:${leg.fromWaypointId}:${leg.toWaypointId}:${segmentIndex}`}
-                  positions={[previousPosition, position]}
+                  key={`hit:${leg.fromWaypointId}:${leg.toWaypointId}:${segment.segmentIndex}`}
+                  positions={segment.positions}
                   pathOptions={{
                     color: '#176da5',
                     opacity: 0.001,
@@ -137,16 +155,19 @@ function RouteLines({
                     mousedown: (event) => {
                       DomEvent.stop(event.originalEvent);
                       map.dragging.disable();
-                      onBeginShapingPointDrag({
+                      onBeginInteraction({
+                        mode: 'pressed',
                         fromWaypointId: leg.fromWaypointId,
                         toWaypointId: leg.toWaypointId,
-                        insertionIndex: segmentIndex,
-                        point: {
-                          id: crypto.randomUUID(),
-                          position: toPosition(event),
+                        segment,
+                        startContainerPoint: {
+                          x: event.containerPoint.x,
+                          y: event.containerPoint.y,
                         },
+                        shapingPointId: crypto.randomUUID(),
                       });
                     },
+                    click: (event) => DomEvent.stop(event.originalEvent),
                   }}
                 />
               );
@@ -157,52 +178,154 @@ function RouteLines({
   );
 }
 
-interface PendingShapingPointDragHandlerProps {
-  pendingPoint: PendingRouteShapingPoint | null;
-  onMove: (position: Position) => void;
-  onCommit: (position: Position) => void;
+interface RouteLineInteractionHandlerProps {
+  interaction: RouteLineInteraction | null;
+  onInteractionChange: (interaction: RouteLineInteraction | null) => void;
+  onSelectInsertionCandidate: (
+    candidate: RouteWaypointInsertionCandidate,
+  ) => void;
+  onDragThresholdExceeded: () => void;
+  onCommitShapingPoint: (
+    pendingPoint: PendingRouteShapingPoint,
+    position: Position,
+  ) => void;
 }
 
-function PendingShapingPointDragHandler({
-  pendingPoint,
-  onMove,
-  onCommit,
-}: PendingShapingPointDragHandlerProps) {
-  const isDragging = pendingPoint !== null;
+function RouteLineInteractionHandler({
+  interaction,
+  onInteractionChange,
+  onSelectInsertionCandidate,
+  onDragThresholdExceeded,
+  onCommitShapingPoint,
+}: RouteLineInteractionHandlerProps) {
+  const isInteracting = interaction !== null;
   const map = useMapEvents({
     mousemove(event) {
-      if (pendingPoint !== null) {
-        onMove(toPosition(event));
+      if (interaction?.mode === 'pressed') {
+        const horizontalMovement =
+          event.containerPoint.x - interaction.startContainerPoint.x;
+        const verticalMovement =
+          event.containerPoint.y - interaction.startContainerPoint.y;
+
+        if (
+          Math.hypot(horizontalMovement, verticalMovement) >=
+          ROUTE_LINE_DRAG_THRESHOLD_PIXELS
+        ) {
+          onDragThresholdExceeded();
+          onInteractionChange({
+            mode: 'shaping',
+            pendingPoint: {
+              fromWaypointId: interaction.fromWaypointId,
+              toWaypointId: interaction.toWaypointId,
+              insertionIndex: interaction.segment.segmentIndex,
+              point: {
+                id: interaction.shapingPointId,
+                position: toPosition(event),
+              },
+            },
+          });
+        }
+      } else if (interaction?.mode === 'shaping') {
+        onInteractionChange({
+          ...interaction,
+          pendingPoint: {
+            ...interaction.pendingPoint,
+            point: {
+              ...interaction.pendingPoint.point,
+              position: toPosition(event),
+            },
+          },
+        });
       }
     },
     mouseup(event) {
-      if (pendingPoint !== null) {
-        onCommit(toPosition(event));
+      if (interaction?.mode === 'pressed') {
+        const snapped = calculateNearestPointOnGeodesicSegment(
+          interaction.segment.startPosition,
+          interaction.segment.endPosition,
+          toPosition(event),
+        );
+        const distanceToEndMeters =
+          snapped.segmentLengthMeters - snapped.distanceAlongSegmentMeters;
+
+        if (
+          snapped.distanceAlongSegmentMeters >
+            EFFECTIVELY_IDENTICAL_DISTANCE_METERS &&
+          distanceToEndMeters > EFFECTIVELY_IDENTICAL_DISTANCE_METERS
+        ) {
+          onSelectInsertionCandidate({
+            fromWaypointId: interaction.fromWaypointId,
+            toWaypointId: interaction.toWaypointId,
+            segmentIndex: interaction.segment.segmentIndex,
+            segmentStart: interaction.segment.startRef,
+            segmentEnd: interaction.segment.endRef,
+            position: snapped.position,
+          });
+        }
+
+        onInteractionChange(null);
+      } else if (interaction?.mode === 'shaping') {
+        onCommitShapingPoint(interaction.pendingPoint, toPosition(event));
+        onInteractionChange(null);
       }
     },
   });
 
   useEffect(() => {
-    if (isDragging) {
+    if (isInteracting) {
       map.dragging.disable();
     } else {
       map.dragging.enable();
     }
 
     return () => {
-      if (isDragging) {
+      if (isInteracting) {
         map.dragging.enable();
       }
     };
-  }, [isDragging, map]);
+  }, [isInteracting, map]);
 
   return null;
 }
 
+interface RouteInsertionActionProps {
+  candidate: RouteWaypointInsertionCandidate;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function RouteInsertionAction({
+  candidate,
+  onConfirm,
+  onCancel,
+}: RouteInsertionActionProps) {
+  return (
+    <Popup
+      position={[candidate.position.latitude, candidate.position.longitude]}
+      closeButton={false}
+      closeOnClick={false}
+      autoClose={false}
+      className="route-insertion-popup"
+    >
+      <p>Insert a real navlog waypoint here?</p>
+      <div className="route-insertion-popup__actions">
+        <button type="button" className="button" onClick={onConfirm}>
+          Add waypoint
+        </button>
+        <button type="button" className="button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </Popup>
+  );
+}
+
 export interface FlightMapProps {
   flightPlan: FlightPlan;
+  aeronauticalRepository: AeronauticalDataRepository;
   selectedRoutePoint: SelectedRoutePoint | null;
   onAddWaypoint: (position: Position) => void;
+  onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
   onAddShapingPoint: (
     fromWaypointId: string,
@@ -211,223 +334,184 @@ export interface FlightMapProps {
     point: RouteShapingPoint,
   ) => void;
   onMoveShapingPoint: (id: string, position: Position) => void;
+  onInsertWaypoint: (candidate: RouteWaypointInsertionCandidate) => void;
   onSelectRoutePoint: (selection: SelectedRoutePoint) => void;
 }
 
 export function FlightMap({
   flightPlan,
+  aeronauticalRepository,
   selectedRoutePoint,
   onAddWaypoint,
+  onAddAnchoredWaypoint,
   onMoveWaypoint,
   onAddShapingPoint,
   onMoveShapingPoint,
+  onInsertWaypoint,
   onSelectRoutePoint,
 }: FlightMapProps) {
   const [draggedPoint, setDraggedPoint] =
     useState<DraggedRoutePointPosition | null>(null);
-  const [pendingShapingPoint, setPendingShapingPoint] =
-    useState<PendingRouteShapingPoint | null>(null);
+  const [routeLineInteraction, setRouteLineInteraction] =
+    useState<RouteLineInteraction | null>(null);
+  const [routeInsertionCandidate, setRouteInsertionCandidate] =
+    useState<RouteWaypointInsertionCandidate | null>(null);
+  const suppressNextMapClick = useRef(false);
+  const [aeronauticalDataset, setAeronauticalDataset] =
+    useState<AeronauticalDatasetRef | null>(null);
+  const [aeronauticalStatus, setAeronauticalStatus] =
+    useState<AeronauticalLoadStatus>('idle');
+  const [aeronauticalLayerVisibility, setAeronauticalLayerVisibility] =
+    useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
+  const pendingShapingPoint =
+    routeLineInteraction?.mode === 'shaping'
+      ? routeLineInteraction.pendingPoint
+      : null;
   const routeLegs = buildRouteDisplayLegs(
     flightPlan,
     draggedPoint,
     pendingShapingPoint,
   );
-  const updatePendingPosition = useCallback((position: Position) => {
-    setPendingShapingPoint((current) =>
-      current === null
-        ? null
-        : { ...current, point: { ...current.point, position } },
-    );
-  }, []);
   const commitPendingPoint = useCallback(
-    (position: Position) => {
-      if (pendingShapingPoint === null) {
-        return;
-      }
-
-      const point = { ...pendingShapingPoint.point, position };
+    (pendingPoint: PendingRouteShapingPoint, position: Position) => {
+      const point = { ...pendingPoint.point, position };
 
       onAddShapingPoint(
-        pendingShapingPoint.fromWaypointId,
-        pendingShapingPoint.toWaypointId,
-        pendingShapingPoint.insertionIndex,
+        pendingPoint.fromWaypointId,
+        pendingPoint.toWaypointId,
+        pendingPoint.insertionIndex,
         point,
       );
       onSelectRoutePoint({ kind: 'shaping-point', id: point.id });
-      setPendingShapingPoint(null);
     },
-    [onAddShapingPoint, onSelectRoutePoint, pendingShapingPoint],
+    [onAddShapingPoint, onSelectRoutePoint],
   );
+  const updateAeronauticalLayerVisibility = useCallback(
+    (layerId: AeronauticalLayerId, visible: boolean) => {
+      setAeronauticalLayerVisibility((current) => ({
+        ...current,
+        [layerId]: visible,
+      }));
+    },
+    [],
+  );
+  const beginRouteLineInteraction = useCallback(
+    (interaction: RouteLinePress) => {
+      suppressNextMapClick.current = true;
+      setRouteInsertionCandidate(null);
+      setRouteLineInteraction(interaction);
+    },
+    [],
+  );
+  const consumeSuppressedMapClick = useCallback(() => {
+    if (!suppressNextMapClick.current) {
+      return false;
+    }
+
+    suppressNextMapClick.current = false;
+    return true;
+  }, []);
+  const selectRoutePoint = useCallback(
+    (selection: SelectedRoutePoint) => {
+      setRouteInsertionCandidate(null);
+      onSelectRoutePoint(selection);
+    },
+    [onSelectRoutePoint],
+  );
+  const addAnchoredWaypoint = useCallback(
+    (feature: AeronauticalPointFeature) => {
+      setRouteInsertionCandidate(null);
+      onAddAnchoredWaypoint(feature);
+    },
+    [onAddAnchoredWaypoint],
+  );
+  const confirmRouteInsertion = useCallback(() => {
+    if (routeInsertionCandidate === null) {
+      return;
+    }
+
+    onInsertWaypoint(routeInsertionCandidate);
+    setRouteInsertionCandidate(null);
+  }, [onInsertWaypoint, routeInsertionCandidate]);
+
+  useEffect(() => {
+    setRouteInsertionCandidate(null);
+  }, [flightPlan]);
 
   return (
-    <MapContainer
-      center={INITIAL_CENTER}
-      zoom={INITIAL_ZOOM}
-      className={`flight-map${pendingShapingPoint === null ? '' : ' flight-map--shaping-route'}`}
-      zoomControl
-    >
-      <TileLayer
-        url={KARTVERKET_TOPO_TILE_SOURCE.url}
-        attribution={KARTVERKET_TOPO_TILE_SOURCE.attribution}
-        maxZoom={KARTVERKET_TOPO_TILE_SOURCE.maxZoom}
-        className={getChromiumRasterSeamClassName(navigator.userAgent)}
-      />
-
-      <MapClickHandler
-        enabled={pendingShapingPoint === null}
-        onAddWaypoint={onAddWaypoint}
-      />
-      <PendingShapingPointDragHandler
-        pendingPoint={pendingShapingPoint}
-        onMove={updatePendingPosition}
-        onCommit={commitPendingPoint}
-      />
-
-      <RouteLines
-        legs={routeLegs}
-        interactionEnabled={pendingShapingPoint === null}
-        onBeginShapingPointDrag={setPendingShapingPoint}
-      />
-
-      {flightPlan.waypoints.map((waypoint) => {
-        const displayPosition = getRoutePointDisplayPosition(
-          waypoint.id,
-          waypoint.position,
-          draggedPoint,
-        );
-        const updateDraggedPosition = (marker: LeafletMarker) => {
-          const position = marker.getLatLng();
-
-          setDraggedPoint({
-            kind: 'waypoint',
-            pointId: waypoint.id,
-            position: {
-              latitude: position.lat,
-              longitude: position.lng,
-            },
-          });
-        };
-
-        return (
-          <Marker
-            key={waypoint.id}
-            position={[displayPosition.latitude, displayPosition.longitude]}
-            icon={
-              selectedRoutePoint?.kind === 'waypoint' &&
-              selectedRoutePoint.id === waypoint.id
-                ? selectedWaypointIcon
-                : waypointIcon
-            }
-            draggable
-            bubblingMouseEvents={false}
-            title={waypoint.name}
-            alt={waypoint.name}
-            eventHandlers={{
-              click: () =>
-                onSelectRoutePoint({ kind: 'waypoint', id: waypoint.id }),
-              dragstart: (event) => {
-                updateDraggedPosition(event.target as LeafletMarker);
-              },
-              drag: (event) => {
-                updateDraggedPosition(event.target as LeafletMarker);
-              },
-              dragend: (event) => {
-                const marker = event.target as LeafletMarker;
-                const position = marker.getLatLng();
-
-                onMoveWaypoint(waypoint.id, {
-                  latitude: position.lat,
-                  longitude: position.lng,
-                });
-                setDraggedPoint(null);
-              },
-            }}
-          >
-            <Tooltip
-              className="waypoint-label"
-              direction="top"
-              offset={[0, -14]}
-              opacity={1}
-              permanent
-            >
-              {waypoint.name}
-            </Tooltip>
-          </Marker>
-        );
-      })}
-
-      {flightPlan.legShapes.flatMap((shape) =>
-        shape.points.map((point) => {
-          const displayPosition = getRoutePointDisplayPosition(
-            point.id,
-            point.position,
-            draggedPoint,
-          );
-          const updateDraggedPosition = (marker: LeafletMarker) => {
-            const position = marker.getLatLng();
-
-            setDraggedPoint({
-              kind: 'shaping-point',
-              pointId: point.id,
-              position: {
-                latitude: position.lat,
-                longitude: position.lng,
-              },
-            });
-          };
-
-          return (
-            <Marker
-              key={point.id}
-              position={[displayPosition.latitude, displayPosition.longitude]}
-              icon={
-                selectedRoutePoint?.kind === 'shaping-point' &&
-                selectedRoutePoint.id === point.id
-                  ? selectedShapingPointIcon
-                  : shapingPointIcon
-              }
-              draggable
-              bubblingMouseEvents={false}
-              title="Route shaping point"
-              alt="Route shaping point"
-              eventHandlers={{
-                click: () =>
-                  onSelectRoutePoint({
-                    kind: 'shaping-point',
-                    id: point.id,
-                  }),
-                dragstart: (event) => {
-                  updateDraggedPosition(event.target as LeafletMarker);
-                },
-                drag: (event) => {
-                  updateDraggedPosition(event.target as LeafletMarker);
-                },
-                dragend: (event) => {
-                  const marker = event.target as LeafletMarker;
-                  const position = marker.getLatLng();
-
-                  onMoveShapingPoint(point.id, {
-                    latitude: position.lat,
-                    longitude: position.lng,
-                  });
-                  setDraggedPoint(null);
-                },
-              }}
-            />
-          );
-        }),
-      )}
-
-      {pendingShapingPoint === null ? null : (
-        <Marker
-          position={[
-            pendingShapingPoint.point.position.latitude,
-            pendingShapingPoint.point.position.longitude,
-          ]}
-          icon={selectedShapingPointIcon}
-          interactive={false}
+    <>
+      <MapContainer
+        center={INITIAL_CENTER}
+        zoom={INITIAL_ZOOM}
+        className={`flight-map${routeLineInteraction?.mode === 'shaping' ? ' flight-map--shaping-route' : ''}`}
+        zoomControl
+      >
+        <TileLayer
+          url={KARTVERKET_TOPO_TILE_SOURCE.url}
+          attribution={KARTVERKET_TOPO_TILE_SOURCE.attribution}
+          maxZoom={KARTVERKET_TOPO_TILE_SOURCE.maxZoom}
+          className={getChromiumRasterSeamClassName(navigator.userAgent)}
         />
-      )}
-    </MapContainer>
+
+        <MapClickHandler
+          enabled={routeLineInteraction === null}
+          insertionCandidateActive={routeInsertionCandidate !== null}
+          onAddWaypoint={onAddWaypoint}
+          onDismissInsertionCandidate={() => setRouteInsertionCandidate(null)}
+          consumeSuppressedClick={consumeSuppressedMapClick}
+        />
+        <RouteLineInteractionHandler
+          interaction={routeLineInteraction}
+          onInteractionChange={setRouteLineInteraction}
+          onSelectInsertionCandidate={setRouteInsertionCandidate}
+          onDragThresholdExceeded={() => {
+            suppressNextMapClick.current = false;
+          }}
+          onCommitShapingPoint={commitPendingPoint}
+        />
+
+        <AeronauticalLayers
+          repository={aeronauticalRepository}
+          visibility={aeronauticalLayerVisibility}
+          onAnchorPoint={addAnchoredWaypoint}
+          onDatasetChange={setAeronauticalDataset}
+          onStatusChange={setAeronauticalStatus}
+        />
+
+        <Pane name="route-lines" style={{ zIndex: 500 }}>
+          <RouteLines
+            legs={routeLegs}
+            interactionEnabled={routeLineInteraction === null}
+            onBeginInteraction={beginRouteLineInteraction}
+          />
+        </Pane>
+
+        {routeInsertionCandidate === null ? null : (
+          <RouteInsertionAction
+            candidate={routeInsertionCandidate}
+            onConfirm={confirmRouteInsertion}
+            onCancel={() => setRouteInsertionCandidate(null)}
+          />
+        )}
+
+        <RoutePointMarkers
+          flightPlan={flightPlan}
+          selectedRoutePoint={selectedRoutePoint}
+          draggedPoint={draggedPoint}
+          pendingShapingPoint={pendingShapingPoint}
+          onDraggedPointChange={setDraggedPoint}
+          onMoveWaypoint={onMoveWaypoint}
+          onMoveShapingPoint={onMoveShapingPoint}
+          onSelectRoutePoint={selectRoutePoint}
+        />
+      </MapContainer>
+
+      <AeronauticalLayerControl
+        dataset={aeronauticalDataset}
+        status={aeronauticalStatus}
+        visibility={aeronauticalLayerVisibility}
+        onVisibilityChange={updateAeronauticalLayerVisibility}
+      />
+    </>
   );
 }

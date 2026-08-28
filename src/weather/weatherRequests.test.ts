@@ -11,6 +11,7 @@ const planning: NavigationPlanInputs = {
   departureTimeUtcMs: Date.UTC(2026, 7, 27, 12),
   trueAirspeedKt: 100,
   plannedAltitudeFtMsl: 3500,
+  magneticVariationDegEast: 0,
   wind: { directionFromTrueDeg: 0, speedKt: 0 },
 };
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateGeodesicMidpoint,
   calculateInverseGeodesic,
+  calculateNearestPointOnGeodesicSegment,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
   normalizeTrackDeg,
@@ -93,5 +94,67 @@ describe('calculateInverseGeodesic', () => {
     );
 
     expect(result).toEqual({ distanceNm: 0, trueTrackDeg: null });
+  });
+});
+
+describe('calculateNearestPointOnGeodesicSegment', () => {
+  it('snaps to the nearest point on a WGS84 geodesic segment', () => {
+    const result = calculateNearestPointOnGeodesicSegment(
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 2 },
+      { latitude: 1, longitude: 1 },
+    );
+
+    expect(result.position.latitude).toBeCloseTo(0, 8);
+    expect(result.position.longitude).toBeCloseTo(1, 8);
+    expect(result.distanceAlongSegmentMeters).toBeCloseTo(
+      result.segmentLengthMeters / 2,
+      3,
+    );
+    expect(result.distanceFromQueryMeters).toBeCloseTo(110_574.389, 2);
+  });
+
+  it('clamps a nearest point outside the bounded segment to an endpoint', () => {
+    const result = calculateNearestPointOnGeodesicSegment(
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+      { latitude: 0, longitude: 2 },
+    );
+
+    expect(result.position.latitude).toBeCloseTo(0, 12);
+    expect(result.position.longitude).toBeCloseTo(1, 12);
+    expect(result.distanceAlongSegmentMeters).toBeCloseTo(
+      result.segmentLengthMeters,
+      8,
+    );
+  });
+
+  it('takes the short WGS84 segment across the antimeridian', () => {
+    const result = calculateNearestPointOnGeodesicSegment(
+      { latitude: 10, longitude: 179 },
+      { latitude: 10, longitude: -179 },
+      { latitude: 11, longitude: 180 },
+    );
+
+    expect(Math.abs(result.position.longitude)).toBeCloseTo(180, 7);
+    expect(result.distanceAlongSegmentMeters).toBeCloseTo(
+      result.segmentLengthMeters / 2,
+      2,
+    );
+  });
+
+  it('returns the start for an effectively zero-length segment', () => {
+    const start = { latitude: 69.35, longitude: 18.75 };
+    const result = calculateNearestPointOnGeodesicSegment(
+      start,
+      start,
+      { latitude: 69.4, longitude: 18.8 },
+    );
+
+    expect(result.position).toEqual(start);
+    expect(result.position).not.toBe(start);
+    expect(result.distanceAlongSegmentMeters).toBe(0);
+    expect(result.segmentLengthMeters).toBe(0);
+    expect(result.distanceFromQueryMeters).toBeGreaterThan(0);
   });
 });

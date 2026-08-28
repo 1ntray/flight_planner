@@ -1,0 +1,214 @@
+import { divIcon } from 'leaflet';
+import type { Marker as LeafletMarker } from 'leaflet';
+import { Marker, Tooltip } from 'react-leaflet';
+
+import type { FlightPlan, Position } from '../../domain';
+import { getRoutePointDisplayPosition } from './routeDisplay';
+import type {
+  DraggedRoutePointPosition,
+  PendingRouteShapingPoint,
+  SelectedRoutePoint,
+} from './routeDisplay';
+
+const waypointIcon = divIcon({
+  className: 'waypoint-marker',
+  iconAnchor: [13, 13],
+  iconSize: [26, 26],
+});
+
+const selectedWaypointIcon = divIcon({
+  className: 'waypoint-marker waypoint-marker--selected',
+  iconAnchor: [13, 13],
+  iconSize: [26, 26],
+});
+
+const anchoredWaypointIcon = divIcon({
+  className: 'waypoint-marker waypoint-marker--anchored',
+  iconAnchor: [13, 13],
+  iconSize: [26, 26],
+});
+
+const selectedAnchoredWaypointIcon = divIcon({
+  className:
+    'waypoint-marker waypoint-marker--anchored waypoint-marker--selected',
+  iconAnchor: [13, 13],
+  iconSize: [26, 26],
+});
+
+const shapingPointIcon = divIcon({
+  className: 'route-shaping-marker',
+  iconAnchor: [8, 8],
+  iconSize: [16, 16],
+});
+
+const selectedShapingPointIcon = divIcon({
+  className: 'route-shaping-marker route-shaping-marker--selected',
+  iconAnchor: [8, 8],
+  iconSize: [16, 16],
+});
+
+export interface RoutePointMarkersProps {
+  flightPlan: FlightPlan;
+  selectedRoutePoint: SelectedRoutePoint | null;
+  draggedPoint: DraggedRoutePointPosition | null;
+  pendingShapingPoint: PendingRouteShapingPoint | null;
+  onDraggedPointChange: (
+    draggedPoint: DraggedRoutePointPosition | null,
+  ) => void;
+  onMoveWaypoint: (id: string, position: Position) => void;
+  onMoveShapingPoint: (id: string, position: Position) => void;
+  onSelectRoutePoint: (selection: SelectedRoutePoint) => void;
+}
+
+function markerPosition(marker: LeafletMarker): Position {
+  const position = marker.getLatLng();
+  return { latitude: position.lat, longitude: position.lng };
+}
+
+export function RoutePointMarkers({
+  flightPlan,
+  selectedRoutePoint,
+  draggedPoint,
+  pendingShapingPoint,
+  onDraggedPointChange,
+  onMoveWaypoint,
+  onMoveShapingPoint,
+  onSelectRoutePoint,
+}: RoutePointMarkersProps) {
+  return (
+    <>
+      {flightPlan.waypoints.map((waypoint) => {
+        const displayPosition = getRoutePointDisplayPosition(
+          waypoint.id,
+          waypoint.position,
+          draggedPoint,
+        );
+        const updateDraggedPosition = (marker: LeafletMarker) => {
+          onDraggedPointChange({
+            kind: 'waypoint',
+            pointId: waypoint.id,
+            position: markerPosition(marker),
+          });
+        };
+        const isSelected =
+          selectedRoutePoint?.kind === 'waypoint' &&
+          selectedRoutePoint.id === waypoint.id;
+        const isAnchored = waypoint.anchor !== undefined;
+
+        return (
+          <Marker
+            key={`${waypoint.id}:${isAnchored ? 'anchored' : 'free'}`}
+            position={[displayPosition.latitude, displayPosition.longitude]}
+            icon={
+              isAnchored
+                ? isSelected
+                  ? selectedAnchoredWaypointIcon
+                  : anchoredWaypointIcon
+                : isSelected
+                  ? selectedWaypointIcon
+                  : waypointIcon
+            }
+            draggable={!isAnchored}
+            bubblingMouseEvents={false}
+            title={`${waypoint.name}${isAnchored ? ' — anchored' : ''}`}
+            alt={waypoint.name}
+            eventHandlers={{
+              click: () =>
+                onSelectRoutePoint({ kind: 'waypoint', id: waypoint.id }),
+              ...(isAnchored
+                ? {}
+                : {
+                    dragstart: (event) => {
+                      updateDraggedPosition(event.target as LeafletMarker);
+                    },
+                    drag: (event) => {
+                      updateDraggedPosition(event.target as LeafletMarker);
+                    },
+                    dragend: (event) => {
+                      const marker = event.target as LeafletMarker;
+                      onMoveWaypoint(waypoint.id, markerPosition(marker));
+                      onDraggedPointChange(null);
+                    },
+                  }),
+            }}
+          >
+            <Tooltip
+              className="waypoint-label"
+              direction="top"
+              offset={[0, -14]}
+              opacity={1}
+              permanent
+            >
+              {waypoint.name}
+              {isAnchored ? ' · anchored' : ''}
+            </Tooltip>
+          </Marker>
+        );
+      })}
+
+      {flightPlan.legShapes.flatMap((shape) =>
+        shape.points.map((point) => {
+          const displayPosition = getRoutePointDisplayPosition(
+            point.id,
+            point.position,
+            draggedPoint,
+          );
+          const updateDraggedPosition = (marker: LeafletMarker) => {
+            onDraggedPointChange({
+              kind: 'shaping-point',
+              pointId: point.id,
+              position: markerPosition(marker),
+            });
+          };
+
+          return (
+            <Marker
+              key={point.id}
+              position={[displayPosition.latitude, displayPosition.longitude]}
+              icon={
+                selectedRoutePoint?.kind === 'shaping-point' &&
+                selectedRoutePoint.id === point.id
+                  ? selectedShapingPointIcon
+                  : shapingPointIcon
+              }
+              draggable
+              bubblingMouseEvents={false}
+              title="Route shaping point"
+              alt="Route shaping point"
+              eventHandlers={{
+                click: () =>
+                  onSelectRoutePoint({
+                    kind: 'shaping-point',
+                    id: point.id,
+                  }),
+                dragstart: (event) => {
+                  updateDraggedPosition(event.target as LeafletMarker);
+                },
+                drag: (event) => {
+                  updateDraggedPosition(event.target as LeafletMarker);
+                },
+                dragend: (event) => {
+                  const marker = event.target as LeafletMarker;
+                  onMoveShapingPoint(point.id, markerPosition(marker));
+                  onDraggedPointChange(null);
+                },
+              }}
+            />
+          );
+        }),
+      )}
+
+      {pendingShapingPoint === null ? null : (
+        <Marker
+          position={[
+            pendingShapingPoint.point.position.latitude,
+            pendingShapingPoint.point.position.longitude,
+          ]}
+          icon={selectedShapingPointIcon}
+          interactive={false}
+        />
+      )}
+    </>
+  );
+}
+

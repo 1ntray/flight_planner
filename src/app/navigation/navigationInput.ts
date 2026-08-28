@@ -5,6 +5,8 @@ export interface NavigationInputDraft {
   departureTimeUtc: string;
   trueAirspeedKt: string;
   plannedAltitudeFtMsl: string;
+  magneticVariationDeg: string;
+  magneticVariationDirection: 'E' | 'W';
   windDirectionFromTrueDeg: string;
   windSpeedKt: string;
 }
@@ -31,6 +33,8 @@ export function createDefaultNavigationInputDraft(
     departureTimeUtc: formatUtcDateTimeInput(roundedDepartureTimeUtcMs),
     trueAirspeedKt: '100',
     plannedAltitudeFtMsl: '3000',
+    magneticVariationDeg: '0',
+    magneticVariationDirection: 'E',
     windDirectionFromTrueDeg: '0',
     windSpeedKt: '0',
   };
@@ -121,6 +125,32 @@ export function parseNavigationInputDraft(
     };
   }
 
+  const magneticVariationDeg = parseRequiredNumber(
+    draft.magneticVariationDeg,
+    'Magnetic variation',
+  );
+
+  if (typeof magneticVariationDeg === 'string') {
+    return { status: 'invalid', message: magneticVariationDeg };
+  }
+
+  if (magneticVariationDeg < 0 || magneticVariationDeg > 180) {
+    return {
+      status: 'invalid',
+      message: 'Magnetic variation must be between 0 and 180 degrees',
+    };
+  }
+
+  if (
+    draft.magneticVariationDirection !== 'E' &&
+    draft.magneticVariationDirection !== 'W'
+  ) {
+    return {
+      status: 'invalid',
+      message: 'Magnetic variation direction must be east or west',
+    };
+  }
+
   const windDirectionFromTrueDeg = parseRequiredNumber(
     draft.windDirectionFromTrueDeg,
     'Wind direction',
@@ -149,6 +179,12 @@ export function parseNavigationInputDraft(
       departureTimeUtcMs,
       trueAirspeedKt,
       plannedAltitudeFtMsl,
+      magneticVariationDegEast:
+        magneticVariationDeg === 0
+          ? 0
+          : draft.magneticVariationDirection === 'E'
+            ? magneticVariationDeg
+            : -magneticVariationDeg,
       wind: {
         directionFromTrueDeg: normalizeTrackDeg(windDirectionFromTrueDeg),
         speedKt: windSpeedKt,

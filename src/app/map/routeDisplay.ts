@@ -1,6 +1,11 @@
 import type { LatLngTuple } from 'leaflet';
 
 import type { FlightPlan, Position, RouteShapingPoint } from '../../domain';
+import type { RouteGeometryPointRef } from '../route/routeInsertion';
+
+export type SelectedRoutePoint =
+  | { kind: 'waypoint'; id: string }
+  | { kind: 'shaping-point'; id: string };
 
 export type DraggedRoutePointPosition =
   | { kind: 'waypoint'; pointId: string; position: Position }
@@ -17,6 +22,16 @@ export interface RouteDisplayLeg {
   fromWaypointId: string;
   toWaypointId: string;
   positions: LatLngTuple[];
+  segments: RouteDisplaySegment[];
+}
+
+export interface RouteDisplaySegment {
+  segmentIndex: number;
+  startRef: RouteGeometryPointRef;
+  endRef: RouteGeometryPointRef;
+  startPosition: Position;
+  endPosition: Position;
+  positions: [LatLngTuple, LatLngTuple];
 }
 
 export function getRoutePointDisplayPosition(
@@ -51,28 +66,66 @@ export function buildRouteDisplayLegs(
         candidate.toWaypointId === to.id,
     );
     const geometry = [
-      getRoutePointDisplayPosition(from.id, from.position, draggedPoint),
-      ...(shape?.points.map((point) =>
-        getRoutePointDisplayPosition(point.id, point.position, draggedPoint),
-      ) ?? []),
-      getRoutePointDisplayPosition(to.id, to.position, draggedPoint),
+      {
+        ref: { kind: 'waypoint' as const, id: from.id },
+        position: getRoutePointDisplayPosition(
+          from.id,
+          from.position,
+          draggedPoint,
+        ),
+      },
+      ...(shape?.points.map((point) => ({
+        ref: { kind: 'shaping-point' as const, id: point.id },
+        position: getRoutePointDisplayPosition(
+          point.id,
+          point.position,
+          draggedPoint,
+        ),
+      })) ?? []),
+      {
+        ref: { kind: 'waypoint' as const, id: to.id },
+        position: getRoutePointDisplayPosition(to.id, to.position, draggedPoint),
+      },
     ];
+    const segments: RouteDisplaySegment[] = geometry.slice(1).map(
+      (end, segmentIndex) => {
+        const start = geometry[segmentIndex];
+
+        if (start === undefined) {
+          throw new Error('A displayed route segment must have a starting point');
+        }
+
+        return {
+          segmentIndex,
+          startRef: start.ref,
+          endRef: end.ref,
+          startPosition: start.position,
+          endPosition: end.position,
+          positions: [
+            toLatLngTuple(start.position),
+            toLatLngTuple(end.position),
+          ],
+        };
+      },
+    );
+    const positions = geometry.map(({ position }) => toLatLngTuple(position));
 
     if (
       pendingPoint?.fromWaypointId === from.id &&
       pendingPoint.toWaypointId === to.id
     ) {
-      geometry.splice(
+      positions.splice(
         pendingPoint.insertionIndex + 1,
         0,
-        pendingPoint.point.position,
+        toLatLngTuple(pendingPoint.point.position),
       );
     }
 
     return {
       fromWaypointId: from.id,
       toWaypointId: to.id,
-      positions: geometry.map(toLatLngTuple),
+      positions,
+      segments,
     };
   });
 }

@@ -17,6 +17,7 @@ describe('parseNavigationInputDraft', () => {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
         trueAirspeedKt: 100,
         plannedAltitudeFtMsl: 3000,
+        magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 0, speedKt: 0 },
       },
     });
@@ -36,9 +37,26 @@ describe('parseNavigationInputDraft', () => {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
         trueAirspeedKt: 115.5,
         plannedAltitudeFtMsl: 3000,
+        magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 10, speedKt: 12.5 },
       },
     });
+  });
+
+  it.each([
+    { direction: 'E' as const, expected: 12.5 },
+    { direction: 'W' as const, expected: -12.5 },
+  ])('parses $direction variation into the east-positive convention', ({ direction, expected }) => {
+    const result = parseNavigationInputDraft({
+      ...validDraft,
+      magneticVariationDeg: '12.5',
+      magneticVariationDirection: direction,
+    });
+
+    expect(result.status).toBe('valid');
+    if (result.status === 'valid') {
+      expect(result.value.magneticVariationDegEast).toBe(expected);
+    }
   });
 
   it.each([
@@ -83,6 +101,22 @@ describe('parseNavigationInputDraft', () => {
       message: 'Wind direction must be a number',
     },
     {
+      description: 'a negative magnetic variation magnitude',
+      draft: {
+        ...validDraft,
+        magneticVariationDeg: '-1',
+      },
+      message: 'Magnetic variation must be between 0 and 180 degrees',
+    },
+    {
+      description: 'an excessive magnetic variation magnitude',
+      draft: {
+        ...validDraft,
+        magneticVariationDeg: '181',
+      },
+      message: 'Magnetic variation must be between 0 and 180 degrees',
+    },
+    {
       description: 'a negative wind speed',
       draft: {
         ...validDraft,
@@ -105,6 +139,8 @@ describe('departure-time input helpers', () => {
     );
 
     expect(draft.departureTimeUtc).toBe('2026-08-27T12:05');
+    expect(draft.magneticVariationDeg).toBe('0');
+    expect(draft.magneticVariationDirection).toBe('E');
   });
 
   it('formats a UTC timestamp for a datetime-local control', () => {

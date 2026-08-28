@@ -11,6 +11,8 @@ import {
   formatDistanceNmValue,
   formatEetMinutesValue,
   formatGroundSpeedKtValue,
+  formatMagneticHeadingDeg,
+  formatMagneticTrackDeg,
   formatTrueHeadingDeg,
   formatTrueTrackDeg,
   formatUtcDateTime,
@@ -80,11 +82,15 @@ export function RouteTable({
             <tr>
               <th scope="col">FROM</th>
               <th scope="col">TO</th>
-              <th scope="col">TT</th>
+              <th scope="col" aria-label="True track and magnetic track">
+                TT<span className="route-table__unit">MT</span>
+              </th>
               <th scope="col" aria-label="Wind from true degrees and speed knots">
                 WIND<span className="route-table__unit">°T / KT</span>
               </th>
-              <th scope="col">TH</th>
+              <th scope="col" aria-label="True heading and magnetic heading">
+                TH<span className="route-table__unit">MH</span>
+              </th>
               <th scope="col" aria-label="Distance nautical miles">
                 DIST<span className="route-table__unit">NM</span>
               </th>
@@ -137,7 +143,12 @@ export function RouteTable({
                 <tr key={`${leg.fromId}:${leg.toId}`}>
                   <td>{waypointNames.get(leg.fromId) ?? leg.fromId}</td>
                   <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
-                  <td>{formatTrueTrackDeg(leg.trueTrackDeg)}</td>
+                  <td>
+                    {formatTrueTrackDeg(leg.trueTrackDeg)}
+                    <span className="route-table__secondary-value">
+                      {formatMagneticTrackDeg(leg.magneticTrackDeg)}
+                    </span>
+                  </td>
                   <td
                     title={windDetails}
                     aria-label={
@@ -155,6 +166,9 @@ export function RouteTable({
                   </td>
                   <td>
                     {formatTrueHeadingDeg(solution?.trueHeadingDeg ?? null)}
+                    <span className="route-table__secondary-value">
+                      {formatMagneticHeadingDeg(leg.magneticHeadingDeg)}
+                    </span>
                   </td>
                   <td>{formatDistanceNmValue(leg.distanceNm)}</td>
                   <td>

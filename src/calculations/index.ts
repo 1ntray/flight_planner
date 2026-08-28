@@ -1,12 +1,17 @@
 export {
   calculateGeodesicMidpoint,
   calculateInverseGeodesic,
+  calculateNearestPointOnGeodesicSegment,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
   normalizeTrackDeg,
 } from './geodesy';
-export type { InverseGeodesicResult } from './geodesy';
+export type {
+  InverseGeodesicResult,
+  NearestPointOnGeodesicSegmentResult,
+} from './geodesy';
 export {
+  calculateMagneticDirectionDeg,
   calculateWindAdjustedLeg,
   SECONDS_PER_HOUR,
 } from './navigation';

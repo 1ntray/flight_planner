@@ -57,6 +57,25 @@ export function validateNavigationParameters({
   }
 }
 
+/**
+ * Converts a true direction to magnetic using east-positive variation.
+ *
+ * true = magnetic + variation, therefore magnetic = true - variation.
+ */
+export function calculateMagneticDirectionDeg(
+  trueDirectionDeg: number,
+  magneticVariationDegEast: number,
+): number {
+  requireFiniteNumber(trueDirectionDeg, 'True direction');
+  requireFiniteNumber(magneticVariationDegEast, 'Magnetic variation');
+
+  if (Math.abs(magneticVariationDegEast) > 180) {
+    throw new RangeError('Magnetic variation must be between -180 and 180 degrees');
+  }
+
+  return normalizeTrackDeg(trueDirectionDeg - magneticVariationDegEast);
+}
+
 export function calculateWindAdjustedLeg({
   trueTrackDeg,
   distanceNm,

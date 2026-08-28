@@ -1,6 +1,35 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateWindAdjustedLeg, SECONDS_PER_HOUR } from './navigation';
+import {
+  calculateMagneticDirectionDeg,
+  calculateWindAdjustedLeg,
+  SECONDS_PER_HOUR,
+} from './navigation';
+
+describe('calculateMagneticDirectionDeg', () => {
+  it('subtracts east variation from a true direction', () => {
+    expect(calculateMagneticDirectionDeg(180, 14)).toBe(166);
+  });
+
+  it('adds west variation represented as a negative value', () => {
+    expect(calculateMagneticDirectionDeg(180, -10)).toBe(190);
+  });
+
+  it('normalizes the magnetic result across north', () => {
+    expect(calculateMagneticDirectionDeg(5, 10)).toBe(355);
+  });
+
+  it.each([
+    [Number.NaN, 0],
+    [0, Number.POSITIVE_INFINITY],
+    [0, 181],
+    [0, -181],
+  ])('rejects invalid true direction %s or variation %s', (direction, variation) => {
+    expect(() => calculateMagneticDirectionDeg(direction, variation)).toThrow(
+      RangeError,
+    );
+  });
+});
 
 describe('calculateWindAdjustedLeg', () => {
   it('keeps heading and groundspeed equal to track and TAS in calm wind', () => {

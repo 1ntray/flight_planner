@@ -7,6 +7,8 @@ import {
   formatEetSeconds,
   formatGroundSpeedKt,
   formatGroundSpeedKtValue,
+  formatMagneticHeadingDeg,
+  formatMagneticTrackDeg,
   formatTrueHeadingDeg,
   formatTrueTrackDeg,
   formatUtcDateTime,
@@ -40,6 +42,12 @@ describe('distance formatting', () => {
 describe('wind-adjusted navigation formatting', () => {
   it('formats true heading using the same normalized angle convention as track', () => {
     expect(formatTrueHeadingDeg(359.6)).toBe('000°');
+  });
+
+  it('formats magnetic track and heading using the normalized angle convention', () => {
+    expect(formatMagneticTrackDeg(7.4)).toBe('007°');
+    expect(formatMagneticHeadingDeg(359.6)).toBe('000°');
+    expect(formatMagneticHeadingDeg(null)).toBe('—');
   });
 
   it.each([

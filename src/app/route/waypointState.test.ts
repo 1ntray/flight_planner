@@ -3,10 +3,36 @@ import { describe, expect, it } from 'vitest';
 import { calculateRoute } from '../../calculations';
 import type { Waypoint } from '../../domain';
 import {
+  appendAnchoredWaypoint,
   appendWaypoint,
+  detachWaypointById,
   moveWaypointById,
   removeWaypointById,
 } from './waypointState';
+
+const dataset = {
+  datasetId: 'dataset-2608-r1',
+  providerId: 'test-provider',
+  sourceName: 'Test aeronautical data',
+  airacCycle: '2608',
+  effectiveFromUtc: '2026-08-06T00:00:00Z',
+  effectiveToUtc: '2026-09-03T00:00:00Z',
+};
+
+const reportingPoint = {
+  geometryType: 'point' as const,
+  pointKind: 'reporting-point' as const,
+  ref: {
+    dataset,
+    featureId: 'vrp-1',
+    featureVersionId: 'vrp-1-v2',
+    featureKind: 'reporting-point' as const,
+  },
+  identifier: 'ALFA',
+  name: 'Alfa reporting point',
+  suggestedWaypointName: 'ALFA',
+  position: { latitude: 69.1, longitude: 18.2 },
+};
 
 const originalWaypoints: Waypoint[] = [
   {
@@ -49,6 +75,101 @@ describe('waypoint state helpers', () => {
     expect(result[1]).toEqual({ id: 'stable-b', name: 'WP02', position });
     expect(result[0]).toBe(originalWaypoints[0]);
     expect(result[2]).toBe(originalWaypoints[2]);
+  });
+
+  it('anchors a new internal waypoint to an exact feature snapshot', () => {
+    const result = appendAnchoredWaypoint(
+      originalWaypoints,
+      reportingPoint,
+      'route-waypoint-id',
+    );
+
+    expect(result.at(-1)).toEqual({
+      id: 'route-waypoint-id',
+      name: 'ALFA',
+      position: reportingPoint.position,
+      anchor: {
+        kind: 'aeronautical-feature',
+        feature: reportingPoint.ref,
+        publishedIdentifier: 'ALFA',
+        publishedName: 'Alfa reporting point',
+      },
+    });
+    expect(result.at(-1)?.position).not.toBe(reportingPoint.position);
+    expect(result.at(-1)?.id).not.toBe(reportingPoint.ref.featureId);
+  });
+
+  it('requires detachment before an anchored waypoint can move', () => {
+    const anchored = appendAnchoredWaypoint([], reportingPoint, 'route-id');
+
+    expect(() =>
+      moveWaypointById(anchored, 'route-id', {
+        latitude: 70,
+        longitude: 19,
+      }),
+    ).toThrow('must be detached before moving');
+
+    const detached = detachWaypointById(anchored, 'route-id');
+    const moved = moveWaypointById(detached, 'route-id', {
+      latitude: 70,
+      longitude: 19,
+    });
+
+    expect(detached[0]).toEqual({
+      id: 'route-id',
+      name: 'ALFA',
+      position: reportingPoint.position,
+    });
+    expect(moved[0]?.position).toEqual({ latitude: 70, longitude: 19 });
+  });
+
+  it('allows the same feature to appear twice with independent route IDs', () => {
+    const first = appendAnchoredWaypoint([], reportingPoint, 'route-id-1');
+    const second = appendAnchoredWaypoint(
+      first,
+      reportingPoint,
+      'route-id-2',
+    );
+
+    expect(second.map((waypoint) => waypoint.id)).toEqual([
+      'route-id-1',
+      'route-id-2',
+    ]);
+    expect(second[0]?.anchor?.feature.featureId).toBe('vrp-1');
+    expect(second[1]?.anchor?.feature.featureId).toBe('vrp-1');
+  });
+
+  it('keeps the coordinate and provenance through JSON serialization', () => {
+    const anchored = appendAnchoredWaypoint([], reportingPoint, 'route-id');
+    const restored = JSON.parse(JSON.stringify(anchored)) as Waypoint[];
+
+    expect(restored).toEqual(anchored);
+    expect(restored[0]?.position).toEqual({
+      latitude: 69.1,
+      longitude: 18.2,
+    });
+    expect(restored[0]?.anchor?.feature.dataset.airacCycle).toBe('2608');
+  });
+
+  it('does not follow a coordinate from a newer feature object', () => {
+    const anchored = appendAnchoredWaypoint([], reportingPoint, 'route-id');
+    const newerFeature = {
+      ...reportingPoint,
+      position: { latitude: 70, longitude: 20 },
+      ref: {
+        ...reportingPoint.ref,
+        dataset: { ...dataset, datasetId: 'dataset-2609-r1' },
+      },
+    };
+
+    expect(newerFeature.position).not.toEqual(anchored[0]?.position);
+    expect(anchored[0]?.position).toEqual({
+      latitude: 69.1,
+      longitude: 18.2,
+    });
+    expect(anchored[0]?.anchor?.feature.dataset.datasetId).toBe(
+      'dataset-2608-r1',
+    );
   });
 
   it('removes a middle waypoint so route derivation connects its neighbours', () => {

@@ -1,8 +1,9 @@
 # Flight Planner
 
 Browser-based flight planning with an interactive waypoint map and a timed,
-altitude-aware, wind-adjusted navigation log and route-shaping points for MVP
-0.5.
+altitude-aware, wind-adjusted navigation log, route shaping, magnetic
+directions, a storage-neutral aeronautical-layer/waypoint-anchoring boundary,
+and real-waypoint insertion into existing route geometry for MVP 0.8.
 
 ## Development
 
@@ -36,7 +37,9 @@ pnpm test
 pnpm build
 ```
 
-See [`docs/mvp-0.5.md`](docs/mvp-0.5.md) for current scope and
+See [`docs/mvp-0.8.md`](docs/mvp-0.8.md) for current scope and
 [`docs/conventions.md`](docs/conventions.md) for project conventions. Aviation
 calculation definitions are recorded in
 [`docs/navigation-conventions.md`](docs/navigation-conventions.md).
+Aeronautical data and anchoring contracts are recorded in
+[`docs/aeronautical-data.md`](docs/aeronautical-data.md).

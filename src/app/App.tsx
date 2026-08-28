@@ -1,17 +1,35 @@
 import { useCallback, useState } from 'react';
 
-import type { FlightPlan, Position, RouteShapingPoint } from '../domain';
+import { getConfiguredAeronauticalRepository } from '../aeronautical';
+import type {
+  AeronauticalPointFeature,
+  FlightPlan,
+  Position,
+  RouteShapingPoint,
+} from '../domain';
 import { FlightMap } from './map/FlightMap';
-import type { SelectedRoutePoint } from './map/FlightMap';
+import type { SelectedRoutePoint } from './map/routeDisplay';
+import {
+  insertWaypointIntoFlightPlan,
+} from './route/routeInsertion';
+import type {
+  RouteWaypointInsertionCandidate,
+} from './route/routeInsertion';
 import { NavigationLog } from './navigation/NavigationLog';
 import {
+  appendAnchoredWaypointToFlightPlan,
   appendWaypointToFlightPlan,
+  detachWaypointInFlightPlan,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
   moveWaypointInFlightPlan,
   removeRouteShapingPoint,
   removeWaypointFromFlightPlan,
 } from './route/flightPlanState';
+
+const aeronauticalRepository = getConfiguredAeronauticalRepository(
+  window.location.search,
+);
 
 export function App() {
   const [flightPlan, setFlightPlan] = useState<FlightPlan>({
@@ -27,6 +45,17 @@ export function App() {
       appendWaypointToFlightPlan(currentFlightPlan, position, id),
     );
   }, []);
+
+  const addAnchoredWaypoint = useCallback(
+    (feature: AeronauticalPointFeature) => {
+      const id = crypto.randomUUID();
+      setFlightPlan((currentFlightPlan) =>
+        appendAnchoredWaypointToFlightPlan(currentFlightPlan, feature, id),
+      );
+      setSelectedRoutePoint({ kind: 'waypoint', id });
+    },
+    [],
+  );
 
   const moveWaypoint = useCallback((id: string, position: Position) => {
     setFlightPlan((currentFlightPlan) =>
@@ -60,6 +89,17 @@ export function App() {
     );
   }, []);
 
+  const insertWaypoint = useCallback(
+    (candidate: RouteWaypointInsertionCandidate) => {
+      const id = crypto.randomUUID();
+      setFlightPlan((currentFlightPlan) =>
+        insertWaypointIntoFlightPlan(currentFlightPlan, candidate, id),
+      );
+      setSelectedRoutePoint({ kind: 'waypoint', id });
+    },
+    [],
+  );
+
   const deleteSelectedRoutePoint = () => {
     if (selectedRoutePoint === null) {
       return;
@@ -83,6 +123,21 @@ export function App() {
     setFlightPlan({ waypoints: [], legShapes: [] });
     setSelectedRoutePoint(null);
   };
+  const selectedWaypoint =
+    selectedRoutePoint?.kind === 'waypoint'
+      ? flightPlan.waypoints.find(
+          (waypoint) => waypoint.id === selectedRoutePoint.id,
+        )
+      : undefined;
+  const detachSelectedWaypoint = () => {
+    if (selectedWaypoint?.anchor === undefined) {
+      return;
+    }
+
+    setFlightPlan((currentFlightPlan) =>
+      detachWaypointInFlightPlan(currentFlightPlan, selectedWaypoint.id),
+    );
+  };
   const shapingPointCount = flightPlan.legShapes.reduce(
     (total, shape) => total + shape.points.length,
     0,
@@ -92,11 +147,13 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.5</p>
+          <p className="eyebrow">MVP 0.8</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
-          Click the map to add waypoints. Drag the route line to shape a leg.
+          Click empty map to add a free waypoint. Click an aeronautical point
+          to anchor it. Click a route line to insert a waypoint, or drag it to
+          shape the leg.
         </p>
       </header>
 
@@ -104,11 +161,14 @@ export function App() {
         <section className="map-panel" aria-label="Flight planning map">
           <FlightMap
             flightPlan={flightPlan}
+            aeronauticalRepository={aeronauticalRepository}
             selectedRoutePoint={selectedRoutePoint}
             onAddWaypoint={addWaypoint}
+            onAddAnchoredWaypoint={addAnchoredWaypoint}
             onMoveWaypoint={moveWaypoint}
             onAddShapingPoint={addShapingPoint}
             onMoveShapingPoint={moveShapingPoint}
+            onInsertWaypoint={insertWaypoint}
             onSelectRoutePoint={setSelectedRoutePoint}
           />
         </section>
@@ -138,6 +198,14 @@ export function App() {
               {selectedRoutePoint?.kind === 'shaping-point'
                 ? 'Delete shaping point'
                 : 'Delete waypoint'}
+            </button>
+            <button
+              type="button"
+              className="button"
+              disabled={selectedWaypoint?.anchor === undefined}
+              onClick={detachSelectedWaypoint}
+            >
+              Detach waypoint
             </button>
             <button
               type="button"

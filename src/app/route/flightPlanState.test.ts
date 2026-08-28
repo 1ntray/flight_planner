@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { calculateRoute } from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import {
+  appendAnchoredWaypointToFlightPlan,
+  detachWaypointInFlightPlan,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
   removeRouteShapingPoint,
@@ -19,6 +21,42 @@ const flightPlan: FlightPlan = {
 };
 
 describe('flight plan shaping state helpers', () => {
+  it('adds and detaches an anchored real waypoint without changing geometry', () => {
+    const feature = {
+      geometryType: 'point' as const,
+      pointKind: 'aerodrome' as const,
+      ref: {
+        dataset: {
+          datasetId: 'dataset-1',
+          providerId: 'provider-1',
+          sourceName: 'Test source',
+          airacCycle: '2608',
+          effectiveFromUtc: '2026-08-06T00:00:00Z',
+          effectiveToUtc: '2026-09-03T00:00:00Z',
+        },
+        featureId: 'ad-1',
+        featureKind: 'aerodrome' as const,
+      },
+      identifier: 'TEST',
+      suggestedWaypointName: 'TEST',
+      position: { latitude: 69.5, longitude: 18.9 },
+    };
+    const anchored = appendAnchoredWaypointToFlightPlan(
+      flightPlan,
+      feature,
+      'route-ad-1',
+    );
+    const detached = detachWaypointInFlightPlan(anchored, 'route-ad-1');
+
+    expect(anchored.waypoints.at(-1)?.anchor?.feature.featureId).toBe('ad-1');
+    expect(detached.waypoints.at(-1)).toEqual({
+      id: 'route-ad-1',
+      name: 'TEST',
+      position: feature.position,
+    });
+    expect(detached.legShapes).toBe(anchored.legShapes);
+  });
+
   it('inserts multiple shaping points in geometry order', () => {
     const first = insertRouteShapingPoint(flightPlan, 'A', 'B', 0, {
       id: 'G1',

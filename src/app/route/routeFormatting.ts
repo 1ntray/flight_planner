@@ -21,6 +21,16 @@ export function formatTrueHeadingDeg(trueHeadingDeg: number | null): string {
   return formatNormalizedAngleDeg(trueHeadingDeg);
 }
 
+export function formatMagneticTrackDeg(magneticTrackDeg: number | null): string {
+  return formatNormalizedAngleDeg(magneticTrackDeg);
+}
+
+export function formatMagneticHeadingDeg(
+  magneticHeadingDeg: number | null,
+): string {
+  return formatNormalizedAngleDeg(magneticHeadingDeg);
+}
+
 export function formatWindValue(wind: Wind | null): string {
   if (wind === null) {
     return '—';

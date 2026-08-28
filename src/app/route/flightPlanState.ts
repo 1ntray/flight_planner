@@ -1,11 +1,14 @@
 import type {
+  AeronauticalPointFeature,
   FlightPlan,
   LegShape,
   Position,
   RouteShapingPoint,
 } from '../../domain';
 import {
+  appendAnchoredWaypoint,
   appendWaypoint,
+  detachWaypointById,
   moveWaypointById,
   removeWaypointById,
 } from './waypointState';
@@ -67,6 +70,17 @@ export function appendWaypointToFlightPlan(
   };
 }
 
+export function appendAnchoredWaypointToFlightPlan(
+  flightPlan: FlightPlan,
+  feature: AeronauticalPointFeature,
+  id: string,
+): FlightPlan {
+  return {
+    ...flightPlan,
+    waypoints: appendAnchoredWaypoint(flightPlan.waypoints, feature, id),
+  };
+}
+
 export function moveWaypointInFlightPlan(
   flightPlan: FlightPlan,
   id: string,
@@ -75,6 +89,16 @@ export function moveWaypointInFlightPlan(
   return {
     ...flightPlan,
     waypoints: moveWaypointById(flightPlan.waypoints, id, position),
+  };
+}
+
+export function detachWaypointInFlightPlan(
+  flightPlan: FlightPlan,
+  id: string,
+): FlightPlan {
+  return {
+    ...flightPlan,
+    waypoints: detachWaypointById(flightPlan.waypoints, id),
   };
 }
 

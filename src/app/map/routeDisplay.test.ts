@@ -40,7 +40,15 @@ const flightPlan: FlightPlan = {
 
 describe('route display geometry', () => {
   it('builds one geometry per real-waypoint leg with shaping points included', () => {
-    expect(buildRouteDisplayLegs(flightPlan, null, null)).toEqual([
+    const display = buildRouteDisplayLegs(flightPlan, null, null);
+
+    expect(
+      display.map(({ fromWaypointId, toWaypointId, positions }) => ({
+        fromWaypointId,
+        toWaypointId,
+        positions,
+      })),
+    ).toEqual([
       {
         fromWaypointId: 'stable-a',
         toWaypointId: 'stable-b',
@@ -56,6 +64,30 @@ describe('route display geometry', () => {
         positions: [
           [69.2, 18.5],
           [69.4, 19],
+        ],
+      },
+    ]);
+    expect(display[0]?.segments).toEqual([
+      {
+        segmentIndex: 0,
+        startRef: { kind: 'waypoint', id: 'stable-a' },
+        endRef: { kind: 'shaping-point', id: 'shape-1' },
+        startPosition: { latitude: 69, longitude: 18 },
+        endPosition: { latitude: 69.1, longitude: 18.15 },
+        positions: [
+          [69, 18],
+          [69.1, 18.15],
+        ],
+      },
+      {
+        segmentIndex: 1,
+        startRef: { kind: 'shaping-point', id: 'shape-1' },
+        endRef: { kind: 'waypoint', id: 'stable-b' },
+        startPosition: { latitude: 69.1, longitude: 18.15 },
+        endPosition: { latitude: 69.2, longitude: 18.5 },
+        positions: [
+          [69.1, 18.15],
+          [69.2, 18.5],
         ],
       },
     ]);

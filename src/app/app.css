@@ -91,6 +91,10 @@ h2 {
   box-shadow: 0 0.5rem 1.5rem rgb(30 50 80 / 8%);
 }
 
+.map-panel {
+  position: relative;
+}
+
 .flight-map {
   width: 100%;
   height: calc(100vh - 6.4rem);
@@ -121,7 +125,7 @@ h2 {
 
 .route-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 1rem 0 0.75rem;
 }
@@ -207,7 +211,8 @@ h2 {
   font-weight: 500;
 }
 
-.navigation-inputs input {
+.navigation-inputs input,
+.navigation-inputs select {
   width: 100%;
   min-width: 0;
   padding: 0.38rem;
@@ -217,13 +222,19 @@ h2 {
   background: #ffffff;
 }
 
-.navigation-inputs input:focus-visible {
+.navigation-inputs input:focus-visible,
+.navigation-inputs select:focus-visible {
   outline: 3px solid #e08b28;
   outline-offset: 1px;
 }
 
-.navigation-inputs input[aria-invalid="true"] {
+.navigation-inputs input[aria-invalid="true"],
+.navigation-inputs select[aria-invalid="true"] {
   border-color: #c76661;
+}
+
+.navigation-inputs__variation-control {
+  grid-template-columns: minmax(0, 1fr) 3.6rem;
 }
 
 .navigation-inputs__forecast-toggle input {
@@ -277,15 +288,15 @@ h2 {
 }
 
 .route-table__waypoint-column {
-  width: 13%;
+  width: 12%;
 }
 
 .route-table__angle-column {
-  width: 8%;
+  width: 10%;
 }
 
 .route-table__wind-column {
-  width: 14%;
+  width: 13%;
 }
 
 .route-table__distance-column {
@@ -297,7 +308,7 @@ h2 {
 }
 
 .route-table__time-column {
-  width: 23%;
+  width: 22%;
 }
 
 .route-table th,
@@ -382,6 +393,128 @@ h2 {
     0 2px 8px rgb(0 0 0 / 45%);
 }
 
+.waypoint-marker--anchored {
+  border-color: #d8f0e4;
+  background: #27674e;
+  box-shadow:
+    0 0 0 3px rgb(39 103 78 / 35%),
+    0 1px 5px rgb(0 0 0 / 45%);
+}
+
+.waypoint-marker--anchored.waypoint-marker--selected {
+  border-color: #fff4b5;
+  background: #d5532f;
+  box-shadow:
+    0 0 0 4px #e08b28,
+    0 2px 8px rgb(0 0 0 / 45%);
+}
+
+.aeronautical-layer-control {
+  position: absolute;
+  z-index: 1000;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: grid;
+  width: min(17rem, calc(100% - 5rem));
+  gap: 0.32rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgb(73 91 110 / 42%);
+  border-radius: 0.42rem;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 1px 7px rgb(0 0 0 / 24%);
+  color: #26384c;
+  font-size: 0.72rem;
+}
+
+.aeronautical-layer-control legend {
+  padding: 0 0.2rem;
+  color: #526175;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.aeronautical-layer-control label {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  gap: 0.38rem;
+  cursor: pointer;
+}
+
+.aeronautical-layer-control input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+
+.aeronautical-layer-control small {
+  color: #7a8797;
+  font-size: 0.62rem;
+}
+
+.aeronautical-layer-control p {
+  margin: 0.18rem 0 0;
+  padding-top: 0.35rem;
+  border-top: 1px solid #dbe3eb;
+  color: #68778a;
+  font-size: 0.64rem;
+  line-height: 1.3;
+}
+
+.aeronautical-layer-control .aeronautical-layer-control__error {
+  color: #a12c27;
+}
+
+.aeronautical-feature-marker {
+  display: grid;
+  border: 2px solid #ffffff;
+  background: #275d87;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 42%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.aeronautical-feature-marker::after {
+  width: 5px;
+  height: 5px;
+  background: #ffffff;
+  content: "";
+}
+
+.aeronautical-feature-marker--aerodrome {
+  border-radius: 3px;
+  background: #176da5;
+}
+
+.aeronautical-feature-marker--aerodrome::after {
+  border-radius: 50%;
+}
+
+.aeronautical-feature-marker--reporting-point {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: #b76716;
+}
+
+.aeronautical-feature-marker--reporting-point::after {
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.aeronautical-feature-marker--navaid {
+  border-radius: 2px;
+  background: #704887;
+  transform: rotate(45deg);
+}
+
+.aeronautical-feature-marker--navaid::after {
+  border-radius: 50%;
+}
+
+.aeronautical-feature-marker--designated-point {
+  border-radius: 50%;
+  background: #526175;
+}
+
 .route-shaping-marker {
   display: grid;
   border: 2px solid #ffffff;
@@ -409,6 +542,32 @@ h2 {
 
 .route-line-hit-target {
   cursor: grab;
+}
+
+.leaflet-popup.route-insertion-popup .leaflet-popup-content {
+  display: grid;
+  min-width: 13rem;
+  gap: 0.65rem;
+  margin: 0.8rem;
+}
+
+.route-insertion-popup p {
+  margin: 0;
+  color: #26384c;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.route-insertion-popup__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.route-insertion-popup__actions .button {
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
 }
 
 .flight-map--shaping-route,

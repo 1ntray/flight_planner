@@ -18,8 +18,17 @@ They are calculation contracts rather than display preferences.
 - Wind-correction angle is positive to the right of track and negative to the
   left. True heading is `true track + wind-correction angle`, normalized to
   `[0, 360)`.
-- Magnetic variation and magnetic headings are not part of this calculation
-  stage.
+- Magnetic variation is stored in degrees with east positive and west
+  negative. The current input is route-wide and manually entered as an
+  unsigned magnitude with an explicit east/west direction.
+- The conversion contract is `true = magnetic + variation`, so
+  `magnetic = true - variation`. Magnetic track is derived from true track;
+  magnetic heading is derived from a valid wind-adjusted true heading.
+- Magnetic directions are normalized to `[0, 360)`. A leg with no defined true
+  track has no magnetic track, and a leg with no wind-triangle solution has no
+  magnetic heading.
+- Compass deviation is not modeled. Therefore magnetic heading is not yet a
+  compass heading.
 
 ## Units and precision
 
@@ -46,9 +55,17 @@ They are calculation contracts rather than display preferences.
 - True track and shaped distance intentionally describe different aspects of a
   leg: TT describes direct `A → B` navigation, while DIST describes the planned
   shaped path length.
+- Route shaping points do not affect magnetic track or magnetic heading,
+  because both are derived from the direct `A → B` true directions.
 - Wind correction, heading, and groundspeed use the direct true track. EET and
   cumulative timing use the shaped distance. This is a deliberate planning
   abstraction rather than segment-by-segment navigation.
+- Inserting a real waypoint `W` into `A → G1 → G2 → B` on the `G1 → G2`
+  geometry segment creates two navlog legs with geometry `A → G1 → W` and
+  `W → G2 → B`. Each new leg receives its own direct endpoint-to-endpoint true
+  track. Because `W` is snapped onto the selected WGS84 geometry segment, the
+  sum of both shaped distances equals the original shaped distance apart from
+  floating-point tolerance.
 
 ## Route timing and weather sampling context
 
@@ -121,7 +138,7 @@ non-finite number are programming/input-boundary errors and cause a
 ## Current scope
 
 The calculation currently assumes a constant true airspeed and route-wide
-planned altitude. It can apply a distinct forecast wind to each leg, but each
-leg still uses one constant wind vector sampled at its midpoint. It does not
-yet account for wind variation along a leg, climb/descent performance,
-magnetic variation, or fuel flow.
+planned altitude and magnetic variation. It can apply a distinct forecast wind
+to each leg, but each leg still uses one constant wind vector sampled at its
+midpoint. It does not yet account for wind or magnetic-variation changes along
+a leg, climb/descent performance, compass deviation, or fuel flow.

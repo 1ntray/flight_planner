@@ -9,6 +9,7 @@ const calmWindPlan: NavigationPlanInputs = {
   departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
   trueAirspeedKt: 120,
   plannedAltitudeFtMsl: 3000,
+  magneticVariationDegEast: 0,
   wind: { directionFromTrueDeg: 0, speedKt: 0 },
 };
 
@@ -48,6 +49,9 @@ describe('calculateNavigationRoute', () => {
       fromId: 'A',
       toId: 'B',
       navigation: null,
+      magneticVariationDegEast: null,
+      magneticTrackDeg: null,
+      magneticHeadingDeg: null,
       eetSeconds: null,
       startTimeUtcMs: null,
       midpointTimeUtcMs: null,
@@ -87,6 +91,34 @@ describe('calculateNavigationRoute', () => {
           (DEPARTURE_TIME_UTC_MS + result.totalEetSeconds! * 1000),
       ),
     ).toBeLessThan(0.001);
+  });
+
+  it('derives magnetic track and heading from east-positive variation', () => {
+    const result = calculateNavigationRoute({
+      flightPlan: flightPlan(route.slice(0, 2)),
+      planning: { ...calmWindPlan, magneticVariationDegEast: 10 },
+    });
+
+    expect(result.legs[0]).toMatchObject({
+      trueTrackDeg: 90,
+      magneticVariationDegEast: 10,
+      magneticTrackDeg: 80,
+      magneticHeadingDeg: 80,
+      navigation: { status: 'ok', trueHeadingDeg: 90 },
+    });
+  });
+
+  it('adds west variation represented internally as a negative value', () => {
+    const result = calculateNavigationRoute({
+      flightPlan: flightPlan(route.slice(0, 2)),
+      planning: { ...calmWindPlan, magneticVariationDegEast: -10 },
+    });
+
+    expect(result.legs[0]).toMatchObject({
+      magneticVariationDegEast: -10,
+      magneticTrackDeg: 100,
+      magneticHeadingDeg: 100,
+    });
   });
 
   it('applies matching per-leg forecast winds and retains manual fallback', () => {
@@ -162,6 +194,7 @@ describe('calculateNavigationRoute', () => {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
         trueAirspeedKt: 100,
         plannedAltitudeFtMsl: 3000,
+        magneticVariationDegEast: 5,
         wind: { directionFromTrueDeg: 90, speedKt: 101 },
       },
     });
@@ -174,6 +207,8 @@ describe('calculateNavigationRoute', () => {
         status: 'no-solution',
         reason: 'non-positive-groundspeed',
       },
+      magneticTrackDeg: 85,
+      magneticHeadingDeg: null,
     });
     expect(result.legs[1]?.startTimeUtcMs).toBeNull();
     expect(result.totalEetSeconds).toBeNull();
@@ -240,6 +275,13 @@ describe('calculateNavigationRoute', () => {
         planning: { ...calmWindPlan, plannedAltitudeFtMsl: -1 },
       }),
     ).toThrow(RangeError);
+
+    expect(() =>
+      calculateNavigationRoute({
+        flightPlan: flightPlan([]),
+        planning: { ...calmWindPlan, magneticVariationDegEast: 181 },
+      }),
+    ).toThrow(RangeError);
   });
 
   it('uses shaped distance for EET while preserving direct track and midpoint', () => {
@@ -268,6 +310,12 @@ describe('calculateNavigationRoute', () => {
 
     expect(shaped.legs).toHaveLength(1);
     expect(shaped.legs[0]?.trueTrackDeg).toBe(direct.legs[0]?.trueTrackDeg);
+    expect(shaped.legs[0]?.magneticTrackDeg).toBe(
+      direct.legs[0]?.magneticTrackDeg,
+    );
+    expect(shaped.legs[0]?.magneticHeadingDeg).toBe(
+      direct.legs[0]?.magneticHeadingDeg,
+    );
     expect(shaped.legs[0]?.midpoint).toEqual(direct.legs[0]?.midpoint);
     expect(shaped.legs[0]!.distanceNm).toBeGreaterThan(
       direct.legs[0]!.distanceNm,

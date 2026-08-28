@@ -54,7 +54,10 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
     [flightPlan, forecast.legWinds, parsedInputs],
   );
 
-  const updateDraft = (field: keyof NavigationInputDraft, value: string) => {
+  const updateDraft = <Field extends keyof NavigationInputDraft>(
+    field: Field,
+    value: NavigationInputDraft[Field],
+  ) => {
     setDraft((current) => ({ ...current, [field]: value }));
   };
 
@@ -63,7 +66,8 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
       <fieldset className="navigation-inputs">
         <legend>Route planning inputs</legend>
         <p className="navigation-inputs__scope">
-          TAS and altitude are route-wide. Manual wind is the forecast fallback.
+          TAS, altitude, and variation are route-wide. Manual wind is the
+          forecast fallback.
         </p>
 
         <label className="navigation-inputs__departure">
@@ -116,6 +120,40 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
               }
             />
             <span>ft MSL</span>
+          </span>
+        </label>
+
+        <label>
+          <span>Variation</span>
+          <span className="navigation-inputs__control navigation-inputs__variation-control">
+            <input
+              type="number"
+              min="0"
+              max="180"
+              step="0.1"
+              value={draft.magneticVariationDeg}
+              aria-invalid={parsedInputs.status === 'invalid'}
+              onChange={(event) =>
+                updateDraft(
+                  'magneticVariationDeg',
+                  event.currentTarget.value,
+                )
+              }
+            />
+            <select
+              value={draft.magneticVariationDirection}
+              aria-label="Magnetic variation direction"
+              aria-invalid={parsedInputs.status === 'invalid'}
+              onChange={(event) =>
+                updateDraft(
+                  'magneticVariationDirection',
+                  event.currentTarget.value as 'E' | 'W',
+                )
+              }
+            >
+              <option value="E">°E</option>
+              <option value="W">°W</option>
+            </select>
           </span>
         </label>
 

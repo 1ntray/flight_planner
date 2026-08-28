@@ -18,6 +18,13 @@ navlog leg order. Its `legShapes` collection contains optional ordered route
 shaping points associated with a specific adjacent real-waypoint pair. Shaping
 points are not waypoints and never create navlog legs.
 
+A real waypoint may optionally contain an aeronautical-feature anchor. Its
+stored WGS84 `position` remains the route's coordinate snapshot and is never
+resolved dynamically from the current aeronautical dataset. The anchor records
+the exact source dataset and feature identity. An anchored waypoint must be
+detached before its position can be moved; detachment preserves its current
+identity, name, and coordinate.
+
 A `CalculatedLeg` is derived from each adjacent real-waypoint pair whenever it
 is needed; calculated legs and expanded route geometry must not be stored or
 independently updated as application state. This prevents waypoint, shaping,
@@ -40,6 +47,11 @@ middle deletion from creating a duplicate name.
 
 - The base-map source is isolated in `src/app/map/tileSource.ts` so it can be
   replaced without changing map interaction code.
+- Aeronautical overlay components consume normalized domain features through
+  an `AeronauticalDataRepository`. They do not consume AIXM, provider JSON,
+  database rows, or Leaflet geometry as domain data.
+- Aeronautical point features are overlay data until explicitly anchored.
+  Aeronautical area features are information-only and never create waypoints.
 - Leaflet latitude/longitude from click and drag events may update waypoint
   positions, and waypoint positions may be projected for marker/polyline display.
 - Navigation distance and track must never be calculated with Leaflet geometry,
@@ -52,6 +64,12 @@ middle deletion from creating a duplicate name.
   associated with that real leg and segment index. It is committed once on
   pointer release. Leaflet supplies WGS84 input coordinates but never supplies
   navigation distances or tracks.
+- Pressing and releasing a route segment without crossing the UI drag threshold
+  creates only a transient insertion candidate. Its coordinate is snapped to
+  the bounded WGS84 geodesic for the selected geometry segment. Confirming the
+  action atomically inserts a normal real waypoint into `waypoints` and splits
+  any existing `legShapes` around that segment; the candidate itself is never
+  persisted.
 - Raster tile seam investigation and workaround policy are documented in
   [`map-rendering.md`](map-rendering.md).
 
