@@ -170,13 +170,16 @@ export function buildOpenMeteoForecastRequest(
     requireFinite(request.altitudeFtMsl, 'Weather sampling altitude');
   }
 
-  const altitudeFtMsl = requests[0]!.altitudeFtMsl;
-
-  if (requests.some((request) => request.altitudeFtMsl !== altitudeFtMsl)) {
-    throw new RangeError('A batched weather request must use one altitude');
-  }
-
-  const pressureLevels = selectPressureLevelsForAltitude(altitudeFtMsl);
+  const selectedPressureValues = new Set(
+    requests.flatMap((request) =>
+      selectPressureLevelsForAltitude(request.altitudeFtMsl).map(
+        ({ pressureHpa }) => pressureHpa,
+      ),
+    ),
+  );
+  const pressureLevels = OPEN_METEO_PRESSURE_LEVELS.filter(({ pressureHpa }) =>
+    selectedPressureValues.has(pressureHpa),
+  );
   const hourlyVariables = pressureLevels.flatMap(({ pressureHpa }) => [
     `wind_speed_${pressureHpa}hPa`,
     `wind_direction_${pressureHpa}hPa`,

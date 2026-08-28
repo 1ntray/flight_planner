@@ -10,6 +10,7 @@ import {
   appendWaypoint,
   detachWaypointById,
   moveWaypointById,
+  renameWaypointById,
   removeWaypointById,
 } from './waypointState';
 
@@ -89,6 +90,17 @@ export function moveWaypointInFlightPlan(
   return {
     ...flightPlan,
     waypoints: moveWaypointById(flightPlan.waypoints, id, position),
+  };
+}
+
+export function renameWaypointInFlightPlan(
+  flightPlan: FlightPlan,
+  id: string,
+  name: string,
+): FlightPlan {
+  return {
+    ...flightPlan,
+    waypoints: renameWaypointById(flightPlan.waypoints, id, name),
   };
 }
 

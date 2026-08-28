@@ -54,7 +54,8 @@ button:focus-visible,
 }
 
 h1,
-h2 {
+h2,
+h3 {
   margin: 0;
   line-height: 1.1;
 }
@@ -65,6 +66,10 @@ h1 {
 
 h2 {
   font-size: 1.25rem;
+}
+
+h3 {
+  font-size: 1rem;
 }
 
 .app-instructions {
@@ -128,6 +133,138 @@ h2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 1rem 0 0.75rem;
+}
+
+.plan-file-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.plan-file-controls__description,
+.plan-file-controls__status,
+.plan-file-controls__error {
+  margin: 0;
+  font-size: 0.68rem;
+}
+
+.plan-file-controls__description,
+.plan-file-controls__status {
+  color: #68778a;
+}
+
+.plan-file-controls__error {
+  color: #a12c27;
+}
+
+.plan-file-controls__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.plan-file-controls__actions .button {
+  display: grid;
+  min-height: 2.2rem;
+  place-items: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.plan-file-controls__file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.plan-file-controls__status,
+.plan-file-controls__error {
+  grid-column: 1 / -1;
+}
+
+.waypoint-editor {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.waypoint-editor__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.waypoint-editor__kind {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  color: #275d87;
+  background: #e3f0f8;
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.waypoint-editor label {
+  color: #526175;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.waypoint-editor__name-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+}
+
+.waypoint-editor input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem;
+  border: 1px solid #aebccc;
+  border-radius: 0.3rem;
+  color: #26384c;
+  background: #ffffff;
+}
+
+.waypoint-editor input:focus-visible {
+  outline: 3px solid #e08b28;
+  outline-offset: 1px;
+}
+
+.waypoint-editor input[aria-invalid="true"] {
+  border-color: #c76661;
+}
+
+.waypoint-editor__name-control .button {
+  min-height: 2.2rem;
+}
+
+.waypoint-editor__help,
+.waypoint-editor__error {
+  margin: 0;
+  font-size: 0.7rem;
+}
+
+.waypoint-editor__help {
+  color: #68778a;
+}
+
+.waypoint-editor__error {
+  color: #a12c27;
 }
 
 .navigation-inputs {
@@ -267,6 +404,54 @@ h2 {
   background: #fce8e6;
 }
 
+.button--active {
+  border-color: #176da5;
+  color: #ffffff;
+  background: #176da5;
+}
+
+.leg-altitude-controls {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.leg-altitude-controls__row {
+  display: grid;
+  align-items: end;
+  grid-template-columns: minmax(5rem, 0.8fr) minmax(5rem, 1fr) minmax(5rem, 1fr) auto;
+  gap: 0.4rem;
+}
+
+.leg-altitude-controls__row strong,
+.leg-altitude-controls__row label {
+  color: #526175;
+  font-size: 0.7rem;
+}
+
+.leg-altitude-controls__row label {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.leg-altitude-controls__row input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.38rem;
+  border: 1px solid #aebccc;
+  border-radius: 0.3rem;
+}
+
+.leg-altitude-controls__row .button {
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.68rem;
+}
+
 .button:disabled {
   opacity: 0.48;
   cursor: not-allowed;
@@ -305,6 +490,11 @@ h2 {
 
 .route-table__groundspeed-column {
   width: 10%;
+}
+
+.route-table__altitude-column,
+.route-table__fuel-column {
+  width: 9%;
 }
 
 .route-table__time-column {
@@ -542,6 +732,24 @@ h2 {
 
 .route-line-hit-target {
   cursor: grab;
+}
+
+.route-line-hit-target--altitude {
+  cursor: crosshair;
+}
+
+.altitude-target-marker {
+  display: grid;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #704887;
+  box-shadow:
+    0 0 0 3px rgb(112 72 135 / 32%),
+    0 1px 5px rgb(0 0 0 / 45%);
+  font-size: 0.48rem;
+  font-weight: 800;
+  place-items: center;
 }
 
 .leaflet-popup.route-insertion-popup .leaflet-popup-content {

@@ -1,0 +1,692 @@
+import type {
+  AeronauticalDatasetRef,
+  AeronauticalFeatureKind,
+  AeronauticalWaypointAnchor,
+  AircraftPerformancePlanInputs,
+  AircraftPerformanceProfile,
+  FlightPlan,
+  FlightPlanningDocument,
+  LegShape,
+  NavigationPlanInputs,
+  Position,
+  RoutePlanningInputs,
+  RouteShapingPoint,
+  Waypoint,
+} from '../domain';
+import {
+  FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  MAX_WAYPOINT_NAME_LENGTH,
+  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+} from '../domain';
+
+type JsonRecord = Record<string, unknown>;
+
+const AERONAUTICAL_FEATURE_KINDS = new Set<AeronauticalFeatureKind>([
+  'aerodrome',
+  'reporting-point',
+  'navaid',
+  'designated-point',
+  'ctr',
+  'tma',
+  'restricted-area',
+  'danger-area',
+  'prohibited-area',
+  'other-airspace',
+]);
+const ANCHORABLE_FEATURE_KINDS = new Set<AeronauticalFeatureKind>([
+  'aerodrome',
+  'reporting-point',
+  'navaid',
+  'designated-point',
+]);
+
+function requireRecord(value: unknown, path: string): JsonRecord {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new RangeError(`${path} must be an object`);
+  }
+
+  return value as JsonRecord;
+}
+
+function requireArray(value: unknown, path: string): unknown[] {
+  if (!Array.isArray(value)) {
+    throw new RangeError(`${path} must be an array`);
+  }
+
+  return value;
+}
+
+function requireString(
+  value: unknown,
+  path: string,
+  options: { allowEmpty?: boolean; maxLength?: number } = {},
+): string {
+  if (typeof value !== 'string') {
+    throw new RangeError(`${path} must be a string`);
+  }
+
+  if (options.allowEmpty !== true && value.trim() === '') {
+    throw new RangeError(`${path} must not be empty`);
+  }
+
+  if (options.maxLength !== undefined && value.length > options.maxLength) {
+    throw new RangeError(
+      `${path} must not exceed ${options.maxLength} characters`,
+    );
+  }
+
+  return value;
+}
+
+function optionalString(value: unknown, path: string): string | undefined {
+  return value === undefined ? undefined : requireString(value, path);
+}
+
+function nullableString(value: unknown, path: string): string | null {
+  return value === null ? null : requireString(value, path);
+}
+
+function requireFiniteNumber(value: unknown, path: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new RangeError(`${path} must be a finite number`);
+  }
+
+  return value;
+}
+
+function requirePosition(value: unknown, path: string): Position {
+  const record = requireRecord(value, path);
+  const latitude = requireFiniteNumber(record.latitude, `${path}.latitude`);
+  const longitude = requireFiniteNumber(record.longitude, `${path}.longitude`);
+
+  if (latitude < -90 || latitude > 90) {
+    throw new RangeError(`${path}.latitude must be between -90 and 90`);
+  }
+
+  if (longitude < -180 || longitude > 180) {
+    throw new RangeError(`${path}.longitude must be between -180 and 180`);
+  }
+
+  return { latitude, longitude };
+}
+
+function requireDatasetRef(
+  value: unknown,
+  path: string,
+): AeronauticalDatasetRef {
+  const record = requireRecord(value, path);
+  const revisionId = optionalString(record.revisionId, `${path}.revisionId`);
+
+  return {
+    datasetId: requireString(record.datasetId, `${path}.datasetId`),
+    providerId: requireString(record.providerId, `${path}.providerId`),
+    sourceName: requireString(record.sourceName, `${path}.sourceName`),
+    airacCycle: nullableString(record.airacCycle, `${path}.airacCycle`),
+    effectiveFromUtc: requireString(
+      record.effectiveFromUtc,
+      `${path}.effectiveFromUtc`,
+    ),
+    effectiveToUtc: nullableString(
+      record.effectiveToUtc,
+      `${path}.effectiveToUtc`,
+    ),
+    ...(revisionId === undefined ? {} : { revisionId }),
+  };
+}
+
+function requireFeatureKind(
+  value: unknown,
+  path: string,
+): AeronauticalFeatureKind {
+  const featureKind = requireString(value, path) as AeronauticalFeatureKind;
+
+  if (!AERONAUTICAL_FEATURE_KINDS.has(featureKind)) {
+    throw new RangeError(`${path} is not a supported aeronautical feature kind`);
+  }
+
+  return featureKind;
+}
+
+function requireAnchor(
+  value: unknown,
+  path: string,
+): AeronauticalWaypointAnchor {
+  const record = requireRecord(value, path);
+
+  if (record.kind !== 'aeronautical-feature') {
+    throw new RangeError(`${path}.kind must be aeronautical-feature`);
+  }
+
+  const featureRecord = requireRecord(record.feature, `${path}.feature`);
+  const featureKind = requireFeatureKind(
+    featureRecord.featureKind,
+    `${path}.feature.featureKind`,
+  );
+
+  if (!ANCHORABLE_FEATURE_KINDS.has(featureKind)) {
+    throw new RangeError(`${path}.feature.featureKind must identify a point feature`);
+  }
+
+  const featureVersionId = optionalString(
+    featureRecord.featureVersionId,
+    `${path}.feature.featureVersionId`,
+  );
+  const publishedName = optionalString(
+    record.publishedName,
+    `${path}.publishedName`,
+  );
+
+  return {
+    kind: 'aeronautical-feature',
+    feature: {
+      dataset: requireDatasetRef(
+        featureRecord.dataset,
+        `${path}.feature.dataset`,
+      ),
+      featureId: requireString(
+        featureRecord.featureId,
+        `${path}.feature.featureId`,
+      ),
+      featureKind,
+      ...(featureVersionId === undefined ? {} : { featureVersionId }),
+    },
+    publishedIdentifier: requireString(
+      record.publishedIdentifier,
+      `${path}.publishedIdentifier`,
+    ),
+    ...(publishedName === undefined ? {} : { publishedName }),
+  };
+}
+
+function requireWaypoint(value: unknown, path: string): Waypoint {
+  const record = requireRecord(value, path);
+  const anchor =
+    record.anchor === undefined
+      ? undefined
+      : requireAnchor(record.anchor, `${path}.anchor`);
+
+  const name = requireString(record.name, `${path}.name`).trim();
+
+  if (name.length > MAX_WAYPOINT_NAME_LENGTH) {
+    throw new RangeError(
+      `${path}.name must not exceed ${MAX_WAYPOINT_NAME_LENGTH} characters`,
+    );
+  }
+
+  return {
+    id: requireString(record.id, `${path}.id`),
+    name,
+    position: requirePosition(record.position, `${path}.position`),
+    ...(anchor === undefined ? {} : { anchor }),
+  };
+}
+
+function requireShapingPoint(
+  value: unknown,
+  path: string,
+): RouteShapingPoint {
+  const record = requireRecord(value, path);
+
+  return {
+    id: requireString(record.id, `${path}.id`),
+    position: requirePosition(record.position, `${path}.position`),
+  };
+}
+
+function requireLegShape(value: unknown, path: string): LegShape {
+  const record = requireRecord(value, path);
+  const points = requireArray(record.points, `${path}.points`).map(
+    (point, index) => requireShapingPoint(point, `${path}.points[${index}]`),
+  );
+
+  if (points.length === 0) {
+    throw new RangeError(`${path}.points must contain at least one shaping point`);
+  }
+
+  return {
+    fromWaypointId: requireString(
+      record.fromWaypointId,
+      `${path}.fromWaypointId`,
+    ),
+    toWaypointId: requireString(record.toWaypointId, `${path}.toWaypointId`),
+    points,
+  };
+}
+
+function legKey(fromWaypointId: string, toWaypointId: string): string {
+  return `${fromWaypointId}\u0000${toWaypointId}`;
+}
+
+function requireFlightPlan(value: unknown, path: string): FlightPlan {
+  const record = requireRecord(value, path);
+  const waypoints = requireArray(record.waypoints, `${path}.waypoints`).map(
+    (waypoint, index) =>
+      requireWaypoint(waypoint, `${path}.waypoints[${index}]`),
+  );
+  const legShapes = requireArray(record.legShapes, `${path}.legShapes`).map(
+    (shape, index) => requireLegShape(shape, `${path}.legShapes[${index}]`),
+  );
+  const routePointIds = new Set<string>();
+
+  for (const waypoint of waypoints) {
+    if (routePointIds.has(waypoint.id)) {
+      throw new RangeError(`Duplicate route point ID ${waypoint.id}`);
+    }
+    routePointIds.add(waypoint.id);
+  }
+
+  const adjacentLegKeys = new Set(
+    waypoints.slice(1).map((waypoint, index) =>
+      legKey(waypoints[index]!.id, waypoint.id),
+    ),
+  );
+  const shapedLegKeys = new Set<string>();
+
+  for (const shape of legShapes) {
+    const key = legKey(shape.fromWaypointId, shape.toWaypointId);
+
+    if (!adjacentLegKeys.has(key)) {
+      throw new RangeError(
+        `Route shape ${shape.fromWaypointId} to ${shape.toWaypointId} does not match an adjacent waypoint leg`,
+      );
+    }
+
+    if (shapedLegKeys.has(key)) {
+      throw new RangeError(
+        `Duplicate route shape for leg ${shape.fromWaypointId} to ${shape.toWaypointId}`,
+      );
+    }
+    shapedLegKeys.add(key);
+
+    for (const point of shape.points) {
+      if (routePointIds.has(point.id)) {
+        throw new RangeError(`Duplicate route point ID ${point.id}`);
+      }
+      routePointIds.add(point.id);
+    }
+  }
+
+  return { waypoints, legShapes };
+}
+
+function requirePlanningInputs(
+  value: unknown,
+  path: string,
+): NavigationPlanInputs {
+  const record = requireRecord(value, path);
+  const departureTimeUtcMs = requireFiniteNumber(
+    record.departureTimeUtcMs,
+    `${path}.departureTimeUtcMs`,
+  );
+  const trueAirspeedKt = requireFiniteNumber(
+    record.trueAirspeedKt,
+    `${path}.trueAirspeedKt`,
+  );
+  const plannedAltitudeFtMsl = requireFiniteNumber(
+    record.plannedAltitudeFtMsl,
+    `${path}.plannedAltitudeFtMsl`,
+  );
+  const magneticVariationDegEast = requireFiniteNumber(
+    record.magneticVariationDegEast,
+    `${path}.magneticVariationDegEast`,
+  );
+  const windRecord = requireRecord(record.wind, `${path}.wind`);
+  const directionFromTrueDeg = requireFiniteNumber(
+    windRecord.directionFromTrueDeg,
+    `${path}.wind.directionFromTrueDeg`,
+  );
+  const speedKt = requireFiniteNumber(
+    windRecord.speedKt,
+    `${path}.wind.speedKt`,
+  );
+
+  if (!Number.isFinite(new Date(departureTimeUtcMs).getTime())) {
+    throw new RangeError(`${path}.departureTimeUtcMs must be a valid UTC timestamp`);
+  }
+  if (trueAirspeedKt <= 0) {
+    throw new RangeError(`${path}.trueAirspeedKt must be greater than zero`);
+  }
+  if (plannedAltitudeFtMsl < 0) {
+    throw new RangeError(`${path}.plannedAltitudeFtMsl must not be negative`);
+  }
+  if (
+    magneticVariationDegEast < -180 ||
+    magneticVariationDegEast > 180
+  ) {
+    throw new RangeError(
+      `${path}.magneticVariationDegEast must be between -180 and 180`,
+    );
+  }
+  if (directionFromTrueDeg < 0 || directionFromTrueDeg >= 360) {
+    throw new RangeError(
+      `${path}.wind.directionFromTrueDeg must be in [0, 360)`,
+    );
+  }
+  if (speedKt < 0) {
+    throw new RangeError(`${path}.wind.speedKt must not be negative`);
+  }
+
+  return {
+    departureTimeUtcMs,
+    trueAirspeedKt,
+    plannedAltitudeFtMsl,
+    magneticVariationDegEast,
+    wind: { directionFromTrueDeg, speedKt },
+  };
+}
+
+function requireRoutePlanningInputs(
+  value: unknown,
+  path: string,
+): RoutePlanningInputs {
+  const record = requireRecord(value, path);
+  const departureTimeUtcMs = requireFiniteNumber(
+    record.departureTimeUtcMs,
+    `${path}.departureTimeUtcMs`,
+  );
+  const magneticVariationDegEast = requireFiniteNumber(
+    record.magneticVariationDegEast,
+    `${path}.magneticVariationDegEast`,
+  );
+  const windRecord = requireRecord(record.wind, `${path}.wind`);
+  const directionFromTrueDeg = requireFiniteNumber(
+    windRecord.directionFromTrueDeg,
+    `${path}.wind.directionFromTrueDeg`,
+  );
+  const speedKt = requireFiniteNumber(
+    windRecord.speedKt,
+    `${path}.wind.speedKt`,
+  );
+
+  if (!Number.isFinite(new Date(departureTimeUtcMs).getTime())) {
+    throw new RangeError(`${path}.departureTimeUtcMs must be a valid UTC timestamp`);
+  }
+  if (
+    magneticVariationDegEast < -180 ||
+    magneticVariationDegEast > 180
+  ) {
+    throw new RangeError(
+      `${path}.magneticVariationDegEast must be between -180 and 180`,
+    );
+  }
+  if (directionFromTrueDeg < 0 || directionFromTrueDeg >= 360) {
+    throw new RangeError(
+      `${path}.wind.directionFromTrueDeg must be in [0, 360)`,
+    );
+  }
+  if (speedKt < 0) {
+    throw new RangeError(`${path}.wind.speedKt must not be negative`);
+  }
+
+  return {
+    departureTimeUtcMs,
+    magneticVariationDegEast,
+    wind: { directionFromTrueDeg, speedKt },
+  };
+}
+
+function requirePositiveNumber(value: unknown, path: string): number {
+  const result = requireFiniteNumber(value, path);
+
+  if (result <= 0) {
+    throw new RangeError(`${path} must be greater than zero`);
+  }
+
+  return result;
+}
+
+function requireNonNegativeNumber(value: unknown, path: string): number {
+  const result = requireFiniteNumber(value, path);
+
+  if (result < 0) {
+    throw new RangeError(`${path} must not be negative`);
+  }
+
+  return result;
+}
+
+function requireAircraftPerformanceProfile(
+  value: unknown,
+  path: string,
+): AircraftPerformanceProfile {
+  const record = requireRecord(value, path);
+  const revision = requireFiniteNumber(record.revision, `${path}.revision`);
+
+  if (!Number.isInteger(revision) || revision <= 0) {
+    throw new RangeError(`${path}.revision must be a positive integer`);
+  }
+
+  return {
+    profileId: requireString(record.profileId, `${path}.profileId`),
+    revision,
+    climbIasKt: requirePositiveNumber(record.climbIasKt, `${path}.climbIasKt`),
+    cruiseIasKt: requirePositiveNumber(record.cruiseIasKt, `${path}.cruiseIasKt`),
+    descentIasKt: requirePositiveNumber(record.descentIasKt, `${path}.descentIasKt`),
+    climbFuelFlowLph: requireNonNegativeNumber(
+      record.climbFuelFlowLph,
+      `${path}.climbFuelFlowLph`,
+    ),
+    cruiseFuelFlowLph: requireNonNegativeNumber(
+      record.cruiseFuelFlowLph,
+      `${path}.cruiseFuelFlowLph`,
+    ),
+    descentFuelFlowLph: requireNonNegativeNumber(
+      record.descentFuelFlowLph,
+      `${path}.descentFuelFlowLph`,
+    ),
+    descentRateFtPerMin: requirePositiveNumber(
+      record.descentRateFtPerMin,
+      `${path}.descentRateFtPerMin`,
+    ),
+  };
+}
+
+function requirePlanningWeather(value: unknown, path: string) {
+  const record = requireRecord(value, path);
+
+  return {
+    qnhHpa: requirePositiveNumber(record.qnhHpa, `${path}.qnhHpa`),
+    isaDeviationC: requireFiniteNumber(
+      record.isaDeviationC,
+      `${path}.isaDeviationC`,
+    ),
+  };
+}
+
+function requirePerformanceInputs(
+  value: unknown,
+  path: string,
+  flightPlan: FlightPlan,
+): AircraftPerformancePlanInputs | null {
+  if (value === null) {
+    return null;
+  }
+
+  const record = requireRecord(value, path);
+  const legPlans = requireArray(
+    record.legAltitudePlans,
+    `${path}.legAltitudePlans`,
+  );
+  const adjacentLegKeys = new Set(
+    flightPlan.waypoints.slice(1).map((waypoint, index) =>
+      legKey(flightPlan.waypoints[index]!.id, waypoint.id),
+    ),
+  );
+  const seenLegKeys = new Set<string>();
+  const legAltitudePlans = legPlans.map((value, index) => {
+    const legPath = `${path}.legAltitudePlans[${index}]`;
+    const legRecord = requireRecord(value, legPath);
+    const fromWaypointId = requireString(
+      legRecord.fromWaypointId,
+      `${legPath}.fromWaypointId`,
+    );
+    const toWaypointId = requireString(
+      legRecord.toWaypointId,
+      `${legPath}.toWaypointId`,
+    );
+    const key = legKey(fromWaypointId, toWaypointId);
+
+    if (!adjacentLegKeys.has(key)) {
+      throw new RangeError(
+        `${legPath} does not match an adjacent waypoint leg`,
+      );
+    }
+    if (seenLegKeys.has(key)) {
+      throw new RangeError(`${legPath} duplicates an altitude plan`);
+    }
+    seenLegKeys.add(key);
+
+    const altitudeFtMsl =
+      legRecord.altitudeFtMsl === undefined
+        ? undefined
+        : requireNonNegativeNumber(
+            legRecord.altitudeFtMsl,
+            `${legPath}.altitudeFtMsl`,
+          );
+    let targetPlacement;
+
+    if (legRecord.targetPlacement !== undefined) {
+      const placement = requireRecord(
+        legRecord.targetPlacement,
+        `${legPath}.targetPlacement`,
+      );
+
+      if (placement.mode === 'automatic') {
+        targetPlacement = { mode: 'automatic' as const };
+      } else if (placement.mode === 'distance-along-leg') {
+        targetPlacement = {
+          mode: 'distance-along-leg' as const,
+          distanceFromStartNm: requireNonNegativeNumber(
+            placement.distanceFromStartNm,
+            `${legPath}.targetPlacement.distanceFromStartNm`,
+          ),
+        };
+      } else {
+        throw new RangeError(
+          `${legPath}.targetPlacement.mode is not supported`,
+        );
+      }
+    }
+
+    return {
+      fromWaypointId,
+      toWaypointId,
+      ...(altitudeFtMsl === undefined ? {} : { altitudeFtMsl }),
+      ...(targetPlacement === undefined ? {} : { targetPlacement }),
+    };
+  });
+
+  return {
+    massKg: requirePositiveNumber(record.massKg, `${path}.massKg`),
+    defaultAltitudeFtMsl: requireNonNegativeNumber(
+      record.defaultAltitudeFtMsl,
+      `${path}.defaultAltitudeFtMsl`,
+    ),
+    departureElevationFtMsl: requireNonNegativeNumber(
+      record.departureElevationFtMsl,
+      `${path}.departureElevationFtMsl`,
+    ),
+    destinationElevationFtMsl: requireNonNegativeNumber(
+      record.destinationElevationFtMsl,
+      `${path}.destinationElevationFtMsl`,
+    ),
+    patternHeightAglFt: requireNonNegativeNumber(
+      record.patternHeightAglFt,
+      `${path}.patternHeightAglFt`,
+    ),
+    departureWeather: requirePlanningWeather(
+      record.departureWeather,
+      `${path}.departureWeather`,
+    ),
+    destinationWeather: requirePlanningWeather(
+      record.destinationWeather,
+      `${path}.destinationWeather`,
+    ),
+    legAltitudePlans,
+  };
+}
+
+export function parseFlightPlanningDocument(
+  value: unknown,
+): FlightPlanningDocument {
+  const record = requireRecord(value, 'document');
+
+  if (
+    record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION
+  ) {
+    throw new RangeError(
+      `Unsupported flight-planning document schema version ${String(record.schemaVersion)}`,
+    );
+  }
+
+  if (typeof record.useForecastWinds !== 'boolean') {
+    throw new RangeError('document.useForecastWinds must be a boolean');
+  }
+
+  const flightPlan = requireFlightPlan(
+    record.flightPlan,
+    'document.flightPlan',
+  );
+
+  if (record.schemaVersion === LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION) {
+    const legacyPlanning = requirePlanningInputs(
+      record.planningInputs,
+      'document.planningInputs',
+    );
+
+    return {
+      schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+      flightPlan,
+      planningInputs: {
+        departureTimeUtcMs: legacyPlanning.departureTimeUtcMs,
+        magneticVariationDegEast: legacyPlanning.magneticVariationDegEast,
+        wind: legacyPlanning.wind,
+      },
+      aircraftPerformanceProfile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      performanceInputs: null,
+      useForecastWinds: record.useForecastWinds,
+    };
+  }
+
+  return {
+    schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+    flightPlan,
+    planningInputs: requireRoutePlanningInputs(
+      record.planningInputs,
+      'document.planningInputs',
+    ),
+    aircraftPerformanceProfile: requireAircraftPerformanceProfile(
+      record.aircraftPerformanceProfile,
+      'document.aircraftPerformanceProfile',
+    ),
+    performanceInputs: requirePerformanceInputs(
+      record.performanceInputs,
+      'document.performanceInputs',
+      flightPlan,
+    ),
+    useForecastWinds: record.useForecastWinds,
+  };
+}
+
+export function parseFlightPlanningDocumentJson(
+  json: string,
+): FlightPlanningDocument {
+  let value: unknown;
+
+  try {
+    value = JSON.parse(json) as unknown;
+  } catch {
+    throw new RangeError('Flight-planning document is not valid JSON');
+  }
+
+  return parseFlightPlanningDocument(value);
+}
+
+export function serializeFlightPlanningDocument(
+  document: FlightPlanningDocument,
+): string {
+  const validatedDocument = parseFlightPlanningDocument(document);
+  return `${JSON.stringify(validatedDocument, null, 2)}\n`;
+}

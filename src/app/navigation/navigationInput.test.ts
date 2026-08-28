@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createDefaultNavigationInputDraft,
+  createNavigationInputDraft,
   formatUtcDateTimeInput,
   parseNavigationInputDraft,
 } from './navigationInput';
@@ -15,8 +16,6 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
-        trueAirspeedKt: 100,
-        plannedAltitudeFtMsl: 3000,
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 0, speedKt: 0 },
       },
@@ -27,7 +26,6 @@ describe('parseNavigationInputDraft', () => {
     expect(
       parseNavigationInputDraft({
         ...validDraft,
-        trueAirspeedKt: '115.5',
         windDirectionFromTrueDeg: '370',
         windSpeedKt: '12.5',
       }),
@@ -35,8 +33,6 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
-        trueAirspeedKt: 115.5,
-        plannedAltitudeFtMsl: 3000,
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 10, speedKt: 12.5 },
       },
@@ -67,30 +63,6 @@ describe('parseNavigationInputDraft', () => {
         departureTimeUtc: '2026-02-30T12:00',
       },
       message: 'Departure time must be a valid UTC date and time',
-    },
-    {
-      description: 'an empty true airspeed',
-      draft: {
-        ...validDraft,
-        trueAirspeedKt: '',
-      },
-      message: 'True airspeed is required',
-    },
-    {
-      description: 'a zero true airspeed',
-      draft: {
-        ...validDraft,
-        trueAirspeedKt: '0',
-      },
-      message: 'True airspeed must be greater than zero',
-    },
-    {
-      description: 'a negative planned altitude',
-      draft: {
-        ...validDraft,
-        plannedAltitudeFtMsl: '-1',
-      },
-      message: 'Planned altitude must not be negative',
     },
     {
       description: 'a non-numeric wind direction',
@@ -147,5 +119,29 @@ describe('departure-time input helpers', () => {
     expect(formatUtcDateTimeInput(DEPARTURE_TIME_UTC_MS)).toBe(
       '2026-08-27T12:05',
     );
+  });
+
+  it('formats semantic planning inputs back into an editable draft', () => {
+    const draft = createNavigationInputDraft({
+      departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+      magneticVariationDegEast: -8.2,
+      wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
+    });
+
+    expect(draft).toEqual({
+      departureTimeUtc: '2026-08-27T12:05',
+      magneticVariationDeg: '8.2',
+      magneticVariationDirection: 'W',
+      windDirectionFromTrueDeg: '275',
+      windSpeedKt: '16.5',
+    });
+    expect(parseNavigationInputDraft(draft)).toEqual({
+      status: 'valid',
+      value: {
+        departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        magneticVariationDegEast: -8.2,
+        wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
+      },
+    });
   });
 });

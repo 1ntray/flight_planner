@@ -33,15 +33,24 @@ and leg data from becoming inconsistent.
 Domain collections are exposed as readonly arrays to calculation code. Pure
 calculation functions return new values and do not mutate their inputs.
 
-The top-level `App` component owns the `FlightPlan` and the selected route-point
-descriptor. Selection and in-progress drag positions are UI state; calculated
-legs are not. UI consumers call `calculateRoute(flightPlan)` to derive legs
-from the latest route input.
+The top-level `App` component owns the `FlightPlan`, navigation and aircraft
+performance input drafts, forecast-source preference, and selected route-point
+descriptor. Selection and
+in-progress drag positions are UI state; calculated legs are not. UI consumers
+call the pure calculation layer to derive legs from the latest route and
+validated planning inputs.
 
 Waypoint IDs are generated independently of waypoint names and remain stable
 when markers move. Automatic names use `WP01`, `WP02`, and so on. The next name
 continues after the highest generated name still in the route, preventing a
 middle deletion from creating a duplicate name.
+
+Waypoint names are editable navlog labels, not route identity. User-entered
+names are trimmed, must contain between 1 and 32 characters, and need not be
+unique because the same named point may legitimately appear more than once in
+an ordered route. Renaming changes neither the stable waypoint ID nor geometry.
+An anchored waypoint may be renamed without detachment; its published
+identifier remains available in the separate anchor snapshot.
 
 ## Map
 
@@ -85,6 +94,8 @@ middle deletion from creating a duplicate name.
   treated as effectively identical. Their reported distance is exactly `0`.
 - Wind, heading, speed, and elapsed-time conventions are documented in
   [`navigation-conventions.md`](navigation-conventions.md).
+- Aircraft performance units, formulas, and vertical integration are documented
+  in [`aircraft-performance.md`](aircraft-performance.md).
 
 ## TypeScript and testing
 
@@ -93,3 +104,20 @@ by Vitest tests, including nominal values, boundary cases, and degenerate input.
 Non-UI helpers for route naming, formatting, and totals should also have focused
 unit tests. Snapshot tests are not a default requirement.
 Run `pnpm typecheck` and `pnpm test` before merging changes.
+
+## Persistence
+
+- Saved planning files are versioned documents around the `FlightPlan`; they do
+  not replace its canonical route semantics.
+- Persistence stores semantic numeric planning inputs in their documented
+  internal units, never HTML input strings.
+- Calculated legs, expanded geometry, forecast responses, loading state,
+  selection, and drag state are derived or transient and must not be saved.
+- Imported JSON crosses an untrusted input boundary and must be validated by
+  pure code before it reaches React state.
+- Anchored waypoint coordinates and complete source provenance are loaded from
+  the saved snapshot. Loading never substitutes a coordinate from the currently
+  configured aeronautical repository.
+- Browser autosave uses the same versioned document and validation boundary as
+  file persistence. It retains the last valid document while a form draft is
+  invalid and never persists the draft's raw text-field representation.

@@ -1,6 +1,8 @@
 import type { Position } from './position';
 import type { AeronauticalFeatureRef } from './aeronautical';
 
+export const MAX_WAYPOINT_NAME_LENGTH = 32;
+
 export interface AeronauticalWaypointAnchor {
   readonly kind: 'aeronautical-feature';
   readonly feature: AeronauticalFeatureRef;

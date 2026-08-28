@@ -100,6 +100,30 @@ export function calculateGeodesicMidpoint(
   return { latitude, longitude };
 }
 
+export function calculatePositionAlongGeodesic(
+  from: Position,
+  to: Position,
+  fraction: number,
+): Position {
+  if (!Number.isFinite(fraction) || fraction < 0 || fraction > 1) {
+    throw new RangeError('Geodesic fraction must be between zero and one');
+  }
+
+  const line = Geodesic.WGS84.InverseLine(
+    from.latitude,
+    from.longitude,
+    to.latitude,
+    to.longitude,
+  );
+  const distanceMeters = line.s13;
+
+  if (!Number.isFinite(distanceMeters)) {
+    throw new RangeError('Geodesic calculation did not return a finite distance');
+  }
+
+  return requireLinePosition(line, distanceMeters * fraction);
+}
+
 function requireLinePosition(
   line: ReturnType<typeof Geodesic.WGS84.InverseLine>,
   distanceMeters: number,

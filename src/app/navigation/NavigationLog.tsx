@@ -1,14 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-import { calculateNavigationRoute } from '../../calculations';
+import {
+  calculateNavigationRoute,
+  calculatePerformanceRoute,
+  calculatePlanningEnvironment,
+  calculateTasFromIas,
+  PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+} from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import { RouteTable } from '../route/RouteTable';
 import {
-  createDefaultNavigationInputDraft,
   parseNavigationInputDraft,
 } from './navigationInput';
 import type { NavigationInputDraft } from './navigationInput';
+import { AircraftPerformanceInputs } from './AircraftPerformanceInputs';
+import { LegAltitudeControls } from './LegAltitudeControls';
+import type { AltitudePlacementLeg } from './altitudePlanState';
+import {
+  parsePerformanceInputDraft,
+} from './performanceInput';
+import type { PerformanceInputDraft } from './performanceInput';
 import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
+import { useOpenMeteoPerformanceWinds } from './useOpenMeteoPerformanceWinds';
+import { createSampledWindResolver } from '../../weather';
 import {
   FORECAST_SOURCE_LABEL,
   formatForecastRetrievalTime,
@@ -17,48 +31,142 @@ import {
 
 export interface NavigationLogProps {
   flightPlan: FlightPlan;
+  draft: NavigationInputDraft;
+  performanceDraft: PerformanceInputDraft;
+  useForecastWinds: boolean;
+  onDraftChange: (draft: NavigationInputDraft) => void;
+  onPerformanceDraftChange: (draft: PerformanceInputDraft) => void;
+  onUseForecastWindsChange: (enabled: boolean) => void;
+  altitudePlacementLeg: AltitudePlacementLeg | null;
+  onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
 }
 
-export function NavigationLog({ flightPlan }: NavigationLogProps) {
-  const [draft, setDraft] = useState<NavigationInputDraft>(
-    createDefaultNavigationInputDraft,
-  );
-  const [useForecastWinds, setUseForecastWinds] = useState(false);
+export function NavigationLog({
+  flightPlan,
+  draft,
+  performanceDraft,
+  useForecastWinds,
+  onDraftChange,
+  onPerformanceDraftChange,
+  onUseForecastWindsChange,
+  altitudePlacementLeg,
+  onAltitudePlacementLegChange,
+}: NavigationLogProps) {
   const parsedInputs = useMemo(
     () => parseNavigationInputDraft(draft),
     [draft],
   );
+  const parsedPerformance = useMemo(
+    () => parsePerformanceInputDraft(performanceDraft),
+    [performanceDraft],
+  );
+  const legacyPlanning = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid'
+    ) {
+      return null;
+    }
+
+    const environment = calculatePlanningEnvironment(
+      parsedPerformance.value.departureWeather,
+      parsedPerformance.value.destinationWeather,
+    );
+
+    return {
+      ...parsedInputs.value,
+      trueAirspeedKt: calculateTasFromIas(
+        PROJECT_AIRCRAFT_PERFORMANCE_PROFILE.cruiseIasKt,
+        parsedPerformance.value.defaultAltitudeFtMsl,
+        environment.qnhHpa,
+        environment.isaDeviationC,
+      ),
+      plannedAltitudeFtMsl:
+        parsedPerformance.value.defaultAltitudeFtMsl,
+    };
+  }, [parsedInputs, parsedPerformance]);
   const manualWindRoute = useMemo(
     () =>
       calculateNavigationRoute({
         flightPlan,
-        planning:
-          parsedInputs.status === 'valid' ? parsedInputs.value : null,
+        planning: legacyPlanning,
       }),
-    [flightPlan, parsedInputs],
+    [flightPlan, legacyPlanning],
   );
-  const forecast = useOpenMeteoRouteWinds({
-    enabled: useForecastWinds,
+  const manualPerformanceRoute = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid'
+    ) {
+      return null;
+    }
+
+    return calculatePerformanceRoute({
+      flightPlan,
+      navigation: parsedInputs.value,
+      performance: parsedPerformance.value,
+    });
+  }, [flightPlan, parsedInputs, parsedPerformance]);
+  const legForecast = useOpenMeteoRouteWinds({
+    enabled: useForecastWinds && parsedPerformance.status !== 'valid',
     flightPlan,
-    planning: parsedInputs.status === 'valid' ? parsedInputs.value : null,
+    planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
   });
+  const performanceForecast = useOpenMeteoPerformanceWinds({
+    enabled: useForecastWinds && parsedPerformance.status === 'valid',
+    flightPlan,
+    navigation:
+      parsedInputs.status === 'valid' ? parsedInputs.value : null,
+    performance:
+      parsedPerformance.status === 'valid'
+        ? parsedPerformance.value
+        : null,
+    preliminaryRoute: manualPerformanceRoute,
+  });
+  const forecast =
+    parsedPerformance.status === 'valid'
+      ? performanceForecast
+      : {
+          winds:
+            legForecast.status.status === 'success'
+              ? legForecast.status.winds
+              : [],
+          status: legForecast.status,
+        };
   const calculatedRoute = useMemo(
     () =>
       calculateNavigationRoute({
         flightPlan,
-        planning:
-          parsedInputs.status === 'valid' ? parsedInputs.value : null,
-        legWinds: forecast.legWinds,
+        planning: legacyPlanning,
+        legWinds: forecast.winds,
       }),
-    [flightPlan, forecast.legWinds, parsedInputs],
+    [flightPlan, forecast.winds, legacyPlanning],
   );
+  const performanceRoute = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid'
+    ) {
+      return null;
+    }
+
+    return calculatePerformanceRoute({
+      flightPlan,
+      navigation: parsedInputs.value,
+      performance: parsedPerformance.value,
+      resolveWind: createSampledWindResolver(
+        forecast.winds,
+        parsedInputs.value.wind,
+      ),
+    });
+  }, [flightPlan, forecast.winds, parsedInputs, parsedPerformance]);
 
   const updateDraft = <Field extends keyof NavigationInputDraft>(
     field: Field,
     value: NavigationInputDraft[Field],
   ) => {
-    setDraft((current) => ({ ...current, [field]: value }));
+    onDraftChange({ ...draft, [field]: value });
   };
 
   return (
@@ -66,8 +174,7 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
       <fieldset className="navigation-inputs">
         <legend>Route planning inputs</legend>
         <p className="navigation-inputs__scope">
-          TAS, altitude, and variation are route-wide. Manual wind is the
-          forecast fallback.
+          Departure, variation, and manual fallback wind apply to the route.
         </p>
 
         <label className="navigation-inputs__departure">
@@ -83,43 +190,6 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
               }
             />
             <span>UTC</span>
-          </span>
-        </label>
-
-        <label>
-          <span>TAS</span>
-          <span className="navigation-inputs__control">
-            <input
-              type="number"
-              min="0.1"
-              step="1"
-              value={draft.trueAirspeedKt}
-              aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft('trueAirspeedKt', event.currentTarget.value)
-              }
-            />
-            <span>kt</span>
-          </span>
-        </label>
-
-        <label>
-          <span>Planned altitude</span>
-          <span className="navigation-inputs__control">
-            <input
-              type="number"
-              min="0"
-              step="100"
-              value={draft.plannedAltitudeFtMsl}
-              aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft(
-                  'plannedAltitudeFtMsl',
-                  event.currentTarget.value,
-                )
-              }
-            />
-            <span>ft MSL</span>
           </span>
         </label>
 
@@ -198,10 +268,10 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
             type="checkbox"
             checked={useForecastWinds}
             onChange={(event) =>
-              setUseForecastWinds(event.currentTarget.checked)
+              onUseForecastWindsChange(event.currentTarget.checked)
             }
           />
-          <span>Use ECMWF upper-air winds at each leg midpoint</span>
+          <span>Use ECMWF upper-air winds</span>
         </label>
 
         {useForecastWinds &&
@@ -215,9 +285,9 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
         forecast.status.status === 'success' ? (
           <div className="navigation-inputs__weather-status" role="status">
             <p>
-              {FORECAST_SOURCE_LABEL} winds applied to{' '}
+              {FORECAST_SOURCE_LABEL} winds applied from{' '}
               {forecast.status.winds.length}{' '}
-              {forecast.status.winds.length === 1 ? 'leg' : 'legs'}
+              {forecast.status.winds.length === 1 ? 'sample' : 'samples'}
               {forecast.status.refined ? ' after one timing refinement' : ''}.
             </p>
             <p className="navigation-inputs__weather-detail">
@@ -251,9 +321,33 @@ export function NavigationLog({ flightPlan }: NavigationLogProps) {
         ) : null}
       </fieldset>
 
+      <AircraftPerformanceInputs
+        draft={performanceDraft}
+        {...(parsedPerformance.status === 'invalid'
+          ? { errorMessage: parsedPerformance.message }
+          : {})}
+        onChange={onPerformanceDraftChange}
+      />
+
+      <LegAltitudeControls
+        flightPlan={flightPlan}
+        draft={performanceDraft}
+        placementLeg={altitudePlacementLeg}
+        onDraftChange={onPerformanceDraftChange}
+        onPlacementLegChange={onAltitudePlacementLegChange}
+      />
+
+      {performanceRoute?.status === 'no-solution' ? (
+        <p className="navigation-inputs__error performance-route-error" role="alert">
+          Performance profile unavailable for {performanceRoute.legFromId} →{' '}
+          {performanceRoute.legToId}: {performanceRoute.message}.
+        </p>
+      ) : null}
+
       <RouteTable
         waypoints={flightPlan.waypoints}
         route={calculatedRoute}
+        performanceRoute={performanceRoute}
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }

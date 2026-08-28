@@ -5,6 +5,7 @@ import {
 import type { ForecastLegWind, WeatherSampleRequest } from './types';
 
 const CACHE_LIFETIME_MS = 10 * 60 * 1000;
+const MAX_LOCATIONS_PER_REQUEST = 40;
 
 interface ForecastCacheEntry {
   expiresAtUtcMs: number;
@@ -26,7 +27,7 @@ function getApiErrorReason(value: unknown): string | null {
     : null;
 }
 
-export async function fetchOpenMeteoLegWinds(
+async function fetchOpenMeteoWindBatch(
   requests: readonly WeatherSampleRequest[],
   signal: AbortSignal,
 ): Promise<ForecastLegWind[]> {
@@ -81,4 +82,21 @@ export async function fetchOpenMeteoLegWinds(
     forecastRequest.pressureLevels,
     { retrievedAtUtcMs },
   );
+}
+
+export async function fetchOpenMeteoLegWinds(
+  requests: readonly WeatherSampleRequest[],
+  signal: AbortSignal,
+): Promise<ForecastLegWind[]> {
+  const batches: WeatherSampleRequest[][] = [];
+
+  for (let index = 0; index < requests.length; index += MAX_LOCATIONS_PER_REQUEST) {
+    batches.push(requests.slice(index, index + MAX_LOCATIONS_PER_REQUEST));
+  }
+
+  const results = await Promise.all(
+    batches.map((batch) => fetchOpenMeteoWindBatch(batch, signal)),
+  );
+
+  return results.flat();
 }

@@ -1,5 +1,24 @@
+import { MAX_WAYPOINT_NAME_LENGTH } from '../../domain';
 import type { AeronauticalPointFeature, Position, Waypoint } from '../../domain';
 import { getNextWaypointName } from './waypointNaming';
+
+export { MAX_WAYPOINT_NAME_LENGTH };
+
+function normalizeWaypointName(name: string): string {
+  const normalizedName = name.trim();
+
+  if (normalizedName === '') {
+    throw new RangeError('Waypoint name must not be empty');
+  }
+
+  if (normalizedName.length > MAX_WAYPOINT_NAME_LENGTH) {
+    throw new RangeError(
+      `Waypoint name must not exceed ${MAX_WAYPOINT_NAME_LENGTH} characters`,
+    );
+  }
+
+  return normalizedName;
+}
 
 export function appendWaypoint(
   waypoints: readonly Waypoint[],
@@ -25,15 +44,13 @@ export function appendAnchoredWaypoint(
     throw new RangeError('Aeronautical point kind must match its feature reference');
   }
 
-  if (feature.suggestedWaypointName.trim() === '') {
-    throw new RangeError('Anchored waypoint name must not be empty');
-  }
+  const waypointName = normalizeWaypointName(feature.suggestedWaypointName);
 
   return [
     ...waypoints,
     {
       id,
-      name: feature.suggestedWaypointName,
+      name: waypointName,
       position: { ...feature.position },
       anchor: {
         kind: 'aeronautical-feature',
@@ -63,6 +80,30 @@ export function moveWaypointById(
 
   return waypoints.map((waypoint) =>
     waypoint.id === id ? { ...waypoint, position } : waypoint,
+  );
+}
+
+export function renameWaypointById(
+  waypoints: readonly Waypoint[],
+  id: string,
+  name: string,
+): Waypoint[] {
+  const waypoint = waypoints.find((candidate) => candidate.id === id);
+
+  if (waypoint === undefined) {
+    throw new RangeError(`Waypoint ${id} does not exist`);
+  }
+
+  const normalizedName = normalizeWaypointName(name);
+
+  if (waypoint.name === normalizedName) {
+    return waypoints.slice();
+  }
+
+  return waypoints.map((candidate) =>
+    candidate.id === id
+      ? { ...candidate, name: normalizedName }
+      : candidate,
   );
 }
 

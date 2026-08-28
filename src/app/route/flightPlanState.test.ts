@@ -7,6 +7,7 @@ import {
   detachWaypointInFlightPlan,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
+  renameWaypointInFlightPlan,
   removeRouteShapingPoint,
   removeWaypointFromFlightPlan,
 } from './flightPlanState';
@@ -21,6 +22,18 @@ const flightPlan: FlightPlan = {
 };
 
 describe('flight plan shaping state helpers', () => {
+  it('renames a real waypoint without changing shapes or route geometry', () => {
+    const renamed = renameWaypointInFlightPlan(flightPlan, 'B', 'TURN POINT');
+
+    expect(renamed.waypoints[1]?.name).toBe('TURN POINT');
+    expect(renamed.waypoints[1]?.id).toBe('B');
+    expect(renamed.waypoints[1]?.position).toBe(
+      flightPlan.waypoints[1]?.position,
+    );
+    expect(renamed.legShapes).toBe(flightPlan.legShapes);
+    expect(calculateRoute(renamed)).toEqual(calculateRoute(flightPlan));
+  });
+
   it('adds and detaches an anchored real waypoint without changing geometry', () => {
     const feature = {
       geometryType: 'point' as const,

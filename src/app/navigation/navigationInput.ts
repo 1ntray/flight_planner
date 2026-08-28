@@ -1,10 +1,8 @@
 import { normalizeTrackDeg } from '../../calculations';
-import type { NavigationPlanInputs } from '../../domain';
+import type { RoutePlanningInputs } from '../../domain';
 
 export interface NavigationInputDraft {
   departureTimeUtc: string;
-  trueAirspeedKt: string;
-  plannedAltitudeFtMsl: string;
   magneticVariationDeg: string;
   magneticVariationDirection: 'E' | 'W';
   windDirectionFromTrueDeg: string;
@@ -31,8 +29,6 @@ export function createDefaultNavigationInputDraft(
 
   return {
     departureTimeUtc: formatUtcDateTimeInput(roundedDepartureTimeUtcMs),
-    trueAirspeedKt: '100',
-    plannedAltitudeFtMsl: '3000',
     magneticVariationDeg: '0',
     magneticVariationDirection: 'E',
     windDirectionFromTrueDeg: '0',
@@ -40,8 +36,23 @@ export function createDefaultNavigationInputDraft(
   };
 }
 
+export function createNavigationInputDraft(
+  inputs: RoutePlanningInputs,
+): NavigationInputDraft {
+  const variationMagnitude = Math.abs(inputs.magneticVariationDegEast);
+
+  return {
+    departureTimeUtc: formatUtcDateTimeInput(inputs.departureTimeUtcMs),
+    magneticVariationDeg: String(variationMagnitude),
+    magneticVariationDirection:
+      inputs.magneticVariationDegEast < 0 ? 'W' : 'E',
+    windDirectionFromTrueDeg: String(inputs.wind.directionFromTrueDeg),
+    windSpeedKt: String(inputs.wind.speedKt),
+  };
+}
+
 export type NavigationInputParseResult =
-  | { status: 'valid'; value: NavigationPlanInputs }
+  | { status: 'valid'; value: RoutePlanningInputs }
   | { status: 'invalid'; message: string };
 
 function parseRequiredNumber(value: string, label: string): number | string {
@@ -90,38 +101,6 @@ export function parseNavigationInputDraft(
     return {
       status: 'invalid',
       message: 'Departure time must be a valid UTC date and time',
-    };
-  }
-
-  const trueAirspeedKt = parseRequiredNumber(
-    draft.trueAirspeedKt,
-    'True airspeed',
-  );
-
-  if (typeof trueAirspeedKt === 'string') {
-    return { status: 'invalid', message: trueAirspeedKt };
-  }
-
-  if (trueAirspeedKt <= 0) {
-    return {
-      status: 'invalid',
-      message: 'True airspeed must be greater than zero',
-    };
-  }
-
-  const plannedAltitudeFtMsl = parseRequiredNumber(
-    draft.plannedAltitudeFtMsl,
-    'Planned altitude',
-  );
-
-  if (typeof plannedAltitudeFtMsl === 'string') {
-    return { status: 'invalid', message: plannedAltitudeFtMsl };
-  }
-
-  if (plannedAltitudeFtMsl < 0) {
-    return {
-      status: 'invalid',
-      message: 'Planned altitude must not be negative',
     };
   }
 
@@ -177,8 +156,6 @@ export function parseNavigationInputDraft(
     status: 'valid',
     value: {
       departureTimeUtcMs,
-      trueAirspeedKt,
-      plannedAltitudeFtMsl,
       magneticVariationDegEast:
         magneticVariationDeg === 0
           ? 0

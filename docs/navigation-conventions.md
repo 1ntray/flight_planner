@@ -34,7 +34,7 @@ They are calculation contracts rather than display preferences.
 
 - Distance is stored in nautical miles (`NM`).
 - True airspeed, wind speed, and groundspeed are stored in knots (`kt`).
-- Planned altitude is input in feet above mean sea level (`ft MSL`). Exact
+- Altitudes are input in feet above mean sea level (`ft MSL`). Exact
   conversion to metres uses `1 ft = 0.3048 m` where required by forecast data.
 - Leg elapsed time is stored in seconds.
 - Absolute times are stored as Unix timestamps in milliseconds and interpreted
@@ -75,9 +75,11 @@ They are calculation contracts rather than display preferences.
   between the real leg endpoints. It is not an arithmetic average of latitude
   and longitude, and shaping points do not change it.
 - The midpoint time is halfway through the leg's calculated EET.
-- A weather sample request combines that WGS84 midpoint, midpoint UTC time, and
-  the route-wide planned altitude. Zero-distance or untimed legs do not produce
-  a request.
+- Without an aircraft performance plan, a weather sample request combines the
+  WGS84 leg midpoint, midpoint UTC time, and a representative altitude.
+- With a performance plan, every integrated climb, cruise, or descent step has
+  its own sample context using route position, representative altitude, and UTC
+  midpoint time.
 - An effectively zero-distance leg has zero EET and does not interrupt the
   route timeline even though its track and heading are undefined.
 - If a leg has no wind-triangle solution, its end time and all subsequent
@@ -98,7 +100,8 @@ They are calculation contracts rather than display preferences.
   calculations.
 - Requests use hourly pressure-level wind speed, meteorological true direction
   from which the wind blows, and geopotential height above mean sea level.
-- Four pressure levels around the approximate planned altitude are requested.
+- Four pressure levels around each requested altitude are selected. A mixed-
+  altitude batch requests the union of those levels.
   Vertical interpolation uses their returned geopotential heights; a pressure
   level is not treated as having a fixed altitude.
 - Wind is converted to eastward and northward velocity components before any
@@ -108,9 +111,9 @@ They are calculation contracts rather than display preferences.
 - If planned altitude lies outside the usable returned height range, wind is
   clamped to the nearest usable pressure level and the result records that
   clamping occurred.
-- Forecast winds are first applied to the preliminary manual-wind route. If
-  this changes midpoint sample times, one additional forecast selection pass is
-  allowed. There is no unbounded convergence loop.
+- Forecast winds are first applied to the preliminary manual-wind route or
+  performance profile. If this changes sample positions or times, one additional
+  forecast selection pass is allowed. There is no unbounded convergence loop.
 - A forecast failure is not a navigation-calculation failure. The UI reports
   the failure and continues to calculate with manual wind.
 - Responses are cached in memory for ten minutes by their full request URL.
@@ -137,8 +140,8 @@ non-finite number are programming/input-boundary errors and cause a
 
 ## Current scope
 
-The calculation currently assumes a constant true airspeed and route-wide
-planned altitude and magnetic variation. It can apply a distinct forecast wind
-to each leg, but each leg still uses one constant wind vector sampled at its
-midpoint. It does not yet account for wind or magnetic-variation changes along
-a leg, climb/descent performance, compass deviation, or fuel flow.
+Magnetic variation remains route-wide and compass deviation is not modeled.
+When aircraft performance inputs are present, IAS, altitude-dependent TAS,
+phase fuel flow, and altitude-resolved winds are integrated through the route.
+The older constant-TAS navigation calculation remains a geometric/fallback
+presentation path when no performance plan has been entered.

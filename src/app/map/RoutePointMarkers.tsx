@@ -97,7 +97,7 @@ export function RoutePointMarkers({
 
         return (
           <Marker
-            key={`${waypoint.id}:${isAnchored ? 'anchored' : 'free'}`}
+            key={`${waypoint.id}:${isAnchored ? 'anchored' : 'free'}:${waypoint.name}`}
             position={[displayPosition.latitude, displayPosition.longitude]}
             icon={
               isAnchored
@@ -211,4 +211,3 @@ export function RoutePointMarkers({
     </>
   );
 }
-

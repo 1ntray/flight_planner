@@ -8,9 +8,16 @@ export interface NavigationParameters {
   wind: Wind;
 }
 
-export interface NavigationPlanInputs extends NavigationParameters {
+export interface RoutePlanningInputs {
   departureTimeUtcMs: number;
-  plannedAltitudeFtMsl: number;
   /** Magnetic variation in degrees: east positive, west negative. */
   magneticVariationDegEast: number;
+  wind: Wind;
+}
+
+/** Legacy constant-altitude navigation inputs retained for the MVP 0.11 calculation API. */
+export interface NavigationPlanInputs
+  extends NavigationParameters,
+    RoutePlanningInputs {
+  plannedAltitudeFtMsl: number;
 }

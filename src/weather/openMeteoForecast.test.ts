@@ -87,6 +87,17 @@ describe('Open-Meteo request construction', () => {
     );
     expect(built.model).toBe('ecmwf_ifs025');
   });
+
+  it('unions pressure levels when a batch contains several altitudes', () => {
+    const built = buildOpenMeteoForecastRequest([
+      request,
+      { ...request, altitudeFtMsl: 10_000 },
+    ]);
+
+    expect(built.pressureLevels.length).toBeGreaterThan(4);
+    expect(built.pressureLevels.map(({ pressureHpa }) => pressureHpa)).toContain(1000);
+    expect(built.pressureLevels.map(({ pressureHpa }) => pressureHpa)).toContain(700);
+  });
 });
 
 describe('Open-Meteo forecast interpolation', () => {

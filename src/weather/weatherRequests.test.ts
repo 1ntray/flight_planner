@@ -1,9 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateNavigationRoute } from '../calculations';
-import type { NavigationPlanInputs, Waypoint } from '../domain';
 import {
+  calculateNavigationRoute,
+  calculatePerformanceRoute,
+} from '../calculations';
+import type {
+  AircraftPerformancePlanInputs,
+  NavigationPlanInputs,
+  Waypoint,
+} from '../domain';
+import type { ForecastLegWind } from './types';
+import {
+  buildPerformanceWeatherSampleRequests,
   buildWeatherSampleRequests,
+  createSampledWindResolver,
   weatherSampleRequestsMatch,
 } from './weatherRequests';
 
@@ -82,5 +92,60 @@ describe('buildWeatherSampleRequests', () => {
         { ...requests[0]!, timeUtcMs: requests[0]!.timeUtcMs + 1 },
       ]),
     ).toBe(false);
+  });
+});
+
+describe('performance-profile weather samples', () => {
+  const performance: AircraftPerformancePlanInputs = {
+    massKg: 820,
+    defaultAltitudeFtMsl: 3000,
+    departureElevationFtMsl: 0,
+    destinationElevationFtMsl: 0,
+    patternHeightAglFt: 1000,
+    departureWeather: { qnhHpa: 1013.25, isaDeviationC: 0 },
+    destinationWeather: { qnhHpa: 1013.25, isaDeviationC: 0 },
+    legAltitudePlans: [],
+  };
+
+  it('creates one position-, altitude-, and time-aware request per integrated step', () => {
+    const route = calculatePerformanceRoute({
+      flightPlan: { waypoints, legShapes: [] },
+      navigation: planning,
+      performance,
+    });
+    const requests = buildPerformanceWeatherSampleRequests(route);
+
+    expect(route.status).toBe('ok');
+    expect(requests.length).toBeGreaterThan(3);
+    expect(new Set(requests.map(({ altitudeFtMsl }) => altitudeFtMsl)).size).toBeGreaterThan(3);
+    expect(requests.every(({ timeUtcMs }) => Number.isFinite(timeUtcMs))).toBe(true);
+  });
+
+  it('selects the nearest same-leg forecast sample and retains manual fallback', () => {
+    const sample = {
+      fromId: 'A',
+      toId: 'B',
+      wind: { directionFromTrueDeg: 270, speedKt: 22 },
+      sampledPosition: { latitude: 60, longitude: 10.5 },
+      sampledTimeUtcMs: planning.departureTimeUtcMs,
+      altitudeFtMsl: 3000,
+    } as ForecastLegWind;
+    const fallback = { directionFromTrueDeg: 0, speedKt: 5 };
+    const resolve = createSampledWindResolver([sample], fallback);
+
+    expect(resolve({
+      fromWaypointId: 'A',
+      toWaypointId: 'B',
+      position: sample.sampledPosition,
+      altitudeFtMsl: 3100,
+      timeUtcMs: sample.sampledTimeUtcMs,
+    })).toEqual(sample.wind);
+    expect(resolve({
+      fromWaypointId: 'B',
+      toWaypointId: 'C',
+      position: sample.sampledPosition,
+      altitudeFtMsl: 3100,
+      timeUtcMs: sample.sampledTimeUtcMs,
+    })).toEqual(fallback);
   });
 });

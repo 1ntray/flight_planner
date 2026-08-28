@@ -20,6 +20,8 @@ export type {
 } from './openMeteoForecast';
 export type { ForecastLegWind, WeatherSampleRequest } from './types';
 export {
+  buildPerformanceWeatherSampleRequests,
   buildWeatherSampleRequests,
+  createSampledWindResolver,
   weatherSampleRequestsMatch,
 } from './weatherRequests';

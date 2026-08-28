@@ -6,7 +6,9 @@ import {
   appendAnchoredWaypoint,
   appendWaypoint,
   detachWaypointById,
+  MAX_WAYPOINT_NAME_LENGTH,
   moveWaypointById,
+  renameWaypointById,
   removeWaypointById,
 } from './waypointState';
 
@@ -75,6 +77,50 @@ describe('waypoint state helpers', () => {
     expect(result[1]).toEqual({ id: 'stable-b', name: 'WP02', position });
     expect(result[0]).toBe(originalWaypoints[0]);
     expect(result[2]).toBe(originalWaypoints[2]);
+  });
+
+  it('renames one waypoint while retaining stable identity and geometry', () => {
+    const result = renameWaypointById(
+      originalWaypoints,
+      'stable-b',
+      '  COAST NORTH  ',
+    );
+
+    expect(result[1]).toEqual({
+      id: 'stable-b',
+      name: 'COAST NORTH',
+      position: originalWaypoints[1]!.position,
+    });
+    expect(result[0]).toBe(originalWaypoints[0]);
+    expect(result[2]).toBe(originalWaypoints[2]);
+    expect(originalWaypoints[1]?.name).toBe('WP02');
+  });
+
+  it('renames an anchored waypoint without changing its anchor or coordinate', () => {
+    const anchored = appendAnchoredWaypoint([], reportingPoint, 'route-id');
+    const result = renameWaypointById(anchored, 'route-id', 'Training VRP');
+
+    expect(result[0]?.name).toBe('Training VRP');
+    expect(result[0]?.id).toBe('route-id');
+    expect(result[0]?.position).toBe(anchored[0]?.position);
+    expect(result[0]?.anchor).toBe(anchored[0]?.anchor);
+    expect(result[0]?.anchor?.publishedIdentifier).toBe('ALFA');
+  });
+
+  it('rejects empty, overlong, and unknown waypoint renames', () => {
+    expect(() =>
+      renameWaypointById(originalWaypoints, 'stable-a', '   '),
+    ).toThrow('must not be empty');
+    expect(() =>
+      renameWaypointById(
+        originalWaypoints,
+        'stable-a',
+        'X'.repeat(MAX_WAYPOINT_NAME_LENGTH + 1),
+      ),
+    ).toThrow(`must not exceed ${MAX_WAYPOINT_NAME_LENGTH} characters`);
+    expect(() =>
+      renameWaypointById(originalWaypoints, 'missing', 'VALID'),
+    ).toThrow('does not exist');
   });
 
   it('anchors a new internal waypoint to an exact feature snapshot', () => {

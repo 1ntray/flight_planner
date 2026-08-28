@@ -1,0 +1,196 @@
+import type {
+  AircraftPerformancePlanInputs,
+  LegAltitudePlan,
+} from '../../domain';
+
+export interface PerformanceInputDraft {
+  massKg: string;
+  defaultAltitudeFtMsl: string;
+  departureElevationFtMsl: string;
+  destinationElevationFtMsl: string;
+  patternHeightAglFt: string;
+  departureQnhHpa: string;
+  departureIsaDeviationC: string;
+  destinationQnhHpa: string;
+  destinationIsaDeviationC: string;
+  legAltitudePlans: readonly LegAltitudePlan[];
+}
+
+export type PerformanceInputParseResult =
+  | { status: 'empty' }
+  | { status: 'valid'; value: AircraftPerformancePlanInputs }
+  | { status: 'invalid'; message: string };
+
+export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
+  return {
+    massKg: '',
+    defaultAltitudeFtMsl: '',
+    departureElevationFtMsl: '',
+    destinationElevationFtMsl: '',
+    patternHeightAglFt: '',
+    departureQnhHpa: '',
+    departureIsaDeviationC: '',
+    destinationQnhHpa: '',
+    destinationIsaDeviationC: '',
+    legAltitudePlans: [],
+  };
+}
+
+export function createPerformanceInputDraft(
+  inputs: AircraftPerformancePlanInputs,
+): PerformanceInputDraft {
+  return {
+    massKg: String(inputs.massKg),
+    defaultAltitudeFtMsl: String(inputs.defaultAltitudeFtMsl),
+    departureElevationFtMsl: String(inputs.departureElevationFtMsl),
+    destinationElevationFtMsl: String(inputs.destinationElevationFtMsl),
+    patternHeightAglFt: String(inputs.patternHeightAglFt),
+    departureQnhHpa: String(inputs.departureWeather.qnhHpa),
+    departureIsaDeviationC: String(
+      inputs.departureWeather.isaDeviationC,
+    ),
+    destinationQnhHpa: String(inputs.destinationWeather.qnhHpa),
+    destinationIsaDeviationC: String(
+      inputs.destinationWeather.isaDeviationC,
+    ),
+    legAltitudePlans: inputs.legAltitudePlans,
+  };
+}
+
+function parseNumber(
+  value: string,
+  label: string,
+  minimum: number | null,
+): number | string {
+  if (value.trim() === '') {
+    return `${label} is required`;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return `${label} must be a number`;
+  }
+
+  if (minimum !== null && parsed < minimum) {
+    return `${label} must be at least ${minimum}`;
+  }
+
+  return parsed;
+}
+
+function validateLegAltitudePlans(
+  plans: readonly LegAltitudePlan[],
+): string | null {
+  const keys = new Set<string>();
+
+  for (const plan of plans) {
+    const key = `${plan.fromWaypointId}\0${plan.toWaypointId}`;
+
+    if (keys.has(key)) {
+      return 'Each leg may have only one altitude plan';
+    }
+    keys.add(key);
+
+    if (
+      plan.altitudeFtMsl !== undefined &&
+      (!Number.isFinite(plan.altitudeFtMsl) || plan.altitudeFtMsl < 0)
+    ) {
+      return 'Leg altitude must be a non-negative number';
+    }
+
+    if (
+      plan.targetPlacement?.mode === 'distance-along-leg' &&
+      (!Number.isFinite(plan.targetPlacement.distanceFromStartNm) ||
+        plan.targetPlacement.distanceFromStartNm < 0)
+    ) {
+      return 'Altitude target distance must be a non-negative number';
+    }
+  }
+
+  return null;
+}
+
+export function parsePerformanceInputDraft(
+  draft: PerformanceInputDraft,
+): PerformanceInputParseResult {
+  const legPlanError = validateLegAltitudePlans(draft.legAltitudePlans);
+
+  if (legPlanError !== null) {
+    return { status: 'invalid', message: legPlanError };
+  }
+
+  const scalarValues = [
+    draft.massKg,
+    draft.defaultAltitudeFtMsl,
+    draft.departureElevationFtMsl,
+    draft.destinationElevationFtMsl,
+    draft.patternHeightAglFt,
+    draft.departureQnhHpa,
+    draft.departureIsaDeviationC,
+    draft.destinationQnhHpa,
+    draft.destinationIsaDeviationC,
+  ];
+
+  if (
+    scalarValues.every((value) => value.trim() === '') &&
+    draft.legAltitudePlans.length === 0
+  ) {
+    return { status: 'empty' };
+  }
+
+  const fields = [
+    ['massKg', draft.massKg, 'Aircraft mass', null],
+    ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0],
+    ['departureElevationFtMsl', draft.departureElevationFtMsl, 'Departure elevation', 0],
+    ['destinationElevationFtMsl', draft.destinationElevationFtMsl, 'Destination elevation', 0],
+    ['patternHeightAglFt', draft.patternHeightAglFt, 'Pattern height', 0],
+    ['departureQnhHpa', draft.departureQnhHpa, 'Departure QNH', null],
+    ['departureIsaDeviationC', draft.departureIsaDeviationC, 'Departure ISA deviation', null],
+    ['destinationQnhHpa', draft.destinationQnhHpa, 'Destination QNH', null],
+    ['destinationIsaDeviationC', draft.destinationIsaDeviationC, 'Destination ISA deviation', null],
+  ] as const;
+  const parsed = new Map<string, number>();
+
+  for (const [field, value, label, minimum] of fields) {
+    const result = parseNumber(value, label, minimum);
+
+    if (typeof result === 'string') {
+      return { status: 'invalid', message: result };
+    }
+
+    parsed.set(field, result);
+  }
+
+  if (parsed.get('massKg')! <= 0) {
+    return { status: 'invalid', message: 'Aircraft mass must be greater than zero' };
+  }
+
+  if (parsed.get('departureQnhHpa')! <= 0) {
+    return { status: 'invalid', message: 'Departure QNH must be greater than zero' };
+  }
+
+  if (parsed.get('destinationQnhHpa')! <= 0) {
+    return { status: 'invalid', message: 'Destination QNH must be greater than zero' };
+  }
+
+  return {
+    status: 'valid',
+    value: {
+      massKg: parsed.get('massKg')!,
+      defaultAltitudeFtMsl: parsed.get('defaultAltitudeFtMsl')!,
+      departureElevationFtMsl: parsed.get('departureElevationFtMsl')!,
+      destinationElevationFtMsl: parsed.get('destinationElevationFtMsl')!,
+      patternHeightAglFt: parsed.get('patternHeightAglFt')!,
+      departureWeather: {
+        qnhHpa: parsed.get('departureQnhHpa')!,
+        isaDeviationC: parsed.get('departureIsaDeviationC')!,
+      },
+      destinationWeather: {
+        qnhHpa: parsed.get('destinationQnhHpa')!,
+        isaDeviationC: parsed.get('destinationIsaDeviationC')!,
+      },
+      legAltitudePlans: draft.legAltitudePlans,
+    },
+  };
+}

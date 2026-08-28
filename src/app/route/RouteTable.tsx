@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type {
   CalculatedNavigationRoute,
+  CalculatedPerformanceRoute,
   WindAdjustedLegResult,
 } from '../../calculations';
 import type { Waypoint } from '../../domain';
@@ -20,9 +21,16 @@ import {
   formatWindValue,
 } from './routeFormatting';
 
+const PHASE_LABELS = {
+  climb: 'CLB',
+  cruise: 'CRZ',
+  descent: 'DES',
+} as const;
+
 export interface RouteTableProps {
   waypoints: readonly Waypoint[];
   route: CalculatedNavigationRoute;
+  performanceRoute?: CalculatedPerformanceRoute | null;
   forecastWinds?: readonly ForecastLegWind[];
 }
 
@@ -43,6 +51,7 @@ function getNoSolutionMessage(result: WindAdjustedLegResult): string | null {
 export function RouteTable({
   waypoints,
   route,
+  performanceRoute = null,
   forecastWinds = [],
 }: RouteTableProps) {
   const waypointNames = useMemo(
@@ -59,6 +68,22 @@ export function RouteTable({
       ),
     [forecastWinds],
   );
+  const performanceByLeg = useMemo(
+    () =>
+      new Map(
+        performanceRoute?.status === 'ok'
+          ? performanceRoute.legs.map((leg) => [
+              legKey(leg.fromId, leg.toId),
+              leg,
+            ])
+          : [],
+      ),
+    [performanceRoute],
+  );
+  const effectiveRouteArrivalUtcMs =
+    performanceRoute?.status === 'ok'
+      ? performanceRoute.estimatedArrivalTimeUtcMs
+      : route.estimatedArrivalTimeUtcMs;
 
   return (
     <div className="route-table-wrap">
@@ -74,9 +99,11 @@ export function RouteTable({
             <col className="route-table__angle-column" />
             <col className="route-table__wind-column" />
             <col className="route-table__angle-column" />
+            <col className="route-table__altitude-column" />
             <col className="route-table__distance-column" />
             <col className="route-table__groundspeed-column" />
             <col className="route-table__time-column" />
+            <col className="route-table__fuel-column" />
           </colgroup>
           <thead>
             <tr>
@@ -91,6 +118,9 @@ export function RouteTable({
               <th scope="col" aria-label="True heading and magnetic heading">
                 TH<span className="route-table__unit">MH</span>
               </th>
+              <th scope="col" aria-label="Target altitude feet mean sea level">
+                ALT<span className="route-table__unit">FT</span>
+              </th>
               <th scope="col" aria-label="Distance nautical miles">
                 DIST<span className="route-table__unit">NM</span>
               </th>
@@ -103,32 +133,46 @@ export function RouteTable({
               >
                 EET<span className="route-table__unit">MIN / Z</span>
               </th>
+              <th scope="col" aria-label="Calculated fuel litres">
+                FUEL<span className="route-table__unit">L</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {route.legs.map((leg) => {
               const navigation = leg.navigation;
+              const performanceLeg = performanceByLeg.get(
+                legKey(leg.fromId, leg.toId),
+              );
+              const singlePerformanceStep =
+                performanceLeg?.steps.length === 1
+                  ? performanceLeg.steps[0]
+                  : undefined;
               const solution =
                 navigation?.status === 'ok' ? navigation : null;
               const noSolutionMessage =
                 navigation === null ? null : getNoSolutionMessage(navigation);
+              const effectiveEndTimeUtcMs =
+                performanceLeg?.endTimeUtcMs ?? leg.endTimeUtcMs;
+              const effectiveEetSeconds =
+                performanceLeg?.eetSeconds ?? leg.eetSeconds;
               const eta =
-                leg.endTimeUtcMs !== null &&
+                effectiveEndTimeUtcMs !== null &&
                 route.departureTimeUtcMs !== null
                   ? formatUtcRouteTime(
-                      leg.endTimeUtcMs,
+                      effectiveEndTimeUtcMs,
                       route.departureTimeUtcMs,
                     )
                   : null;
               const etaDateTime =
-                leg.endTimeUtcMs === null
+                effectiveEndTimeUtcMs === null
                   ? null
-                  : formatUtcDateTime(leg.endTimeUtcMs);
+                  : formatUtcDateTime(effectiveEndTimeUtcMs);
               const timingLabel =
                 noSolutionMessage ??
-                (leg.eetSeconds === null
+                (effectiveEetSeconds === null
                   ? undefined
-                  : `${formatEetMinutesValue(leg.eetSeconds)} minutes${etaDateTime === null ? '' : `, ETA ${etaDateTime}`}`);
+                  : `${formatEetMinutesValue(effectiveEetSeconds)} minutes${etaDateTime === null ? '' : `, ETA ${etaDateTime}`}`);
               const forecastWind = forecastByLeg.get(
                 legKey(leg.fromId, leg.toId),
               );
@@ -157,7 +201,11 @@ export function RouteTable({
                         : `${leg.wind.directionFromTrueDeg.toFixed(1)} degrees true at ${leg.wind.speedKt.toFixed(1)} knots, ${windDetails ?? `${leg.windSource ?? 'unknown'} wind`}`
                     }
                   >
-                    {formatWindValue(leg.wind)}
+                    {singlePerformanceStep === undefined
+                      ? performanceLeg === undefined
+                        ? formatWindValue(leg.wind)
+                        : 'VARIES'
+                      : formatWindValue(singlePerformanceStep.wind)}
                     {forecastWind === undefined ? null : (
                       <span className="route-table__secondary-value">
                         ECMWF
@@ -165,14 +213,43 @@ export function RouteTable({
                     )}
                   </td>
                   <td>
-                    {formatTrueHeadingDeg(solution?.trueHeadingDeg ?? null)}
+                    {singlePerformanceStep === undefined && performanceLeg !== undefined
+                      ? 'VARIES'
+                      : formatTrueHeadingDeg(
+                          singlePerformanceStep?.trueHeadingDeg ??
+                            solution?.trueHeadingDeg ??
+                            null,
+                        )}
                     <span className="route-table__secondary-value">
-                      {formatMagneticHeadingDeg(leg.magneticHeadingDeg)}
+                      {singlePerformanceStep === undefined && performanceLeg !== undefined
+                        ? 'VARIES'
+                        : formatMagneticHeadingDeg(
+                            singlePerformanceStep?.magneticHeadingDeg ??
+                              leg.magneticHeadingDeg,
+                          )}
                     </span>
+                  </td>
+                  <td>
+                    {performanceLeg === undefined
+                      ? '—'
+                      : Math.round(performanceLeg.targetAltitudeFtMsl)}
+                    {performanceLeg === undefined ? null : (
+                      <span className="route-table__secondary-value">
+                        {performanceLeg.phases
+                          .map(({ phase }) => PHASE_LABELS[phase])
+                          .join('/')}
+                      </span>
+                    )}
                   </td>
                   <td>{formatDistanceNmValue(leg.distanceNm)}</td>
                   <td>
-                    {solution === null
+                    {performanceLeg?.effectiveGroundSpeedKt !== undefined
+                      ? performanceLeg.effectiveGroundSpeedKt === null
+                        ? '—'
+                        : formatGroundSpeedKtValue(
+                            performanceLeg.effectiveGroundSpeedKt,
+                          )
+                      : solution === null
                       ? '—'
                       : formatGroundSpeedKtValue(solution.groundSpeedKt)}
                   </td>
@@ -180,14 +257,19 @@ export function RouteTable({
                     title={noSolutionMessage ?? etaDateTime ?? undefined}
                     aria-label={timingLabel}
                   >
-                    {leg.eetSeconds === null
+                    {effectiveEetSeconds === null
                       ? (noSolutionMessage === null ? '—' : 'NO SOL')
-                      : formatEetMinutesValue(leg.eetSeconds)}
+                      : formatEetMinutesValue(effectiveEetSeconds)}
                     {eta === null ? null : (
                       <span className="route-table__secondary-value">
                         {eta}
                       </span>
                     )}
+                  </td>
+                  <td>
+                    {performanceLeg === undefined
+                      ? '—'
+                      : performanceLeg.fuelLitres.toFixed(1)}
                   </td>
                 </tr>
               );
@@ -195,28 +277,35 @@ export function RouteTable({
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={5}>Total</td>
+              <td colSpan={6}>Total</td>
               <td>{formatDistanceNmValue(route.totalDistanceNm)}</td>
               <td aria-hidden="true" />
               <td
                 title={
-                  route.estimatedArrivalTimeUtcMs === null
+                  effectiveRouteArrivalUtcMs === null
                     ? undefined
-                    : formatUtcDateTime(route.estimatedArrivalTimeUtcMs)
+                    : formatUtcDateTime(effectiveRouteArrivalUtcMs)
                 }
               >
-                {route.totalEetSeconds === null
+                {performanceRoute?.status === 'ok'
+                  ? formatEetMinutesValue(performanceRoute.totalEetSeconds)
+                  : route.totalEetSeconds === null
                   ? '—'
                   : formatEetMinutesValue(route.totalEetSeconds)}
-                {route.estimatedArrivalTimeUtcMs === null ||
+                {effectiveRouteArrivalUtcMs === null ||
                 route.departureTimeUtcMs === null ? null : (
                   <span className="route-table__secondary-value">
                     {formatUtcRouteTime(
-                      route.estimatedArrivalTimeUtcMs,
+                      effectiveRouteArrivalUtcMs,
                       route.departureTimeUtcMs,
                     )}
                   </span>
                 )}
+              </td>
+              <td>
+                {performanceRoute?.status === 'ok'
+                  ? performanceRoute.totalFuelLitres.toFixed(1)
+                  : '—'}
               </td>
             </tr>
           </tfoot>

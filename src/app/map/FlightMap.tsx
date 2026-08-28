@@ -13,6 +13,7 @@ import {
 
 import {
   calculateNearestPointOnGeodesicSegment,
+  calculateNearestPointOnGeometry,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
 } from '../../calculations';
 import type {
@@ -21,6 +22,7 @@ import type {
   FlightPlan,
   Position,
   RouteShapingPoint,
+  LegAltitudePlan,
 } from '../../domain';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import { AeronauticalLayerControl } from './AeronauticalLayerControl';
@@ -47,6 +49,8 @@ import type {
   RouteWaypointInsertionCandidate,
 } from '../route/routeInsertion';
 import { RoutePointMarkers } from './RoutePointMarkers';
+import { AltitudeTargetMarkers } from './AltitudeTargetMarkers';
+import type { AltitudePlacementLeg } from '../navigation/altitudePlanState';
 import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
 import './rasterTileSeamWorkaround.css';
 
@@ -101,7 +105,13 @@ function MapClickHandler({
 interface RouteLineProps {
   legs: readonly RouteDisplayLeg[];
   interactionEnabled: boolean;
+  altitudePlacementLeg: AltitudePlacementLeg | null;
   onBeginInteraction: (interaction: RouteLinePress) => void;
+  onSetAltitudeTarget: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    distanceFromStartNm: number,
+  ) => void;
 }
 
 interface RouteLinePress {
@@ -123,7 +133,9 @@ type RouteLineInteraction = RouteLinePress | RouteLineShapingDrag;
 function RouteLines({
   legs,
   interactionEnabled,
+  altitudePlacementLeg,
   onBeginInteraction,
+  onSetAltitudeTarget,
 }: RouteLineProps) {
   const map = useMap();
 
@@ -139,21 +151,34 @@ function RouteLines({
 
       {interactionEnabled
         ? legs.flatMap((leg) =>
+            altitudePlacementLeg !== null &&
+            (altitudePlacementLeg.fromWaypointId !== leg.fromWaypointId ||
+              altitudePlacementLeg.toWaypointId !== leg.toWaypointId)
+              ? []
+              :
             leg.segments.map((segment) => {
+              const choosingAltitudeTarget = altitudePlacementLeg !== null;
               return (
                 <Polyline
-                  key={`hit:${leg.fromWaypointId}:${leg.toWaypointId}:${segment.segmentIndex}`}
+                  key={`hit:${leg.fromWaypointId}:${leg.toWaypointId}:${segment.segmentIndex}:${choosingAltitudeTarget ? 'altitude' : 'route'}`}
                   positions={segment.positions}
                   pathOptions={{
                     color: '#176da5',
                     opacity: 0.001,
                     weight: 18,
                     bubblingMouseEvents: false,
-                    className: 'route-line-hit-target',
+                    className: choosingAltitudeTarget
+                      ? 'route-line-hit-target route-line-hit-target--altitude'
+                      : 'route-line-hit-target',
                   }}
                   eventHandlers={{
                     mousedown: (event) => {
                       DomEvent.stop(event.originalEvent);
+
+                      if (choosingAltitudeTarget) {
+                        return;
+                      }
+
                       map.dragging.disable();
                       onBeginInteraction({
                         mode: 'pressed',
@@ -167,7 +192,27 @@ function RouteLines({
                         shapingPointId: crypto.randomUUID(),
                       });
                     },
-                    click: (event) => DomEvent.stop(event.originalEvent),
+                    click: (event) => {
+                      DomEvent.stop(event.originalEvent);
+
+                      if (!choosingAltitudeTarget) {
+                        return;
+                      }
+
+                      const geometry = [
+                        leg.segments[0]!.startPosition,
+                        ...leg.segments.map((item) => item.endPosition),
+                      ];
+                      const snapped = calculateNearestPointOnGeometry(
+                        geometry,
+                        toPosition(event),
+                      );
+                      onSetAltitudeTarget(
+                        leg.fromWaypointId,
+                        leg.toWaypointId,
+                        snapped.distanceFromStartNm,
+                      );
+                    },
                   }}
                 />
               );
@@ -324,6 +369,8 @@ export interface FlightMapProps {
   flightPlan: FlightPlan;
   aeronauticalRepository: AeronauticalDataRepository;
   selectedRoutePoint: SelectedRoutePoint | null;
+  altitudePlans: readonly LegAltitudePlan[];
+  altitudePlacementLeg: AltitudePlacementLeg | null;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
@@ -336,12 +383,19 @@ export interface FlightMapProps {
   onMoveShapingPoint: (id: string, position: Position) => void;
   onInsertWaypoint: (candidate: RouteWaypointInsertionCandidate) => void;
   onSelectRoutePoint: (selection: SelectedRoutePoint) => void;
+  onSetAltitudeTarget: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    distanceFromStartNm: number,
+  ) => void;
 }
 
 export function FlightMap({
   flightPlan,
   aeronauticalRepository,
   selectedRoutePoint,
+  altitudePlans,
+  altitudePlacementLeg,
   onAddWaypoint,
   onAddAnchoredWaypoint,
   onMoveWaypoint,
@@ -349,6 +403,7 @@ export function FlightMap({
   onMoveShapingPoint,
   onInsertWaypoint,
   onSelectRoutePoint,
+  onSetAltitudeTarget,
 }: FlightMapProps) {
   const [draggedPoint, setDraggedPoint] =
     useState<DraggedRoutePointPosition | null>(null);
@@ -454,7 +509,7 @@ export function FlightMap({
         />
 
         <MapClickHandler
-          enabled={routeLineInteraction === null}
+          enabled={routeLineInteraction === null && altitudePlacementLeg === null}
           insertionCandidateActive={routeInsertionCandidate !== null}
           onAddWaypoint={onAddWaypoint}
           onDismissInsertionCandidate={() => setRouteInsertionCandidate(null)}
@@ -482,7 +537,9 @@ export function FlightMap({
           <RouteLines
             legs={routeLegs}
             interactionEnabled={routeLineInteraction === null}
+            altitudePlacementLeg={altitudePlacementLeg}
             onBeginInteraction={beginRouteLineInteraction}
+            onSetAltitudeTarget={onSetAltitudeTarget}
           />
         </Pane>
 
@@ -503,6 +560,11 @@ export function FlightMap({
           onMoveWaypoint={onMoveWaypoint}
           onMoveShapingPoint={onMoveShapingPoint}
           onSelectRoutePoint={selectRoutePoint}
+        />
+        <AltitudeTargetMarkers
+          flightPlan={flightPlan}
+          plans={altitudePlans}
+          onSetTargetDistance={onSetAltitudeTarget}
         />
       </MapContainer>
 

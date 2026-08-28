@@ -3,7 +3,10 @@
 Browser-based flight planning with an interactive waypoint map and a timed,
 altitude-aware, wind-adjusted navigation log, route shaping, magnetic
 directions, a storage-neutral aeronautical-layer/waypoint-anchoring boundary,
-and real-waypoint insertion into existing route geometry for MVP 0.8.
+real-waypoint insertion into existing route geometry, and selected-waypoint
+renaming, versioned JSON flight-plan import/export, and a validated local
+working draft, and interval-integrated climb/cruise/descent performance for
+MVP 0.12.
 
 ## Development
 
@@ -37,9 +40,13 @@ pnpm test
 pnpm build
 ```
 
-See [`docs/mvp-0.8.md`](docs/mvp-0.8.md) for current scope and
+See [`docs/mvp-0.12.md`](docs/mvp-0.12.md) for current scope and
 [`docs/conventions.md`](docs/conventions.md) for project conventions. Aviation
 calculation definitions are recorded in
 [`docs/navigation-conventions.md`](docs/navigation-conventions.md).
+Aircraft constants, formulas, and phase integration are recorded in
+[`docs/aircraft-performance.md`](docs/aircraft-performance.md).
 Aeronautical data and anchoring contracts are recorded in
 [`docs/aeronautical-data.md`](docs/aeronautical-data.md).
+The saved-document contract is recorded in
+[`docs/flight-plan-persistence.md`](docs/flight-plan-persistence.md).
