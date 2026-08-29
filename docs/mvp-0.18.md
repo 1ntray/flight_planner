@@ -29,6 +29,19 @@ landings remain visible. Selection still uses the separate selected-leg colour.
 Creating a shaping point by dragging the route no longer opens its removal
 popup; selecting the handle later still provides removal.
 
+A free waypoint can be dropped onto a visible aeronautical point to become an
+anchored waypoint. The screen-space drop target is presentation-only; the
+canonical waypoint receives the feature's published WGS84 coordinate and source
+snapshot. Route endpoints anchored to aerodromes with published elevations
+autofill the corresponding performance field without overriding a different
+user-entered value.
+
+Pattern altitude is derived from aerodrome elevation plus pattern height and
+rounded to the nearest 100 ft for every primary, intermediate, and alternate
+arrival. Calculated vertical-phase annotations use compact perpendicular route
+ticks with hover details. BOC at a FROM waypoint and BOD at a TO waypoint are
+suppressed while internal phase boundaries remain visible.
+
 ## Two transitions on one leg
 
 A per-leg altitude plan has a primary planned altitude/reach-by target and one

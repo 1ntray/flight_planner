@@ -86,6 +86,11 @@ identifier remains available in the separate anchor snapshot.
   database rows, or Leaflet geometry as domain data.
 - Aeronautical point features are overlay data until explicitly anchored.
   Aeronautical area features are information-only and never create waypoints.
+- A free waypoint may be dropped onto a visible aeronautical point to anchor it.
+  The screen-space hit radius is only a map interaction aid: the commit stores
+  the feature's published WGS84 coordinate and compact source provenance in the
+  canonical waypoint. It never derives route geometry or navigation values from
+  pixels.
 - Leaflet latitude/longitude from click and drag events may update waypoint
   positions, and waypoint positions may be projected for marker/polyline display.
 - Navigation distance and track must never be calculated with Leaflet geometry,

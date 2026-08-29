@@ -65,6 +65,24 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('uses the rounded destination pattern altitude as the arrival constraint', () => {
+    const result = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance: {
+        ...performance,
+        destinationElevationFtMsl: 457,
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      expect(result.arrivalTargetAltitudeFtMsl).toBe(1500);
+      expect(result.legs.at(-1)?.endAltitudeFtMsl).toBe(1500);
+    }
+  });
+
   it('uses varying TAS at every climb interval', () => {
     const result = calculatePerformanceRoute({
       flightPlan: longLeg,

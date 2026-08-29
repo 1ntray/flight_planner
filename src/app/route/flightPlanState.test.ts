@@ -4,6 +4,7 @@ import { calculateRoute } from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import {
   appendAnchoredWaypointToFlightPlan,
+  attachWaypointToAeronauticalFeatureInFlightPlan,
   detachWaypointInFlightPlan,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
@@ -69,6 +70,42 @@ describe('flight plan shaping state helpers', () => {
       position: feature.position,
     });
     expect(detached.legShapes).toBe(anchored.legShapes);
+  });
+
+  it('attaches a free waypoint without changing waypoint order or leg shapes', () => {
+    const feature = {
+      geometryType: 'point' as const,
+      pointKind: 'aerodrome' as const,
+      ref: {
+        dataset: {
+          datasetId: 'dataset-1',
+          providerId: 'provider-1',
+          sourceName: 'Test source',
+          airacCycle: '2608',
+          effectiveFromUtc: '2026-08-06T00:00:00Z',
+          effectiveToUtc: '2026-09-03T00:00:00Z',
+        },
+        featureId: 'ad-1',
+        featureKind: 'aerodrome' as const,
+      },
+      identifier: 'TEST',
+      suggestedWaypointName: 'TEST',
+      position: { latitude: 69.5, longitude: 18.9 },
+    };
+    const result = attachWaypointToAeronauticalFeatureInFlightPlan(
+      flightPlan,
+      'B',
+      feature,
+    );
+
+    expect(result.waypoints.map(({ id }) => id)).toEqual(['A', 'B', 'C']);
+    expect(result.waypoints[1]).toMatchObject({
+      id: 'B',
+      name: 'WP02',
+      position: feature.position,
+    });
+    expect(result.waypoints[1]?.anchor?.publishedIdentifier).toBe('TEST');
+    expect(result.legShapes).toBe(flightPlan.legShapes);
   });
 
   it('inserts multiple shaping points in geometry order', () => {

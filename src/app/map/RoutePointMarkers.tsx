@@ -1,8 +1,15 @@
 import { divIcon } from 'leaflet';
 import type { Marker as LeafletMarker } from 'leaflet';
-import { Marker, Tooltip } from 'react-leaflet';
+import { Marker, Tooltip, useMap } from 'react-leaflet';
 
-import type { FlightPlan, Position } from '../../domain';
+import type {
+  AeronauticalPointFeature,
+  FlightPlan,
+  Position,
+} from '../../domain';
+import {
+  findAeronauticalWaypointAttachmentTarget,
+} from './aeronauticalWaypointAttachment';
 import { getRoutePointDisplayPosition } from './routeDisplay';
 import type {
   DraggedRoutePointPosition,
@@ -57,6 +64,8 @@ export interface RoutePointMarkersProps {
     draggedPoint: DraggedRoutePointPosition | null,
   ) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
+  aeronauticalPointFeatures: readonly AeronauticalPointFeature[];
+  onAttachWaypoint: (id: string, feature: AeronauticalPointFeature) => void;
   onMoveShapingPoint: (id: string, position: Position) => void;
   onSelectRoutePoint: (selection: SelectedRoutePoint) => void;
 }
@@ -73,9 +82,13 @@ export function RoutePointMarkers({
   pendingShapingPoint,
   onDraggedPointChange,
   onMoveWaypoint,
+  aeronauticalPointFeatures,
+  onAttachWaypoint,
   onMoveShapingPoint,
   onSelectRoutePoint,
 }: RoutePointMarkersProps) {
+  const map = useMap();
+
   return (
     <>
       {flightPlan.waypoints.map((waypoint) => {
@@ -127,7 +140,23 @@ export function RoutePointMarkers({
                     },
                     dragend: (event) => {
                       const marker = event.target as LeafletMarker;
-                      onMoveWaypoint(waypoint.id, markerPosition(marker));
+                      const position = markerPosition(marker);
+                      const attachmentTarget =
+                        findAeronauticalWaypointAttachmentTarget(
+                          position,
+                          aeronauticalPointFeatures,
+                          (candidatePosition) =>
+                            map.latLngToContainerPoint([
+                              candidatePosition.latitude,
+                              candidatePosition.longitude,
+                            ]),
+                        );
+
+                      if (attachmentTarget === null) {
+                        onMoveWaypoint(waypoint.id, position);
+                      } else {
+                        onAttachWaypoint(waypoint.id, attachmentTarget);
+                      }
                       onDraggedPointChange(null);
                     },
                   }),

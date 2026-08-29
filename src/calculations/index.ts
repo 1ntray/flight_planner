@@ -16,10 +16,12 @@ export {
   calculateClimbTime,
   calculateDescentTime,
   calculatePhaseFuel,
+  calculatePatternAltitudeFtMsl,
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
   PERFORMANCE_ALTITUDE_STEP_FT,
+  PATTERN_ALTITUDE_ROUNDING_FT,
 } from './aircraftPerformance';
 export type {
   ClimbCalculation,

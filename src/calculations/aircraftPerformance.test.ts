@@ -7,6 +7,7 @@ import {
   calculateClimbTime,
   calculateDescentTime,
   calculatePhaseFuel,
+  calculatePatternAltitudeFtMsl,
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
@@ -153,6 +154,13 @@ describe('project aircraft performance', () => {
   });
 
   describe('environment, descent, and fuel', () => {
+    it('rounds the derived pattern altitude to the nearest 100 ft', () => {
+      expect(calculatePatternAltitudeFtMsl(449, 1000)).toBe(1400);
+      expect(calculatePatternAltitudeFtMsl(450, 1000)).toBe(1500);
+      expect(calculatePatternAltitudeFtMsl(457, 1000)).toBe(1500);
+      expect(calculatePatternAltitudeFtMsl(500, 1000)).toBe(1500);
+    });
+
     it('averages departure and destination weather arithmetically', () => {
       expect(
         calculatePlanningEnvironment(

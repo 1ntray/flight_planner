@@ -5,6 +5,7 @@ import type {
 } from '../domain';
 
 export const PERFORMANCE_ALTITUDE_STEP_FT = 100;
+export const PATTERN_ALTITUDE_ROUNDING_FT = 100;
 
 export interface VerticalInterval {
   readonly startAltitudeFt: number;
@@ -59,6 +60,19 @@ function validateClimbRateModel(model: ClimbRateModel): void {
   if (model.referenceMassKg <= 0) {
     throw new RangeError('Climb-rate reference mass must be greater than zero');
   }
+}
+
+export function calculatePatternAltitudeFtMsl(
+  aerodromeElevationFtMsl: number,
+  patternHeightAglFt: number,
+): number {
+  requireFinite(aerodromeElevationFtMsl, 'Aerodrome elevation');
+  requireFinite(patternHeightAglFt, 'Pattern height');
+
+  return Math.round(
+    (aerodromeElevationFtMsl + patternHeightAglFt) /
+      PATTERN_ALTITUDE_ROUNDING_FT,
+  ) * PATTERN_ALTITUDE_ROUNDING_FT;
 }
 
 export function calculateClimbRate(

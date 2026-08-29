@@ -5,6 +5,7 @@ import type { Waypoint } from '../../domain';
 import {
   appendAnchoredWaypoint,
   appendWaypoint,
+  attachWaypointToAeronauticalFeature,
   detachWaypointById,
   MAX_WAYPOINT_NAME_LENGTH,
   moveWaypointById,
@@ -143,6 +144,44 @@ describe('waypoint state helpers', () => {
     });
     expect(result.at(-1)?.position).not.toBe(reportingPoint.position);
     expect(result.at(-1)?.id).not.toBe(reportingPoint.ref.featureId);
+  });
+
+  it('anchors an existing free waypoint to a feature while retaining its route identity and name', () => {
+    const result = attachWaypointToAeronauticalFeature(
+      originalWaypoints,
+      'stable-b',
+      reportingPoint,
+    );
+
+    expect(result[1]).toEqual({
+      id: 'stable-b',
+      name: 'WP02',
+      position: reportingPoint.position,
+      anchor: {
+        kind: 'aeronautical-feature',
+        feature: reportingPoint.ref,
+        publishedIdentifier: 'ALFA',
+        publishedName: 'Alfa reporting point',
+      },
+    });
+    expect(result[1]?.position).not.toBe(reportingPoint.position);
+    expect(result[0]).toBe(originalWaypoints[0]);
+    expect(result[2]).toBe(originalWaypoints[2]);
+  });
+
+  it('rejects an attempt to attach an unknown or already anchored waypoint', () => {
+    expect(() =>
+      attachWaypointToAeronauticalFeature(
+        originalWaypoints,
+        'missing',
+        reportingPoint,
+      ),
+    ).toThrow('does not exist');
+
+    const anchored = appendAnchoredWaypoint([], reportingPoint, 'route-id');
+    expect(() =>
+      attachWaypointToAeronauticalFeature(anchored, 'route-id', reportingPoint),
+    ).toThrow('must be detached before attaching');
   });
 
   it('requires detachment before an anchored waypoint can move', () => {

@@ -1,5 +1,6 @@
 import { divIcon } from 'leaflet';
-import { Marker, Tooltip } from 'react-leaflet';
+import type { Map as LeafletMap } from 'leaflet';
+import { Marker, Tooltip, useMap } from 'react-leaflet';
 
 import {
   calculatePositionAlongGeometry,
@@ -10,22 +11,61 @@ import type { FlightPlan, LegAltitudePlan } from '../../domain';
 import { derivePerformancePhaseBoundaries } from './performancePhaseBoundaries';
 
 const TARGET_TOLERANCE_NM = 1e-6;
+const TANGENT_SAMPLE_NM = 0.05;
 
-function boundaryIcon(className: string, label: string) {
+function boundaryIcon(
+  phase: 'climb' | 'descent',
+  label: 'BOC' | 'TOC' | 'TOD' | 'BOD',
+  tickAngleDeg: number,
+) {
   return divIcon({
-    className: `performance-boundary-marker ${className}`,
-    html: `<span>${label}</span>`,
-    iconAnchor: [14, 14],
-    iconSize: [28, 28],
+    className: `performance-boundary-marker performance-boundary-marker--${phase}`,
+    html: [
+      `<span class="performance-boundary-marker__tick" style="--boundary-tick-angle: ${tickAngleDeg.toFixed(2)}deg"></span>`,
+      `<span class="performance-boundary-marker__code">${label}</span>`,
+    ].join(''),
+    iconAnchor: [20, 12],
+    iconSize: [40, 24],
   });
 }
 
-const icons = {
-  BOC: boundaryIcon('performance-boundary-marker--boc', 'BOC'),
-  TOC: boundaryIcon('performance-boundary-marker--toc', 'TOC'),
-  TOD: boundaryIcon('performance-boundary-marker--tod', 'TOD'),
-  BOD: boundaryIcon('performance-boundary-marker--bod', 'BOD'),
-} as const;
+function calculateTickAngleDeg(
+  map: LeafletMap,
+  geometry: Parameters<typeof calculatePositionAlongGeometry>[0],
+  distanceFromLegStartNm: number,
+  legDistanceNm: number,
+): number {
+  const beforeDistanceNm = Math.max(
+    0,
+    distanceFromLegStartNm - TANGENT_SAMPLE_NM,
+  );
+  const afterDistanceNm = Math.min(
+    legDistanceNm,
+    distanceFromLegStartNm + TANGENT_SAMPLE_NM,
+  );
+  const before = calculatePositionAlongGeometry(
+    geometry,
+    beforeDistanceNm,
+  ).position;
+  const after = calculatePositionAlongGeometry(
+    geometry,
+    afterDistanceNm,
+  ).position;
+  const beforePoint = map.latLngToLayerPoint([
+    before.latitude,
+    before.longitude,
+  ]);
+  const afterPoint = map.latLngToLayerPoint([
+    after.latitude,
+    after.longitude,
+  ]);
+  const routeAngleDeg = Math.atan2(
+    afterPoint.y - beforePoint.y,
+    afterPoint.x - beforePoint.x,
+  ) * 180 / Math.PI;
+
+  return routeAngleDeg + 90;
+}
 
 export interface PerformancePhaseMarkersProps {
   flightPlan: FlightPlan;
@@ -38,6 +78,7 @@ export function PerformancePhaseMarkers({
   performanceRoute,
   altitudePlans,
 }: PerformancePhaseMarkersProps) {
+  const map = useMap();
   const legs = calculateRoute(flightPlan);
   const boundaries = derivePerformancePhaseBoundaries(performanceRoute);
 
@@ -80,20 +121,29 @@ export function PerformancePhaseMarkers({
           leg.geometry,
           boundary.distanceFromLegStartNm,
         );
+        const tickAngleDeg = calculateTickAngleDeg(
+          map,
+          leg.geometry,
+          boundary.distanceFromLegStartNm,
+          leg.distanceNm,
+        );
 
         return [
           <Marker
             key={boundary.key}
             position={[point.position.latitude, point.position.longitude]}
-            icon={icons[boundary.label]}
-            interactive={false}
+            icon={boundaryIcon(
+              boundary.phase,
+              boundary.label,
+              tickAngleDeg,
+            )}
+            bubblingMouseEvents={false}
           >
             <Tooltip
               className={`performance-boundary-label performance-boundary-label--${boundary.phase}`}
               direction="top"
-              offset={[0, -13]}
+              offset={[0, -8]}
               opacity={0.95}
-              permanent
             >
               {boundary.label} · {Math.round(boundary.altitudeFtMsl)} ft
             </Tooltip>

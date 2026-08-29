@@ -28,7 +28,7 @@ const performance: AircraftPerformancePlanInputs = {
 };
 
 describe('derivePerformancePhaseBoundaries', () => {
-  it('derives both ends of climb and descent runs from calculated steps', () => {
+  it('keeps internal boundaries but omits a descent end at the TO waypoint', () => {
     const route = calculatePerformanceRoute({
       flightPlan,
       navigation: {
@@ -45,11 +45,68 @@ describe('derivePerformancePhaseBoundaries', () => {
       'BOC',
       'TOC',
       'TOD',
-      'BOD',
     ]);
     expect(boundaries.find(({ label }) => label === 'TOC')?.distanceFromLegStartNm)
       .toBeCloseTo(30, 6);
     expect(boundaries.find(({ label }) => label === 'TOD')!.distanceFromLegStartNm)
-      .toBeLessThan(boundaries.find(({ label }) => label === 'BOD')!.distanceFromLegStartNm);
+      .toBeLessThan(route.status === 'ok' ? route.legs[0]!.distanceNm : 0);
+  });
+
+  it('omits a climb start at FROM and a descent end at TO', () => {
+    const route = calculatePerformanceRoute({
+      flightPlan,
+      navigation: {
+        departureTimeUtcMs: Date.UTC(2026, 7, 28, 12),
+        magneticVariationDegEast: 0,
+        wind: { directionFromTrueDeg: 0, speedKt: 0 },
+      },
+      performance: {
+        ...performance,
+        legAltitudePlans: [],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(derivePerformancePhaseBoundaries(route).map(({ label }) => label))
+      .toEqual(['TOC', 'TOD']);
+  });
+
+  it('retains both boundaries for a descent ending between waypoints', () => {
+    const route = calculatePerformanceRoute({
+      flightPlan: {
+        waypoints: [
+          ...flightPlan.waypoints,
+          { id: 'C', name: 'C', position: { latitude: 0, longitude: 4 } },
+        ],
+        legShapes: [],
+      },
+      navigation: {
+        departureTimeUtcMs: Date.UTC(2026, 7, 28, 12),
+        magneticVariationDegEast: 0,
+        wind: { directionFromTrueDeg: 0, speedKt: 0 },
+      },
+      performance: {
+        ...performance,
+        departureElevationFtMsl: 3000,
+        legAltitudePlans: [{
+          fromWaypointId: 'A',
+          toWaypointId: 'B',
+          altitudeFtMsl: 3000,
+          endAltitudeFtMsl: 2000,
+          endTargetPlacement: {
+            mode: 'distance-along-leg',
+            distanceFromStartNm: 80,
+          },
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+    const firstLegBoundaries = derivePerformancePhaseBoundaries(route).filter(
+      ({ fromWaypointId, toWaypointId }) =>
+        fromWaypointId === 'A' && toWaypointId === 'B',
+    );
+
+    expect(firstLegBoundaries.map(({ label }) => label))
+      .toEqual(['TOD', 'BOD']);
   });
 });

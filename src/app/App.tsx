@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getConfiguredAeronauticalRepository } from '../aeronautical';
 import type {
+  AeronauticalFeatureRef,
   AeronauticalPointFeature,
   AircraftDefinition,
   FlightPlan,
   FlightPlanningDocument,
   Position,
   RouteShapingPoint,
+  Waypoint,
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
@@ -48,6 +50,14 @@ import {
 } from './navigation/performanceInput';
 import type { PerformanceInputDraft } from './navigation/performanceInput';
 import {
+  applyAerodromeElevationAutofill,
+  EMPTY_AERODROME_ELEVATION_AUTOFILL_STATE,
+} from './navigation/aerodromeElevationAutofill';
+import type {
+  AerodromeElevationAutofillState,
+  EndpointAerodromeElevation,
+} from './navigation/aerodromeElevationAutofill';
+import {
   createEmptyOperationalInputDraft,
   createEmptySectorOperationInputDraft,
   createOperationalInputDraft,
@@ -72,6 +82,7 @@ import { NavlogDock } from './layout/NavlogDock';
 import {
   appendAnchoredWaypointToFlightPlan,
   appendWaypointToFlightPlan,
+  attachWaypointToAeronauticalFeatureInFlightPlan,
   detachWaypointInFlightPlan,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
@@ -92,6 +103,23 @@ const browserLocalDraftStorage: LocalDraftStorage = {
   setItem: (key, value) => window.localStorage.setItem(key, value),
   removeItem: (key) => window.localStorage.removeItem(key),
 };
+
+interface EndpointAerodromeReference {
+  readonly waypointId: string;
+  readonly feature: AeronauticalFeatureRef;
+}
+
+function getEndpointAerodromeReference(
+  waypoint: Waypoint | undefined,
+): EndpointAerodromeReference | null {
+  const feature = waypoint?.anchor?.feature;
+
+  if (waypoint === undefined || feature?.featureKind !== 'aerodrome') {
+    return null;
+  }
+
+  return { waypointId: waypoint.id, feature };
+}
 
 interface PlanningState {
   flightPlan: FlightPlan;
@@ -221,6 +249,10 @@ export function App() {
     );
   const [localDraftStatus, setLocalDraftStatus] =
     useState<LocalDraftStatus>(initialPlanningState.localDraftStatus);
+  const aerodromeElevationAutofillRef =
+    useRef<AerodromeElevationAutofillState>(
+      EMPTY_AERODROME_ELEVATION_AUTOFILL_STATE,
+    );
   const lastSavedDocumentJsonRef = useRef<string | null>(
     initialPlanningState.restoredFromLocalDraft
       ? serializeFlightPlanningDocument(initialPlanningState.document)
@@ -281,6 +313,18 @@ export function App() {
     operationalDraft: operationalInputDraft,
     useForecastWinds,
   });
+  const endpointAerodromeReferences = useMemo(
+    () => ({
+      departure: getEndpointAerodromeReference(flightPlan.waypoints[0]),
+      destination: getEndpointAerodromeReference(flightPlan.waypoints.at(-1)),
+    }),
+    [
+      flightPlan.waypoints[0]?.anchor,
+      flightPlan.waypoints[0]?.id,
+      flightPlan.waypoints.at(-1)?.anchor,
+      flightPlan.waypoints.at(-1)?.id,
+    ],
+  );
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
       parsedPlanningInputs.status === 'valid' &&
@@ -356,6 +400,61 @@ export function App() {
     return () => window.clearTimeout(timeoutId);
   }, [planningDocument]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
+    const resolveElevation = async (
+      endpoint: EndpointAerodromeReference | null,
+    ): Promise<EndpointAerodromeElevation | null> => {
+      if (endpoint === null) {
+        return null;
+      }
+
+      try {
+        const details = await aeronauticalRepository.getFeatureDetails(
+          endpoint.feature,
+          { signal: controller.signal },
+        );
+
+        return details?.detailKind === 'aerodrome' &&
+          details.elevationFt !== null
+          ? { waypointId: endpoint.waypointId, elevationFt: details.elevationFt }
+          : null;
+      } catch (error: unknown) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          return null;
+        }
+
+        return null;
+      }
+    };
+
+    void Promise.all([
+      resolveElevation(endpointAerodromeReferences.departure),
+      resolveElevation(endpointAerodromeReferences.destination),
+    ]).then(([departure, destination]) => {
+      if (cancelled) {
+        return;
+      }
+
+      setPerformanceInputDraft((currentDraft) => {
+        const result = applyAerodromeElevationAutofill(
+          currentDraft,
+          { departure, destination },
+          aerodromeElevationAutofillRef.current,
+        );
+        aerodromeElevationAutofillRef.current = result.state;
+        return result.draft;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [endpointAerodromeReferences]);
+
   const addWaypoint = useCallback((position: Position) => {
     const id = crypto.randomUUID();
     setFlightPlan((currentFlightPlan) =>
@@ -368,6 +467,19 @@ export function App() {
       const id = crypto.randomUUID();
       setFlightPlan((currentFlightPlan) =>
         appendAnchoredWaypointToFlightPlan(currentFlightPlan, feature, id),
+      );
+    },
+    [],
+  );
+
+  const attachWaypoint = useCallback(
+    (id: string, feature: AeronauticalPointFeature) => {
+      setFlightPlan((currentFlightPlan) =>
+        attachWaypointToAeronauticalFeatureInFlightPlan(
+          currentFlightPlan,
+          id,
+          feature,
+        ),
       );
     },
     [],
@@ -519,6 +631,8 @@ export function App() {
     setAircraftDefinition(freshState.aircraftDefinition);
     setNavigationInputDraft(freshState.navigationInputDraft);
     setPerformanceInputDraft(freshState.performanceInputDraft);
+    aerodromeElevationAutofillRef.current =
+      EMPTY_AERODROME_ELEVATION_AUTOFILL_STATE;
     setOperationalInputDraft(freshState.operationalInputDraft);
     setUseForecastWinds(freshState.useForecastWinds);
     setMapSelection(null);
@@ -547,6 +661,8 @@ export function App() {
           ? createEmptyPerformanceInputDraft()
           : createPerformanceInputDraft(document.performanceInputs),
       );
+      aerodromeElevationAutofillRef.current =
+        EMPTY_AERODROME_ELEVATION_AUTOFILL_STATE;
       setOperationalInputDraft(
         document.operationalInputs === null
           ? createEmptyOperationalInputDraft()
@@ -863,6 +979,7 @@ export function App() {
               : {})}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}
+            onAttachWaypoint={attachWaypoint}
             onMoveWaypoint={moveWaypoint}
             onAddShapingPoint={addShapingPoint}
             onMoveShapingPoint={moveShapingPoint}

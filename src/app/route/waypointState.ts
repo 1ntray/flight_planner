@@ -1,5 +1,10 @@
 import { MAX_WAYPOINT_NAME_LENGTH } from '../../domain';
-import type { AeronauticalPointFeature, Position, Waypoint } from '../../domain';
+import type {
+  AeronauticalPointFeature,
+  AeronauticalWaypointAnchor,
+  Position,
+  Waypoint,
+} from '../../domain';
 import { getNextWaypointName } from './waypointNaming';
 
 export { MAX_WAYPOINT_NAME_LENGTH };
@@ -40,9 +45,7 @@ export function appendAnchoredWaypoint(
   feature: AeronauticalPointFeature,
   id: string,
 ): Waypoint[] {
-  if (feature.ref.featureKind !== feature.pointKind) {
-    throw new RangeError('Aeronautical point kind must match its feature reference');
-  }
+  assertPointFeatureCanAnchorWaypoint(feature);
 
   const waypointName = normalizeWaypointName(feature.suggestedWaypointName);
 
@@ -52,19 +55,66 @@ export function appendAnchoredWaypoint(
       id,
       name: waypointName,
       position: { ...feature.position },
-      anchor: {
-        kind: 'aeronautical-feature',
-        feature: {
-          ...feature.ref,
-          dataset: { ...feature.ref.dataset },
-        },
-        publishedIdentifier: feature.identifier,
-        ...(feature.name === undefined
-          ? {}
-          : { publishedName: feature.name }),
-      },
+      anchor: createAeronauticalWaypointAnchor(feature),
     },
   ];
+}
+
+function assertPointFeatureCanAnchorWaypoint(
+  feature: AeronauticalPointFeature,
+): void {
+  if (feature.ref.featureKind !== feature.pointKind) {
+    throw new RangeError('Aeronautical point kind must match its feature reference');
+  }
+}
+
+function createAeronauticalWaypointAnchor(
+  feature: AeronauticalPointFeature,
+): AeronauticalWaypointAnchor {
+  return {
+    kind: 'aeronautical-feature',
+    feature: {
+      ...feature.ref,
+      dataset: { ...feature.ref.dataset },
+    },
+    publishedIdentifier: feature.identifier,
+    ...(feature.name === undefined
+      ? {}
+      : { publishedName: feature.name }),
+  };
+}
+
+/**
+ * Anchors an existing free route waypoint without changing its route identity
+ * or user-facing label. The published WGS84 coordinate and compact provenance
+ * become the route's stored snapshot.
+ */
+export function attachWaypointToAeronauticalFeature(
+  waypoints: readonly Waypoint[],
+  id: string,
+  feature: AeronauticalPointFeature,
+): Waypoint[] {
+  assertPointFeatureCanAnchorWaypoint(feature);
+
+  const waypoint = waypoints.find((candidate) => candidate.id === id);
+
+  if (waypoint === undefined) {
+    throw new RangeError(`Waypoint ${id} does not exist`);
+  }
+
+  if (waypoint.anchor !== undefined) {
+    throw new RangeError('Anchored waypoint must be detached before attaching');
+  }
+
+  return waypoints.map((candidate) =>
+    candidate.id === id
+      ? {
+          ...candidate,
+          position: { ...feature.position },
+          anchor: createAeronauticalWaypointAnchor(feature),
+        }
+      : candidate,
+  );
 }
 
 export function moveWaypointById(

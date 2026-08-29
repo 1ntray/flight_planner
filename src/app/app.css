@@ -1278,34 +1278,46 @@ kbd {
 }
 
 .performance-boundary-marker {
-  display: grid;
-  border: 2px solid #ffffff;
-  border-radius: 0.28rem;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.performance-boundary-marker__tick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.15rem;
+  height: 0.18rem;
+  border: 1px solid rgb(255 255 255 / 92%);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 42%);
+  transform: translate(-50%, -50%) rotate(var(--boundary-tick-angle));
+  transform-origin: center;
+}
+
+.performance-boundary-marker__code {
+  position: absolute;
+  top: -0.22rem;
+  left: 50%;
+  padding: 0.03rem 0.18rem;
+  border: 1px solid rgb(255 255 255 / 82%);
+  border-radius: 0.18rem;
   color: #ffffff;
-  box-shadow: 0 1px 5px rgb(0 0 0 / 42%);
-  font-size: 0.48rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 28%);
+  font-size: 0.45rem;
   font-weight: 850;
-  place-items: center;
-  transform: rotate(45deg);
+  line-height: 1.1;
+  transform: translateX(-50%);
 }
 
-.performance-boundary-marker span {
-  transform: rotate(-45deg);
-}
-
-.performance-boundary-marker--boc {
-  background: #55a97a;
-}
-
-.performance-boundary-marker--toc {
+.performance-boundary-marker--climb .performance-boundary-marker__tick,
+.performance-boundary-marker--climb .performance-boundary-marker__code {
   background: #247a51;
 }
 
-.performance-boundary-marker--tod {
-  background: #d4812f;
-}
-
-.performance-boundary-marker--bod {
+.performance-boundary-marker--descent .performance-boundary-marker__tick,
+.performance-boundary-marker--descent .performance-boundary-marker__code {
   background: #a94037;
 }
 

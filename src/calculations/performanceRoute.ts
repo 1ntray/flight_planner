@@ -12,6 +12,7 @@ import type {
 import {
   calculateClimbTime,
   calculatePhaseFuel,
+  calculatePatternAltitudeFtMsl,
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
@@ -538,8 +539,10 @@ function calculateSingleSectorPerformanceRoute({
   let currentTimeUtcMs = navigation.departureTimeUtcMs;
   let totalEetSeconds = 0;
   let totalFuelLitres = 0;
-  const arrivalTargetAltitudeFtMsl =
-    performance.destinationElevationFtMsl + performance.patternHeightAglFt;
+  const arrivalTargetAltitudeFtMsl = calculatePatternAltitudeFtMsl(
+    performance.destinationElevationFtMsl,
+    performance.patternHeightAglFt,
+  );
 
   for (let legIndex = 0; legIndex < geometricLegs.length; legIndex += 1) {
     const leg = geometricLegs[legIndex]!;

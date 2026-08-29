@@ -8,6 +8,7 @@ import type {
 import {
   appendAnchoredWaypoint,
   appendWaypoint,
+  attachWaypointToAeronauticalFeature,
   detachWaypointById,
   moveWaypointById,
   renameWaypointById,
@@ -79,6 +80,21 @@ export function appendAnchoredWaypointToFlightPlan(
   return {
     ...flightPlan,
     waypoints: appendAnchoredWaypoint(flightPlan.waypoints, feature, id),
+  };
+}
+
+export function attachWaypointToAeronauticalFeatureInFlightPlan(
+  flightPlan: FlightPlan,
+  id: string,
+  feature: AeronauticalPointFeature,
+): FlightPlan {
+  return {
+    ...flightPlan,
+    waypoints: attachWaypointToAeronauticalFeature(
+      flightPlan.waypoints,
+      id,
+      feature,
+    ),
   };
 }
 

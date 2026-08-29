@@ -400,6 +400,7 @@ export interface FlightMapProps {
   alternateWaypoint?: Waypoint;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
+  onAttachWaypoint: (id: string, feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
   onAddShapingPoint: (
     fromWaypointId: string,
@@ -451,6 +452,7 @@ export function FlightMap({
   alternateWaypoint,
   onAddWaypoint,
   onAddAnchoredWaypoint,
+  onAttachWaypoint,
   onMoveWaypoint,
   onAddShapingPoint,
   onMoveShapingPoint,
@@ -478,6 +480,8 @@ export function FlightMap({
     useState<AeronauticalLoadStatus>('idle');
   const [aeronauticalLayerVisibility, setAeronauticalLayerVisibility] =
     useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
+  const [visibleAeronauticalPointFeatures, setVisibleAeronauticalPointFeatures] =
+    useState<readonly AeronauticalPointFeature[]>([]);
   const pendingShapingPoint =
     routeLineInteraction?.mode === 'shaping'
       ? routeLineInteraction.pendingPoint
@@ -635,6 +639,7 @@ export function FlightMap({
           visibility={aeronauticalLayerVisibility}
           anchoringEnabled={tool.kind === 'add-waypoint'}
           onAnchorPoint={onAddAnchoredWaypoint}
+          onPointFeaturesChange={setVisibleAeronauticalPointFeatures}
           onDatasetChange={setAeronauticalDataset}
           onStatusChange={setAeronauticalStatus}
         />
@@ -692,6 +697,8 @@ export function FlightMap({
           pendingShapingPoint={pendingShapingPoint}
           onDraggedPointChange={setDraggedPoint}
           onMoveWaypoint={onMoveWaypoint}
+          aeronauticalPointFeatures={visibleAeronauticalPointFeatures}
+          onAttachWaypoint={onAttachWaypoint}
           onMoveShapingPoint={onMoveShapingPoint}
           onSelectRoutePoint={onSelectionChange}
         />

@@ -58,6 +58,9 @@ export interface AeronauticalLayersProps {
   visibility: AeronauticalLayerVisibility;
   anchoringEnabled: boolean;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
+  onPointFeaturesChange: (
+    features: readonly AeronauticalPointFeature[],
+  ) => void;
   onDatasetChange: (dataset: AeronauticalDatasetRef | null) => void;
   onStatusChange: (status: AeronauticalLoadStatus) => void;
 }
@@ -92,6 +95,7 @@ export function AeronauticalLayers({
   visibility,
   anchoringEnabled,
   onAnchorPoint,
+  onPointFeaturesChange,
   onDatasetChange,
   onStatusChange,
 }: AeronauticalLayersProps) {
@@ -140,6 +144,7 @@ export function AeronauticalLayers({
 
     if (featureKinds.length === 0) {
       setFeatures([]);
+      onPointFeaturesChange([]);
       onStatusChange('ready');
       return () => controller.abort();
     }
@@ -152,11 +157,18 @@ export function AeronauticalLayers({
       )
       .then((result) => {
         setFeatures(result);
+        onPointFeaturesChange(
+          result.filter(
+            (feature): feature is AeronauticalPointFeature =>
+              feature.geometryType === 'point',
+          ),
+        );
         onStatusChange('ready');
       })
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           setFeatures([]);
+          onPointFeaturesChange([]);
           onStatusChange('error');
         }
       });
@@ -164,6 +176,7 @@ export function AeronauticalLayers({
     return () => controller.abort();
   }, [
     featureKindKey,
+    onPointFeaturesChange,
     onStatusChange,
     repository,
     viewport.bounds,

@@ -5,6 +5,7 @@ import type {
 
 export type VerticalPhase = 'climb' | 'descent';
 export type PhaseBoundaryKind = 'start' | 'end';
+export const WAYPOINT_BOUNDARY_TOLERANCE_NM = 1e-6;
 
 export interface PerformancePhaseBoundary {
   readonly key: string;
@@ -39,26 +40,36 @@ function deriveLegBoundaries(
     const phase = first.phase;
     const prefix = `${leg.fromId}:${leg.toId}:${index}:${phase}`;
 
-    boundaries.push({
-      key: `${prefix}:start`,
-      fromWaypointId: leg.fromId,
-      toWaypointId: leg.toId,
-      phase,
-      boundary: 'start',
-      label: phase === 'climb' ? 'BOC' : 'TOD',
-      distanceFromLegStartNm: first.startDistanceFromLegNm,
-      altitudeFtMsl: first.startAltitudeFtMsl,
-    });
-    boundaries.push({
-      key: `${prefix}:end`,
-      fromWaypointId: leg.fromId,
-      toWaypointId: leg.toId,
-      phase,
-      boundary: 'end',
-      label: phase === 'climb' ? 'TOC' : 'BOD',
-      distanceFromLegStartNm: last.endDistanceFromLegNm,
-      altitudeFtMsl: last.endAltitudeFtMsl,
-    });
+    const beginsAtFromWaypoint =
+      first.startDistanceFromLegNm <= WAYPOINT_BOUNDARY_TOLERANCE_NM;
+    const endsAtToWaypoint =
+      Math.abs(last.endDistanceFromLegNm - leg.distanceNm) <=
+      WAYPOINT_BOUNDARY_TOLERANCE_NM;
+
+    if (!(phase === 'climb' && beginsAtFromWaypoint)) {
+      boundaries.push({
+        key: `${prefix}:start`,
+        fromWaypointId: leg.fromId,
+        toWaypointId: leg.toId,
+        phase,
+        boundary: 'start',
+        label: phase === 'climb' ? 'BOC' : 'TOD',
+        distanceFromLegStartNm: first.startDistanceFromLegNm,
+        altitudeFtMsl: first.startAltitudeFtMsl,
+      });
+    }
+    if (!(phase === 'descent' && endsAtToWaypoint)) {
+      boundaries.push({
+        key: `${prefix}:end`,
+        fromWaypointId: leg.fromId,
+        toWaypointId: leg.toId,
+        phase,
+        boundary: 'end',
+        label: phase === 'climb' ? 'TOC' : 'BOD',
+        distanceFromLegStartNm: last.endDistanceFromLegNm,
+        altitudeFtMsl: last.endAltitudeFtMsl,
+      });
+    }
     index = endIndex + 1;
   }
 

@@ -49,8 +49,9 @@ the environment-selection layer before being passed to performance functions.
 Each adjacent real-waypoint leg has a target altitude. The route-wide default
 can be overridden per leg. The aircraft begins at departure aerodrome elevation;
 the final leg ends at destination elevation plus the editable pattern height
-(normally 1000 ft AGL). This supports any sequence of climb, cruise, and descent
-across successive legs rather than assuming one climb and one descent.
+(normally 1000 ft AGL), rounded to the nearest 100 ft after those values are
+added. This supports any sequence of climb, cruise, and descent across
+successive legs rather than assuming one climb and one descent.
 
 The route may also contain explicit intermediate landing boundaries. Each
 boundary closes one flight sector at the airport's pattern altitude. The next
@@ -98,6 +99,12 @@ aircraft mass is derived from the selected registration, occupants, baggage,
 and fuel rather than entered independently. The 100 ft integration step and the supplied IAS-to-TAS equation
 are calculation conventions rather than editable aircraft parameters.
 
+When a route endpoint is anchored to an aerodrome whose normalized dataset
+publishes an elevation, the planner fills a blank endpoint elevation field from
+that value. A value previously supplied this way follows a later endpoint
+change; any different value entered by the user remains a manual override.
+Missing aerodrome elevation data does not cause a guessed value to be entered.
+
 The manual-planning 2/3-climb and midpoint-descent TAS/wind conventions are not
 used when interval data is available. They remain possible future fallbacks,
 not the default calculation method.
@@ -113,9 +120,16 @@ vector average and headings are duration-weighted circular averages. The UI
 labels these choices `CRZ` and `AVG`; the underlying phase calculations continue
 to use every interval independently.
 
-The map derives BOC/TOC and TOD/BOD markers from calculated phase-step
-boundaries. These markers are calculated output and are never persisted as
-waypoints or shaping points. Climb boundaries are green; descent boundaries are
-amber/red. When a custom reach-by target coincides with TOC or BOD, the
-draggable target handle carries that label and the duplicate calculated marker
-is suppressed.
+The map derives BOC/TOC and TOD/BOD annotations from calculated phase-step
+boundaries. These annotations are calculated output and are never persisted as
+waypoints or shaping points. A BOC coincident with the FROM waypoint and a BOD
+coincident with the TO waypoint are omitted because the waypoint already
+communicates that boundary. Internal transitions retain both ends.
+
+Calculated boundaries use short, fixed-pixel ticks perpendicular to the local
+route direction. Climb ticks are green and descent ticks are red; altitude is
+available on hover instead of through a permanent large tooltip. The tick's
+WGS84 position remains calculation-derived, while its screen angle and size are
+presentation-only. When a custom reach-by target coincides with TOC or BOD, the
+draggable target handle carries that label and the duplicate calculated tick is
+suppressed.
