@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { calculateRoute } from '../../calculations';
+import { calculateRoute, deriveFlightPlanSectors } from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import {
   setLegAltitudeOverride,
@@ -47,6 +47,21 @@ export function LegAltitudeControls({
       ),
     [draft.legAltitudePlans],
   );
+  const arrivalLegKeys = useMemo(
+    () =>
+      new Set(
+        deriveFlightPlanSectors(flightPlan).flatMap((sector) => {
+          const waypoints = sector.flightPlan.waypoints;
+          const from = waypoints.at(-2);
+          const to = waypoints.at(-1);
+
+          return from === undefined || to === undefined
+            ? []
+            : [legKey(from.id, to.id)];
+        }),
+      ),
+    [flightPlan],
+  );
 
   if (legs.length === 0) {
     return null;
@@ -64,6 +79,7 @@ export function LegAltitudeControls({
 
       {legs.map((leg) => {
         const plan = plans.get(legKey(leg.fromId, leg.toId));
+        const isArrivalLeg = arrivalLegKeys.has(legKey(leg.fromId, leg.toId));
         const placementDistance =
           plan?.targetPlacement?.mode === 'distance-along-leg'
             ? plan.targetPlacement.distanceFromStartNm
@@ -87,6 +103,12 @@ export function LegAltitudeControls({
               {waypointNames.get(leg.fromId) ?? leg.fromId} →{' '}
               {waypointNames.get(leg.toId) ?? leg.toId}
             </strong>
+            {isArrivalLeg ? (
+              <p className="leg-altitude-controls__arrival-note">
+                Arrival leg: the planned altitude remains independent. A final
+                descent to the rounded pattern altitude is added automatically.
+              </p>
+            ) : null}
             <div className="leg-altitude-controls__row">
             <label>
               <span>Planned altitude</span>

@@ -94,6 +94,48 @@ describe('Avinor ENDU eAIP importer', () => {
     expect(JSON.stringify(directions)).not.toContain('2717');
   });
 
+  it('preserves published supplementary and paired runway designators', () => {
+    const source = fixture
+      .replaceAll('ENDU', 'ENTO')
+      .replaceAll('BARDUFOSS', 'TORP')
+      .replaceAll('<span class="SD">10</span>', '<span class="SD">17 18</span>')
+      .replaceAll('<span class="SD">28</span>', '<span class="SD">35 36</span>')
+      .replace('<span class="SD">2995</span>', '<span class="SD">2810 2809</span>');
+    const result = importEnduEaip(source, {
+      ...config,
+      sourceAerodrome: 'ENTO',
+      sourceUrl: 'https://example.test/EN-AD-2.ENTO-en-GB.html',
+    });
+    const details = result.dataset.featureDetails[0];
+
+    expect(details).toMatchObject({
+      detailKind: 'aerodrome',
+      runways: [
+        { identifier: '17/35', lengthM: 2810 },
+        { identifier: '18/36', lengthM: 2809 },
+      ],
+    });
+  });
+
+  it('keeps a published S suffix as part of a runway designator', () => {
+    const source = fixture
+      .replaceAll('ENDU', 'ENNO')
+      .replaceAll('BARDUFOSS', 'NOTODDEN')
+      .replaceAll('<span class="SD">10</span>', '<span class="SD">12S</span>')
+      .replaceAll('<span class="SD">28</span>', '<span class="SD">30S</span>');
+    const result = importEnduEaip(source, {
+      ...config,
+      sourceAerodrome: 'ENNO',
+      sourceUrl: 'https://example.test/EN-AD-2.ENNO-en-GB.html',
+    });
+    const details = result.dataset.featureDetails[0];
+
+    expect(details).toMatchObject({
+      detailKind: 'aerodrome',
+      runways: [{ identifier: '12S/30S', lengthM: 2995 }],
+    });
+  });
+
   it('preserves dataset and AIP-section provenance without generated IDs', () => {
     const result = importEnduEaip(
       fixture.replaceAll(/ID_\d+/g, 'CHANGED_GENERATED_ID'),

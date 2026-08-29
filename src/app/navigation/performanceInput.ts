@@ -3,6 +3,9 @@ import type {
   LegAltitudePlan,
 } from '../../domain';
 
+export const DEFAULT_PLANNING_QNH_HPA = 1013;
+export const DEFAULT_PLANNING_ISA_DEVIATION_C = 0;
+
 export interface SectorStopInputDraft {
   waypointId: string;
   elevationFtMsl: string;
@@ -25,6 +28,15 @@ export interface PerformanceInputDraft {
   destinationIsaDeviationC: string;
   legAltitudePlans: readonly LegAltitudePlan[];
   sectorStopPlans: readonly SectorStopInputDraft[];
+}
+
+/** Values used only while their corresponding user-editable field is blank. */
+export interface PerformanceInputDefaults {
+  readonly departureElevationFtMsl?: number;
+  readonly destinationElevationFtMsl?: number;
+  readonly sectorStopElevationFtMslByWaypointId?: Readonly<
+    Record<string, number>
+  >;
 }
 
 export type PerformanceInputParseResult =
@@ -116,6 +128,18 @@ function parseNumber(
   return parsed;
 }
 
+function resolveDefaultValue(
+  value: string,
+  defaultValue: number | undefined,
+): string {
+  return value.trim() === '' &&
+    defaultValue !== undefined &&
+    Number.isFinite(defaultValue) &&
+    defaultValue >= 0
+    ? String(defaultValue)
+    : value;
+}
+
 function validateLegAltitudePlans(
   plans: readonly LegAltitudePlan[],
 ): string | null {
@@ -172,6 +196,7 @@ export function parsePerformanceInputDraft(
   draft: PerformanceInputDraft,
   sectorBoundaryWaypointIds: readonly string[] = [],
   derivedMassKg?: number,
+  defaults: PerformanceInputDefaults = {},
 ): PerformanceInputParseResult {
   const legPlanError = validateLegAltitudePlans(draft.legAltitudePlans);
 
@@ -209,13 +234,55 @@ export function parsePerformanceInputDraft(
   const fields = [
     ['massKg', derivedMassKg === undefined ? draft.massKg : String(derivedMassKg), 'Aircraft mass', null],
     ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0],
-    ['departureElevationFtMsl', draft.departureElevationFtMsl, 'Departure elevation', 0],
-    ['destinationElevationFtMsl', draft.destinationElevationFtMsl, 'Destination elevation', 0],
+    [
+      'departureElevationFtMsl',
+      resolveDefaultValue(
+        draft.departureElevationFtMsl,
+        defaults.departureElevationFtMsl,
+      ),
+      'Departure elevation',
+      0,
+    ],
+    [
+      'destinationElevationFtMsl',
+      resolveDefaultValue(
+        draft.destinationElevationFtMsl,
+        defaults.destinationElevationFtMsl,
+      ),
+      'Destination elevation',
+      0,
+    ],
     ['patternHeightAglFt', draft.patternHeightAglFt, 'Pattern height', 0],
-    ['departureQnhHpa', draft.departureQnhHpa, 'Departure QNH', null],
-    ['departureIsaDeviationC', draft.departureIsaDeviationC, 'Departure ISA deviation', null],
-    ['destinationQnhHpa', draft.destinationQnhHpa, 'Destination QNH', null],
-    ['destinationIsaDeviationC', draft.destinationIsaDeviationC, 'Destination ISA deviation', null],
+    [
+      'departureQnhHpa',
+      resolveDefaultValue(draft.departureQnhHpa, DEFAULT_PLANNING_QNH_HPA),
+      'Departure QNH',
+      null,
+    ],
+    [
+      'departureIsaDeviationC',
+      resolveDefaultValue(
+        draft.departureIsaDeviationC,
+        DEFAULT_PLANNING_ISA_DEVIATION_C,
+      ),
+      'Departure ISA deviation',
+      null,
+    ],
+    [
+      'destinationQnhHpa',
+      resolveDefaultValue(draft.destinationQnhHpa, DEFAULT_PLANNING_QNH_HPA),
+      'Destination QNH',
+      null,
+    ],
+    [
+      'destinationIsaDeviationC',
+      resolveDefaultValue(
+        draft.destinationIsaDeviationC,
+        DEFAULT_PLANNING_ISA_DEVIATION_C,
+      ),
+      'Destination ISA deviation',
+      null,
+    ],
   ] as const;
   const parsed = new Map<string, number>();
 
@@ -251,17 +318,23 @@ export function parsePerformanceInputDraft(
     stopWaypointIds.add(stop.waypointId);
 
     const elevationFtMsl = parseNumber(
-      stop.elevationFtMsl,
+      resolveDefaultValue(
+        stop.elevationFtMsl,
+        defaults.sectorStopElevationFtMslByWaypointId?.[stop.waypointId],
+      ),
       `Sector stop ${index + 1} elevation`,
       0,
     );
     const qnhHpa = parseNumber(
-      stop.qnhHpa,
+      resolveDefaultValue(stop.qnhHpa, DEFAULT_PLANNING_QNH_HPA),
       `Sector stop ${index + 1} QNH`,
       null,
     );
     const isaDeviationC = parseNumber(
-      stop.isaDeviationC,
+      resolveDefaultValue(
+        stop.isaDeviationC,
+        DEFAULT_PLANNING_ISA_DEVIATION_C,
+      ),
       `Sector stop ${index + 1} ISA deviation`,
       null,
     );

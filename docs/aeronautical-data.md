@@ -90,10 +90,11 @@ spatial indexing and appropriate caching for large datasets.
 
 ## Current repository configuration
 
-The default repository loads a local normalized Avinor eAIP dataset for ENDU,
-effective 11 June 2026. The browser never parses eAIP HTML and never contacts
-Avinor when the planner starts. ENDU is exposed as a normal aerodrome point, so
-the existing overlay and waypoint-anchor behavior is unchanged.
+The default repository loads a local normalized Avinor eAIP dataset for the AD
+2 aerodromes in the selected edition, effective 11 June 2026. The browser
+never parses eAIP HTML and never contacts Avinor when the planner starts. Each
+aerodrome is exposed as a normal aerodrome point, so the existing overlay and
+waypoint-anchor behavior is unchanged.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
@@ -107,15 +108,28 @@ fixed edition configuration, semantic AIP section headings, published table
 headers, and HTML rowspan/colspan expansion. Generated HTML element IDs and
 the numeric suffixes in hidden eAIP markers are not identities.
 
-The ENDU slice reads AD 2.1, AD 2.2, AD 2.12, and the standard declared-distance
-table in AD 2.13. The separate `Reduced (Alternate) Take-off PSN` table is
-intentionally ignored. Missing optional values become `null` with an importer
-warning; malformed required values fail the import.
+The selected edition is discovered from AD 1.3. The importer includes AD 2
+aerodromes and deliberately excludes AD 3 heliports. Each AD 2 page reads AD
+2.1, AD 2.2, AD 2.12, and the standard declared-distance table in AD 2.13. The
+separate `Reduced (Alternate) Take-off PSN` table is intentionally ignored.
+Missing optional values become `null` with an importer warning; malformed
+required values fail that aerodrome's import but do not discard other valid
+aerodromes. The generated report records every warning and failure.
 
-Parser tests use a checked-in fixture and do not require Avinor to be online.
-To explicitly retrieve the configured edition and regenerate the local JSON
-dataset and import report, run:
+Parser tests use checked-in fixtures and do not require Avinor to be online. To
+explicitly retrieve the configured edition and regenerate the local JSON dataset
+and import report for every AD 2 aerodrome, run:
+
+```sh
+pnpm aero:import
+```
+
+To import only ENDU while developing the parser, run:
 
 ```sh
 pnpm aero:import:endu
 ```
+
+The importer can also run without a network connection by providing a saved AD
+1.3 index, a directory of `<ICAO>.html` AD 2 pages, and an explicit retrieval
+timestamp: `--input-index`, `--input-directory`, and `--retrieved-at`.

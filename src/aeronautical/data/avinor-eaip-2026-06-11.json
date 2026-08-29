@@ -9,11 +9,86 @@
     "effectiveToUtc": null,
     "revisionId": "AIP AMDT 04/2026",
     "editionLabel": "2026-06-11-AIRAC",
-    "retrievedAtUtc": "2026-08-29T13:32:35.532Z",
-    "importedAtUtc": "2026-08-29T13:32:35.533Z",
-    "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+    "retrievedAtUtc": "2026-08-29T19:24:50.164Z",
+    "importedAtUtc": "2026-08-29T19:24:56.416Z",
+    "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html"
   },
   "features": [
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAT",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENAT",
+      "name": "ALTA",
+      "suggestedWaypointName": "ENAT",
+      "position": {
+        "latitude": 69.97611111111111,
+        "longitude": 23.371666666666666
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENAN",
+      "name": "ANDØYA / Andenes",
+      "suggestedWaypointName": "ENAN",
+      "position": {
+        "latitude": 69.2925,
+        "longitude": 16.144166666666667
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENGK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENGK",
+      "name": "ARENDAL / Gullknapp",
+      "suggestedWaypointName": "ENGK",
+      "position": {
+        "latitude": 58.51833333333333,
+        "longitude": 8.707777777777777
+      }
+    },
     {
       "geometryType": "point",
       "pointKind": "aerodrome",
@@ -38,9 +113,1456 @@
         "latitude": 69.05583333333333,
         "longitude": 18.540277777777778
       }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBR",
+      "name": "BERGEN / Flesland",
+      "suggestedWaypointName": "ENBR",
+      "position": {
+        "latitude": 60.29361111111111,
+        "longitude": 5.218055555555556
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBV",
+      "name": "BERLEVÅG",
+      "suggestedWaypointName": "ENBV",
+      "position": {
+        "latitude": 70.87138888888889,
+        "longitude": 29.034166666666668
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBO",
+      "name": "BODØ",
+      "suggestedWaypointName": "ENBO",
+      "position": {
+        "latitude": 67.26916666666666,
+        "longitude": 14.365277777777777
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBN",
+      "name": "BRØNNØYSUND / Brønnøy",
+      "suggestedWaypointName": "ENBN",
+      "position": {
+        "latitude": 65.46111111111111,
+        "longitude": 12.2175
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBS",
+      "name": "BÅTSFJORD",
+      "suggestedWaypointName": "ENBS",
+      "position": {
+        "latitude": 70.60027777777778,
+        "longitude": 29.6925
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENFL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENFL",
+      "name": "FLORØ",
+      "suggestedWaypointName": "ENFL",
+      "position": {
+        "latitude": 61.58361111111111,
+        "longitude": 5.0247222222222225
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENBL",
+      "name": "FØRDE / Bringeland",
+      "suggestedWaypointName": "ENBL",
+      "position": {
+        "latitude": 61.39111111111111,
+        "longitude": 5.756944444444445
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHF",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENHF",
+      "name": "HAMMERFEST",
+      "suggestedWaypointName": "ENHF",
+      "position": {
+        "latitude": 70.67972222222222,
+        "longitude": 23.66861111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENEV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENEV",
+      "name": "HARSTAD/NARVIK / Evenes",
+      "suggestedWaypointName": "ENEV",
+      "position": {
+        "latitude": 68.4888888888889,
+        "longitude": 16.678333333333335
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENHK",
+      "name": "HASVIK",
+      "suggestedWaypointName": "ENHK",
+      "position": {
+        "latitude": 70.48666666666666,
+        "longitude": 22.139722222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENHD",
+      "name": "HAUGESUND / Karmøy",
+      "suggestedWaypointName": "ENHD",
+      "position": {
+        "latitude": 59.343333333333334,
+        "longitude": 5.2125
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENHV",
+      "name": "HONNINGSVÅG / Valan",
+      "suggestedWaypointName": "ENHV",
+      "position": {
+        "latitude": 71.00972222222222,
+        "longitude": 25.983611111111113
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENEG",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENEG",
+      "name": "HØNEFOSS / Eggemoen",
+      "suggestedWaypointName": "ENEG",
+      "position": {
+        "latitude": 60.21388888888889,
+        "longitude": 10.317222222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENKR",
+      "name": "KIRKENES / Høybuktmoen",
+      "suggestedWaypointName": "ENKR",
+      "position": {
+        "latitude": 69.72500000000001,
+        "longitude": 29.887777777777778
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENCN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENCN",
+      "name": "KRISTIANSAND / Kjevik",
+      "suggestedWaypointName": "ENCN",
+      "position": {
+        "latitude": 58.20388888888889,
+        "longitude": 8.085
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKB",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENKB",
+      "name": "KRISTIANSUND / Kvernberget",
+      "suggestedWaypointName": "ENKB",
+      "position": {
+        "latitude": 63.11194444444445,
+        "longitude": 7.826111111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENNA",
+      "name": "LAKSELV / Banak",
+      "suggestedWaypointName": "ENNA",
+      "position": {
+        "latitude": 70.06666666666666,
+        "longitude": 24.973888888888887
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRE",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRE",
+      "name": "LANDSØRKJE / Rena",
+      "suggestedWaypointName": "ENRE",
+      "position": {
+        "latitude": 61.18611111111111,
+        "longitude": 11.374444444444444
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENLK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENLK",
+      "name": "LEKNES",
+      "suggestedWaypointName": "ENLK",
+      "position": {
+        "latitude": 68.1525,
+        "longitude": 13.609444444444444
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKJ",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENKJ",
+      "name": "LILLESTRØM / Kjeller",
+      "suggestedWaypointName": "ENKJ",
+      "position": {
+        "latitude": 59.96944444444445,
+        "longitude": 11.03888888888889
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENMH",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENMH",
+      "name": "MEHAMN",
+      "suggestedWaypointName": "ENMH",
+      "position": {
+        "latitude": 71.02972222222222,
+        "longitude": 27.826666666666668
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRA",
+      "name": "MO I RANA / Røssvoll",
+      "suggestedWaypointName": "ENRA",
+      "position": {
+        "latitude": 66.36388888888888,
+        "longitude": 14.301388888888889
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENML",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENML",
+      "name": "MOLDE / Årø",
+      "suggestedWaypointName": "ENML",
+      "position": {
+        "latitude": 62.74472222222222,
+        "longitude": 7.2625
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENMS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENMS",
+      "name": "MOSJØEN / Kjærstad",
+      "suggestedWaypointName": "ENMS",
+      "position": {
+        "latitude": 65.78361111111111,
+        "longitude": 13.215277777777777
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENNM",
+      "name": "NAMSOS",
+      "suggestedWaypointName": "ENNM",
+      "position": {
+        "latitude": 64.47222222222223,
+        "longitude": 11.57861111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENNO",
+      "name": "NOTODDEN",
+      "suggestedWaypointName": "ENNO",
+      "position": {
+        "latitude": 59.565555555555555,
+        "longitude": 9.212222222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENAS",
+      "name": "NY-ÅLESUND / Hamnerabben",
+      "suggestedWaypointName": "ENAS",
+      "position": {
+        "latitude": 78.92777777777778,
+        "longitude": 11.874722222222223
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENGM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENGM",
+      "name": "OSLO / Gardermoen",
+      "suggestedWaypointName": "ENGM",
+      "position": {
+        "latitude": 60.20277777777778,
+        "longitude": 11.08388888888889
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRY",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRY",
+      "name": "RYGGE",
+      "suggestedWaypointName": "ENRY",
+      "position": {
+        "latitude": 59.37888888888889,
+        "longitude": 10.785555555555556
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRO",
+      "name": "RØROS",
+      "suggestedWaypointName": "ENRO",
+      "position": {
+        "latitude": 62.57888888888889,
+        "longitude": 11.345
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRM",
+      "name": "RØRVIK / Ryum",
+      "suggestedWaypointName": "ENRM",
+      "position": {
+        "latitude": 64.83833333333332,
+        "longitude": 11.14611111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENRS",
+      "name": "RØST",
+      "suggestedWaypointName": "ENRS",
+      "position": {
+        "latitude": 67.52777777777777,
+        "longitude": 12.103333333333333
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSD",
+      "name": "SANDANE / Anda",
+      "suggestedWaypointName": "ENSD",
+      "position": {
+        "latitude": 61.830000000000005,
+        "longitude": 6.105833333333333
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENTO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENTO",
+      "name": "SANDEFJORD / Torp",
+      "suggestedWaypointName": "ENTO",
+      "position": {
+        "latitude": 59.18666666666666,
+        "longitude": 10.258611111111112
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENST",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENST",
+      "name": "SANDNESSJØEN / Stokka",
+      "suggestedWaypointName": "ENST",
+      "position": {
+        "latitude": 65.95972222222223,
+        "longitude": 12.472222222222223
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSG",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSG",
+      "name": "SOGNDAL / Haukåsen",
+      "suggestedWaypointName": "ENSG",
+      "position": {
+        "latitude": 61.15611111111111,
+        "longitude": 7.137777777777778
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENZV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENZV",
+      "name": "STAVANGER / Sola",
+      "suggestedWaypointName": "ENZV",
+      "position": {
+        "latitude": 58.876666666666665,
+        "longitude": 5.637777777777777
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSK",
+      "name": "STOKMARKNES / Skagen",
+      "suggestedWaypointName": "ENSK",
+      "position": {
+        "latitude": 68.58083333333333,
+        "longitude": 15.026111111111112
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSO",
+      "name": "STORD / Sørstokken",
+      "suggestedWaypointName": "ENSO",
+      "position": {
+        "latitude": 59.79277777777778,
+        "longitude": 5.339722222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSB",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSB",
+      "name": "SVALBARD / Longyear",
+      "suggestedWaypointName": "ENSB",
+      "position": {
+        "latitude": 78.2461111111111,
+        "longitude": 15.465555555555556
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSH",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSH",
+      "name": "SVOLVÆR / Helle",
+      "suggestedWaypointName": "ENSH",
+      "position": {
+        "latitude": 68.24333333333334,
+        "longitude": 14.669166666666666
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSR",
+      "name": "SØRKJOSEN",
+      "suggestedWaypointName": "ENSR",
+      "position": {
+        "latitude": 69.78666666666666,
+        "longitude": 20.959722222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENTC",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENTC",
+      "name": "TROMSØ / Langnes",
+      "suggestedWaypointName": "ENTC",
+      "position": {
+        "latitude": 69.68138888888889,
+        "longitude": 18.91777777777778
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENVA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENVA",
+      "name": "TRONDHEIM / Værnes",
+      "suggestedWaypointName": "ENVA",
+      "position": {
+        "latitude": 63.4575,
+        "longitude": 10.924166666666666
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENVD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENVD",
+      "name": "VADSØ",
+      "suggestedWaypointName": "ENVD",
+      "position": {
+        "latitude": 70.06527777777778,
+        "longitude": 29.84472222222222
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENSS",
+      "name": "VARDØ / Svartnes",
+      "suggestedWaypointName": "ENSS",
+      "position": {
+        "latitude": 70.35527777777777,
+        "longitude": 31.045
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENOL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENOL",
+      "name": "ØRLAND",
+      "suggestedWaypointName": "ENOL",
+      "position": {
+        "latitude": 63.7,
+        "longitude": 9.602777777777778
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENOV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENOV",
+      "name": "ØRSTA-VOLDA / Hovden",
+      "suggestedWaypointName": "ENOV",
+      "position": {
+        "latitude": 62.18,
+        "longitude": 6.074166666666667
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENAL",
+      "name": "ÅLESUND / Vigra",
+      "suggestedWaypointName": "ENAL",
+      "position": {
+        "latitude": 62.5625,
+        "longitude": 6.119722222222221
+      }
     }
   ],
   "featureDetails": [
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAT",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENAT",
+      "name": "ALTA",
+      "arpPosition": {
+        "latitude": 69.97611111111111,
+        "longitude": 23.371666666666666
+      },
+      "elevationFt": 10,
+      "runways": [
+        {
+          "identifier": "11/29",
+          "lengthM": 2254,
+          "directions": [
+            {
+              "designator": "11",
+              "trueBearingDeg": 121.17,
+              "declaredDistances": {
+                "toraM": 2127,
+                "todaM": 2277,
+                "asdaM": 2127,
+                "ldaM": 1851
+              }
+            },
+            {
+              "designator": "29",
+              "trueBearingDeg": 301.2,
+              "declaredDistances": {
+                "toraM": 2123,
+                "todaM": 2273,
+                "asdaM": 2123,
+                "ldaM": 1907
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENAT",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAT-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAT",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAT-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAT",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAT-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAT",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAT-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENAN",
+      "name": "ANDØYA / Andenes",
+      "arpPosition": {
+        "latitude": 69.2925,
+        "longitude": 16.144166666666667
+      },
+      "elevationFt": 30,
+      "runways": [
+        {
+          "identifier": "14/32",
+          "lengthM": 1989,
+          "directions": [
+            {
+              "designator": "14",
+              "trueBearingDeg": 149.73,
+              "declaredDistances": {
+                "toraM": 1839,
+                "todaM": 1839,
+                "asdaM": 1839,
+                "ldaM": 1839
+              }
+            },
+            {
+              "designator": "32",
+              "trueBearingDeg": 329.76,
+              "declaredDistances": {
+                "toraM": 1989,
+                "todaM": 2437,
+                "asdaM": 1989,
+                "ldaM": 1839
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENAN",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAN",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAN",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAN",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAN-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENGK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENGK",
+      "name": "ARENDAL / Gullknapp",
+      "arpPosition": {
+        "latitude": 58.51833333333333,
+        "longitude": 8.707777777777777
+      },
+      "elevationFt": 415,
+      "runways": [
+        {
+          "identifier": "05/23",
+          "lengthM": 1260,
+          "directions": [
+            {
+              "designator": "05",
+              "trueBearingDeg": 53.99,
+              "declaredDistances": {
+                "toraM": 1200,
+                "todaM": 1200,
+                "asdaM": 1200,
+                "ldaM": 1200
+              }
+            },
+            {
+              "designator": "23",
+              "trueBearingDeg": 234.01,
+              "declaredDistances": {
+                "toraM": 1200,
+                "todaM": 1200,
+                "asdaM": 1200,
+                "ldaM": 1200
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENGK",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGK",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGK",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGK",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGK-en-GB.html"
+        }
+      ]
+    },
     {
       "detailKind": "aerodrome",
       "ref": {
@@ -112,6 +1634,3736 @@
           "sourceAerodrome": "ENDU",
           "aipSection": "AD 2.13",
           "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBR",
+      "name": "BERGEN / Flesland",
+      "arpPosition": {
+        "latitude": 60.29361111111111,
+        "longitude": 5.218055555555556
+      },
+      "elevationFt": 171,
+      "runways": [
+        {
+          "identifier": "17/35",
+          "lengthM": 2990,
+          "directions": [
+            {
+              "designator": "17",
+              "trueBearingDeg": 170.53,
+              "declaredDistances": {
+                "toraM": 2826,
+                "todaM": 3119,
+                "asdaM": 2826,
+                "ldaM": 2557
+              }
+            },
+            {
+              "designator": "35",
+              "trueBearingDeg": 350.54,
+              "declaredDistances": {
+                "toraM": 2795,
+                "todaM": 3095,
+                "asdaM": 2795,
+                "ldaM": 2525
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBR",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBR",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBR",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBR",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBR-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBV",
+      "name": "BERLEVÅG",
+      "arpPosition": {
+        "latitude": 70.87138888888889,
+        "longitude": 29.034166666666668
+      },
+      "elevationFt": 43,
+      "runways": [
+        {
+          "identifier": "06/24",
+          "lengthM": 1029,
+          "directions": [
+            {
+              "designator": "06",
+              "trueBearingDeg": 74.76,
+              "declaredDistances": {
+                "toraM": 879,
+                "todaM": 1059,
+                "asdaM": 879,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "24",
+              "trueBearingDeg": 254.79,
+              "declaredDistances": {
+                "toraM": 890,
+                "todaM": 1070,
+                "asdaM": 890,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBV",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBV",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBV",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBV",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBV-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBO",
+      "name": "BODØ",
+      "arpPosition": {
+        "latitude": 67.26916666666666,
+        "longitude": 14.365277777777777
+      },
+      "elevationFt": 44,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 2794,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 77.8,
+              "declaredDistances": {
+                "toraM": 2794,
+                "todaM": 3063,
+                "asdaM": 2794,
+                "ldaM": 2794
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 257.85,
+              "declaredDistances": {
+                "toraM": 2794,
+                "todaM": 2794,
+                "asdaM": 2794,
+                "ldaM": 2794
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBO",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBO",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBO",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBO",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBO-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBN",
+      "name": "BRØNNØYSUND / Brønnøy",
+      "arpPosition": {
+        "latitude": 65.46111111111111,
+        "longitude": 12.2175
+      },
+      "elevationFt": 26,
+      "runways": [
+        {
+          "identifier": "03/21",
+          "lengthM": 1438,
+          "directions": [
+            {
+              "designator": "03",
+              "trueBearingDeg": 38.81,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1199,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            },
+            {
+              "designator": "21",
+              "trueBearingDeg": 218.82,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1560,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBN",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBN",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBN",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBN",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBN-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBS",
+      "name": "BÅTSFJORD",
+      "arpPosition": {
+        "latitude": 70.60027777777778,
+        "longitude": 29.6925
+      },
+      "elevationFt": 490,
+      "runways": [
+        {
+          "identifier": "03/21",
+          "lengthM": 1000,
+          "directions": [
+            {
+              "designator": "03",
+              "trueBearingDeg": 44.02,
+              "declaredDistances": {
+                "toraM": 940,
+                "todaM": 1120,
+                "asdaM": 940,
+                "ldaM": 940
+              }
+            },
+            {
+              "designator": "21",
+              "trueBearingDeg": 224.03,
+              "declaredDistances": {
+                "toraM": 895,
+                "todaM": 1120,
+                "asdaM": 895,
+                "ldaM": 895
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBS",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBS",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBS",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBS",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBS-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENFL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENFL",
+      "name": "FLORØ",
+      "arpPosition": {
+        "latitude": 61.58361111111111,
+        "longitude": 5.0247222222222225
+      },
+      "elevationFt": 37,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 1263,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 70.89,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1199,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 250.91,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1199,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENFL",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENFL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENFL",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENFL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENFL",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENFL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENFL",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENFL-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENBL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENBL",
+      "name": "FØRDE / Bringeland",
+      "arpPosition": {
+        "latitude": 61.39111111111111,
+        "longitude": 5.756944444444445
+      },
+      "elevationFt": 1045,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 1110,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 73.83,
+              "declaredDistances": {
+                "toraM": 931,
+                "todaM": 1111,
+                "asdaM": 931,
+                "ldaM": 870
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 253.85,
+              "declaredDistances": {
+                "toraM": 980,
+                "todaM": 1160,
+                "asdaM": 980,
+                "ldaM": 890
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENBL",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBL",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBL",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENBL",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENBL-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHF",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENHF",
+      "name": "HAMMERFEST",
+      "arpPosition": {
+        "latitude": 70.67972222222222,
+        "longitude": 23.66861111111111
+      },
+      "elevationFt": 263,
+      "runways": [
+        {
+          "identifier": "04/22",
+          "lengthM": 933,
+          "directions": [
+            {
+              "designator": "04",
+              "trueBearingDeg": 55.94,
+              "declaredDistances": {
+                "toraM": 891,
+                "todaM": 891,
+                "asdaM": 891,
+                "ldaM": 850
+              }
+            },
+            {
+              "designator": "22",
+              "trueBearingDeg": 235.96,
+              "declaredDistances": {
+                "toraM": 867,
+                "todaM": 867,
+                "asdaM": 867,
+                "ldaM": 824
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENEV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENEV",
+      "name": "HARSTAD/NARVIK / Evenes",
+      "arpPosition": {
+        "latitude": 68.4888888888889,
+        "longitude": 16.678333333333335
+      },
+      "elevationFt": 85,
+      "runways": [
+        {
+          "identifier": "17/35",
+          "lengthM": 2812,
+          "directions": [
+            {
+              "designator": "17",
+              "trueBearingDeg": 177.6,
+              "declaredDistances": {
+                "toraM": 2812,
+                "todaM": 3092,
+                "asdaM": 2812,
+                "ldaM": 2718
+              }
+            },
+            {
+              "designator": "35",
+              "trueBearingDeg": 357.6,
+              "declaredDistances": {
+                "toraM": 2812,
+                "todaM": 3050,
+                "asdaM": 2812,
+                "ldaM": 2752
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENEV",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEV",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEV",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEV",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEV-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENHK",
+      "name": "HASVIK",
+      "arpPosition": {
+        "latitude": 70.48666666666666,
+        "longitude": 22.139722222222222
+      },
+      "elevationFt": 23,
+      "runways": [
+        {
+          "identifier": "11/29",
+          "lengthM": 1039,
+          "directions": [
+            {
+              "designator": "11",
+              "trueBearingDeg": 118.84,
+              "declaredDistances": {
+                "toraM": 859,
+                "todaM": 1039,
+                "asdaM": 859,
+                "ldaM": 819
+              }
+            },
+            {
+              "designator": "29",
+              "trueBearingDeg": 298.86,
+              "declaredDistances": {
+                "toraM": 909,
+                "todaM": 1228,
+                "asdaM": 909,
+                "ldaM": 799
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENHK",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHK",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHK",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHK",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHK-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENHD",
+      "name": "HAUGESUND / Karmøy",
+      "arpPosition": {
+        "latitude": 59.343333333333334,
+        "longitude": 5.2125
+      },
+      "elevationFt": 87,
+      "runways": [
+        {
+          "identifier": "13/31",
+          "lengthM": 2120,
+          "directions": [
+            {
+              "designator": "13",
+              "trueBearingDeg": 134.29,
+              "declaredDistances": {
+                "toraM": 2061,
+                "todaM": 2361,
+                "asdaM": 2061,
+                "ldaM": 2000
+              }
+            },
+            {
+              "designator": "31",
+              "trueBearingDeg": 314.32,
+              "declaredDistances": {
+                "toraM": 2060,
+                "todaM": 2360,
+                "asdaM": 2060,
+                "ldaM": 2000
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENHD",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHD",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHD",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHD",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHD-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENHV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENHV",
+      "name": "HONNINGSVÅG / Valan",
+      "arpPosition": {
+        "latitude": 71.00972222222222,
+        "longitude": 25.983611111111113
+      },
+      "elevationFt": 45,
+      "runways": [
+        {
+          "identifier": "08/26",
+          "lengthM": 921,
+          "directions": [
+            {
+              "designator": "08",
+              "trueBearingDeg": 90.5,
+              "declaredDistances": {
+                "toraM": 860,
+                "todaM": 860,
+                "asdaM": 860,
+                "ldaM": 800
+              }
+            },
+            {
+              "designator": "26",
+              "trueBearingDeg": 270.53,
+              "declaredDistances": {
+                "toraM": 860,
+                "todaM": 860,
+                "asdaM": 860,
+                "ldaM": 800
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENHV",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHV",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHV",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENHV",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHV-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENEG",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENEG",
+      "name": "HØNEFOSS / Eggemoen",
+      "arpPosition": {
+        "latitude": 60.21388888888889,
+        "longitude": 10.317222222222222
+      },
+      "elevationFt": 654,
+      "runways": [
+        {
+          "identifier": "04/22",
+          "lengthM": 1765,
+          "directions": [
+            {
+              "designator": "04",
+              "trueBearingDeg": 40.81,
+              "declaredDistances": {
+                "toraM": 1765,
+                "todaM": 1765,
+                "asdaM": 1765,
+                "ldaM": 1765
+              }
+            },
+            {
+              "designator": "22",
+              "trueBearingDeg": 220.83,
+              "declaredDistances": {
+                "toraM": 1765,
+                "todaM": 1765,
+                "asdaM": 1765,
+                "ldaM": 1765
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENEG",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEG",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEG",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENEG",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENEG-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENKR",
+      "name": "KIRKENES / Høybuktmoen",
+      "arpPosition": {
+        "latitude": 69.72500000000001,
+        "longitude": 29.887777777777778
+      },
+      "elevationFt": 285,
+      "runways": [
+        {
+          "identifier": "05/23",
+          "lengthM": 2355,
+          "directions": [
+            {
+              "designator": "05",
+              "trueBearingDeg": 69.04,
+              "declaredDistances": {
+                "toraM": 2195,
+                "todaM": 2195,
+                "asdaM": 2195,
+                "ldaM": 2045
+              }
+            },
+            {
+              "designator": "23",
+              "trueBearingDeg": 249.08,
+              "declaredDistances": {
+                "toraM": 2205,
+                "todaM": 2385,
+                "asdaM": 2205,
+                "ldaM": 1905
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENKR",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKR",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKR",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKR",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKR-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENCN",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENCN",
+      "name": "KRISTIANSAND / Kjevik",
+      "arpPosition": {
+        "latitude": 58.20388888888889,
+        "longitude": 8.085
+      },
+      "elevationFt": 57,
+      "runways": [
+        {
+          "identifier": "03/21",
+          "lengthM": 2036,
+          "directions": [
+            {
+              "designator": "03",
+              "trueBearingDeg": 34.99,
+              "declaredDistances": {
+                "toraM": 1987,
+                "todaM": 2160,
+                "asdaM": 1987,
+                "ldaM": 1920
+              }
+            },
+            {
+              "designator": "21",
+              "trueBearingDeg": 215.01,
+              "declaredDistances": {
+                "toraM": 1969,
+                "todaM": 2144,
+                "asdaM": 1969,
+                "ldaM": 1870
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENCN",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENCN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENCN",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENCN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENCN",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENCN-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENCN",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENCN-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKB",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENKB",
+      "name": "KRISTIANSUND / Kvernberget",
+      "arpPosition": {
+        "latitude": 63.11194444444445,
+        "longitude": 7.826111111111111
+      },
+      "elevationFt": 205,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 2393,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 71.36,
+              "declaredDistances": {
+                "toraM": 2083,
+                "todaM": 2383,
+                "asdaM": 2083,
+                "ldaM": 2001
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 251.4,
+              "declaredDistances": {
+                "toraM": 2071,
+                "todaM": 2371,
+                "asdaM": 2071,
+                "ldaM": 2001
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENKB",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKB",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKB",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKB",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKB-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENNA",
+      "name": "LAKSELV / Banak",
+      "arpPosition": {
+        "latitude": 70.06666666666666,
+        "longitude": 24.973888888888887
+      },
+      "elevationFt": 26,
+      "runways": [
+        {
+          "identifier": "16/34",
+          "lengthM": 2785,
+          "directions": [
+            {
+              "designator": "16",
+              "trueBearingDeg": 175.42,
+              "declaredDistances": {
+                "toraM": 2785,
+                "todaM": 2989,
+                "asdaM": 2785,
+                "ldaM": 2694
+              }
+            },
+            {
+              "designator": "34",
+              "trueBearingDeg": 355.43,
+              "declaredDistances": {
+                "toraM": 2694,
+                "todaM": 4041,
+                "asdaM": 2694,
+                "ldaM": 2604
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENNA",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNA",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNA",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNA",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNA-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRE",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRE",
+      "name": "LANDSØRKJE / Rena",
+      "arpPosition": {
+        "latitude": 61.18611111111111,
+        "longitude": 11.374444444444444
+      },
+      "elevationFt": 828,
+      "runways": [
+        {
+          "identifier": "12/30",
+          "lengthM": 1300,
+          "directions": [
+            {
+              "designator": "12",
+              "trueBearingDeg": 128.54,
+              "declaredDistances": {
+                "toraM": 1120,
+                "todaM": 1120,
+                "asdaM": 1120,
+                "ldaM": 1120
+              }
+            },
+            {
+              "designator": "30",
+              "trueBearingDeg": 308.55,
+              "declaredDistances": {
+                "toraM": 1120,
+                "todaM": 1120,
+                "asdaM": 1120,
+                "ldaM": 1120
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRE",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRE-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRE",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRE-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRE",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRE-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRE",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRE-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENLK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENLK",
+      "name": "LEKNES",
+      "arpPosition": {
+        "latitude": 68.1525,
+        "longitude": 13.609444444444444
+      },
+      "elevationFt": 80,
+      "runways": [
+        {
+          "identifier": "02/20",
+          "lengthM": 1071,
+          "directions": [
+            {
+              "designator": "02",
+              "trueBearingDeg": 27.6,
+              "declaredDistances": {
+                "toraM": 891,
+                "todaM": 1071,
+                "asdaM": 891,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "20",
+              "trueBearingDeg": 207.61,
+              "declaredDistances": {
+                "toraM": 891,
+                "todaM": 1071,
+                "asdaM": 891,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENLK",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENLK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENLK",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENLK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENLK",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENLK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENLK",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENLK-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENKJ",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENKJ",
+      "name": "LILLESTRØM / Kjeller",
+      "arpPosition": {
+        "latitude": 59.96944444444445,
+        "longitude": 11.03888888888889
+      },
+      "elevationFt": 354,
+      "runways": [
+        {
+          "identifier": "12/30",
+          "lengthM": 1357,
+          "directions": [
+            {
+              "designator": "12",
+              "trueBearingDeg": 122.74,
+              "declaredDistances": {
+                "toraM": 1350,
+                "todaM": 1350,
+                "asdaM": 1350,
+                "ldaM": 1350
+              }
+            },
+            {
+              "designator": "30",
+              "trueBearingDeg": 302.75,
+              "declaredDistances": {
+                "toraM": 1350,
+                "todaM": 1350,
+                "asdaM": 1350,
+                "ldaM": 1350
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENKJ",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKJ-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKJ",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKJ-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKJ",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKJ-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENKJ",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENKJ-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENMH",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENMH",
+      "name": "MEHAMN",
+      "arpPosition": {
+        "latitude": 71.02972222222222,
+        "longitude": 27.826666666666668
+      },
+      "elevationFt": 43,
+      "runways": [
+        {
+          "identifier": "17/35",
+          "lengthM": 970,
+          "directions": [
+            {
+              "designator": "17",
+              "trueBearingDeg": 182.37,
+              "declaredDistances": {
+                "toraM": 880,
+                "todaM": 1060,
+                "asdaM": 880,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "35",
+              "trueBearingDeg": 2.37,
+              "declaredDistances": {
+                "toraM": 890,
+                "todaM": 1070,
+                "asdaM": 890,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENMH",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMH",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMH",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMH",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMH-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRA",
+      "name": "MO I RANA / Røssvoll",
+      "arpPosition": {
+        "latitude": 66.36388888888888,
+        "longitude": 14.301388888888889
+      },
+      "elevationFt": 230,
+      "runways": [
+        {
+          "identifier": "13/31",
+          "lengthM": 872,
+          "directions": [
+            {
+              "designator": "13",
+              "trueBearingDeg": 139.78,
+              "declaredDistances": {
+                "toraM": 836,
+                "todaM": 836,
+                "asdaM": 836,
+                "ldaM": 801
+              }
+            },
+            {
+              "designator": "31",
+              "trueBearingDeg": 319.79,
+              "declaredDistances": {
+                "toraM": 837,
+                "todaM": 837,
+                "asdaM": 837,
+                "ldaM": 801
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRA",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRA",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRA",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRA",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRA-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENML",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENML",
+      "name": "MOLDE / Årø",
+      "arpPosition": {
+        "latitude": 62.74472222222222,
+        "longitude": 7.2625
+      },
+      "elevationFt": 10,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 2221,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 70.98,
+              "declaredDistances": {
+                "toraM": 2121,
+                "todaM": 2421,
+                "asdaM": 2121,
+                "ldaM": 1981
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 251.02,
+              "declaredDistances": {
+                "toraM": 2081,
+                "todaM": 2381,
+                "asdaM": 2081,
+                "ldaM": 1981
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENML",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENML-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENML",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENML-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENML",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENML-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENML",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENML-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENMS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENMS",
+      "name": "MOSJØEN / Kjærstad",
+      "arpPosition": {
+        "latitude": 65.78361111111111,
+        "longitude": 13.215277777777777
+      },
+      "elevationFt": 241,
+      "runways": [
+        {
+          "identifier": "15/33",
+          "lengthM": 1020,
+          "directions": [
+            {
+              "designator": "15",
+              "trueBearingDeg": 160.54,
+              "declaredDistances": {
+                "toraM": 890,
+                "todaM": 1090,
+                "asdaM": 890,
+                "ldaM": 829
+              }
+            },
+            {
+              "designator": "33",
+              "trueBearingDeg": 340.54,
+              "declaredDistances": {
+                "toraM": 869,
+                "todaM": 1148,
+                "asdaM": 869,
+                "ldaM": 829
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENMS",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMS",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMS",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENMS",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENMS-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENNM",
+      "name": "NAMSOS",
+      "arpPosition": {
+        "latitude": 64.47222222222223,
+        "longitude": 11.57861111111111
+      },
+      "elevationFt": 8,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 937,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 74.54,
+              "declaredDistances": {
+                "toraM": 814,
+                "todaM": 937,
+                "asdaM": 814,
+                "ldaM": 799
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 254.56,
+              "declaredDistances": {
+                "toraM": 833,
+                "todaM": 937,
+                "asdaM": 833,
+                "ldaM": 797
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENNM",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNM",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNM",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNM",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNM-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENNO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENNO",
+      "name": "NOTODDEN",
+      "arpPosition": {
+        "latitude": 59.565555555555555,
+        "longitude": 9.212222222222222
+      },
+      "elevationFt": 62,
+      "runways": [
+        {
+          "identifier": "12/30",
+          "lengthM": 1721,
+          "directions": [
+            {
+              "designator": "12",
+              "trueBearingDeg": 127.05,
+              "declaredDistances": {
+                "toraM": 1541,
+                "todaM": 1841,
+                "asdaM": 1541,
+                "ldaM": 1511
+              }
+            },
+            {
+              "designator": "30",
+              "trueBearingDeg": 307.07,
+              "declaredDistances": {
+                "toraM": 1571,
+                "todaM": 1871,
+                "asdaM": 1571,
+                "ldaM": 1511
+              }
+            }
+          ]
+        },
+        {
+          "identifier": "12S/30S",
+          "lengthM": 1120,
+          "directions": [
+            {
+              "designator": "12S",
+              "trueBearingDeg": 127.05,
+              "declaredDistances": {
+                "toraM": 1060,
+                "todaM": 1240,
+                "asdaM": 1060,
+                "ldaM": 1000
+              }
+            },
+            {
+              "designator": "30S",
+              "trueBearingDeg": 307.07,
+              "declaredDistances": {
+                "toraM": 1060,
+                "todaM": 1060,
+                "asdaM": 1060,
+                "ldaM": 1000
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENNO",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNO",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNO",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENNO",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENNO-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENAS",
+      "name": "NY-ÅLESUND / Hamnerabben",
+      "arpPosition": {
+        "latitude": 78.92777777777778,
+        "longitude": 11.874722222222223
+      },
+      "elevationFt": 131,
+      "runways": [
+        {
+          "identifier": "12/30",
+          "lengthM": 808,
+          "directions": [
+            {
+              "designator": "12",
+              "trueBearingDeg": 119.02,
+              "declaredDistances": {
+                "toraM": 868,
+                "todaM": 1302,
+                "asdaM": 868,
+                "ldaM": 808
+              }
+            },
+            {
+              "designator": "30",
+              "trueBearingDeg": 299.05,
+              "declaredDistances": {
+                "toraM": 868,
+                "todaM": 1302,
+                "asdaM": 868,
+                "ldaM": 808
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENAS",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAS",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAS",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAS",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAS-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENGM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENGM",
+      "name": "OSLO / Gardermoen",
+      "arpPosition": {
+        "latitude": 60.20277777777778,
+        "longitude": 11.08388888888889
+      },
+      "elevationFt": 682,
+      "runways": [
+        {
+          "identifier": "01L/19R",
+          "lengthM": 3600,
+          "directions": [
+            {
+              "designator": "01L",
+              "trueBearingDeg": 16.01,
+              "declaredDistances": {
+                "toraM": 3600,
+                "todaM": 3600,
+                "asdaM": 3600,
+                "ldaM": 3600
+              }
+            },
+            {
+              "designator": "19R",
+              "trueBearingDeg": 196.03,
+              "declaredDistances": {
+                "toraM": 3600,
+                "todaM": 3600,
+                "asdaM": 3600,
+                "ldaM": 3600
+              }
+            }
+          ]
+        },
+        {
+          "identifier": "01R/19L",
+          "lengthM": 2950,
+          "directions": [
+            {
+              "designator": "01R",
+              "trueBearingDeg": 16.04,
+              "declaredDistances": {
+                "toraM": 2950,
+                "todaM": 2950,
+                "asdaM": 2950,
+                "ldaM": 2950
+              }
+            },
+            {
+              "designator": "19L",
+              "trueBearingDeg": 196.06,
+              "declaredDistances": {
+                "toraM": 2950,
+                "todaM": 3350,
+                "asdaM": 2950,
+                "ldaM": 2950
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENGM",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGM",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGM",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENGM",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENGM-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRY",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRY",
+      "name": "RYGGE",
+      "arpPosition": {
+        "latitude": 59.37888888888889,
+        "longitude": 10.785555555555556
+      },
+      "elevationFt": 174,
+      "runways": [
+        {
+          "identifier": "12/30",
+          "lengthM": 2989,
+          "directions": [
+            {
+              "designator": "12",
+              "trueBearingDeg": 116.79,
+              "declaredDistances": {
+                "toraM": 2716,
+                "todaM": 2962,
+                "asdaM": 2716,
+                "ldaM": 2443
+              }
+            },
+            {
+              "designator": "30",
+              "trueBearingDeg": 296.82,
+              "declaredDistances": {
+                "toraM": 2716,
+                "todaM": 2776,
+                "asdaM": 2716,
+                "ldaM": 2443
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRY",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRY-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRY",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRY-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRY",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRY-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRY",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRY-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRO",
+      "name": "RØROS",
+      "arpPosition": {
+        "latitude": 62.57888888888889,
+        "longitude": 11.345
+      },
+      "elevationFt": 2054,
+      "runways": [
+        {
+          "identifier": "13/31",
+          "lengthM": 1720,
+          "directions": [
+            {
+              "designator": "13",
+              "trueBearingDeg": 136.07,
+              "declaredDistances": {
+                "toraM": 1640,
+                "todaM": 1720,
+                "asdaM": 1640,
+                "ldaM": 1580
+              }
+            },
+            {
+              "designator": "31",
+              "trueBearingDeg": 316.09,
+              "declaredDistances": {
+                "toraM": 1580,
+                "todaM": 1580,
+                "asdaM": 1580,
+                "ldaM": 1580
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRO",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRO",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRO",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRO",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRO-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRM",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRM",
+      "name": "RØRVIK / Ryum",
+      "arpPosition": {
+        "latitude": 64.83833333333332,
+        "longitude": 11.14611111111111
+      },
+      "elevationFt": 15,
+      "runways": [
+        {
+          "identifier": "04/22",
+          "lengthM": 952,
+          "directions": [
+            {
+              "designator": "04",
+              "trueBearingDeg": 41.32,
+              "declaredDistances": {
+                "toraM": 891,
+                "todaM": 891,
+                "asdaM": 891,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "22",
+              "trueBearingDeg": 221.33,
+              "declaredDistances": {
+                "toraM": 891,
+                "todaM": 891,
+                "asdaM": 891,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRM",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRM",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRM",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRM-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRM",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRM-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENRS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENRS",
+      "name": "RØST",
+      "arpPosition": {
+        "latitude": 67.52777777777777,
+        "longitude": 12.103333333333333
+      },
+      "elevationFt": 9,
+      "runways": [
+        {
+          "identifier": "02/20",
+          "lengthM": 1032,
+          "directions": [
+            {
+              "designator": "02",
+              "trueBearingDeg": 28.57,
+              "declaredDistances": {
+                "toraM": 870,
+                "todaM": 1030,
+                "asdaM": 870,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "20",
+              "trueBearingDeg": 208.58,
+              "declaredDistances": {
+                "toraM": 871,
+                "todaM": 1031,
+                "asdaM": 871,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENRS",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRS",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRS",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENRS",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENRS-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSD",
+      "name": "SANDANE / Anda",
+      "arpPosition": {
+        "latitude": 61.830000000000005,
+        "longitude": 6.105833333333333
+      },
+      "elevationFt": 196,
+      "runways": [
+        {
+          "identifier": "08/26",
+          "lengthM": 970,
+          "directions": [
+            {
+              "designator": "08",
+              "trueBearingDeg": 84.41,
+              "declaredDistances": {
+                "toraM": 820,
+                "todaM": 1013,
+                "asdaM": 820,
+                "ldaM": 760
+              }
+            },
+            {
+              "designator": "26",
+              "trueBearingDeg": 264.42,
+              "declaredDistances": {
+                "toraM": 820,
+                "todaM": 948,
+                "asdaM": 820,
+                "ldaM": 760
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSD",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSD",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSD",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSD",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSD-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENTO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENTO",
+      "name": "SANDEFJORD / Torp",
+      "arpPosition": {
+        "latitude": 59.18666666666666,
+        "longitude": 10.258611111111112
+      },
+      "elevationFt": 286,
+      "runways": [
+        {
+          "identifier": "17/35",
+          "lengthM": 2810,
+          "directions": [
+            {
+              "designator": "17",
+              "trueBearingDeg": 179.32,
+              "declaredDistances": {
+                "toraM": 2589,
+                "todaM": 2859,
+                "asdaM": 2589,
+                "ldaM": 2450
+              }
+            },
+            {
+              "designator": "35",
+              "trueBearingDeg": 359.32,
+              "declaredDistances": {
+                "toraM": 2670,
+                "todaM": 2940,
+                "asdaM": 2670,
+                "ldaM": 2450
+              }
+            }
+          ]
+        },
+        {
+          "identifier": "18/36",
+          "lengthM": 2809,
+          "directions": [
+            {
+              "designator": "18",
+              "trueBearingDeg": 179.32,
+              "declaredDistances": {
+                "toraM": 2589,
+                "todaM": 2859,
+                "asdaM": 2589,
+                "ldaM": 2449
+              }
+            },
+            {
+              "designator": "36",
+              "trueBearingDeg": 359.32,
+              "declaredDistances": {
+                "toraM": 2669,
+                "todaM": 2939,
+                "asdaM": 2669,
+                "ldaM": 2449
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENTO",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTO",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTO",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTO",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTO-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENST",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENST",
+      "name": "SANDNESSJØEN / Stokka",
+      "arpPosition": {
+        "latitude": 65.95972222222223,
+        "longitude": 12.472222222222223
+      },
+      "elevationFt": 58,
+      "runways": [
+        {
+          "identifier": "02/20",
+          "lengthM": 1408,
+          "directions": [
+            {
+              "designator": "02",
+              "trueBearingDeg": 24.78,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1414,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            },
+            {
+              "designator": "20",
+              "trueBearingDeg": 204.79,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1516,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENST",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENST-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENST",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENST-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENST",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENST-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENST",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENST-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSG",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSG",
+      "name": "SOGNDAL / Haukåsen",
+      "arpPosition": {
+        "latitude": 61.15611111111111,
+        "longitude": 7.137777777777778
+      },
+      "elevationFt": 1633,
+      "runways": [
+        {
+          "identifier": "06/24",
+          "lengthM": 1110,
+          "directions": [
+            {
+              "designator": "06",
+              "trueBearingDeg": 59.29,
+              "declaredDistances": {
+                "toraM": 930,
+                "todaM": 1110,
+                "asdaM": 930,
+                "ldaM": 870
+              }
+            },
+            {
+              "designator": "24",
+              "trueBearingDeg": 239.33,
+              "declaredDistances": {
+                "toraM": 1001,
+                "todaM": 1224,
+                "asdaM": 1001,
+                "ldaM": 871
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSG",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSG",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSG",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSG-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSG",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSG-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENZV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENZV",
+      "name": "STAVANGER / Sola",
+      "arpPosition": {
+        "latitude": 58.876666666666665,
+        "longitude": 5.637777777777777
+      },
+      "elevationFt": 30,
+      "runways": [
+        {
+          "identifier": "10/28",
+          "lengthM": 2452,
+          "directions": [
+            {
+              "designator": "10",
+              "trueBearingDeg": 106.29,
+              "declaredDistances": {
+                "toraM": 2299,
+                "todaM": 2449,
+                "asdaM": 2299,
+                "ldaM": 2199
+              }
+            },
+            {
+              "designator": "28",
+              "trueBearingDeg": 286.32,
+              "declaredDistances": {
+                "toraM": 2202,
+                "todaM": 2502,
+                "asdaM": 2202,
+                "ldaM": 2049
+              }
+            }
+          ]
+        },
+        {
+          "identifier": "18/36",
+          "lengthM": 2705,
+          "directions": [
+            {
+              "designator": "18",
+              "trueBearingDeg": 179.11,
+              "declaredDistances": {
+                "toraM": 2556,
+                "todaM": 2826,
+                "asdaM": 2556,
+                "ldaM": 2496
+              }
+            },
+            {
+              "designator": "36",
+              "trueBearingDeg": 359.11,
+              "declaredDistances": {
+                "toraM": 2555,
+                "todaM": 2855,
+                "asdaM": 2555,
+                "ldaM": 2406
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENZV",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENZV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENZV",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENZV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENZV",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENZV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENZV",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENZV-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSK",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSK",
+      "name": "STOKMARKNES / Skagen",
+      "arpPosition": {
+        "latitude": 68.58083333333333,
+        "longitude": 15.026111111111112
+      },
+      "elevationFt": 14,
+      "runways": [
+        {
+          "identifier": "08/26",
+          "lengthM": 924,
+          "directions": [
+            {
+              "designator": "08",
+              "trueBearingDeg": 91.4,
+              "declaredDistances": {
+                "toraM": 889,
+                "todaM": 889,
+                "asdaM": 889,
+                "ldaM": 829
+              }
+            },
+            {
+              "designator": "26",
+              "trueBearingDeg": 271.42,
+              "declaredDistances": {
+                "toraM": 833,
+                "todaM": 833,
+                "asdaM": 833,
+                "ldaM": 798
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSK",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSK",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSK",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSK-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSK",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSK-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSO",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSO",
+      "name": "STORD / Sørstokken",
+      "arpPosition": {
+        "latitude": 59.79277777777778,
+        "longitude": 5.339722222222222
+      },
+      "elevationFt": 161,
+      "runways": [
+        {
+          "identifier": "14/32",
+          "lengthM": 1460,
+          "directions": [
+            {
+              "designator": "14",
+              "trueBearingDeg": 144.78,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1798,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            },
+            {
+              "designator": "32",
+              "trueBearingDeg": 324.79,
+              "declaredDistances": {
+                "toraM": 1199,
+                "todaM": 1798,
+                "asdaM": 1199,
+                "ldaM": 1199
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSO",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSO",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSO",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSO-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSO",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSO-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSB",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSB",
+      "name": "SVALBARD / Longyear",
+      "arpPosition": {
+        "latitude": 78.2461111111111,
+        "longitude": 15.465555555555556
+      },
+      "elevationFt": 94,
+      "runways": [
+        {
+          "identifier": "09/27",
+          "lengthM": 2477,
+          "directions": [
+            {
+              "designator": "09",
+              "trueBearingDeg": 105.32,
+              "declaredDistances": {
+                "toraM": 2207,
+                "todaM": 2507,
+                "asdaM": 2207,
+                "ldaM": 1988
+              }
+            },
+            {
+              "designator": "27",
+              "trueBearingDeg": 285.41,
+              "declaredDistances": {
+                "toraM": 2258,
+                "todaM": 2558,
+                "asdaM": 2258,
+                "ldaM": 2138
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSB",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSB",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSB",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSB-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSB",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSB-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSH",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSH",
+      "name": "SVOLVÆR / Helle",
+      "arpPosition": {
+        "latitude": 68.24333333333334,
+        "longitude": 14.669166666666666
+      },
+      "elevationFt": 29,
+      "runways": [
+        {
+          "identifier": "18/36",
+          "lengthM": 949,
+          "directions": [
+            {
+              "designator": "18",
+              "trueBearingDeg": 192.48,
+              "declaredDistances": {
+                "toraM": 847,
+                "todaM": 948,
+                "asdaM": 847,
+                "ldaM": 776
+              }
+            },
+            {
+              "designator": "36",
+              "trueBearingDeg": 12.47,
+              "declaredDistances": {
+                "toraM": 878,
+                "todaM": 1018,
+                "asdaM": 878,
+                "ldaM": 807
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSH",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSH",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSH",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSH-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSH",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSH-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSR",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSR",
+      "name": "SØRKJOSEN",
+      "arpPosition": {
+        "latitude": 69.78666666666666,
+        "longitude": 20.959722222222222
+      },
+      "elevationFt": 16,
+      "runways": [
+        {
+          "identifier": "14/32",
+          "lengthM": 1014,
+          "directions": [
+            {
+              "designator": "14",
+              "trueBearingDeg": 154.11,
+              "declaredDistances": {
+                "toraM": 861,
+                "todaM": 861,
+                "asdaM": 861,
+                "ldaM": 799
+              }
+            },
+            {
+              "designator": "32",
+              "trueBearingDeg": 334.12,
+              "declaredDistances": {
+                "toraM": 862,
+                "todaM": 862,
+                "asdaM": 862,
+                "ldaM": 799
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSR",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSR",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSR",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSR-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSR",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSR-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENTC",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENTC",
+      "name": "TROMSØ / Langnes",
+      "arpPosition": {
+        "latitude": 69.68138888888889,
+        "longitude": 18.91777777777778
+      },
+      "elevationFt": 32,
+      "runways": [
+        {
+          "identifier": "18/36",
+          "lengthM": 2451,
+          "directions": [
+            {
+              "designator": "18",
+              "trueBearingDeg": 193.06,
+              "declaredDistances": {
+                "toraM": 2395,
+                "todaM": 2695,
+                "asdaM": 2395,
+                "ldaM": 2004
+              }
+            },
+            {
+              "designator": "36",
+              "trueBearingDeg": 13.05,
+              "declaredDistances": {
+                "toraM": 2451,
+                "todaM": 2621,
+                "asdaM": 2451,
+                "ldaM": 2395
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENTC",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTC-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTC",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTC-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTC",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTC-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENTC",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENTC-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENVA",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENVA",
+      "name": "TRONDHEIM / Værnes",
+      "arpPosition": {
+        "latitude": 63.4575,
+        "longitude": 10.924166666666666
+      },
+      "elevationFt": 64,
+      "runways": [
+        {
+          "identifier": "09/27",
+          "lengthM": 2996,
+          "directions": [
+            {
+              "designator": "09",
+              "trueBearingDeg": 90.21,
+              "declaredDistances": {
+                "toraM": 2694,
+                "todaM": 3054,
+                "asdaM": 2694,
+                "ldaM": 2447
+              }
+            },
+            {
+              "designator": "27",
+              "trueBearingDeg": 270.25,
+              "declaredDistances": {
+                "toraM": 2701,
+                "todaM": 3001,
+                "asdaM": 2701,
+                "ldaM": 2469
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENVA",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVA",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVA",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVA-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVA",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVA-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENVD",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENVD",
+      "name": "VADSØ",
+      "arpPosition": {
+        "latitude": 70.06527777777778,
+        "longitude": 29.84472222222222
+      },
+      "elevationFt": 129,
+      "runways": [
+        {
+          "identifier": "07/25",
+          "lengthM": 999,
+          "directions": [
+            {
+              "designator": "07",
+              "trueBearingDeg": 87.41,
+              "declaredDistances": {
+                "toraM": 871,
+                "todaM": 1051,
+                "asdaM": 871,
+                "ldaM": 830
+              }
+            },
+            {
+              "designator": "25",
+              "trueBearingDeg": 267.43,
+              "declaredDistances": {
+                "toraM": 871,
+                "todaM": 1051,
+                "asdaM": 871,
+                "ldaM": 830
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENVD",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVD",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVD",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVD-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENVD",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENVD-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENSS",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENSS",
+      "name": "VARDØ / Svartnes",
+      "arpPosition": {
+        "latitude": 70.35527777777777,
+        "longitude": 31.045
+      },
+      "elevationFt": 42,
+      "runways": [
+        {
+          "identifier": "15/33",
+          "lengthM": 1146,
+          "directions": [
+            {
+              "designator": "15",
+              "trueBearingDeg": 163.28,
+              "declaredDistances": {
+                "toraM": 966,
+                "todaM": 1146,
+                "asdaM": 966,
+                "ldaM": 905
+              }
+            },
+            {
+              "designator": "33",
+              "trueBearingDeg": 343.29,
+              "declaredDistances": {
+                "toraM": 966,
+                "todaM": 1154,
+                "asdaM": 966,
+                "ldaM": 905
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENSS",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSS",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSS",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSS-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENSS",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENSS-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENOL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENOL",
+      "name": "ØRLAND",
+      "arpPosition": {
+        "latitude": 63.7,
+        "longitude": 9.602777777777778
+      },
+      "elevationFt": 30,
+      "runways": [
+        {
+          "identifier": "15/33",
+          "lengthM": 3278,
+          "directions": [
+            {
+              "designator": "15",
+              "trueBearingDeg": 154.03,
+              "declaredDistances": {
+                "toraM": 3278,
+                "todaM": 3371,
+                "asdaM": 3278,
+                "ldaM": 3142
+              }
+            },
+            {
+              "designator": "33",
+              "trueBearingDeg": 334.05,
+              "declaredDistances": {
+                "toraM": 3278,
+                "todaM": 3313,
+                "asdaM": 3278,
+                "ldaM": 3137
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENOL",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOL",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOL",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOL",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOL-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENOV",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENOV",
+      "name": "ØRSTA-VOLDA / Hovden",
+      "arpPosition": {
+        "latitude": 62.18,
+        "longitude": 6.074166666666667
+      },
+      "elevationFt": 243,
+      "runways": [
+        {
+          "identifier": "06/24",
+          "lengthM": 1071,
+          "directions": [
+            {
+              "designator": "06",
+              "trueBearingDeg": 60.27,
+              "declaredDistances": {
+                "toraM": 951,
+                "todaM": 1131,
+                "asdaM": 951,
+                "ldaM": 890
+              }
+            },
+            {
+              "designator": "24",
+              "trueBearingDeg": 240.29,
+              "declaredDistances": {
+                "toraM": 951,
+                "todaM": 1131,
+                "asdaM": 951,
+                "ldaM": 890
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENOV",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOV",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOV",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOV-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENOV",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENOV-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENAL",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENAL",
+      "name": "ÅLESUND / Vigra",
+      "arpPosition": {
+        "latitude": 62.5625,
+        "longitude": 6.119722222222221
+      },
+      "elevationFt": 70,
+      "runways": [
+        {
+          "identifier": "06/24",
+          "lengthM": 2314,
+          "directions": [
+            {
+              "designator": "06",
+              "trueBearingDeg": 64.64,
+              "declaredDistances": {
+                "toraM": 2164,
+                "todaM": 2314,
+                "asdaM": 2164,
+                "ldaM": 2014
+              }
+            },
+            {
+              "designator": "24",
+              "trueBearingDeg": 244.67,
+              "declaredDistances": {
+                "toraM": 2314,
+                "todaM": 2359,
+                "asdaM": 2314,
+                "ldaM": 2083
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENAL",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAL",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAL",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENAL",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
         }
       ]
     }

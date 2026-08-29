@@ -14,6 +14,7 @@ export interface LegMapPopupProps {
   toWaypoint: Waypoint;
   plan: LegAltitudePlan | undefined;
   defaultAltitudeFtMsl: string;
+  isArrivalLeg: boolean;
   altitudeFocusRequest: number;
   onInsertWaypoint: () => void;
   onSetAltitude: (altitudeFtMsl: number | null) => void;
@@ -31,6 +32,7 @@ export function LegMapPopup({
   toWaypoint,
   plan,
   defaultAltitudeFtMsl,
+  isArrivalLeg,
   altitudeFocusRequest,
   onInsertWaypoint,
   onSetAltitude,
@@ -116,6 +118,12 @@ export function LegMapPopup({
         <strong>{fromWaypoint.name} → {toWaypoint.name}</strong>
         <span>Selected at {selection.distanceFromStartNm.toFixed(1)} NM</span>
       </div>
+      {isArrivalLeg ? (
+        <p className="leg-map-popup__arrival-note">
+          Arrival leg: set the planned altitude normally. The final descent to
+          the rounded pattern altitude is calculated automatically.
+        </p>
+      ) : null}
       <label>
         <span>Planned altitude</span>
         <span className="navigation-inputs__control">

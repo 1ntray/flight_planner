@@ -26,6 +26,7 @@ import type {
 } from './navigationInput';
 import { parsePerformanceInputDraft } from './performanceInput';
 import type {
+  PerformanceInputDefaults,
   PerformanceInputDraft,
   PerformanceInputParseResult,
 } from './performanceInput';
@@ -59,6 +60,7 @@ export interface UsePlanningCalculationsInput {
   aircraftDefinition: AircraftDefinition;
   navigationDraft: NavigationInputDraft;
   performanceDraft: PerformanceInputDraft;
+  performanceInputDefaults: PerformanceInputDefaults;
   operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
 }
@@ -69,6 +71,7 @@ export function usePlanningCalculations({
   aircraftDefinition,
   navigationDraft,
   performanceDraft,
+  performanceInputDefaults,
   operationalDraft,
   useForecastWinds,
 }: UsePlanningCalculationsInput): PlanningCalculations {
@@ -110,8 +113,14 @@ export function usePlanningCalculations({
       performanceDraft,
       flightPlan.sectorBoundaryWaypointIds ?? [],
       derivedMassKg,
+      performanceInputDefaults,
     ),
-    [derivedMassKg, flightPlan.sectorBoundaryWaypointIds, performanceDraft],
+    [
+      derivedMassKg,
+      flightPlan.sectorBoundaryWaypointIds,
+      performanceDraft,
+      performanceInputDefaults,
+    ],
   );
   const legacyPlanning = useMemo(() => {
     if (

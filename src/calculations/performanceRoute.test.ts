@@ -83,6 +83,42 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('keeps a custom final-leg planned altitude independent of the arrival pattern altitude', () => {
+    const result = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance: {
+        ...performance,
+        legAltitudePlans: [{
+          fromWaypointId: 'A',
+          toWaypointId: 'B',
+          altitudeFtMsl: 6500,
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      const finalLeg = result.legs[0]!;
+      const descentSteps = finalLeg.steps.filter(
+        ({ phase }) => phase === 'descent',
+      );
+
+      expect(finalLeg.targetAltitudeFtMsl).toBe(6500);
+      expect(finalLeg.endAltitudeFtMsl).toBe(1000);
+      expect(finalLeg.phases.map(({ phase }) => phase)).toEqual([
+        'climb',
+        'cruise',
+        'descent',
+      ]);
+      expect(descentSteps.at(-1)?.endDistanceFromLegNm).toBeCloseTo(
+        finalLeg.distanceNm,
+        6,
+      );
+    }
+  });
+
   it('uses varying TAS at every climb interval', () => {
     const result = calculatePerformanceRoute({
       flightPlan: longLeg,

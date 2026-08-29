@@ -48,4 +48,15 @@ describe('aeronautical repository configuration', () => {
       runways: [{ identifier: '10/28', lengthM: 2995 }],
     });
   });
+
+  it('loads every AD 2 aerodrome in the configured local dataset', async () => {
+    const features = await getConfiguredAeronauticalRepository('').queryFeatures({
+      bounds: { south: 50, west: -20, north: 85, east: 45 },
+      featureKinds: ['aerodrome'],
+    });
+
+    expect(features).toHaveLength(53);
+    expect(features.map((feature) => feature.identifier)).toContain('ENTC');
+    expect(features.map((feature) => feature.identifier)).toContain('ENVA');
+  });
 });

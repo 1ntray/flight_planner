@@ -15,6 +15,7 @@ import {
 import {
   calculateNearestPointOnGeodesicSegment,
   calculateNearestPointOnGeometry,
+  deriveFlightPlanSectors,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
 } from '../../calculations';
 import type { CalculatedPerformanceRoute } from '../../calculations';
@@ -537,6 +538,18 @@ export function FlightMap({
           plan.fromWaypointId === selectedLeg.candidate.fromWaypointId &&
           plan.toWaypointId === selectedLeg.candidate.toWaypointId,
       );
+  const selectedLegIsArrivalLeg =
+    selectedLeg !== null &&
+    deriveFlightPlanSectors(flightPlan).some((sector) => {
+      const waypoints = sector.flightPlan.waypoints;
+      const from = waypoints.at(-2);
+      const to = waypoints.at(-1);
+
+      return (
+        from?.id === selectedLeg.candidate.fromWaypointId &&
+        to?.id === selectedLeg.candidate.toWaypointId
+      );
+    });
   const toolFrom =
     tool.kind === 'place-altitude-target'
       ? flightPlan.waypoints.find(({ id }) => id === tool.fromWaypointId)
@@ -756,6 +769,7 @@ export function FlightMap({
             toWaypoint={selectedLegTo}
             plan={selectedLegPlan}
             defaultAltitudeFtMsl={defaultAltitudeFtMsl}
+            isArrivalLeg={selectedLegIsArrivalLeg}
             altitudeFocusRequest={altitudeFocusRequest}
             onInsertWaypoint={() => onInsertWaypoint(selectedLeg.candidate)}
             onSetAltitude={(altitudeFtMsl) =>

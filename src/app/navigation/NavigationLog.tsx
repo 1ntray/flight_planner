@@ -6,7 +6,10 @@ import { AircraftSelector } from './AircraftSelector';
 import { LegAltitudeControls } from './LegAltitudeControls';
 import { SectorStopControls } from './SectorStopControls';
 import type { AltitudePlacementLeg } from './altitudePlanState';
-import type { PerformanceInputDraft } from './performanceInput';
+import type {
+  PerformanceInputDefaults,
+  PerformanceInputDraft,
+} from './performanceInput';
 import type { OperationalInputDraft } from './operationalInput';
 import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
@@ -22,6 +25,7 @@ export interface NavigationLogProps {
   aircraftDefinition: AircraftDefinition;
   draft: NavigationInputDraft;
   performanceDraft: PerformanceInputDraft;
+  performanceInputDefaults: PerformanceInputDefaults;
   operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
   onDraftChange: (draft: NavigationInputDraft) => void;
@@ -40,6 +44,7 @@ export function NavigationLog({
   aircraftDefinition,
   draft,
   performanceDraft,
+  performanceInputDefaults,
   operationalDraft,
   useForecastWinds,
   onDraftChange,
@@ -245,6 +250,7 @@ export function NavigationLog({
 
       <AircraftPerformanceInputs
         draft={performanceDraft}
+        defaults={performanceInputDefaults}
         profile={aircraftDefinition.performance}
         {...(derivedTakeoffMassKg === null
           ? {}
@@ -259,6 +265,7 @@ export function NavigationLog({
         flightPlan={flightPlan}
         draft={performanceDraft}
         operationalDraft={operationalDraft}
+        defaults={performanceInputDefaults}
         onDraftChange={onPerformanceDraftChange}
         onOperationalDraftChange={onOperationalDraftChange}
       />

@@ -250,14 +250,14 @@ export function AeronauticalLayers({
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
-            <Popup>
-              <strong>{feature.identifier}</strong>
-              {feature.name === undefined ? null : <><br />{feature.name}</>}
-              <br />
-              {anchoringEnabled
-                ? 'Click the symbol to add an anchored waypoint'
-                : 'Switch to Add waypoint mode to use this feature'}
-            </Popup>
+            {anchoringEnabled ? null : (
+              <Popup>
+                <strong>{feature.identifier}</strong>
+                {feature.name === undefined ? null : <><br />{feature.name}</>}
+                <br />
+                Switch to Add waypoint mode to use this feature
+              </Popup>
+            )}
           </Marker>
         ))}
       </Pane>

@@ -668,6 +668,13 @@ kbd {
   background: #ffffff;
 }
 
+.leg-altitude-controls__arrival-note {
+  margin: 0;
+  color: #526175;
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+
 .leg-altitude-controls__row--end {
   padding-top: 0.35rem;
   border-top: 1px dashed #dbe3eb;
@@ -1106,6 +1113,15 @@ kbd {
   font-size: 0.68rem;
 }
 
+.leg-map-popup .leg-map-popup__arrival-note {
+  padding: 0.38rem 0.45rem;
+  border-left: 3px solid #247a51;
+  border-radius: 0.2rem;
+  background: #edf8f2;
+  color: #315d49;
+  line-height: 1.35;
+}
+
 .leg-map-popup label {
   display: grid;
   gap: 0.25rem;
@@ -1287,8 +1303,8 @@ kbd {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 1.15rem;
-  height: 0.18rem;
+  width: 2.25rem;
+  height: 0.32rem;
   border: 1px solid rgb(255 255 255 / 92%);
   border-radius: 999px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 42%);
@@ -1298,14 +1314,14 @@ kbd {
 
 .performance-boundary-marker__code {
   position: absolute;
-  top: -0.22rem;
+  top: -0.42rem;
   left: 50%;
-  padding: 0.03rem 0.18rem;
+  padding: 0.09rem 0.32rem;
   border: 1px solid rgb(255 255 255 / 82%);
   border-radius: 0.18rem;
   color: #ffffff;
   box-shadow: 0 1px 2px rgb(0 0 0 / 28%);
-  font-size: 0.45rem;
+  font-size: 0.68rem;
   font-weight: 850;
   line-height: 1.1;
   transform: translateX(-50%);
@@ -1327,7 +1343,7 @@ kbd {
   border-radius: 0.2rem;
   color: #ffffff;
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 750;
 }
 

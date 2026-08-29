@@ -4,7 +4,8 @@
   "version": "0.18.0",
   "type": "module",
   "scripts": {
-    "aero:import:endu": "tsx tools/aeronautical/avinor-eaip/cli.ts",
+    "aero:import": "tsx tools/aeronautical/avinor-eaip/cli.ts",
+    "aero:import:endu": "tsx tools/aeronautical/avinor-eaip/cli.ts --aerodrome ENDU",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",

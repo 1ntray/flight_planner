@@ -31,6 +31,29 @@ interface RunwaySourceRow {
   readonly lengthM: number | null;
 }
 
+function runwayDesignators(value: string): readonly string[] {
+  return value.match(/\d{2}[LCRS]?/g) ?? [];
+}
+
+function alignDirectionalValues<T>(
+  values: readonly T[],
+  designators: readonly string[],
+  valueName: string,
+  aipSection: string,
+): readonly T[] {
+  if (values.length === 1) {
+    return Array.from({ length: designators.length }, () => values[0] as T);
+  }
+  if (values.length === designators.length) {
+    return values;
+  }
+  return importerError(
+    'ambiguous-runway-value',
+    `Published ${valueName} values do not align with runway designators: ${designators.join(' ')}`,
+    aipSection,
+  );
+}
+
 function importerError(
   code: string,
   message: string,
@@ -70,10 +93,11 @@ function headerIndex(
 
 function tableWithHeader(
   $: CheerioAPI,
+  sourceAerodrome: string,
   aipSection: string,
   requiredColumns: readonly string[],
 ): { readonly rows: LogicalTable; readonly header: readonly string[] } {
-  for (const table of findSectionTables($, `ENDU ${aipSection}`)) {
+  for (const table of findSectionTables($, `${sourceAerodrome} ${aipSection}`)) {
     const rows = expandTable($, table);
     const header = rows.find((row) =>
       requiredColumns.every((column) => row.includes(column)),
@@ -119,9 +143,10 @@ function sourceIdentity(
 
 function parseAerodromeFacts(
   $: CheerioAPI,
+  sourceAerodrome: string,
   warnings: AvinorEaipImportWarning[],
 ) {
-  const { rows } = tableWithHeader($, 'AD 2.2', [
+  const { rows } = tableWithHeader($, sourceAerodrome, 'AD 2.2', [
     'ARP coordinates and site at AD',
   ]);
   const arpRow = rows.find((row) =>
@@ -130,7 +155,7 @@ function parseAerodromeFacts(
   if (arpRow === undefined) {
     return importerError(
       'missing-arp',
-      'ENDU AD 2.2 does not contain an ARP row',
+      `${sourceAerodrome} AD 2.2 does not contain an ARP row`,
       'AD 2.2',
     );
   }
@@ -138,7 +163,7 @@ function parseAerodromeFacts(
   if (arpCell === undefined) {
     return importerError(
       'missing-arp-position',
-      'ENDU AD 2.2 ARP row does not contain a WGS84 position',
+      `${sourceAerodrome} AD 2.2 ARP row does not contain a WGS84 position`,
       'AD 2.2',
     );
   }
@@ -164,7 +189,7 @@ function parseAerodromeFacts(
         'AD 2.2',
       );
     } else {
-      const match = /^(-?\d+(?:\.\d+)?)\s*FT\b/.exec(valueCell);
+      const match = /^(-?[\d\s]+(?:\.\d+)?)\s*FT\b/.exec(valueCell);
       if (match === null || match[1] === undefined) {
         return importerError(
           'malformed-aerodrome-elevation',
@@ -172,7 +197,7 @@ function parseAerodromeFacts(
           'AD 2.2',
         );
       }
-      elevationFt = Number(match[1]);
+      elevationFt = Number(match[1].replaceAll(/\s/g, ''));
     }
   }
 
@@ -182,69 +207,90 @@ function parseAerodromeFacts(
   };
 }
 
-function optionalBearing(
+function optionalBearings(
   value: string,
-  designator: string,
+  designators: readonly string[],
   warnings: AvinorEaipImportWarning[],
-): number | null {
+): readonly (number | null)[] {
   if (value === '' || value === 'NIL') {
-    addWarning(
-      warnings,
-      'missing-runway-bearing',
-      `True bearing is unavailable for runway ${designator}`,
-      'AD 2.12',
-    );
-    return null;
+    for (const designator of designators) {
+      addWarning(
+        warnings,
+        'missing-runway-bearing',
+        `True bearing is unavailable for runway ${designator}`,
+        'AD 2.12',
+      );
+    }
+    return designators.map(() => null);
   }
-  const match = /^(\d+(?:\.\d+)?)°$/.exec(value);
-  if (match === null || match[1] === undefined) {
+  const matches = [...value.matchAll(/(\d+(?:\.\d+)?)°/g)];
+  if (matches.length === 0 || matches.join('') === '') {
     return importerError(
       'malformed-runway-bearing',
-      `Malformed true bearing for runway ${designator}: ${value}`,
+      `Malformed true bearing for runway ${designators[0] ?? 'unknown'}: ${value}`,
       'AD 2.12',
     );
   }
-  const bearing = Number(match[1]);
-  if (!Number.isFinite(bearing) || bearing < 0 || bearing >= 360) {
-    return importerError(
-      'runway-bearing-out-of-range',
-      `Out-of-range true bearing for runway ${designator}: ${value}`,
-      'AD 2.12',
-    );
-  }
-  return bearing;
+  const bearings = matches.map((match) => {
+    const bearing = Number(match[1]);
+    if (!Number.isFinite(bearing) || bearing < 0 || bearing >= 360) {
+      return importerError(
+        'runway-bearing-out-of-range',
+        `Out-of-range true bearing for runway ${designators[0] ?? 'unknown'}: ${value}`,
+        'AD 2.12',
+      );
+    }
+    return bearing;
+  });
+  return alignDirectionalValues(bearings, designators, 'true bearing', 'AD 2.12');
 }
 
-function optionalPhysicalLength(
+function optionalPhysicalLengths(
   value: string,
-  designator: string,
+  designators: readonly string[],
   warnings: AvinorEaipImportWarning[],
-): number | null {
+): readonly (number | null)[] {
   if (value === '' || value === 'NIL') {
-    addWarning(
-      warnings,
-      'missing-physical-runway-length',
-      `Physical length is unavailable for runway ${designator}`,
-      'AD 2.12',
-    );
-    return null;
+    for (const designator of designators) {
+      addWarning(
+        warnings,
+        'missing-physical-runway-length',
+        `Physical length is unavailable for runway ${designator}`,
+        'AD 2.12',
+      );
+    }
+    return designators.map(() => null);
   }
-  const match = /^(\d+(?:\.\d+)?)\s*x\s*\d+(?:\.\d+)?$/i.exec(value);
+  const match = /^(.+?)\s*x\s*\d+(?:\.\d+)?$/i.exec(value);
   if (match === null || match[1] === undefined) {
     return importerError(
       'malformed-runway-dimensions',
-      `Malformed runway dimensions for runway ${designator}: ${value}`,
+      `Malformed runway dimensions for runway ${designators[0] ?? 'unknown'}: ${value}`,
       'AD 2.12',
     );
   }
-  return Number(match[1]);
+  const lengths = match[1].trim().split(/\s+/);
+  if (lengths.some((length) => !/^\d+(?:\.\d+)?$/.test(length))) {
+    return importerError(
+      'malformed-runway-dimensions',
+      `Malformed runway dimensions for runway ${designators[0] ?? 'unknown'}: ${value}`,
+      'AD 2.12',
+    );
+  }
+  return alignDirectionalValues(
+    lengths.map(Number),
+    designators,
+    'physical runway length',
+    'AD 2.12',
+  );
 }
 
 function parseRunwaySourceRows(
   $: CheerioAPI,
+  sourceAerodrome: string,
   warnings: AvinorEaipImportWarning[],
 ): readonly RunwaySourceRow[] {
-  const { rows, header } = tableWithHeader($, 'AD 2.12', [
+  const { rows, header } = tableWithHeader($, sourceAerodrome, 'AD 2.12', [
     'RWY',
     'BRG GEO',
     'DMN (M)',
@@ -254,73 +300,77 @@ function parseRunwaySourceRows(
   const dimensionColumn = headerIndex(header, 'DMN (M)', 'AD 2.12');
 
   const sourceRows = rows
-    .filter((row) => /^\d{2}[LCR]?$/.test(row[designatorColumn] ?? ''))
-    .map((row): RunwaySourceRow => {
-      const designator = row[designatorColumn];
-      if (designator === undefined) {
+    .flatMap((row): readonly RunwaySourceRow[] => {
+      const designatorCell = row[designatorColumn];
+      if (designatorCell === undefined) {
         return importerError(
           'missing-runway-designator',
           'Runway row has no designator',
           'AD 2.12',
         );
       }
-      return {
+      const designators = runwayDesignators(designatorCell);
+      if (designators.length === 0) return [];
+      const bearings = optionalBearings(row[bearingColumn] ?? '', designators, warnings);
+      const lengths = optionalPhysicalLengths(row[dimensionColumn] ?? '', designators, warnings);
+      return designators.map((designator, index) => ({
         designator,
-        trueBearingDeg: optionalBearing(
-          row[bearingColumn] ?? '',
-          designator,
-          warnings,
-        ),
-        lengthM: optionalPhysicalLength(
-          row[dimensionColumn] ?? '',
-          designator,
-          warnings,
-        ),
-      };
+        trueBearingDeg: bearings[index] ?? null,
+        lengthM: lengths[index] ?? null,
+      }));
     });
 
   if (sourceRows.length === 0) {
     return importerError(
       'missing-runways',
-      'ENDU AD 2.12 does not contain any runway directions',
+      `${sourceAerodrome} AD 2.12 does not contain any runway directions`,
       'AD 2.12',
     );
   }
   return sourceRows;
 }
 
-function optionalDeclaredDistance(
+function optionalDeclaredDistances(
   value: string,
-  designator: string,
+  designators: readonly string[],
   distanceName: string,
   warnings: AvinorEaipImportWarning[],
-): number | null {
+): readonly (number | null)[] {
   if (value === '' || value === 'NIL') {
-    addWarning(
-      warnings,
-      'missing-declared-distance',
-      `${distanceName} is unavailable for runway ${designator}`,
-      'AD 2.13',
-    );
-    return null;
+    for (const designator of designators) {
+      addWarning(
+        warnings,
+        'missing-declared-distance',
+        `${distanceName} is unavailable for runway ${designator}`,
+        'AD 2.13',
+      );
+    }
+    return designators.map(() => null);
   }
-  if (!/^\d+(?:\.\d+)?$/.test(value)) {
+  const values = value.trim().split(/\s+/);
+  if (values.some((distance) => !/^\d+(?:\.\d+)?$/.test(distance))) {
     return importerError(
       'malformed-declared-distance',
-      `Malformed ${distanceName} for runway ${designator}: ${value}`,
+      `Malformed ${distanceName} for runway ${designators[0] ?? 'unknown'}: ${value}`,
       'AD 2.13',
     );
   }
-  return Number(value);
+  return alignDirectionalValues(
+    values.map(Number),
+    designators,
+    distanceName,
+    'AD 2.13',
+  );
 }
 
 function parseDeclaredDistances(
   $: CheerioAPI,
+  sourceAerodrome: string,
   warnings: AvinorEaipImportWarning[],
 ): ReadonlyMap<string, RunwayDeclaredDistances> {
   // Requiring LDA intentionally selects the standard table and excludes the
   // separate "Reduced (Alternate) Take-off PSN" table.
-  const { rows, header } = tableWithHeader($, 'AD 2.13', [
+  const { rows, header } = tableWithHeader($, sourceAerodrome, 'AD 2.13', [
     'RWY',
     'TORA (M)',
     'ASDA (M)',
@@ -337,45 +387,30 @@ function parseDeclaredDistances(
 
   return new Map(
     rows
-      .filter((row) => /^\d{2}[LCR]?$/.test(row[designatorColumn] ?? ''))
-      .map((row) => {
-        const designator = row[designatorColumn];
-        if (designator === undefined) {
+      .flatMap((row) => {
+        const designatorCell = row[designatorColumn];
+        if (designatorCell === undefined) {
           return importerError(
             'missing-runway-designator',
             'Declared-distance row has no runway designator',
             'AD 2.13',
           );
         }
-        return [
+        const designators = runwayDesignators(designatorCell);
+        if (designators.length === 0) return [];
+        const toraM = optionalDeclaredDistances(row[columns.toraM] ?? '', designators, 'TORA', warnings);
+        const todaM = optionalDeclaredDistances(row[columns.todaM] ?? '', designators, 'TODA', warnings);
+        const asdaM = optionalDeclaredDistances(row[columns.asdaM] ?? '', designators, 'ASDA', warnings);
+        const ldaM = optionalDeclaredDistances(row[columns.ldaM] ?? '', designators, 'LDA', warnings);
+        return designators.map((designator, index) => [
           designator,
           {
-            toraM: optionalDeclaredDistance(
-              row[columns.toraM] ?? '',
-              designator,
-              'TORA',
-              warnings,
-            ),
-            todaM: optionalDeclaredDistance(
-              row[columns.todaM] ?? '',
-              designator,
-              'TODA',
-              warnings,
-            ),
-            asdaM: optionalDeclaredDistance(
-              row[columns.asdaM] ?? '',
-              designator,
-              'ASDA',
-              warnings,
-            ),
-            ldaM: optionalDeclaredDistance(
-              row[columns.ldaM] ?? '',
-              designator,
-              'LDA',
-              warnings,
-            ),
+            toraM: toraM[index] ?? null,
+            todaM: todaM[index] ?? null,
+            asdaM: asdaM[index] ?? null,
+            ldaM: ldaM[index] ?? null,
           },
-        ] as const;
+        ] as const);
       }),
   );
 }
@@ -425,6 +460,54 @@ function buildRunway(
   };
 }
 
+function oppositeRunwayDesignator(designator: string): string | null {
+  const match = /^(\d{2})([LCRS]?)$/.exec(designator);
+  if (match === null || match[1] === undefined) {
+    return null;
+  }
+
+  const number = Number(match[1]);
+  if (number < 1 || number > 36) {
+    return null;
+  }
+
+  const suffix = match[2] ?? '';
+  const oppositeSuffix =
+    suffix === 'L' ? 'R' : suffix === 'R' ? 'L' : suffix;
+  const oppositeNumber = ((number + 17) % 36) + 1;
+
+  return `${String(oppositeNumber).padStart(2, '0')}${oppositeSuffix}`;
+}
+
+function buildRunways(
+  sourceRows: readonly RunwaySourceRow[],
+  declaredDistances: ReadonlyMap<string, RunwayDeclaredDistances>,
+  warnings: AvinorEaipImportWarning[],
+): readonly AerodromeRunway[] {
+  const rowsByDesignator = new Map(
+    sourceRows.map((row) => [row.designator, row] as const),
+  );
+  const consumedDesignators = new Set<string>();
+  const runways: AerodromeRunway[] = [];
+
+  for (const row of sourceRows) {
+    if (consumedDesignators.has(row.designator)) {
+      continue;
+    }
+
+    const opposite = oppositeRunwayDesignator(row.designator);
+    const reciprocal = opposite === null ? undefined : rowsByDesignator.get(opposite);
+    const runwayRows = reciprocal === undefined ? [row] : [row, reciprocal];
+
+    for (const runwayRow of runwayRows) {
+      consumedDesignators.add(runwayRow.designator);
+    }
+    runways.push(buildRunway(runwayRows, declaredDistances, warnings));
+  }
+
+  return runways;
+}
+
 function validateEditionMetadata($: CheerioAPI, config: AvinorEaipImportConfig) {
   const publishedEffectiveDate = $('meta[name="EM.effectiveDateStart"]').attr(
     'content',
@@ -458,7 +541,7 @@ function compactDatasetRef(
   };
 }
 
-export function importEnduEaip(
+export function importAerodromeEaip(
   source: string | Buffer,
   config: AvinorEaipImportConfig,
 ): AvinorEaipImportResult {
@@ -467,10 +550,18 @@ export function importEnduEaip(
   validateEditionMetadata($, config);
 
   const identity = sourceIdentity($, config.sourceAerodrome);
-  const facts = parseAerodromeFacts($, warnings);
-  const runwaySourceRows = parseRunwaySourceRows($, warnings);
-  const declaredDistances = parseDeclaredDistances($, warnings);
-  const runway = buildRunway(runwaySourceRows, declaredDistances, warnings);
+  const facts = parseAerodromeFacts($, config.sourceAerodrome, warnings);
+  const runwaySourceRows = parseRunwaySourceRows(
+    $,
+    config.sourceAerodrome,
+    warnings,
+  );
+  const declaredDistances = parseDeclaredDistances(
+    $,
+    config.sourceAerodrome,
+    warnings,
+  );
+  const runways = buildRunways(runwaySourceRows, declaredDistances, warnings);
 
   const metadata: AeronauticalDatasetMetadata = {
     datasetId: config.datasetId,
@@ -525,7 +616,7 @@ export function importEnduEaip(
           name: identity.name,
           arpPosition: facts.arpPosition,
           elevationFt: facts.elevationFt,
-          runways: [runway],
+          runways,
           sourceReferences,
         },
       ],
@@ -533,3 +624,6 @@ export function importEnduEaip(
     warnings,
   };
 }
+
+/** @deprecated Use importAerodromeEaip for a configured aerodrome page. */
+export const importEnduEaip = importAerodromeEaip;

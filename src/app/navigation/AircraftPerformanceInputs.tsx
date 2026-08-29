@@ -1,11 +1,19 @@
 import type { AircraftPerformanceProfile } from '../../domain';
-import type { PerformanceInputDraft } from './performanceInput';
+import type {
+  PerformanceInputDefaults,
+  PerformanceInputDraft,
+} from './performanceInput';
+import {
+  DEFAULT_PLANNING_ISA_DEVIATION_C,
+  DEFAULT_PLANNING_QNH_HPA,
+} from './performanceInput';
 
 export interface AircraftPerformanceInputsProps {
   draft: PerformanceInputDraft;
   profile: AircraftPerformanceProfile;
   errorMessage?: string;
   derivedMassKg?: number;
+  defaults: PerformanceInputDefaults;
   onChange: (draft: PerformanceInputDraft) => void;
 }
 
@@ -16,6 +24,7 @@ interface NumericFieldProps {
     'legAltitudePlans' | 'sectorStopPlans'
   >;
   unit: string;
+  placeholder?: string | undefined;
   min?: string;
   step?: string;
   draft: PerformanceInputDraft;
@@ -27,6 +36,7 @@ function NumericField({
   label,
   field,
   unit,
+  placeholder,
   min,
   step = '1',
   draft,
@@ -42,6 +52,7 @@ function NumericField({
           min={min}
           step={step}
           value={draft[field]}
+          placeholder={placeholder}
           aria-invalid={invalid}
           onChange={(event) =>
             onChange({ ...draft, [field]: event.currentTarget.value })
@@ -58,6 +69,7 @@ export function AircraftPerformanceInputs({
   profile,
   errorMessage,
   derivedMassKg,
+  defaults,
   onChange,
 }: AircraftPerformanceInputsProps) {
   const invalid = errorMessage !== undefined;
@@ -105,6 +117,11 @@ export function AircraftPerformanceInputs({
         field="departureElevationFtMsl"
         unit="ft MSL"
         min="0"
+        placeholder={
+          defaults.departureElevationFtMsl === undefined
+            ? undefined
+            : `${defaults.departureElevationFtMsl} (aerodrome)`
+        }
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -114,6 +131,11 @@ export function AircraftPerformanceInputs({
         field="destinationElevationFtMsl"
         unit="ft MSL"
         min="0"
+        placeholder={
+          defaults.destinationElevationFtMsl === undefined
+            ? undefined
+            : `${defaults.destinationElevationFtMsl} (aerodrome)`
+        }
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -134,6 +156,7 @@ export function AircraftPerformanceInputs({
         unit="hPa"
         min="0.1"
         step="0.1"
+        placeholder={`${DEFAULT_PLANNING_QNH_HPA} (standard)`}
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -143,6 +166,7 @@ export function AircraftPerformanceInputs({
         field="departureIsaDeviationC"
         unit="°C"
         step="0.1"
+        placeholder={`${DEFAULT_PLANNING_ISA_DEVIATION_C} (standard)`}
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -153,6 +177,7 @@ export function AircraftPerformanceInputs({
         unit="hPa"
         min="0.1"
         step="0.1"
+        placeholder={`${DEFAULT_PLANNING_QNH_HPA} (standard)`}
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -162,6 +187,7 @@ export function AircraftPerformanceInputs({
         field="destinationIsaDeviationC"
         unit="°C"
         step="0.1"
+        placeholder={`${DEFAULT_PLANNING_ISA_DEVIATION_C} (standard)`}
         draft={draft}
         invalid={invalid}
         onChange={onChange}

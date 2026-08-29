@@ -48,10 +48,13 @@ the environment-selection layer before being passed to performance functions.
 
 Each adjacent real-waypoint leg has a target altitude. The route-wide default
 can be overridden per leg. The aircraft begins at departure aerodrome elevation;
-the final leg ends at destination elevation plus the editable pattern height
-(normally 1000 ft AGL), rounded to the nearest 100 ft after those values are
-added. This supports any sequence of climb, cruise, and descent across
-successive legs rather than assuming one climb and one descent.
+the planned altitude of an arrival leg remains independent of its arrival
+constraint. After its configured planned and optional end-altitude transitions,
+the calculation adds a final descent that reaches destination elevation plus
+the editable pattern height (normally 1000 ft AGL) at the aerodrome. That target
+is rounded to the nearest 100 ft after elevation and pattern height are added.
+This supports any sequence of climb, cruise, and descent across successive legs
+rather than assuming one climb and one descent.
 
 The route may also contain explicit intermediate landing boundaries. Each
 boundary closes one flight sector at the airport's pattern altitude. The next
@@ -99,11 +102,19 @@ aircraft mass is derived from the selected registration, occupants, baggage,
 and fuel rather than entered independently. The 100 ft integration step and the supplied IAS-to-TAS equation
 are calculation conventions rather than editable aircraft parameters.
 
+Blank QNH and ISA-deviation fields use planning defaults of 1013 hPa and 0 °C
+for departure, destination, and intermediate landing aerodromes. These defaults
+are not forecasts and every field remains editable for actual conditions. When
+a departure, destination, or intermediate landing waypoint is anchored to an
+aerodrome with a published elevation, that elevation is used while the
+corresponding flight-specific field is blank. A manually entered elevation
+always overrides the dataset value.
+
 When a route endpoint is anchored to an aerodrome whose normalized dataset
-publishes an elevation, the planner fills a blank endpoint elevation field from
-that value. A value previously supplied this way follows a later endpoint
-change; any different value entered by the user remains a manual override.
-Missing aerodrome elevation data does not cause a guessed value to be entered.
+publishes an elevation, the planner presents that value as the blank field's
+default and uses it for calculations. A user-entered value is an explicit
+override. Missing aerodrome elevation data does not cause a guessed value to be
+entered.
 
 The manual-planning 2/3-climb and midpoint-descent TAS/wind conventions are not
 used when interval data is available. They remain possible future fallbacks,
