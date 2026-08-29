@@ -5,6 +5,7 @@ import type {
 
 export const DEFAULT_PLANNING_QNH_HPA = 1013;
 export const DEFAULT_PLANNING_ISA_DEVIATION_C = 0;
+export const DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT = 1000;
 
 export interface SectorStopInputDraft {
   waypointId: string;
@@ -50,7 +51,7 @@ export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
     defaultAltitudeFtMsl: '2500',
     departureElevationFtMsl: '',
     destinationElevationFtMsl: '',
-    patternHeightAglFt: '1000',
+    patternHeightAglFt: '',
     departureQnhHpa: '',
     departureIsaDeviationC: '',
     destinationQnhHpa: '',
@@ -217,7 +218,9 @@ export function parsePerformanceInputDraft(
   if (
     scalarValues.every((value) => value.trim() === '') &&
     (draft.defaultAltitudeFtMsl === '' || draft.defaultAltitudeFtMsl === '2500') &&
-    (draft.patternHeightAglFt === '' || draft.patternHeightAglFt === '1000') &&
+    (draft.patternHeightAglFt === '' ||
+      draft.patternHeightAglFt ===
+        String(DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT)) &&
     draft.legAltitudePlans.length === 0 &&
     draft.sectorStopPlans.every((stop) =>
       [
@@ -252,7 +255,15 @@ export function parsePerformanceInputDraft(
       'Destination elevation',
       0,
     ],
-    ['patternHeightAglFt', draft.patternHeightAglFt, 'Pattern height', 0],
+    [
+      'patternHeightAglFt',
+      resolveDefaultValue(
+        draft.patternHeightAglFt,
+        DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT,
+      ),
+      'Pattern height',
+      0,
+    ],
     [
       'departureQnhHpa',
       resolveDefaultValue(draft.departureQnhHpa, DEFAULT_PLANNING_QNH_HPA),

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { calculateNavigationRoute } from '../../calculations';
 import type {
@@ -12,37 +12,28 @@ import {
   weatherSampleRequestsMatch,
 } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
+import { resolveExplicitForecastStatus } from './explicitForecastState';
+import type {
+  RouteForecastStatus,
+  StoredForecastState,
+} from './explicitForecastState';
 
-const FORECAST_DEBOUNCE_MS = 300;
 const NO_WINDS: readonly LegWindOverride[] = [];
 
-type StoredForecastState =
-  | { status: 'idle' }
-  | { status: 'loading'; contextKey: string }
-  | {
-      status: 'success';
-      contextKey: string;
-      winds: ForecastLegWind[];
-      refined: boolean;
-    }
-  | { status: 'error'; contextKey: string; message: string };
-
-export type RouteForecastStatus =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; winds: ForecastLegWind[]; refined: boolean }
-  | { status: 'error'; message: string };
+export type { RouteForecastStatus } from './explicitForecastState';
 
 export interface UseOpenMeteoRouteWindsInput {
   enabled: boolean;
   flightPlan: FlightPlan;
   planning: NavigationPlanInputs | null;
   preliminaryRoute: CalculatedNavigationRoute;
+  requestKey: number;
 }
 
 export interface UseOpenMeteoRouteWindsResult {
   legWinds: readonly LegWindOverride[];
   status: RouteForecastStatus;
+  canLoad: boolean;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -58,10 +49,13 @@ export function useOpenMeteoRouteWinds({
   flightPlan,
   planning,
   preliminaryRoute,
+  requestKey,
 }: UseOpenMeteoRouteWindsInput): UseOpenMeteoRouteWindsResult {
   const [storedState, setStoredState] = useState<StoredForecastState>({
     status: 'idle',
   });
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeContextKeyRef = useRef<string | null>(null);
   const contextKey = useMemo(
     () =>
       JSON.stringify({
@@ -74,107 +68,119 @@ export function useOpenMeteoRouteWinds({
       }),
     [flightPlan, planning],
   );
+  const initialRequests = useMemo(
+    () =>
+      planning === null
+        ? []
+        : buildWeatherSampleRequests(
+            preliminaryRoute,
+            planning.plannedAltitudeFtMsl,
+          ),
+    [planning, preliminaryRoute],
+  );
+  const canLoad = planning !== null && initialRequests.length > 0;
 
   useEffect(() => {
-    if (!enabled || planning === null) {
-      setStoredState({ status: 'idle' });
+    if (
+      abortControllerRef.current !== null &&
+      activeContextKeyRef.current !== contextKey
+    ) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      activeContextKeyRef.current = null;
+    }
+  }, [contextKey]);
+
+  useEffect(() => {
+    if (!enabled) {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+      activeContextKeyRef.current = null;
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (requestKey <= 0 || !enabled || !canLoad || planning === null) {
       return;
     }
 
-    const initialRequests = buildWeatherSampleRequests(
-      preliminaryRoute,
-      planning.plannedAltitudeFtMsl,
-    );
-
-    if (initialRequests.length === 0) {
-      setStoredState({ status: 'idle' });
-      return;
-    }
-
+    abortControllerRef.current?.abort();
     const abortController = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-      setStoredState({ status: 'loading', contextKey });
+    abortControllerRef.current = abortController;
+    activeContextKeyRef.current = contextKey;
+    setStoredState({ status: 'loading', contextKey });
 
-      void (async () => {
-        try {
-          let winds = await fetchOpenMeteoLegWinds(
-            initialRequests,
+    void (async () => {
+      try {
+        let winds = await fetchOpenMeteoLegWinds(
+          initialRequests,
+          abortController.signal,
+        );
+        const firstForecastRoute = calculateNavigationRoute({
+          flightPlan,
+          planning,
+          legWinds: winds,
+        });
+        const refinedRequests = buildWeatherSampleRequests(
+          firstForecastRoute,
+          planning.plannedAltitudeFtMsl,
+        );
+        let refined = false;
+
+        if (
+          refinedRequests.length > 0 &&
+          !weatherSampleRequestsMatch(initialRequests, refinedRequests)
+        ) {
+          winds = await fetchOpenMeteoLegWinds(
+            refinedRequests,
             abortController.signal,
           );
-          const firstForecastRoute = calculateNavigationRoute({
-            flightPlan,
-            planning,
-            legWinds: winds,
-          });
-          const refinedRequests = buildWeatherSampleRequests(
-            firstForecastRoute,
-            planning.plannedAltitudeFtMsl,
-          );
-          let refined = false;
-
-          if (
-            refinedRequests.length > 0 &&
-            !weatherSampleRequestsMatch(initialRequests, refinedRequests)
-          ) {
-            winds = await fetchOpenMeteoLegWinds(
-              refinedRequests,
-              abortController.signal,
-            );
-            refined = true;
-          }
-
-          if (abortController.signal.aborted) {
-            return;
-          }
-
-          setStoredState({
-            status: 'success',
-            contextKey,
-            winds,
-            refined,
-          });
-        } catch (error) {
-          if (!isAbortError(error)) {
-            setStoredState({
-              status: 'error',
-              contextKey,
-              message: getErrorMessage(error),
-            });
-          }
+          refined = true;
         }
-      })();
-    }, FORECAST_DEBOUNCE_MS);
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        setStoredState({
+          status: 'success',
+          contextKey,
+          winds,
+          refined,
+        });
+      } catch (error) {
+        if (!isAbortError(error)) {
+          setStoredState({
+            status: 'error',
+            contextKey,
+            message: getErrorMessage(error),
+          });
+        }
+      } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+          activeContextKeyRef.current = null;
+        }
+      }
+    })();
 
     return () => {
-      window.clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [contextKey, enabled, flightPlan, planning, preliminaryRoute]);
+    // A forecast request starts only when the user increments requestKey.
+    // Changes to route/planning inputs are represented as stale data instead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestKey]);
 
-  if (
-    !enabled ||
-    storedState.status === 'idle' ||
-    storedState.contextKey !== contextKey
-  ) {
-    return { legWinds: NO_WINDS, status: { status: 'idle' } };
-  }
-
-  if (storedState.status === 'success') {
-    return {
-      legWinds: storedState.winds,
-      status: {
-        status: 'success',
-        winds: storedState.winds,
-        refined: storedState.refined,
-      },
-    };
-  }
+  const status = resolveExplicitForecastStatus(
+    enabled,
+    contextKey,
+    storedState,
+  );
 
   return {
-    legWinds: NO_WINDS,
-    status:
-      storedState.status === 'loading'
-        ? { status: 'loading' }
-        : { status: 'error', message: storedState.message },
+    legWinds: status.status === 'success' ? status.winds : NO_WINDS,
+    status,
+    canLoad,
   };
 }

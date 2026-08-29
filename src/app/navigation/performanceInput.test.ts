@@ -27,7 +27,7 @@ describe('performance input parsing', () => {
   it('keeps a completely blank performance section optional', () => {
     const draft = createEmptyPerformanceInputDraft();
     expect(draft.defaultAltitudeFtMsl).toBe('2500');
-    expect(draft.patternHeightAglFt).toBe('1000');
+    expect(draft.patternHeightAglFt).toBe('');
     expect(parsePerformanceInputDraft(draft)).toEqual({
       status: 'empty',
     });
@@ -98,6 +98,27 @@ describe('performance input parsing', () => {
     });
     expect(blankWeatherDraft.departureQnhHpa).toBe('');
     expect(blankWeatherDraft.destinationIsaDeviationC).toBe('');
+  });
+
+  it('uses the standard pattern-height preset while a blank field remains overridable', () => {
+    const blankPatternHeightDraft = {
+      ...createPerformanceInputDraft(inputs),
+      patternHeightAglFt: '',
+    };
+
+    expect(parsePerformanceInputDraft(blankPatternHeightDraft)).toMatchObject({
+      status: 'valid',
+      value: { patternHeightAglFt: 1000 },
+    });
+    expect(blankPatternHeightDraft.patternHeightAglFt).toBe('');
+
+    expect(parsePerformanceInputDraft({
+      ...blankPatternHeightDraft,
+      patternHeightAglFt: '1500',
+    })).toMatchObject({
+      status: 'valid',
+      value: { patternHeightAglFt: 1500 },
+    });
   });
 
   it('rejects invalid positive quantities and invalid leg targets explicitly', () => {

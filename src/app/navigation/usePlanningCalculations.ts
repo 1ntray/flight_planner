@@ -44,6 +44,9 @@ import { useOpenMeteoPerformanceWinds } from './useOpenMeteoPerformanceWinds';
 import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
 import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
 
+const NO_ADDITIONAL_PERFORMANCE_ROUTES:
+  readonly CalculatedPerformanceRoute[] = [];
+
 export interface PlanningCalculations {
   parsedInputs: NavigationInputParseResult;
   parsedPerformance: PerformanceInputParseResult;
@@ -57,6 +60,7 @@ export interface PlanningCalculations {
   forecast: {
     winds: readonly ForecastLegWind[];
     status: RouteForecastStatus;
+    canLoad: boolean;
   };
 }
 
@@ -68,6 +72,7 @@ export interface UsePlanningCalculationsInput {
   performanceInputDefaults: PerformanceInputDefaults;
   operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
+  forecastRequestKey: number;
 }
 
 /** Central React orchestration for derived route, performance, and weather data. */
@@ -79,6 +84,7 @@ export function usePlanningCalculations({
   performanceInputDefaults,
   operationalDraft,
   useForecastWinds,
+  forecastRequestKey,
 }: UsePlanningCalculationsInput): PlanningCalculations {
   const parsedInputs = useMemo(
     () => parseNavigationInputDraft(navigationDraft),
@@ -208,6 +214,7 @@ export function usePlanningCalculations({
     flightPlan,
     planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
+    requestKey: forecastRequestKey,
   });
   const performanceForecast = useOpenMeteoPerformanceWinds({
     enabled: useForecastWinds && parsedPerformance.status === 'valid',
@@ -217,7 +224,8 @@ export function usePlanningCalculations({
       parsedPerformance.status === 'valid' ? parsedPerformance.value : null,
     profile: aircraftDefinition.performance,
     preliminaryRoute: manualPerformanceRoute,
-    additionalPreliminaryRoutes: [],
+    additionalPreliminaryRoutes: NO_ADDITIONAL_PERFORMANCE_ROUTES,
+    requestKey: forecastRequestKey,
   });
   const forecast =
     parsedPerformance.status === 'valid'
@@ -228,6 +236,7 @@ export function usePlanningCalculations({
               ? legForecast.status.winds
               : [],
           status: legForecast.status,
+          canLoad: legForecast.canLoad,
         };
   const baseCalculatedRoute = useMemo(
     () =>

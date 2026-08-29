@@ -85,9 +85,10 @@ The document does not store:
 - Leaflet layer visibility or viewport,
 - selected points, popup state, or drag state.
 
-These values are recalculated, fetched, or recreated after import. If forecast
-winds are enabled in the saved document, the application requests fresh data
-for the restored route, time, and altitude.
+These values are recalculated or recreated after import. The forecast-source
+preference may be restored, but the application never fetches weather merely
+because a document was opened. The user must explicitly load forecast winds
+for the restored route, time, altitude, and performance inputs.
 
 ## Validation
 

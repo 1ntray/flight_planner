@@ -6,6 +6,7 @@ import type { ForecastLegWind, WeatherSampleRequest } from './types';
 
 const CACHE_LIFETIME_MS = 10 * 60 * 1000;
 const MAX_LOCATIONS_PER_REQUEST = 40;
+export const OPEN_METEO_REQUEST_TIMEOUT_MS = 20_000;
 
 interface ForecastCacheEntry {
   expiresAtUtcMs: number;
@@ -25,6 +26,44 @@ function getApiErrorReason(value: unknown): string | null {
   return record.error === true && typeof record.reason === 'string'
     ? record.reason
     : null;
+}
+
+async function fetchForecastJson(
+  url: string,
+  signal: AbortSignal,
+): Promise<{ response: Response; value: unknown }> {
+  if (signal.aborted) {
+    throw new DOMException('Forecast request was aborted', 'AbortError');
+  }
+
+  const requestController = new AbortController();
+  let timedOut = false;
+  const forwardAbort = () => requestController.abort();
+  signal.addEventListener('abort', forwardAbort, { once: true });
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    requestController.abort();
+  }, OPEN_METEO_REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: requestController.signal,
+    });
+    const value: unknown = await response.json();
+    return { response, value };
+  } catch (error) {
+    if (timedOut && !signal.aborted) {
+      throw new Error(
+        `Open-Meteo request timed out after ${OPEN_METEO_REQUEST_TIMEOUT_MS / 1000} seconds`,
+      );
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+    signal.removeEventListener('abort', forwardAbort);
+  }
 }
 
 async function fetchOpenMeteoWindBatch(
@@ -49,12 +88,9 @@ async function fetchOpenMeteoWindBatch(
     retrievedAtUtcMs = cached.retrievedAtUtcMs;
     value = cached.value;
   } else {
-    const response = await fetch(forecastRequest.url, {
-      headers: { Accept: 'application/json' },
-      signal,
-    });
-
-    value = await response.json();
+    const fetched = await fetchForecastJson(forecastRequest.url, signal);
+    const { response } = fetched;
+    value = fetched.value;
     const apiErrorReason = getApiErrorReason(value);
 
     if (!response.ok || apiErrorReason !== null) {

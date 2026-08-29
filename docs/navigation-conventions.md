@@ -104,6 +104,10 @@ They are calculation contracts rather than display preferences.
 - Open-Meteo is an optional input source. The request explicitly selects the
   ECMWF IFS 0.25° upper-air feed with `models=ecmwf_ifs025`. Manual wind remains
   the route-wide fallback and supplies the preliminary timing estimate.
+- Forecast data is fetched only after an explicit **Load forecast winds** or
+  refresh action. Editing the route, departure time, altitude, aircraft, or
+  other planning inputs makes the loaded result stale; stale samples are not
+  applied and manual wind is used until the user loads a new forecast.
 - Each accepted forecast result records the provider, model identifier,
   retrieval UTC timestamp, requested leg-midpoint valid UTC timestamp, and the
   pressure levels and geopotential heights used for vertical interpolation.
@@ -131,6 +135,8 @@ They are calculation contracts rather than display preferences.
   one-override-per-leg interface.
 - A forecast failure is not a navigation-calculation failure. The UI reports
   the failure and continues to calculate with manual wind.
+- Each network request has a 20-second timeout. Provider errors, rate limits,
+  and timeouts are reported without triggering automatic retries.
 - Responses are cached in memory for ten minutes by their full request URL.
   Cached results retain the time at which the underlying response was fetched;
   reading from the cache does not falsely update the displayed retrieval time.

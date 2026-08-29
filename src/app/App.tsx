@@ -260,6 +260,7 @@ export function App() {
   const [useForecastWinds, setUseForecastWinds] = useState(
     initialPlanningState.useForecastWinds,
   );
+  const [forecastRequestKey, setForecastRequestKey] = useState(0);
   const [performanceInputDraft, setPerformanceInputDraft] =
     useState<PerformanceInputDraft>(
       initialPlanningState.performanceInputDraft,
@@ -415,6 +416,7 @@ export function App() {
     performanceInputDefaults,
     operationalDraft: operationalInputDraft,
     useForecastWinds,
+    forecastRequestKey,
   });
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
@@ -758,6 +760,7 @@ export function App() {
     setSectorStopAerodromeElevations([]);
     setOperationalInputDraft(freshState.operationalInputDraft);
     setUseForecastWinds(freshState.useForecastWinds);
+    setForecastRequestKey(0);
     setMapSelection(null);
     setMapTool({ kind: 'select' });
     setLocalDraftStatus(
@@ -792,6 +795,7 @@ export function App() {
           : createOperationalInputDraft(document.operationalInputs),
       );
       setUseForecastWinds(document.useForecastWinds);
+      setForecastRequestKey(0);
       setMapSelection(null);
       setMapTool({ kind: 'select' });
     },
@@ -1064,6 +1068,10 @@ export function App() {
     onPerformanceDraftChange: setPerformanceInputDraft,
     onOperationalDraftChange: setOperationalInputDraft,
     onUseForecastWindsChange: setUseForecastWinds,
+    onLoadForecastWinds: () => {
+      setUseForecastWinds(true);
+      setForecastRequestKey((current) => current + 1);
+    },
     onChooseAlternateOnMap: () => {
       setOperationalInputDraft((currentDraft) => ({
         ...currentDraft,

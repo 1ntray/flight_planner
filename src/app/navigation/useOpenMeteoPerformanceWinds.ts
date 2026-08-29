@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { calculatePerformanceRoute } from '../../calculations';
 import type { CalculatedPerformanceRoute } from '../../calculations';
@@ -15,15 +15,11 @@ import {
   weatherSampleRequestsMatch,
 } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
-import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
-
-const FORECAST_DEBOUNCE_MS = 300;
-
-type StoredState =
-  | { status: 'idle' }
-  | { status: 'loading'; contextKey: string }
-  | { status: 'success'; contextKey: string; winds: ForecastLegWind[]; refined: boolean }
-  | { status: 'error'; contextKey: string; message: string };
+import { resolveExplicitForecastStatus } from './explicitForecastState';
+import type {
+  RouteForecastStatus,
+  StoredForecastState,
+} from './explicitForecastState';
 
 export interface UseOpenMeteoPerformanceWindsInput {
   enabled: boolean;
@@ -33,11 +29,13 @@ export interface UseOpenMeteoPerformanceWindsInput {
   profile: AircraftPerformanceProfile;
   preliminaryRoute: CalculatedPerformanceRoute | null;
   additionalPreliminaryRoutes?: readonly CalculatedPerformanceRoute[];
+  requestKey: number;
 }
 
 export interface UseOpenMeteoPerformanceWindsResult {
   winds: readonly ForecastLegWind[];
   status: RouteForecastStatus;
+  canLoad: boolean;
 }
 
 function errorMessage(error: unknown): string {
@@ -52,8 +50,11 @@ export function useOpenMeteoPerformanceWinds({
   profile,
   preliminaryRoute,
   additionalPreliminaryRoutes = [],
+  requestKey,
 }: UseOpenMeteoPerformanceWindsInput): UseOpenMeteoPerformanceWindsResult {
-  const [stored, setStored] = useState<StoredState>({ status: 'idle' });
+  const [stored, setStored] = useState<StoredForecastState>({ status: 'idle' });
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeContextKeyRef = useRef<string | null>(null);
   const contextKey = useMemo(
     () => JSON.stringify({
       flightPlan,
@@ -70,106 +71,119 @@ export function useOpenMeteoPerformanceWinds({
       profile,
     ],
   );
+  const initialRequests = useMemo(() => {
+    if (preliminaryRoute?.status !== 'ok') {
+      return [];
+    }
+
+    return [
+      ...buildPerformanceWeatherSampleRequests(preliminaryRoute),
+      ...additionalPreliminaryRoutes.flatMap((route) =>
+        buildPerformanceWeatherSampleRequests(route),
+      ),
+    ];
+  }, [additionalPreliminaryRoutes, preliminaryRoute]);
+  const canLoad =
+    navigation !== null &&
+    performance !== null &&
+    initialRequests.length > 0;
 
   useEffect(() => {
     if (
-      !enabled ||
-      navigation === null ||
-      performance === null ||
-      preliminaryRoute?.status !== 'ok'
+      abortControllerRef.current !== null &&
+      activeContextKeyRef.current !== contextKey
     ) {
-      setStored({ status: 'idle' });
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      activeContextKeyRef.current = null;
+    }
+  }, [contextKey]);
+
+  useEffect(() => {
+    if (!enabled) {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+      activeContextKeyRef.current = null;
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (
+      requestKey <= 0 ||
+      !enabled ||
+      !canLoad ||
+      navigation === null ||
+      performance === null
+    ) {
       return;
     }
 
-    const additionalRequests = additionalPreliminaryRoutes.flatMap((route) =>
-      buildPerformanceWeatherSampleRequests(route),
-    );
-    const initialRequests = [
-      ...buildPerformanceWeatherSampleRequests(preliminaryRoute),
-      ...additionalRequests,
-    ];
-
-    if (initialRequests.length === 0) {
-      setStored({ status: 'idle' });
-      return;
-    }
-
+    abortControllerRef.current?.abort();
     const abortController = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-      setStored({ status: 'loading', contextKey });
-      void (async () => {
-        try {
-          let winds = await fetchOpenMeteoLegWinds(
-            initialRequests,
+    abortControllerRef.current = abortController;
+    activeContextKeyRef.current = contextKey;
+    setStored({ status: 'loading', contextKey });
+
+    void (async () => {
+      try {
+        let winds = await fetchOpenMeteoLegWinds(
+          initialRequests,
+          abortController.signal,
+        );
+        const firstRoute = calculatePerformanceRoute({
+          flightPlan,
+          navigation,
+          performance,
+          profile,
+          resolveWind: createSampledWindResolver(winds, navigation.wind),
+        });
+        const refinedRequests = [
+          ...buildPerformanceWeatherSampleRequests(firstRoute),
+          ...additionalPreliminaryRoutes.flatMap((route) =>
+            buildPerformanceWeatherSampleRequests(route),
+          ),
+        ];
+        let refined = false;
+
+        if (
+          refinedRequests.length > 0 &&
+          !weatherSampleRequestsMatch(initialRequests, refinedRequests)
+        ) {
+          winds = await fetchOpenMeteoLegWinds(
+            refinedRequests,
             abortController.signal,
           );
-          const firstRoute = calculatePerformanceRoute({
-            flightPlan,
-            navigation,
-            performance,
-            profile,
-            resolveWind: createSampledWindResolver(winds, navigation.wind),
-          });
-          const refinedRequests = [
-            ...buildPerformanceWeatherSampleRequests(firstRoute),
-            ...additionalRequests,
-          ];
-          let refined = false;
-
-          if (
-            refinedRequests.length > 0 &&
-            !weatherSampleRequestsMatch(initialRequests, refinedRequests)
-          ) {
-            winds = await fetchOpenMeteoLegWinds(
-              refinedRequests,
-              abortController.signal,
-            );
-            refined = true;
-          }
-
-          if (!abortController.signal.aborted) {
-            setStored({ status: 'success', contextKey, winds, refined });
-          }
-        } catch (error) {
-          if (!(error instanceof DOMException && error.name === 'AbortError')) {
-            setStored({ status: 'error', contextKey, message: errorMessage(error) });
-          }
+          refined = true;
         }
-      })();
-    }, FORECAST_DEBOUNCE_MS);
+
+        if (!abortController.signal.aborted) {
+          setStored({ status: 'success', contextKey, winds, refined });
+        }
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setStored({ status: 'error', contextKey, message: errorMessage(error) });
+        }
+      } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+          activeContextKeyRef.current = null;
+        }
+      }
+    })();
 
     return () => {
-      window.clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [
-    contextKey,
-    enabled,
-    flightPlan,
-    navigation,
-    performance,
-    preliminaryRoute,
-    additionalPreliminaryRoutes,
-    profile,
-  ]);
+    // A forecast request starts only when the user increments requestKey.
+    // Changes to route/planning inputs are represented as stale data instead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestKey]);
 
-  if (!enabled || stored.status === 'idle' || stored.contextKey !== contextKey) {
-    return { winds: [], status: { status: 'idle' } };
-  }
-
-  if (stored.status === 'success') {
-    return {
-      winds: stored.winds,
-      status: { status: 'success', winds: stored.winds, refined: stored.refined },
-    };
-  }
+  const status = resolveExplicitForecastStatus(enabled, contextKey, stored);
 
   return {
-    winds: [],
-    status:
-      stored.status === 'loading'
-        ? { status: 'loading' }
-        : { status: 'error', message: stored.message },
+    winds: status.status === 'success' ? status.winds : [],
+    status,
+    canLoad,
   };
 }

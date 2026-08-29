@@ -19,6 +19,10 @@ import {
   formatForecastValidTimeRange,
 } from './weatherFormatting';
 
+function withoutTrailingPunctuation(value: string): string {
+  return value.replace(/[.!?]+$/, '');
+}
+
 export interface NavigationLogProps {
   section?: 'all' | 'controls' | 'tables';
   flightPlan: FlightPlan;
@@ -33,6 +37,7 @@ export interface NavigationLogProps {
   onPerformanceDraftChange: (draft: PerformanceInputDraft) => void;
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
+  onLoadForecastWinds: () => void;
   onChooseAlternateOnMap: () => void;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
@@ -53,6 +58,7 @@ export function NavigationLog({
   onPerformanceDraftChange,
   onOperationalDraftChange,
   onUseForecastWindsChange,
+  onLoadForecastWinds,
   onChooseAlternateOnMap,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
@@ -197,16 +203,42 @@ export function NavigationLog({
           </span>
         </label>
 
-        <label className="navigation-inputs__forecast-toggle">
-          <input
-            type="checkbox"
-            checked={useForecastWinds}
-            onChange={(event) =>
-              onUseForecastWindsChange(event.currentTarget.checked)
+        <div className="navigation-inputs__forecast-actions">
+          <button
+            type="button"
+            className="button"
+            disabled={
+              !forecast.canLoad || forecast.status.status === 'loading'
             }
-          />
-          <span>Use ECMWF upper-air winds</span>
-        </label>
+            onClick={onLoadForecastWinds}
+          >
+            {forecast.status.status === 'loading'
+              ? 'Loading forecast…'
+              : forecast.status.status === 'success'
+                ? 'Refresh forecast winds'
+                : forecast.status.status === 'stale'
+                  ? 'Reload forecast winds'
+                  : forecast.status.status === 'error'
+                    ? 'Retry forecast winds'
+                    : 'Load forecast winds'}
+          </button>
+          {useForecastWinds ? (
+            <button
+              type="button"
+              className="button"
+              onClick={() => onUseForecastWindsChange(false)}
+            >
+              Use manual wind
+            </button>
+          ) : null}
+        </div>
+
+        {!forecast.canLoad ? (
+          <p className="navigation-inputs__weather-status">
+            Complete the route and valid planning inputs before loading
+            forecast winds.
+          </p>
+        ) : null}
 
         {useForecastWinds &&
         forecast.status.status === 'loading' ? (
@@ -244,7 +276,24 @@ export function NavigationLog({
         {useForecastWinds &&
         forecast.status.status === 'error' ? (
           <p className="navigation-inputs__error" role="alert">
-            Open-Meteo unavailable: {forecast.status.message}. Using manual wind.
+            Open-Meteo unavailable:{' '}
+            {withoutTrailingPunctuation(forecast.status.message)}. Using manual
+            wind.
+          </p>
+        ) : null}
+
+        {useForecastWinds && forecast.status.status === 'stale' ? (
+          <p className="navigation-inputs__weather-status" role="status">
+            The route or planning inputs changed. Forecast winds are not
+            applied; load them again when the plan is ready.
+          </p>
+        ) : null}
+
+        {useForecastWinds && forecast.status.status === 'idle' &&
+        forecast.canLoad ? (
+          <p className="navigation-inputs__weather-status">
+            Forecast winds are not loaded for this session. Manual wind is
+            used until you load them.
           </p>
         ) : null}
 

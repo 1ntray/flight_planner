@@ -34,9 +34,11 @@ planned leg altitude. All are editable.
 Final reserve is entered as fuel. Its displayed time is derived using the
 aircraft profile's 36 L/h reserve-flow assumption.
 
-Pattern height defaults to 1,000 ft AGL and the resulting pattern altitude is
-rounded to the nearest 100 ft. Anchored ENDU arrivals use a 1,500 ft MSL
-planning default when that unchanged 1,000 ft pattern-height default applies.
+Pattern height has a blank-field 1,000 ft AGL preset, matching QNH and ISA
+planning defaults, and can be overridden for a plan. The resulting pattern
+altitude is rounded to the nearest 100 ft. Anchored ENDU arrivals use a 1,500
+ft MSL planning default when that unchanged 1,000 ft pattern-height default
+applies.
 
 ## Alternate planning
 

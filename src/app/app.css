@@ -474,6 +474,18 @@ h3 {
   padding-top: 0.15rem;
 }
 
+.navigation-inputs__forecast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 0.45rem;
+  padding-top: 0.15rem;
+}
+
+.navigation-inputs__forecast-actions .button {
+  flex: 1 1 10rem;
+}
+
 .navigation-inputs__control {
   display: grid;
   align-items: center;
