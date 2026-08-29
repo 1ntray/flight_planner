@@ -19,6 +19,7 @@ export type MapSelection = SelectedRoutePoint | SelectedRouteLeg;
 export type MapTool =
   | { kind: 'select' }
   | { kind: 'add-waypoint' }
+  | { kind: 'select-alternate-aerodrome' }
   | {
       kind: 'place-altitude-target';
       fromWaypointId: string;

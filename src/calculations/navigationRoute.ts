@@ -14,6 +14,10 @@ import {
 } from './navigation';
 import type { WindAdjustedLegResult } from './navigation';
 import { calculateRoute } from './route';
+import type {
+  MagneticVariationSource,
+  MagneticVariationUnavailableReason,
+} from './magneticVariation';
 
 const MILLISECONDS_PER_SECOND = 1000;
 
@@ -35,6 +39,8 @@ export interface LegWindOverride {
 export interface CalculatedNavigationRouteLeg extends CalculatedLeg {
   midpoint: Position;
   magneticVariationDegEast: number | null;
+  magneticVariationSource: MagneticVariationSource | null;
+  magneticVariationUnavailableReason: MagneticVariationUnavailableReason | null;
   magneticTrackDeg: number | null;
   magneticHeadingDeg: number | null;
   wind: Wind | null;
@@ -78,6 +84,7 @@ function validateNavigationPlanInputs(planning: NavigationPlanInputs): void {
       'Magnetic variation must be between -180 and 180 degrees',
     );
   }
+
 }
 
 function legKey(fromId: string, toId: string): string {
@@ -150,8 +157,10 @@ export function calculateNavigationRoute({
     const wind = planning === null ? null : (windOverride?.wind ?? planning.wind);
     const windSource: NavigationWindSource | null =
       planning === null ? null : (windOverride?.source ?? 'manual');
-    const magneticVariationDegEast =
-      planning?.magneticVariationDegEast ?? null;
+    const magneticVariationDegEast = planning !== null &&
+      (planning.magneticVariationMode === undefined || planning.magneticVariationMode === 'manual')
+      ? planning.magneticVariationDegEast
+      : null;
     const magneticTrackDeg =
       magneticVariationDegEast === null || leg.trueTrackDeg === null
         ? null
@@ -175,10 +184,12 @@ export function calculateNavigationRoute({
       });
 
       if (navigation.status === 'ok') {
-        magneticHeadingDeg = calculateMagneticDirectionDeg(
-          navigation.trueHeadingDeg,
-          planning.magneticVariationDegEast,
-        );
+        magneticHeadingDeg = magneticVariationDegEast === null
+          ? null
+          : calculateMagneticDirectionDeg(
+              navigation.trueHeadingDeg,
+              magneticVariationDegEast,
+            );
         eetSeconds = navigation.eetSeconds;
 
         if (totalEetSeconds !== null) {
@@ -212,6 +223,10 @@ export function calculateNavigationRoute({
       ...leg,
       midpoint,
       magneticVariationDegEast,
+      magneticVariationSource: magneticVariationDegEast === null
+        ? null
+        : { kind: 'manual', id: 'manual' },
+      magneticVariationUnavailableReason: null,
       magneticTrackDeg,
       magneticHeadingDeg,
       wind,

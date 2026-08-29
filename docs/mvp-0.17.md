@@ -17,8 +17,8 @@ performance, aircraft, and loading inputs and does not yet write into the PDF.
 - Startup/taxi/takeoff consumes 7 L and contributes a fixed 15 minutes to the
   page-two planning table. It applies initially and after a full stop, not after
   a touch and go.
-- Extra fuel defaults to 18 L. Final reserve defaults to 60 minutes; both use
-  36 L/h for their time/fuel conversion.
+- Extra fuel defaults to 18 L. Final reserve is entered as fuel quantity and
+  defaults to 36 L; its displayed time uses 36 L/h.
 
 ## Sector OFP semantics
 
@@ -28,10 +28,10 @@ continue from the original takeoff across every sector and exclude taxi and
 stop time. Fuel remaining includes ground allowances and airborne burn.
 
 The page-two trip line includes all remaining primary airborne time/fuel plus
-every remaining 7 L / 15 minute ground event. Alternate fuel is calculated as
-a separate direct performance sector from final-destination pattern altitude
-to alternate pattern altitude. Total required adds trip, alternate, extra, and
-final reserve. Endurance adds the fuel surplus or deficit converted at 36 L/h
+every remaining 7 L / 15 minute ground event. The alternate aerodrome is chosen
+on the map and provides a derived navigation line, while alternate distance,
+time, and fuel are entered by the pilot. Total required adds trip, alternate,
+extra, and final reserve. Endurance adds the fuel surplus or deficit converted at 36 L/h
 to the sum of those component times.
 
 ## Mass and balance

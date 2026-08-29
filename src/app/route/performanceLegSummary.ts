@@ -13,7 +13,6 @@ export interface PerformanceLegNavigationSummary {
   readonly source: 'cruise' | 'average';
   readonly wind: Wind;
   readonly trueHeadingDeg: number;
-  readonly magneticHeadingDeg: number;
 }
 
 function circularAverageDeg(
@@ -60,7 +59,6 @@ export function calculatePerformanceLegNavigationSummary(
       source: 'cruise',
       wind: cruise.wind,
       trueHeadingDeg: cruise.trueHeadingDeg,
-      magneticHeadingDeg: cruise.magneticHeadingDeg,
     };
   }
 
@@ -95,10 +93,6 @@ export function calculatePerformanceLegNavigationSummary(
     trueHeadingDeg: circularAverageDeg(
       leg.steps,
       (step) => step.trueHeadingDeg,
-    ),
-    magneticHeadingDeg: circularAverageDeg(
-      leg.steps,
-      (step) => step.magneticHeadingDeg,
     ),
   };
 }

@@ -20,10 +20,12 @@ import { formatUtcRouteTime } from './routeFormatting';
 export interface SectorRouteTablesProps {
   flightPlan: FlightPlan;
   route: CalculatedNavigationRoute;
+  alternateNavigationRoute?: CalculatedNavigationRoute | null;
   performanceRoute?: CalculatedPerformanceRoute | null;
   operationalPlan?: CalculatedOperationalFlightPlan | null;
   aircraftDefinition: AircraftDefinition;
   operationalInputs?: OperationalPlanningInputs | null;
+  alternateTrueAirspeedKt?: number | null;
   forecastWinds?: readonly ForecastLegWind[];
 }
 
@@ -80,20 +82,18 @@ function sectorPerformanceRoute(
 export function SectorRouteTables({
   flightPlan,
   route,
+  alternateNavigationRoute = null,
   performanceRoute = null,
   operationalPlan = null,
   aircraftDefinition,
   operationalInputs = null,
+  alternateTrueAirspeedKt = null,
   forecastWinds = [],
 }: SectorRouteTablesProps) {
   const sectors = useMemo(
     () => deriveFlightPlanSectors(flightPlan),
     [flightPlan],
   );
-  const alternatePerformanceRoute =
-    operationalPlan?.status === 'ok'
-      ? operationalPlan.alternatePerformanceRoute
-      : null;
   const alternateWaypoints =
     operationalInputs?.alternate === null ||
     operationalInputs?.alternate === undefined ||
@@ -129,8 +129,10 @@ export function SectorRouteTables({
         <RouteTable
           waypoints={flightPlan.waypoints}
           route={route}
+          alternateNavigationRoute={alternateNavigationRoute}
           performanceRoute={performanceRoute}
-          alternatePerformanceRoute={alternatePerformanceRoute}
+          alternateInputs={operationalInputs?.alternate ?? null}
+          alternateTrueAirspeedKt={alternateTrueAirspeedKt}
           alternateWaypoints={alternateWaypoints}
           forecastWinds={forecastWinds}
           {...(operationalSector === undefined ? {} : { operationalSector })}
@@ -140,10 +142,6 @@ export function SectorRouteTables({
             sector={operationalSector}
             aircraft={aircraftDefinition}
             inputs={operationalInputs}
-            {...(operationalPlan?.status === 'ok' &&
-            operationalPlan.alternatePerformanceRoute !== null
-              ? { alternateDistanceNm: operationalPlan.alternatePerformanceRoute.totalDistanceNm }
-              : {})}
           />
         )}
       </div>
@@ -199,8 +197,10 @@ export function SectorRouteTables({
             <RouteTable
               waypoints={sector.flightPlan.waypoints}
               route={navigation}
+              alternateNavigationRoute={alternateNavigationRoute}
               performanceRoute={performance}
-              alternatePerformanceRoute={alternatePerformanceRoute}
+              alternateInputs={operationalInputs?.alternate ?? null}
+              alternateTrueAirspeedKt={alternateTrueAirspeedKt}
               alternateWaypoints={alternateWaypoints}
               forecastWinds={forecastWinds}
               {...(operationalSector === undefined ? {} : { operationalSector })}
@@ -210,10 +210,6 @@ export function SectorRouteTables({
                 sector={operationalSector}
                 aircraft={aircraftDefinition}
                 inputs={operationalInputs}
-                {...(operationalPlan?.status === 'ok' &&
-                operationalPlan.alternatePerformanceRoute !== null
-                  ? { alternateDistanceNm: operationalPlan.alternatePerformanceRoute.totalDistanceNm }
-                  : {})}
               />
             )}
           </section>

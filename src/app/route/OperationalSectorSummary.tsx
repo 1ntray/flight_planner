@@ -9,7 +9,6 @@ export interface OperationalSectorSummaryProps {
   sector: CalculatedSectorOperationalFlightPlan;
   aircraft: AircraftDefinition;
   inputs: OperationalPlanningInputs;
-  alternateDistanceNm?: number;
 }
 
 function formatMinutes(totalMinutes: number): string {
@@ -63,7 +62,6 @@ export function OperationalSectorSummary({
   sector,
   aircraft,
   inputs,
-  alternateDistanceNm,
 }: OperationalSectorSummaryProps) {
   const system = aircraft.fuelSystem!;
   const loading = aircraft.weightBalance!;
@@ -120,9 +118,9 @@ export function OperationalSectorSummary({
             {sector.groundAllowanceApplied
               ? 'This departure includes 7 L / 00:15 startup, taxi and takeoff allowance.'
               : 'Touch-and-go departure: no new ground allowance.'}
-            {alternateDistanceNm === undefined
+            {inputs.alternate === null
               ? ''
-              : ` Alternate distance ${alternateDistanceNm.toFixed(1)} NM.`}
+              : ` Alternate requirement: ${inputs.alternate.distanceNm.toFixed(1)} NM, ${formatMinutes(inputs.alternate.timeMinutes)}, ${inputs.alternate.fuelLitres.toFixed(1)} L.`}
           </p>
         </div>
 

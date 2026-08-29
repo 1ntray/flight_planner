@@ -6,6 +6,8 @@ import type {
 
 export const PERFORMANCE_ALTITUDE_STEP_FT = 100;
 export const PATTERN_ALTITUDE_ROUNDING_FT = 100;
+export const ENDU_DEFAULT_PATTERN_ALTITUDE_FT_MSL = 1500;
+export const DEFAULT_PATTERN_HEIGHT_AGL_FT = 1000;
 
 export interface VerticalInterval {
   readonly startAltitudeFt: number;
@@ -73,6 +75,29 @@ export function calculatePatternAltitudeFtMsl(
     (aerodromeElevationFtMsl + patternHeightAglFt) /
       PATTERN_ALTITUDE_ROUNDING_FT,
   ) * PATTERN_ALTITUDE_ROUNDING_FT;
+}
+
+/**
+ * Project planning default for an anchored aerodrome arrival. The normal
+ * 1000 ft AGL field remains editable; ENDU's published 1500 ft MSL planning
+ * altitude applies only while that normal default is retained.
+ */
+export function calculateAerodromePatternAltitudeFtMsl(
+  aerodromeElevationFtMsl: number,
+  patternHeightAglFt: number,
+  aerodromeIdentifier?: string,
+): number {
+  if (
+    aerodromeIdentifier === 'ENDU' &&
+    patternHeightAglFt === DEFAULT_PATTERN_HEIGHT_AGL_FT
+  ) {
+    return ENDU_DEFAULT_PATTERN_ALTITUDE_FT_MSL;
+  }
+
+  return calculatePatternAltitudeFtMsl(
+    aerodromeElevationFtMsl,
+    patternHeightAglFt,
+  );
 }
 
 export function calculateClimbRate(

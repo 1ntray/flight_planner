@@ -8,12 +8,16 @@ import {
 } from './operationalInput';
 
 describe('operational input parsing', () => {
-  it('keeps untouched loading inputs optional while retaining defaults', () => {
+  it('starts with the configured loading and reserve defaults', () => {
     const draft = createEmptyOperationalInputDraft();
     expect(draft.extraFuelLitres).toBe('18');
-    expect(draft.finalReserveMinutes).toBe('60');
+    expect(draft.finalReserveLitres).toBe('36');
+    expect(draft.fuelOnboardLitres).toBe('224');
+    expect(draft.leftSeatMassKg).toBe('56');
+    expect(draft.rightSeatMassKg).toBe('0');
+    expect(draft.baggageMassKg).toBe('15');
     expect(parseOperationalInputDraft(draft, PROJECT_AIRCRAFT_DEFINITION))
-      .toEqual({ status: 'empty' });
+      .toMatchObject({ status: 'valid' });
   });
 
   it('round-trips loading, stop, and alternate inputs', () => {
@@ -23,7 +27,7 @@ describe('operational input parsing', () => {
       rightSeatMassKg: 75,
       baggageMassKg: 10,
       extraFuelLitres: 18,
-      finalReserveMinutes: 60,
+      finalReserveLitres: 36,
       sectorOperations: [{
         waypointId: 'B',
         kind: 'full-stop' as const,
@@ -35,9 +39,9 @@ describe('operational input parsing', () => {
           name: 'ENAL',
           position: { latitude: 62.56, longitude: 6.11 },
         },
-        elevationFtMsl: 70,
-        weather: { qnhHpa: 1015, isaDeviationC: 2 },
-        altitudeFtMsl: 4500,
+        distanceNm: 45,
+        timeMinutes: 30,
+        fuelLitres: 18,
       },
     };
     expect(parseOperationalInputDraft(
@@ -70,4 +74,3 @@ describe('operational input parsing', () => {
     });
   });
 });
-

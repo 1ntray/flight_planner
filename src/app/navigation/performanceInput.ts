@@ -47,10 +47,10 @@ export type PerformanceInputParseResult =
 export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
   return {
     massKg: '',
-    defaultAltitudeFtMsl: '',
+    defaultAltitudeFtMsl: '2500',
     departureElevationFtMsl: '',
     destinationElevationFtMsl: '',
-    patternHeightAglFt: '',
+    patternHeightAglFt: '1000',
     departureQnhHpa: '',
     departureIsaDeviationC: '',
     destinationQnhHpa: '',
@@ -206,10 +206,8 @@ export function parsePerformanceInputDraft(
 
   const scalarValues = [
     derivedMassKg === undefined ? draft.massKg : String(derivedMassKg),
-    draft.defaultAltitudeFtMsl,
     draft.departureElevationFtMsl,
     draft.destinationElevationFtMsl,
-    draft.patternHeightAglFt,
     draft.departureQnhHpa,
     draft.departureIsaDeviationC,
     draft.destinationQnhHpa,
@@ -218,6 +216,8 @@ export function parsePerformanceInputDraft(
 
   if (
     scalarValues.every((value) => value.trim() === '') &&
+    (draft.defaultAltitudeFtMsl === '' || draft.defaultAltitudeFtMsl === '2500') &&
+    (draft.patternHeightAglFt === '' || draft.patternHeightAglFt === '1000') &&
     draft.legAltitudePlans.length === 0 &&
     draft.sectorStopPlans.every((stop) =>
       [

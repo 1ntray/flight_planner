@@ -17,7 +17,6 @@ function step(
     durationSeconds,
     wind: { directionFromTrueDeg: windDirection, speedKt: 10 },
     trueHeadingDeg: heading,
-    magneticHeadingDeg: heading,
     representativeAltitudeFtMsl: altitudeFtMsl,
   };
 }
@@ -37,7 +36,6 @@ describe('calculatePerformanceLegNavigationSummary', () => {
       source: 'cruise',
       wind: { directionFromTrueDeg: 270, speedKt: 10 },
       trueHeadingDeg: 95,
-      magneticHeadingDeg: 95,
     });
   });
 

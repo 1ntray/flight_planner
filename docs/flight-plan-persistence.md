@@ -2,14 +2,14 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 7 contains the route,
-route-wide navigation inputs, the complete selected aircraft-definition
+The exported format is a versioned JSON document. Version 9 contains the route,
+navigation inputs including magnetic-variation mode and manual fallback, the complete selected aircraft-definition
 snapshot, optional performance and operational inputs, and the forecast
-preference. Versions 1 through 6 are validated and explicitly migrated on load.
+preference. Versions 1 through 7 are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV7 {
-  schemaVersion: 7;
+interface FlightPlanningDocumentV9 {
+  schemaVersion: 9;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
@@ -31,14 +31,17 @@ snapshot containing elevation, QNH, ISA deviation, and a non-negative stop
 duration in minutes. The following sector departure is derived from arrival
 plus that duration. Version-four documents used an optional fixed onward UTC
 departure instead.
-Navlog sectors, calculated legs, ETAs, phase boundaries, and totals are derived
-and are not persisted.
+Navlog sectors, calculated legs, ETAs, phase boundaries, totals, and per-leg
+WMM variations are derived and are not persisted.
 
 Operational inputs contain total ramp fuel, occupant and baggage masses,
 extra/reserve policy, one T&G/full-stop operation per intermediate airport,
-optional full-stop fuel-onboard targets, and an optional alternate waypoint,
-elevation, weather, and altitude snapshot. Tank split, fuel remaining, loading
-states, OFP rows, warnings, and requirement totals are recalculated.
+optional full-stop fuel-onboard targets, an editable final-reserve quantity in
+litres, and an optional aerodrome-anchored alternate snapshot with pilot-entered
+distance, time, and fuel requirements. Tank split, fuel remaining, loading
+states, OFP rows, warnings, and requirement totals are recalculated. The
+alternate navigation line remains derived; it is not used to overwrite the
+pilot-entered alternate requirement.
 
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
@@ -102,7 +105,7 @@ protects:
 - aircraft identity, revision, phase values, and climb-model coefficients,
 - fuel capacities/arms, loading stations/limits, and operational inputs,
 - unique altitude plans associated only with adjacent real-waypoint legs,
-- the forecast preference boolean.
+- the forecast preference boolean and magnetic-variation mode/manual value.
 
 Unknown top-level and nested fields are ignored when a validated normalized
 document is constructed. Schema-one documents migrate without inventing
@@ -118,7 +121,12 @@ legacy compatibility values so importing an existing plan does not change its
 timeline; entering a stop duration replaces that legacy value. Version-five
 documents gain `operationalInputs: null` and preserve their previous behaviour.
 Version-six documents retain all operational inputs and migrate without
-inventing the new optional second altitude instruction.
+inventing the new optional second altitude instruction. Version-seven documents
+migrate their route-wide variation to explicit Manual mode, preserving the
+previous navigation output. Version-eight documents convert final reserve from
+minutes to litres using the saved aircraft's reserve flow, and retain the old
+alternate waypoint while setting its new manual distance, time, and fuel values
+to zero for pilot review.
 
 ## AIRAC stability
 

@@ -6,6 +6,7 @@ export interface OperationalPlanningInputsProps {
   draft: OperationalInputDraft;
   errorMessage?: string;
   calculatedTakeoffMassKg?: number;
+  onChooseAlternateOnMap: () => void;
   onChange: (draft: OperationalInputDraft) => void;
 }
 
@@ -13,7 +14,7 @@ type ScalarField = Exclude<
   keyof OperationalInputDraft,
   | 'sectorOperations'
   | 'alternateEnabled'
-  | 'alternateWaypointId'
+  | 'alternateWaypoint'
 >;
 
 interface NumericFieldProps {
@@ -65,6 +66,7 @@ export function OperationalPlanningInputs({
   draft,
   errorMessage,
   calculatedTakeoffMassKg,
+  onChooseAlternateOnMap,
   onChange,
 }: OperationalPlanningInputsProps) {
   const fuelSystem = aircraft.fuelSystem;
@@ -151,9 +153,10 @@ export function OperationalPlanningInputs({
       />
       <NumericField
         label="Final reserve"
-        field="finalReserveMinutes"
-        unit="min"
+        field="finalReserveLitres"
+        unit="L"
         min="0"
+        step="0.1"
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -177,29 +180,22 @@ export function OperationalPlanningInputs({
             onChange({ ...draft, alternateEnabled: event.currentTarget.checked })
           }
         />
-        <span>Plan an alternate from the final destination</span>
+        <span>Include an alternate from the final destination</span>
       </label>
 
       {draft.alternateEnabled ? (
         <div className="operational-planning-inputs__alternate">
-          <label>
-            <span>Alternate</span>
-            <input
-              type="text"
-              value={draft.alternateName}
-              aria-invalid={invalid}
-              placeholder="ICAO or name"
-              onChange={(event) =>
-                onChange({ ...draft, alternateName: event.currentTarget.value })
-              }
-            />
-          </label>
-          <NumericField label="Latitude" field="alternateLatitude" unit="°" min="-90" max="90" step="0.000001" draft={draft} invalid={invalid} onChange={onChange} />
-          <NumericField label="Longitude" field="alternateLongitude" unit="°" min="-180" max="180" step="0.000001" draft={draft} invalid={invalid} onChange={onChange} />
-          <NumericField label="Elevation" field="alternateElevationFtMsl" unit="ft MSL" min="0" draft={draft} invalid={invalid} onChange={onChange} />
-          <NumericField label="QNH" field="alternateQnhHpa" unit="hPa" min="0.1" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
-          <NumericField label="ISA deviation" field="alternateIsaDeviationC" unit="°C" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
-          <NumericField label="Planned altitude" field="alternateAltitudeFtMsl" unit="ft MSL" min="0" step="100" draft={draft} invalid={invalid} onChange={onChange} />
+          <p className="navigation-inputs__scope">
+            {draft.alternateWaypoint === null
+              ? 'Choose an aerodrome on the map, then enter your own alternate requirements.'
+              : `Alternate: ${draft.alternateWaypoint.name}`}
+          </p>
+          <button type="button" className="button" onClick={onChooseAlternateOnMap}>
+            {draft.alternateWaypoint === null ? 'Choose aerodrome on map' : 'Change aerodrome on map'}
+          </button>
+          <NumericField label="Alternate distance" field="alternateDistanceNm" unit="NM" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
+          <NumericField label="Alternate time" field="alternateTimeMinutes" unit="min" min="0" step="1" draft={draft} invalid={invalid} onChange={onChange} />
+          <NumericField label="Alternate fuel" field="alternateFuelLitres" unit="L" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
         </div>
       ) : null}
 

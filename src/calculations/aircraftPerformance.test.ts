@@ -7,6 +7,7 @@ import {
   calculateClimbTime,
   calculateDescentTime,
   calculatePhaseFuel,
+  calculateAerodromePatternAltitudeFtMsl,
   calculatePatternAltitudeFtMsl,
   calculatePlanningEnvironment,
   calculateTasFromIas,
@@ -159,6 +160,15 @@ describe('project aircraft performance', () => {
       expect(calculatePatternAltitudeFtMsl(450, 1000)).toBe(1500);
       expect(calculatePatternAltitudeFtMsl(457, 1000)).toBe(1500);
       expect(calculatePatternAltitudeFtMsl(500, 1000)).toBe(1500);
+    });
+
+    it('uses ENDU\'s 1500 ft MSL default while preserving an edited pattern height', () => {
+      expect(calculateAerodromePatternAltitudeFtMsl(254, 1000, 'ENDU'))
+        .toBe(1500);
+      expect(calculateAerodromePatternAltitudeFtMsl(254, 1100, 'ENDU'))
+        .toBe(1400);
+      expect(calculateAerodromePatternAltitudeFtMsl(254, 1000, 'ENEV'))
+        .toBe(1300);
     });
 
     it('averages departure and destination weather arithmetically', () => {

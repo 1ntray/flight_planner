@@ -8,9 +8,7 @@ import type {
   RoutePlanningInputs,
 } from '../domain';
 import { deriveFlightPlanSectors } from './flightSectors';
-import {
-  calculatePerformanceRoute,
-} from './performanceRoute';
+import { calculatePerformanceRoute } from './performanceRoute';
 import type {
   CalculatedPerformanceLeg,
   CalculatedPerformanceRoute,
@@ -115,7 +113,6 @@ export interface CalculatedSectorOperationalFlightPlan {
 export interface CalculatedOperationalFlightPlanSuccess {
   readonly status: 'ok';
   readonly performanceRoute: CalculatedPerformanceRouteSuccess;
-  readonly alternatePerformanceRoute: CalculatedPerformanceRouteSuccess | null;
   readonly sectors: readonly CalculatedSectorOperationalFlightPlan[];
   readonly warnings: readonly OperationalWarning[];
 }
@@ -126,8 +123,7 @@ export interface CalculatedOperationalFlightPlanNoSolution {
     | 'aircraft-operational-definition-missing'
     | 'invalid-operational-input'
     | 'insufficient-fuel'
-    | 'main-performance-no-solution'
-    | 'alternate-performance-no-solution';
+    | 'main-performance-no-solution';
   readonly message: string;
   readonly performanceFailure?: CalculatedPerformanceRouteNoSolution;
 }
@@ -345,7 +341,7 @@ function validateOperationalInputs(
     [operational.rightSeatMassKg, 'Right-seat mass'],
     [operational.baggageMassKg, 'Baggage mass'],
     [operational.extraFuelLitres, 'Extra fuel'],
-    [operational.finalReserveMinutes, 'Final reserve'],
+    [operational.finalReserveLitres, 'Final reserve'],
   ];
 
   for (const [value, label] of scalarInputs) {
@@ -389,19 +385,15 @@ function validateOperationalInputs(
     }
   }
 
-  if (operational.alternate !== null) {
-    const alternate = operational.alternate;
-    if (
-      !Number.isFinite(alternate.elevationFtMsl) ||
-      alternate.elevationFtMsl < 0 ||
-      !Number.isFinite(alternate.altitudeFtMsl) ||
-      alternate.altitudeFtMsl < 0 ||
-      !Number.isFinite(alternate.weather.qnhHpa) ||
-      alternate.weather.qnhHpa <= 0 ||
-      !Number.isFinite(alternate.weather.isaDeviationC)
-    ) {
-      return 'Alternate elevation, altitude, QNH, and ISA deviation must be valid';
-    }
+  if (operational.alternate !== null && (
+    !Number.isFinite(operational.alternate.distanceNm) ||
+    operational.alternate.distanceNm < 0 ||
+    !Number.isFinite(operational.alternate.timeMinutes) ||
+    operational.alternate.timeMinutes < 0 ||
+    !Number.isFinite(operational.alternate.fuelLitres) ||
+    operational.alternate.fuelLitres < 0
+  )) {
+    return 'Alternate distance, time, and fuel must be valid non-negative values';
   }
 
   return null;
@@ -424,7 +416,7 @@ function groundAllowanceApplies(
 function projectOperationalPlan(
   flightPlan: FlightPlan,
   performanceRoute: CalculatedPerformanceRouteSuccess,
-  alternatePerformanceRoute: CalculatedPerformanceRouteSuccess | null,
+  alternate: OperationalPlanningInputs['alternate'],
   aircraft: AircraftDefinition,
   operational: OperationalPlanningInputs,
 ): OperationalProjection | CalculatedOperationalFlightPlanNoSolution {
@@ -588,17 +580,15 @@ function projectOperationalPlan(
       remainingAirborneSeconds[sector.sectorIndex]! / SECONDS_PER_MINUTE +
       remainingGroundCount *
         system.groundDepartureAllowance.planningTimeMinutes;
-    const alternateFuelLitres = alternatePerformanceRoute?.totalFuelLitres ?? 0;
-    const alternateTimeMinutes =
-      (alternatePerformanceRoute?.totalEetSeconds ?? 0) / SECONDS_PER_MINUTE;
+    const alternateFuelLitres = alternate?.fuelLitres ?? 0;
+    const alternateTimeMinutes = alternate?.timeMinutes ?? 0;
     const extraTimeMinutes =
       operational.extraFuelLitres /
       system.reserveFuelFlowLph *
       MINUTES_PER_HOUR;
-    const finalReserveLitres =
-      operational.finalReserveMinutes /
-      MINUTES_PER_HOUR *
-      system.reserveFuelFlowLph;
+    const finalReserveLitres = operational.finalReserveLitres;
+    const finalReserveTimeMinutes = finalReserveLitres /
+      system.reserveFuelFlowLph * MINUTES_PER_HOUR;
     const totalRequiredLitres =
       tripFuelLitres +
       alternateFuelLitres +
@@ -608,7 +598,7 @@ function projectOperationalPlan(
       tripTimeMinutes +
       alternateTimeMinutes +
       extraTimeMinutes +
-      operational.finalReserveMinutes;
+      finalReserveTimeMinutes;
     const enduranceMinutes =
       totalRequiredTimeMinutes +
       (fuelOnboardBeforeDepartureLitres - totalRequiredLitres) /
@@ -665,7 +655,7 @@ function projectOperationalPlan(
       ),
       finalReserve: fuelLine(
         finalReserveLitres,
-        operational.finalReserveMinutes,
+        finalReserveTimeMinutes,
         system,
       ),
       totalFuelRequired: fuelLine(
@@ -688,46 +678,6 @@ function projectOperationalPlan(
     finalLandingLoading,
     warnings,
   };
-}
-
-function calculateAlternateRoute(
-  input: OperationalFlightPlanCalculationInput,
-  mainRoute: CalculatedPerformanceRouteSuccess,
-  departureMassKg: number,
-): CalculatedPerformanceRoute {
-  const alternate = input.operational.alternate;
-  const mainDestination = input.flightPlan.waypoints.at(-1);
-
-  if (alternate === null || mainDestination === undefined) {
-    throw new Error('Alternate route inputs are missing');
-  }
-
-  return calculatePerformanceRoute({
-    flightPlan: {
-      waypoints: [mainDestination, alternate.waypoint],
-      legShapes: [],
-      sectorBoundaryWaypointIds: [],
-    },
-    navigation: {
-      ...input.navigation,
-      departureTimeUtcMs: mainRoute.estimatedArrivalTimeUtcMs,
-    },
-    performance: {
-      massKg: departureMassKg,
-      defaultAltitudeFtMsl: alternate.altitudeFtMsl,
-      departureElevationFtMsl:
-        input.performance.destinationElevationFtMsl +
-        input.performance.patternHeightAglFt,
-      destinationElevationFtMsl: alternate.elevationFtMsl,
-      patternHeightAglFt: input.performance.patternHeightAglFt,
-      departureWeather: input.performance.destinationWeather,
-      destinationWeather: alternate.weather,
-      legAltitudePlans: [],
-      sectorStopPlans: [],
-    },
-    profile: input.aircraft.performance,
-    ...(input.resolveWind === undefined ? {} : { resolveWind: input.resolveWind }),
-  });
 }
 
 export function calculateOperationalFlightPlan(
@@ -839,28 +789,10 @@ export function calculateOperationalFlightPlan(
     throw new Error('Operational mass convergence did not run');
   }
 
-  let alternatePerformanceRoute: CalculatedPerformanceRouteSuccess | null = null;
-  if (input.operational.alternate !== null) {
-    const alternate = calculateAlternateRoute(
-      input,
-      mainRoute,
-      projection.finalLandingLoading.totalMassKg,
-    );
-    if (alternate.status === 'no-solution') {
-      return {
-        status: 'no-solution',
-        reason: 'alternate-performance-no-solution',
-        message: alternate.message,
-        performanceFailure: alternate,
-      };
-    }
-    alternatePerformanceRoute = alternate;
-  }
-
   const finalProjection = projectOperationalPlan(
     input.flightPlan,
     mainRoute,
-    alternatePerformanceRoute,
+    input.operational.alternate,
     input.aircraft,
     input.operational,
   );
@@ -871,7 +803,6 @@ export function calculateOperationalFlightPlan(
   return {
     status: 'ok',
     performanceRoute: mainRoute,
-    alternatePerformanceRoute,
     sectors: finalProjection.sectors,
     warnings: finalProjection.warnings,
   };

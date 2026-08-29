@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 
 import {
   calculateNavigationRoute,
+  applyLegMagneticVariations,
+  calculateRouteMagneticVariations,
   calculateInitialTakeoffLoading,
   calculateOperationalFlightPlan,
   calculatePerformanceRoute,
@@ -17,6 +19,7 @@ import type { AircraftDefinition, FlightPlan } from '../../domain';
 import { createSampledWindResolver } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
 import { calculateNavigationSummaryRoute } from './calculateNavigationSummaryRoute';
+import { calculateWithOptionalForecast } from './forecastCalculationSelection';
 import {
   parseNavigationInputDraft,
 } from './navigationInput';
@@ -47,6 +50,8 @@ export interface PlanningCalculations {
   parsedOperational: OperationalInputParseResult;
   derivedTakeoffMassKg: number | null;
   calculatedRoute: CalculatedNavigationRoute;
+  alternateCalculatedRoute: CalculatedNavigationRoute | null;
+  alternateTrueAirspeedKt: number | null;
   performanceRoute: CalculatedPerformanceRoute | null;
   operationalPlan: CalculatedOperationalFlightPlan | null;
   forecast: {
@@ -204,14 +209,6 @@ export function usePlanningCalculations({
     planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
   });
-  const additionalPreliminaryRoutes = useMemo(
-    () =>
-      manualOperationalPlan?.status === 'ok' &&
-      manualOperationalPlan.alternatePerformanceRoute !== null
-        ? [manualOperationalPlan.alternatePerformanceRoute]
-        : [],
-    [manualOperationalPlan],
-  );
   const performanceForecast = useOpenMeteoPerformanceWinds({
     enabled: useForecastWinds && parsedPerformance.status === 'valid',
     flightPlan,
@@ -220,7 +217,7 @@ export function usePlanningCalculations({
       parsedPerformance.status === 'valid' ? parsedPerformance.value : null,
     profile: aircraftDefinition.performance,
     preliminaryRoute: manualPerformanceRoute,
-    additionalPreliminaryRoutes,
+    additionalPreliminaryRoutes: [],
   });
   const forecast =
     parsedPerformance.status === 'valid'
@@ -232,7 +229,7 @@ export function usePlanningCalculations({
               : [],
           status: legForecast.status,
         };
-  const calculatedRoute = useMemo(
+  const baseCalculatedRoute = useMemo(
     () =>
       calculateNavigationSummaryRoute({
         flightPlan,
@@ -251,21 +248,26 @@ export function usePlanningCalculations({
       return null;
     }
 
-    return calculateOperationalFlightPlan({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-      aircraft: aircraftDefinition,
-      operational: parsedOperational.value,
-      resolveWind: createSampledWindResolver(
-        forecast.winds,
-        parsedInputs.value.wind,
-      ),
-    });
+    return calculateWithOptionalForecast(
+      manualOperationalPlan,
+      forecast.winds,
+      () => calculateOperationalFlightPlan({
+        flightPlan,
+        navigation: parsedInputs.value,
+        performance: parsedPerformance.value,
+        aircraft: aircraftDefinition,
+        operational: parsedOperational.value,
+        resolveWind: createSampledWindResolver(
+          forecast.winds,
+          parsedInputs.value.wind,
+        ),
+      }),
+    );
   }, [
     aircraftDefinition,
     flightPlan,
     forecast.winds,
+    manualOperationalPlan,
     parsedInputs,
     parsedOperational,
     parsedPerformance,
@@ -300,6 +302,80 @@ export function usePlanningCalculations({
     parsedInputs,
     parsedPerformance,
   ]);
+  const calculatedRoute = useMemo(() => {
+    if (parsedInputs.status !== 'valid') {
+      return baseCalculatedRoute;
+    }
+
+    return applyLegMagneticVariations(
+      baseCalculatedRoute,
+      calculateRouteMagneticVariations({
+        flightPlan,
+        navigationRoute: baseCalculatedRoute,
+        performanceRoute,
+        mode: parsedInputs.value.magneticVariationMode,
+        manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
+        fallbackAltitudeFtMsl: legacyPlanning?.plannedAltitudeFtMsl ?? null,
+      }),
+    );
+  }, [
+    baseCalculatedRoute,
+    flightPlan,
+    legacyPlanning?.plannedAltitudeFtMsl,
+    parsedInputs,
+    performanceRoute,
+  ]);
+  const alternateCalculatedRoute = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedOperational.status !== 'valid' ||
+      legacyPlanning === null ||
+      operationalPlan?.status !== 'ok'
+    ) {
+      return null;
+    }
+    const finalWaypoint = flightPlan.waypoints.at(-1);
+    const alternateWaypoint = parsedOperational.value.alternate?.waypoint;
+    if (finalWaypoint === undefined || alternateWaypoint === undefined) {
+      return null;
+    }
+
+    const alternateFlightPlan: FlightPlan = {
+      waypoints: [finalWaypoint, alternateWaypoint],
+      legShapes: [],
+      sectorBoundaryWaypointIds: [],
+    };
+    const alternateDepartureTimeUtcMs =
+      performanceRoute?.status === 'ok'
+        ? performanceRoute.estimatedArrivalTimeUtcMs
+        : baseCalculatedRoute.estimatedArrivalTimeUtcMs;
+    const baseRoute = calculateNavigationRoute({
+      flightPlan: alternateFlightPlan,
+      planning: {
+        ...legacyPlanning,
+        departureTimeUtcMs: alternateDepartureTimeUtcMs ??
+          legacyPlanning.departureTimeUtcMs,
+      },
+    });
+    return applyLegMagneticVariations(
+      baseRoute,
+      calculateRouteMagneticVariations({
+        flightPlan: alternateFlightPlan,
+        navigationRoute: baseRoute,
+        mode: parsedInputs.value.magneticVariationMode,
+        manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
+        fallbackAltitudeFtMsl: legacyPlanning.plannedAltitudeFtMsl,
+      }),
+    );
+  }, [
+    flightPlan.waypoints,
+    legacyPlanning,
+    baseCalculatedRoute.estimatedArrivalTimeUtcMs,
+    operationalPlan,
+    parsedInputs,
+    parsedOperational,
+    performanceRoute,
+  ]);
 
   return {
     parsedInputs,
@@ -307,6 +383,8 @@ export function usePlanningCalculations({
     parsedOperational,
     derivedTakeoffMassKg: derivedMassKg ?? null,
     calculatedRoute,
+    alternateCalculatedRoute,
+    alternateTrueAirspeedKt: legacyPlanning?.trueAirspeedKt ?? null,
     performanceRoute,
     operationalPlan,
     forecast,

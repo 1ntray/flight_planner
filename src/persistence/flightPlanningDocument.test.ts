@@ -12,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 7,
+  schemaVersion: 9,
   flightPlan: {
     waypoints: [
       {
@@ -61,6 +61,7 @@ const document: FlightPlanningDocument = {
   },
   planningInputs: {
     departureTimeUtcMs: Date.UTC(2026, 7, 28, 9),
+    magneticVariationMode: 'manual',
     magneticVariationDegEast: 8.5,
     wind: { directionFromTrueDeg: 240, speedKt: 18 },
   },
@@ -114,7 +115,7 @@ describe('flight-planning document persistence', () => {
         rightSeatMassKg: 74,
         baggageMassKg: 12,
         extraFuelLitres: 18,
-        finalReserveMinutes: 60,
+        finalReserveLitres: 36,
         sectorOperations: [],
         alternate: {
           waypoint: {
@@ -122,9 +123,9 @@ describe('flight-planning document persistence', () => {
             name: 'ENAL',
             position: { latitude: 62.56, longitude: 6.11 },
           },
-          elevationFtMsl: 70,
-          weather: { qnhHpa: 1015, isaDeviationC: 2 },
-          altitudeFtMsl: 4500,
+          distanceNm: 45,
+          timeMinutes: 30,
+          fuelLitres: 18,
         },
       },
     };
@@ -161,8 +162,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 8 }),
-    ).toThrow('Unsupported flight-planning document schema version 8');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 10 }),
+    ).toThrow('Unsupported flight-planning document schema version 10');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -330,7 +331,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 7,
+      schemaVersion: 9,
       planningInputs: document.planningInputs,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
@@ -358,7 +359,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 7,
+      schemaVersion: 9,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: document.performanceInputs,
     });
@@ -378,7 +379,7 @@ describe('flight-planning document persistence', () => {
       useForecastWinds: document.useForecastWinds,
     });
 
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.flightPlan.sectorBoundaryWaypointIds).toEqual([]);
     expect(migrated.performanceInputs?.sectorStopPlans).toEqual([]);
   });
@@ -449,7 +450,7 @@ describe('flight-planning document persistence', () => {
       },
     });
 
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.performanceInputs?.sectorStopPlans?.[0])
       .toMatchObject({ onwardDepartureTimeUtcMs: legacyDepartureTime });
   });
@@ -462,7 +463,7 @@ describe('flight-planning document persistence', () => {
       schemaVersion: 5,
     });
 
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.operationalInputs).toBeNull();
   });
 
@@ -480,10 +481,66 @@ describe('flight-planning document persistence', () => {
 
     const migrated = parseFlightPlanningDocument(legacyDocument);
 
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.performanceInputs?.legAltitudePlans[0])
       .not.toHaveProperty('endAltitudeFtMsl');
     expect(migrated.operationalInputs).toEqual(document.operationalInputs);
+  });
+
+  it('migrates V7 route-wide variation into explicit manual mode', () => {
+    const { magneticVariationMode: _mode, ...legacyPlanningInputs } =
+      document.planningInputs;
+    const migrated = parseFlightPlanningDocument({
+      ...document,
+      schemaVersion: 7,
+      planningInputs: legacyPlanningInputs,
+    });
+
+    expect(migrated).toMatchObject({
+      schemaVersion: 9,
+      planningInputs: {
+        magneticVariationMode: 'manual',
+        magneticVariationDegEast: 8.5,
+      },
+    });
+  });
+
+  it('migrates V8 reserve minutes and calculated-alternate inputs to manual values', () => {
+    const legacyV8 = {
+      ...document,
+      schemaVersion: 8,
+      operationalInputs: {
+        fuelOnboardLitres: 224,
+        leftSeatMassKg: 56,
+        rightSeatMassKg: 0,
+        baggageMassKg: 15,
+        extraFuelLitres: 18,
+        finalReserveMinutes: 60,
+        sectorOperations: [],
+        alternate: {
+          waypoint: {
+            id: 'ALT',
+            name: 'ENAL',
+            position: { latitude: 62.56, longitude: 6.11 },
+          },
+          elevationFtMsl: 70,
+          weather: { qnhHpa: 1013, isaDeviationC: 0 },
+          altitudeFtMsl: 2500,
+        },
+      },
+    };
+
+    expect(parseFlightPlanningDocument(legacyV8)).toMatchObject({
+      schemaVersion: 9,
+      operationalInputs: {
+        finalReserveLitres: 36,
+        alternate: {
+          distanceNm: 0,
+          timeMinutes: 0,
+          fuelLitres: 0,
+        },
+      },
+    });
   });
 
   it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {

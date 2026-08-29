@@ -58,6 +58,8 @@ export interface AeronauticalLayersProps {
   visibility: AeronauticalLayerVisibility;
   anchoringEnabled: boolean;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
+  alternateAerodromeSelectionEnabled: boolean;
+  onSelectAlternateAerodrome: (feature: AeronauticalPointFeature) => void;
   onPointFeaturesChange: (
     features: readonly AeronauticalPointFeature[],
   ) => void;
@@ -95,6 +97,8 @@ export function AeronauticalLayers({
   visibility,
   anchoringEnabled,
   onAnchorPoint,
+  alternateAerodromeSelectionEnabled,
+  onSelectAlternateAerodrome,
   onPointFeaturesChange,
   onDatasetChange,
   onStatusChange,
@@ -233,12 +237,17 @@ export function AeronauticalLayers({
             pane="aeronautical-points"
             icon={pointIconByKind[feature.pointKind]}
             bubblingMouseEvents={false}
-            title={`${feature.identifier} — ${anchoringEnabled ? 'click to add anchored waypoint' : 'aeronautical feature'}`}
+            title={`${feature.identifier} — ${alternateAerodromeSelectionEnabled && feature.pointKind === 'aerodrome' ? 'click to choose alternate' : anchoringEnabled ? 'click to add anchored waypoint' : 'aeronautical feature'}`}
             alt={feature.identifier}
             eventHandlers={{
               click: (event) => {
                 stopMapClick(event);
-                if (anchoringEnabled) {
+                if (
+                  alternateAerodromeSelectionEnabled &&
+                  feature.pointKind === 'aerodrome'
+                ) {
+                  onSelectAlternateAerodrome(feature);
+                } else if (anchoringEnabled) {
                   onAnchorPoint(feature);
                 } else {
                   event.target.openPopup();
@@ -250,12 +259,15 @@ export function AeronauticalLayers({
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
-            {anchoringEnabled ? null : (
+            {anchoringEnabled ||
+            (alternateAerodromeSelectionEnabled && feature.pointKind === 'aerodrome') ? null : (
               <Popup>
                 <strong>{feature.identifier}</strong>
                 {feature.name === undefined ? null : <><br />{feature.name}</>}
                 <br />
-                Switch to Add waypoint mode to use this feature
+                {alternateAerodromeSelectionEnabled
+                  ? 'Choose an aerodrome as the alternate in this mode'
+                  : 'Switch to Add waypoint mode to use this feature'}
               </Popup>
             )}
           </Marker>

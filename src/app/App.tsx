@@ -549,6 +549,7 @@ export function App() {
     };
   }, [endpointAerodromeReferences, sectorStopAerodromeReferences]);
 
+
   const addWaypoint = useCallback((position: Position) => {
     const id = crypto.randomUUID();
     setFlightPlan((currentFlightPlan) =>
@@ -562,6 +563,34 @@ export function App() {
       setFlightPlan((currentFlightPlan) =>
         appendAnchoredWaypointToFlightPlan(currentFlightPlan, feature, id),
       );
+    },
+    [],
+  );
+
+  const selectAlternateAerodrome = useCallback(
+    (feature: AeronauticalPointFeature) => {
+      if (feature.pointKind !== 'aerodrome') {
+        return;
+      }
+
+      setOperationalInputDraft((currentDraft) => ({
+        ...currentDraft,
+        alternateEnabled: true,
+        alternateWaypoint: {
+          id: `alternate-${crypto.randomUUID()}`,
+          name: feature.suggestedWaypointName,
+          position: feature.position,
+          anchor: {
+            kind: 'aeronautical-feature',
+            feature: feature.ref,
+            publishedIdentifier: feature.identifier,
+            ...(feature.name === undefined
+              ? {}
+              : { publishedName: feature.name }),
+          },
+        },
+      }));
+      setMapTool({ kind: 'select' });
     },
     [],
   );
@@ -1035,6 +1064,14 @@ export function App() {
     onPerformanceDraftChange: setPerformanceInputDraft,
     onOperationalDraftChange: setOperationalInputDraft,
     onUseForecastWindsChange: setUseForecastWinds,
+    onChooseAlternateOnMap: () => {
+      setOperationalInputDraft((currentDraft) => ({
+        ...currentDraft,
+        alternateEnabled: true,
+      }));
+      setMapSelection(null);
+      setMapTool({ kind: 'select-alternate-aerodrome' });
+    },
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
     calculations,
@@ -1044,7 +1081,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.18</p>
+          <p className="eyebrow">MVP 0.19</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -1074,6 +1111,7 @@ export function App() {
               : {})}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}
+            onSelectAlternateAerodrome={selectAlternateAerodrome}
             onAttachWaypoint={attachWaypoint}
             onMoveWaypoint={moveWaypoint}
             onAddShapingPoint={addShapingPoint}

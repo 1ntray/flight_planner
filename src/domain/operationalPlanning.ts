@@ -1,4 +1,3 @@
-import type { AerodromePlanningWeather } from './aircraftPerformance';
 import type { Waypoint } from './waypoint';
 
 export type FuelTankKind = 'main' | 'auxiliary';
@@ -45,9 +44,12 @@ export interface SectorOperationPlan {
 export interface AlternatePlanningInputs {
   /** The primary destination is derived as FROM; this is the alternate TO snapshot. */
   readonly waypoint: Waypoint;
-  readonly elevationFtMsl: number;
-  readonly weather: AerodromePlanningWeather;
-  readonly altitudeFtMsl: number;
+  /** Pilot-entered OFP requirement; it is not derived from the navigation line. */
+  readonly distanceNm: number;
+  /** Pilot-entered OFP requirement, in airborne minutes. */
+  readonly timeMinutes: number;
+  /** Pilot-entered OFP requirement, independent of the route performance model. */
+  readonly fuelLitres: number;
 }
 
 export interface OperationalPlanningInputs {
@@ -57,8 +59,8 @@ export interface OperationalPlanningInputs {
   readonly rightSeatMassKg: number;
   readonly baggageMassKg: number;
   readonly extraFuelLitres: number;
-  readonly finalReserveMinutes: number;
+  /** Editable reserve quantity. Its displayed endurance time uses reserveFuelFlowLph. */
+  readonly finalReserveLitres: number;
   readonly sectorOperations: readonly SectorOperationPlan[];
   readonly alternate: AlternatePlanningInputs | null;
 }
-

@@ -17,6 +17,9 @@ export {
   calculateDescentTime,
   calculatePhaseFuel,
   calculatePatternAltitudeFtMsl,
+  calculateAerodromePatternAltitudeFtMsl,
+  DEFAULT_PATTERN_HEIGHT_AGL_FT,
+  ENDU_DEFAULT_PATTERN_ALTITUDE_FT_MSL,
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
@@ -49,6 +52,23 @@ export type {
   NavigationRouteCalculationInput,
   NavigationWindSource,
 } from './navigationRoute';
+export {
+  applyLegMagneticVariations,
+  calculateRouteMagneticVariations,
+  wmm2025MagneticVariationProvider,
+  WMM2025_MODEL_ID,
+  WMM2025_VALID_FROM_UTC_MS,
+  WMM2025_VALID_UNTIL_UTC_MS,
+} from './magneticVariation';
+export type {
+  CalculateRouteMagneticVariationsInput,
+  LegMagneticVariation,
+  MagneticVariationProvider,
+  MagneticVariationQuery,
+  MagneticVariationResult,
+  MagneticVariationSource,
+  MagneticVariationUnavailableReason,
+} from './magneticVariation';
 export {
   buildLegGeometry,
   calculateFlightPlanLegs,

@@ -1,6 +1,7 @@
 import type {
   AircraftDefinition,
   OperationalPlanningInputs,
+  Waypoint,
 } from '../../domain';
 
 export interface SectorOperationInputDraft {
@@ -15,17 +16,14 @@ export interface OperationalInputDraft {
   rightSeatMassKg: string;
   baggageMassKg: string;
   extraFuelLitres: string;
-  finalReserveMinutes: string;
+  finalReserveLitres: string;
   sectorOperations: readonly SectorOperationInputDraft[];
   alternateEnabled: boolean;
-  alternateWaypointId: string;
-  alternateName: string;
-  alternateLatitude: string;
-  alternateLongitude: string;
-  alternateElevationFtMsl: string;
-  alternateQnhHpa: string;
-  alternateIsaDeviationC: string;
-  alternateAltitudeFtMsl: string;
+  /** Snapshot chosen from an aerodrome feature; never a primary route waypoint. */
+  alternateWaypoint: Waypoint | null;
+  alternateDistanceNm: string;
+  alternateTimeMinutes: string;
+  alternateFuelLitres: string;
 }
 
 export type OperationalInputParseResult =
@@ -35,22 +33,18 @@ export type OperationalInputParseResult =
 
 export function createEmptyOperationalInputDraft(): OperationalInputDraft {
   return {
-    fuelOnboardLitres: '',
-    leftSeatMassKg: '',
-    rightSeatMassKg: '',
-    baggageMassKg: '',
+    fuelOnboardLitres: '224',
+    leftSeatMassKg: '56',
+    rightSeatMassKg: '0',
+    baggageMassKg: '15',
     extraFuelLitres: '18',
-    finalReserveMinutes: '60',
+    finalReserveLitres: '36',
     sectorOperations: [],
     alternateEnabled: false,
-    alternateWaypointId: 'alternate',
-    alternateName: '',
-    alternateLatitude: '',
-    alternateLongitude: '',
-    alternateElevationFtMsl: '',
-    alternateQnhHpa: '',
-    alternateIsaDeviationC: '',
-    alternateAltitudeFtMsl: '',
+    alternateWaypoint: null,
+    alternateDistanceNm: '',
+    alternateTimeMinutes: '',
+    alternateFuelLitres: '',
   };
 }
 
@@ -74,7 +68,7 @@ export function createOperationalInputDraft(
     rightSeatMassKg: String(inputs.rightSeatMassKg),
     baggageMassKg: String(inputs.baggageMassKg),
     extraFuelLitres: String(inputs.extraFuelLitres),
-    finalReserveMinutes: String(inputs.finalReserveMinutes),
+    finalReserveLitres: String(inputs.finalReserveLitres),
     sectorOperations: inputs.sectorOperations.map((operation) => ({
       waypointId: operation.waypointId,
       kind: operation.kind,
@@ -84,26 +78,10 @@ export function createOperationalInputDraft(
           : String(operation.departureFuelOnboardLitres),
     })),
     alternateEnabled: alternate !== null,
-    alternateWaypointId: alternate?.waypoint.id ?? 'alternate',
-    alternateName: alternate?.waypoint.name ?? '',
-    alternateLatitude: alternate === null
-      ? ''
-      : String(alternate.waypoint.position.latitude),
-    alternateLongitude: alternate === null
-      ? ''
-      : String(alternate.waypoint.position.longitude),
-    alternateElevationFtMsl: alternate === null
-      ? ''
-      : String(alternate.elevationFtMsl),
-    alternateQnhHpa: alternate === null
-      ? ''
-      : String(alternate.weather.qnhHpa),
-    alternateIsaDeviationC: alternate === null
-      ? ''
-      : String(alternate.weather.isaDeviationC),
-    alternateAltitudeFtMsl: alternate === null
-      ? ''
-      : String(alternate.altitudeFtMsl),
+    alternateWaypoint: alternate?.waypoint ?? null,
+    alternateDistanceNm: alternate === null ? '' : String(alternate.distanceNm),
+    alternateTimeMinutes: alternate === null ? '' : String(alternate.timeMinutes),
+    alternateFuelLitres: alternate === null ? '' : String(alternate.fuelLitres),
   };
 }
 
@@ -154,7 +132,7 @@ export function parseOperationalInputDraft(
     [draft.rightSeatMassKg, 'Right-seat mass'],
     [draft.baggageMassKg, 'Baggage mass'],
     [draft.extraFuelLitres, 'Extra fuel'],
-    [draft.finalReserveMinutes, 'Final reserve'],
+    [draft.finalReserveLitres, 'Final reserve'],
   ] as const;
   const parsed: number[] = [];
   for (const [value, label] of fields) {
@@ -170,7 +148,7 @@ export function parseOperationalInputDraft(
     rightSeatMassKg,
     baggageMassKg,
     extraFuelLitres,
-    finalReserveMinutes,
+    finalReserveLitres,
   ] = parsed as [number, number, number, number, number, number];
   const capacity =
     aircraft.fuelSystem.main.usableCapacityLitres +
@@ -255,16 +233,10 @@ export function parseOperationalInputDraft(
 
   let alternate: OperationalPlanningInputs['alternate'] = null;
   if (draft.alternateEnabled) {
-    if (draft.alternateName.trim() === '') {
-      return { status: 'invalid', message: 'Alternate name is required' };
-    }
     const alternateFields = [
-      [draft.alternateLatitude, 'Alternate latitude', -90],
-      [draft.alternateLongitude, 'Alternate longitude', -180],
-      [draft.alternateElevationFtMsl, 'Alternate elevation', 0],
-      [draft.alternateQnhHpa, 'Alternate QNH', 0.1],
-      [draft.alternateIsaDeviationC, 'Alternate ISA deviation', -100],
-      [draft.alternateAltitudeFtMsl, 'Alternate altitude', 0],
+      [draft.alternateDistanceNm, 'Alternate distance', 0],
+      [draft.alternateTimeMinutes, 'Alternate time', 0],
+      [draft.alternateFuelLitres, 'Alternate fuel', 0],
     ] as const;
     const alternateParsed: number[] = [];
     for (const [value, label, minimum] of alternateFields) {
@@ -275,28 +247,21 @@ export function parseOperationalInputDraft(
       alternateParsed.push(result);
     }
     const [
-      latitude,
-      longitude,
-      elevationFtMsl,
-      qnhHpa,
-      isaDeviationC,
-      altitudeFtMsl,
-    ] = alternateParsed as [number, number, number, number, number, number];
-    if (latitude > 90) {
-      return { status: 'invalid', message: 'Alternate latitude must be between -90 and 90' };
-    }
-    if (longitude > 180) {
-      return { status: 'invalid', message: 'Alternate longitude must be between -180 and 180' };
+      distanceNm,
+      timeMinutes,
+      fuelLitres,
+    ] = alternateParsed as [number, number, number];
+    if (draft.alternateWaypoint === null) {
+      return {
+        status: 'invalid',
+        message: 'Choose an alternate aerodrome on the map',
+      };
     }
     alternate = {
-      waypoint: {
-        id: draft.alternateWaypointId,
-        name: draft.alternateName.trim(),
-        position: { latitude, longitude },
-      },
-      elevationFtMsl,
-      weather: { qnhHpa, isaDeviationC },
-      altitudeFtMsl,
+      waypoint: draft.alternateWaypoint,
+      distanceNm,
+      timeMinutes,
+      fuelLitres,
     };
   }
 
@@ -308,7 +273,7 @@ export function parseOperationalInputDraft(
       rightSeatMassKg,
       baggageMassKg,
       extraFuelLitres,
-      finalReserveMinutes,
+      finalReserveLitres,
       sectorOperations,
       alternate,
     },

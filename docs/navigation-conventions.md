@@ -19,8 +19,9 @@ They are calculation contracts rather than display preferences.
   left. True heading is `true track + wind-correction angle`, normalized to
   `[0, 360)`.
 - Magnetic variation is stored in degrees with east positive and west
-  negative. The current input is route-wide and manually entered as an
-  unsigned magnitude with an explicit east/west direction.
+  negative. A plan selects automatic WMM2025 variation or a route-wide manual
+  fallback. The manual editor uses an unsigned magnitude with an explicit
+  east/west direction.
 - The conversion contract is `true = magnetic + variation`, so
   `magnetic = true - variation`. Magnetic track is derived from true track;
   magnetic heading is derived from a valid wind-adjusted true heading.
@@ -56,7 +57,8 @@ They are calculation contracts rather than display preferences.
   leg: TT describes direct `A → B` navigation, while DIST describes the planned
   shaped path length.
 - Route shaping points do not affect magnetic track or magnetic heading,
-  because both are derived from the direct `A → B` true directions.
+  because both are derived from the direct `A → B` true directions. In
+  automatic mode they also do not affect the WMM sample position.
 - Wind correction, heading, and groundspeed use the direct true track. EET and
   cumulative timing use the shaped distance. This is a deliberate planning
   abstraction rather than segment-by-segment navigation.
@@ -79,6 +81,11 @@ They are calculation contracts rather than display preferences.
   between the real leg endpoints. It is not an arithmetic average of latitude
   and longitude, and shaping points do not change it.
 - The midpoint time is halfway through the leg's calculated EET.
+- Automatic magnetic variation uses one WMM2025 sample per real navlog leg:
+  the direct WGS84 endpoint midpoint, midpoint UTC time, and the altitude at
+  that time from the calculated performance profile when available. Without a
+  performance profile it uses the normal planned altitude. It is intentionally
+  not integrated through climb, descent, or shaping segments.
 - Without an aircraft performance plan, a weather sample request combines the
   WGS84 leg midpoint, midpoint UTC time, and a representative altitude.
 - With a performance plan, every integrated climb, cruise, or descent step has
@@ -146,9 +153,21 @@ non-positive true airspeed, negative distance, negative wind speed, or a
 non-finite number are programming/input-boundary errors and cause a
 `RangeError`.
 
+## Magnetic variation model
+
+- The offline provider uses bundled WMM2025 coefficients and makes no network
+  request.
+- WMM2025 is accepted only from 2025-01-01T00:00Z up to, but excluding,
+  2030-01-01T00:00Z. Outside that range automatic output is explicitly
+  unavailable and Manual mode remains available. Calculated WMM values are not
+  persisted.
+- Planning altitude is ft MSL and is converted to km MSL for the provider.
+  VAR, MT, and MH are rounded to whole degrees only in the navlog display.
+- The performance model and wind triangle remain entirely in true directions.
+  Compass deviation is not modeled, so magnetic heading is not a compass heading.
+
 ## Current scope
 
-Magnetic variation remains route-wide and compass deviation is not modeled.
 When aircraft performance inputs are present, IAS, altitude-dependent TAS,
 phase fuel flow, and altitude-resolved winds are integrated through the route.
 The older constant-TAS navigation calculation remains a geometric/fallback

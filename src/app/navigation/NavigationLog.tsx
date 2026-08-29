@@ -33,6 +33,7 @@ export interface NavigationLogProps {
   onPerformanceDraftChange: (draft: PerformanceInputDraft) => void;
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
+  onChooseAlternateOnMap: () => void;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
   calculations: PlanningCalculations;
@@ -52,6 +53,7 @@ export function NavigationLog({
   onPerformanceDraftChange,
   onOperationalDraftChange,
   onUseForecastWindsChange,
+  onChooseAlternateOnMap,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
   calculations,
@@ -62,6 +64,8 @@ export function NavigationLog({
     parsedOperational,
     derivedTakeoffMassKg,
     calculatedRoute,
+    alternateCalculatedRoute,
+    alternateTrueAirspeedKt,
     performanceRoute,
     operationalPlan,
     forecast,
@@ -82,7 +86,7 @@ export function NavigationLog({
       <fieldset className="navigation-inputs">
         <legend>Route planning inputs</legend>
         <p className="navigation-inputs__scope">
-          Departure, variation, and manual fallback wind apply to the route.
+          Departure and manual fallback wind apply to the route. Magnetic variation is calculated per leg.
         </p>
 
         <label className="navigation-inputs__departure">
@@ -102,7 +106,24 @@ export function NavigationLog({
         </label>
 
         <label>
-          <span>Variation</span>
+          <span>Variation mode</span>
+          <select
+            value={draft.magneticVariationMode}
+            onChange={(event) =>
+              updateDraft(
+                'magneticVariationMode',
+                event.currentTarget.value as 'automatic-wmm2025' | 'manual',
+              )
+            }
+          >
+            <option value="automatic-wmm2025">Automatic (WMM2025)</option>
+            <option value="manual">Manual</option>
+          </select>
+        </label>
+
+        {draft.magneticVariationMode === 'manual' ? (
+        <label>
+          <span>Manual variation</span>
           <span className="navigation-inputs__control navigation-inputs__variation-control">
             <input
               type="number"
@@ -134,6 +155,11 @@ export function NavigationLog({
             </select>
           </span>
         </label>
+        ) : (
+          <p className="navigation-inputs__scope">
+            WMM2025 samples each leg’s direct midpoint, midpoint UTC time, and representative altitude.
+          </p>
+        )}
 
         <label>
           <span>Wind from</span>
@@ -246,6 +272,7 @@ export function NavigationLog({
               calculatedTakeoffMassKg: derivedTakeoffMassKg,
             })}
         onChange={onOperationalDraftChange}
+        onChooseAlternateOnMap={onChooseAlternateOnMap}
       />
 
       <AircraftPerformanceInputs
@@ -299,6 +326,8 @@ export function NavigationLog({
       <SectorRouteTables
         flightPlan={flightPlan}
         route={calculatedRoute}
+        alternateNavigationRoute={alternateCalculatedRoute}
+        alternateTrueAirspeedKt={alternateTrueAirspeedKt}
         performanceRoute={performanceRoute}
         operationalPlan={operationalPlan}
         aircraftDefinition={aircraftDefinition}

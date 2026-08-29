@@ -4,12 +4,11 @@ import type {
   CalculatedNavigationRoute,
   CalculatedPerformanceLeg,
   CalculatedPerformanceRoute,
-  CalculatedPerformanceRouteSuccess,
   CalculatedSectorOperationalFlightPlan,
   WindAdjustedLegResult,
 } from '../../calculations';
-import { normalizeTrackDeg } from '../../calculations';
-import type { Waypoint, Wind } from '../../domain';
+import { calculateMagneticDirectionDeg, normalizeTrackDeg } from '../../calculations';
+import type { AlternatePlanningInputs, Waypoint, Wind } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
 import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
 import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
@@ -29,9 +28,11 @@ import {
 export interface RouteTableProps {
   waypoints: readonly Waypoint[];
   route: CalculatedNavigationRoute;
+  alternateNavigationRoute?: CalculatedNavigationRoute | null;
   performanceRoute?: CalculatedPerformanceRoute | null;
   operationalSector?: CalculatedSectorOperationalFlightPlan;
-  alternatePerformanceRoute?: CalculatedPerformanceRouteSuccess | null;
+  alternateInputs?: AlternatePlanningInputs | null;
+  alternateTrueAirspeedKt?: number | null;
   alternateWaypoints?: readonly Waypoint[];
   forecastWinds?: readonly ForecastLegWind[];
 }
@@ -76,14 +77,24 @@ function representativeTasKt(leg: CalculatedPerformanceLeg): number | null {
       ) / duration;
 }
 
-function formatVariation(
-  trueTrackDeg: number | null,
-  magneticTrackDeg: number | null,
-): string {
-  if (trueTrackDeg === null || magneticTrackDeg === null) return '—';
-  const eastDeg = ((trueTrackDeg - magneticTrackDeg + 540) % 360) - 180;
-  if (Math.abs(eastDeg) < 0.05) return '0.0°';
-  return `${Math.abs(eastDeg).toFixed(1)}°${eastDeg > 0 ? 'E' : 'W'}`;
+function formatVariation(variationDegEast: number | null): string {
+  if (variationDegEast === null) return '—';
+  const eastDeg = Math.round(variationDegEast);
+  if (eastDeg === 0) return '0°';
+  return `${Math.abs(eastDeg)}°${eastDeg > 0 ? 'E' : 'W'}`;
+}
+
+function variationDetails(
+  source: CalculatedNavigationRoute['legs'][number]['magneticVariationSource'],
+  unavailableReason: CalculatedNavigationRoute['legs'][number]['magneticVariationUnavailableReason'],
+): string | undefined {
+  if (source?.kind === 'manual') return 'Manual magnetic variation';
+  if (source?.kind === 'model') {
+    return unavailableReason === null
+      ? `${source.id} magnetic variation`
+      : `${source.id} unavailable: ${unavailableReason}`;
+  }
+  return undefined;
 }
 
 function windCorrection(
@@ -98,28 +109,6 @@ function windCorrection(
       360) -
     180;
   return formatWindCorrectionDeg(correction);
-}
-
-function deriveMagneticTrackDeg(
-  trueTrackDeg: number | null,
-  trueHeadingDeg: number | null,
-  magneticHeadingDeg: number | null,
-): number | null {
-  if (
-    trueTrackDeg === null ||
-    trueHeadingDeg === null ||
-    magneticHeadingDeg === null
-  ) {
-    return null;
-  }
-
-  const variationDegEast =
-    ((normalizeTrackDeg(trueHeadingDeg) -
-      normalizeTrackDeg(magneticHeadingDeg) +
-      540) %
-      360) -
-    180;
-  return normalizeTrackDeg(trueTrackDeg - variationDegEast);
 }
 
 function effectiveFuelFlowLph(leg: CalculatedPerformanceLeg): number | null {
@@ -137,42 +126,38 @@ function formatFuel(value: number | null | undefined): string {
 }
 
 function AlternateRow({
-  route,
+  alternateNavigationRoute,
+  alternate,
+  trueAirspeedKt,
   waypointNames,
-  departureTimeUtcMs,
 }: {
-  route: CalculatedPerformanceRouteSuccess;
+  alternateNavigationRoute: CalculatedNavigationRoute | null | undefined;
+  alternate: AlternatePlanningInputs;
+  trueAirspeedKt: number | null | undefined;
   waypointNames: ReadonlyMap<string, string>;
-  departureTimeUtcMs: number | null;
 }) {
-  const leg = route.legs[0];
+  const leg = alternateNavigationRoute?.legs[0];
   if (leg === undefined) return null;
-  const navigation = calculatePerformanceLegNavigationSummary(leg);
-  const trueHeadingDeg = navigation?.trueHeadingDeg ?? null;
-  const magneticTrackDeg = deriveMagneticTrackDeg(
-    leg.trueTrackDeg,
-    trueHeadingDeg,
-    navigation?.magneticHeadingDeg ?? null,
-  );
+  const navigation = leg.navigation?.status === 'ok' ? leg.navigation : null;
   return (
     <tr className="route-table__alternate-row">
       <td>Alt.</td>
-      <td>{formatTas(representativeTasKt(leg))}</td>
+      <td>{formatTas(trueAirspeedKt ?? null)}</td>
       <td>{formatTrueTrackDeg(leg.trueTrackDeg)}</td>
-      <td>{formatVariation(leg.trueTrackDeg, magneticTrackDeg)}</td>
-      <td>{formatMagneticTrackDeg(magneticTrackDeg)}</td>
-      <td>{formatWindValue(navigation?.wind ?? null)}</td>
-      <td>{windCorrection(leg.trueTrackDeg, trueHeadingDeg)}</td>
+      <td>{formatVariation(leg.magneticVariationDegEast)}</td>
+      <td>{formatMagneticTrackDeg(leg.magneticTrackDeg)}</td>
+      <td>{formatWindValue(leg.wind)}</td>
+      <td>{windCorrection(leg.trueTrackDeg, navigation?.trueHeadingDeg ?? null)}</td>
       <td>—</td><td>—</td>
-      <td>{formatFuel(effectiveFuelFlowLph(leg))}</td>
-      <td>{formatFuel(leg.fuelLitres)}</td><td>—</td>
+      <td>—</td>
+      <td>{formatFuel(alternate.fuelLitres)}</td><td>—</td>
       <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
-      <td>—</td><td>{Math.round(leg.targetAltitudeFtMsl)}</td>
-      <td>{formatMagneticHeadingDeg(navigation?.magneticHeadingDeg ?? null)}</td>
-      <td>{leg.effectiveGroundSpeedKt === null ? '—' : formatGroundSpeedKtValue(leg.effectiveGroundSpeedKt)}</td>
-      <td>{formatDistanceNmValue(leg.distanceNm)}</td>
-      <td>{formatEetMinutesValue(leg.eetSeconds)}</td>
-      <td>{departureTimeUtcMs === null ? '—' : formatUtcRouteTime(leg.endTimeUtcMs, departureTimeUtcMs)}</td>
+      <td>—</td><td>—</td>
+      <td>{formatMagneticHeadingDeg(leg.magneticHeadingDeg)}</td>
+      <td>{navigation === null ? '—' : formatGroundSpeedKtValue(navigation.groundSpeedKt)}</td>
+      <td>{formatDistanceNmValue(alternate.distanceNm)}</td>
+      <td>{formatEetMinutesValue(alternate.timeMinutes * 60)}</td>
+      <td>—</td>
       <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
     </tr>
   );
@@ -181,9 +166,11 @@ function AlternateRow({
 export function RouteTable({
   waypoints,
   route,
+  alternateNavigationRoute = null,
   performanceRoute = null,
   operationalSector,
-  alternatePerformanceRoute = null,
+  alternateInputs = null,
+  alternateTrueAirspeedKt = null,
   alternateWaypoints = [],
   forecastWinds = [],
 }: RouteTableProps) {
@@ -282,7 +269,12 @@ export function RouteTable({
               const trueHeadingDeg =
                 summary?.trueHeadingDeg ?? solution?.trueHeadingDeg ?? null;
               const magneticHeadingDeg =
-                summary?.magneticHeadingDeg ?? leg.magneticHeadingDeg;
+                leg.magneticVariationDegEast === null || trueHeadingDeg === null
+                  ? null
+                  : calculateMagneticDirectionDeg(
+                      trueHeadingDeg,
+                      leg.magneticVariationDegEast,
+                    );
               const wind = summary?.wind ?? leg.wind;
               const endTimeUtcMs =
                 performanceLeg?.endTimeUtcMs ?? leg.endTimeUtcMs;
@@ -294,13 +286,17 @@ export function RouteTable({
                     ? 'Manual wind'
                     : undefined
                   : formatForecastWindCollectionDetails(legForecasts);
+              const magneticVariationDetails = variationDetails(
+                leg.magneticVariationSource,
+                leg.magneticVariationUnavailableReason,
+              );
 
               return (
                 <tr key={legKey(leg.fromId, leg.toId)}>
                   <td>{waypointNames.get(leg.fromId) ?? leg.fromId}</td>
                   <td>{performanceLeg === undefined ? '—' : formatTas(representativeTasKt(performanceLeg))}</td>
                   <td>{formatTrueTrackDeg(leg.trueTrackDeg)}</td>
-                  <td>{formatVariation(leg.trueTrackDeg, leg.magneticTrackDeg)}</td>
+                  <td title={magneticVariationDetails}>{formatVariation(leg.magneticVariationDegEast)}</td>
                   <td>{formatMagneticTrackDeg(leg.magneticTrackDeg)}</td>
                   <td title={windDetails}>{formatWindValue(wind)}</td>
                   <td>{windCorrection(leg.trueTrackDeg, trueHeadingDeg)}</td>
@@ -352,11 +348,12 @@ export function RouteTable({
               <td colSpan={3} />
               <td>{formatFuel(operationalSector?.fuelAtLandingLitres)}</td><td /><td />
             </tr>
-            {alternatePerformanceRoute === null ? null : (
+            {alternateInputs === null ? null : (
               <AlternateRow
-                route={alternatePerformanceRoute}
+                alternateNavigationRoute={alternateNavigationRoute}
+                alternate={alternateInputs}
+                trueAirspeedKt={alternateTrueAirspeedKt}
                 waypointNames={waypointNames}
-                departureTimeUtcMs={route.departureTimeUtcMs}
               />
             )}
           </tfoot>

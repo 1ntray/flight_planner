@@ -9,8 +9,8 @@ mixing magnetic variation into route geometry or the wind-triangle solution.
 
 - All route shaping, timing, navigation, and forecast-wind behavior from MVP
   0.5
-- One manually entered, route-wide magnetic variation magnitude and explicit
-  east/west direction
+- Automatic per-leg variation from the local/offline WMM2025 model, sampled at
+  each direct WGS84 leg midpoint, with a manual route-wide fallback
 - An internal signed convention where east variation is positive and west
   variation is negative
 - Pure true-to-magnetic direction conversion with normalized results
@@ -38,7 +38,8 @@ but do not affect TT, MT, TH, or MH.
 
 ## Deliberately excluded
 
-MVP 0.6 does not automatically obtain magnetic variation from a geomagnetic
-model, vary it by position or date, or model compass deviation. It therefore
-does not calculate compass heading. Those concerns can be added behind
-separate, testable boundaries when needed.
+WMM2025 is valid only from 2025-01-01 through 2029-12-31. Automatic variation
+is explicitly unavailable outside that period, and Manual mode remains
+available. The navigation log rounds VAR, MT, and MH to whole degrees for
+planning display; calculations retain their full precision. Compass deviation
+is not modeled, so the application does not calculate compass heading.

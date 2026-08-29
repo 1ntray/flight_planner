@@ -12,16 +12,13 @@ import type {
 import {
   calculateClimbTime,
   calculatePhaseFuel,
-  calculatePatternAltitudeFtMsl,
+  calculateAerodromePatternAltitudeFtMsl,
   calculatePlanningEnvironment,
   calculateTasFromIas,
   createDescentIntervals,
 } from './aircraftPerformance';
 import type { VerticalInterval } from './aircraftPerformance';
-import {
-  calculateMagneticDirectionDeg,
-  calculateWindAdjustedLeg,
-} from './navigation';
+import { calculateWindAdjustedLeg } from './navigation';
 import type { WindAdjustedLegSolution } from './navigation';
 import { calculateRoute } from './route';
 import { calculatePositionAlongGeometry } from './routeProgress';
@@ -47,7 +44,6 @@ export interface CalculatedPerformanceStep {
   readonly wind: Wind;
   readonly groundSpeedKt: number;
   readonly trueHeadingDeg: number;
-  readonly magneticHeadingDeg: number;
   readonly startTimeUtcMs: number;
   readonly endTimeUtcMs: number;
 }
@@ -274,10 +270,6 @@ function calculateVerticalSteps(
       wind: refined.wind,
       groundSpeedKt: refined.solution.groundSpeedKt,
       trueHeadingDeg: refined.solution.trueHeadingDeg,
-      magneticHeadingDeg: calculateMagneticDirectionDeg(
-        refined.solution.trueHeadingDeg,
-        context.navigation.magneticVariationDegEast,
-      ),
       startTimeUtcMs: timeCursorUtcMs,
       endTimeUtcMs,
     });
@@ -374,10 +366,6 @@ function calculateCruiseStep(
       wind: refined.wind,
       groundSpeedKt: refined.solution.groundSpeedKt,
       trueHeadingDeg: refined.solution.trueHeadingDeg,
-      magneticHeadingDeg: calculateMagneticDirectionDeg(
-        refined.solution.trueHeadingDeg,
-        context.navigation.magneticVariationDegEast,
-      ),
       startTimeUtcMs,
       endTimeUtcMs,
     }],
@@ -539,9 +527,10 @@ function calculateSingleSectorPerformanceRoute({
   let currentTimeUtcMs = navigation.departureTimeUtcMs;
   let totalEetSeconds = 0;
   let totalFuelLitres = 0;
-  const arrivalTargetAltitudeFtMsl = calculatePatternAltitudeFtMsl(
+  const arrivalTargetAltitudeFtMsl = calculateAerodromePatternAltitudeFtMsl(
     performance.destinationElevationFtMsl,
     performance.patternHeightAglFt,
+    flightPlan.waypoints.at(-1)?.anchor?.publishedIdentifier,
   );
 
   for (let legIndex = 0; legIndex < geometricLegs.length; legIndex += 1) {
@@ -740,6 +729,13 @@ function calculateSingleSectorPerformanceRoute({
           lowerStartNm = candidateStartNm;
         } else {
           upperStartNm = candidateStartNm;
+        }
+
+        if (
+          upperStartNm - lowerStartNm <=
+          TARGET_DISTANCE_TOLERANCE_NM
+        ) {
+          break;
         }
       }
 

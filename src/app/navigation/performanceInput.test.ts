@@ -25,7 +25,10 @@ const inputs = {
 
 describe('performance input parsing', () => {
   it('keeps a completely blank performance section optional', () => {
-    expect(parsePerformanceInputDraft(createEmptyPerformanceInputDraft())).toEqual({
+    const draft = createEmptyPerformanceInputDraft();
+    expect(draft.defaultAltitudeFtMsl).toBe('2500');
+    expect(draft.patternHeightAglFt).toBe('1000');
+    expect(parsePerformanceInputDraft(draft)).toEqual({
       status: 'empty',
     });
   });

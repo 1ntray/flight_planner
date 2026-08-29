@@ -67,7 +67,7 @@ function operational(
     rightSeatMassKg: 0,
     baggageMassKg: 0,
     extraFuelLitres: 18,
-    finalReserveMinutes: 60,
+    finalReserveLitres: 36,
     sectorOperations: [
       { waypointId: 'B', kind: 'touch-and-go' },
       { waypointId: 'C', kind: 'touch-and-go' },
@@ -319,11 +319,11 @@ describe('operational planning', () => {
     }
   });
 
-  it('calculates a direct alternate from final-destination pattern altitude', () => {
+  it('uses pilot-entered alternate requirements rather than a performance calculation', () => {
     const result = calculateOperationalFlightPlan({
       flightPlan,
       navigation,
-      performance: { ...performance, patternHeightAglFt: 1000 },
+      performance,
       aircraft: PROJECT_AIRCRAFT_DEFINITION,
       operational: operational({
         alternate: {
@@ -332,19 +332,19 @@ describe('operational planning', () => {
             name: 'ALTERNATE',
             position: { latitude: 1, longitude: 3 },
           },
-          elevationFtMsl: 200,
-          weather: { qnhHpa: 1013.25, isaDeviationC: 0 },
-          altitudeFtMsl: 3000,
+          distanceNm: 42,
+          timeMinutes: 31,
+          fuelLitres: 19,
         },
       }),
     });
 
     expect(result.status).toBe('ok');
     if (result.status === 'ok') {
-      expect(result.alternatePerformanceRoute?.legs[0]?.startAltitudeFtMsl)
-        .toBe(performance.destinationElevationFtMsl + 1000);
-      expect(result.sectors[0]!.alternateFuel.litres).toBeGreaterThan(0);
-      expect(result.sectors[0]!.alternateFuel.timeMinutes).toBeGreaterThan(0);
+      expect(result.sectors[0]!.alternateFuel).toMatchObject({
+        litres: 19,
+        timeMinutes: 31,
+      });
     }
   });
 });

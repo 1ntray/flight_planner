@@ -43,6 +43,8 @@ export {
   LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION,
 } from './flightPlanningDocument';
 export type {
   FlightPlanningDocument,
@@ -53,6 +55,8 @@ export type {
   FlightPlanningDocumentV5,
   FlightPlanningDocumentV6,
   FlightPlanningDocumentV7,
+  FlightPlanningDocumentV8,
+  FlightPlanningDocumentV9,
   LegacyAircraftPerformancePlanInputsV3,
   LegacyAircraftPerformanceProfileV2,
   LegacyFlightPlanV3,
@@ -60,6 +64,7 @@ export type {
 export type {
   NavigationParameters,
   NavigationPlanInputs,
+  MagneticVariationMode,
   RoutePlanningInputs,
   Wind,
 } from './navigation';

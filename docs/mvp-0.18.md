@@ -37,8 +37,9 @@ show that value as a blank-field default without overriding a user-entered
 value.
 
 Pattern altitude is derived from aerodrome elevation plus pattern height and
-rounded to the nearest 100 ft for every primary, intermediate, and alternate
-arrival. Calculated vertical-phase annotations use compact perpendicular route
+rounded to the nearest 100 ft for every primary and intermediate arrival. ENDU
+uses a 1500 ft MSL planning default (approximately 1250 ft AGL) while the
+pattern-height field remains editable. Calculated vertical-phase annotations use compact perpendicular route
 ticks with hover details. BOC at a FROM waypoint and BOD at a TO waypoint are
 suppressed while internal phase boundaries remain visible.
 
@@ -60,5 +61,5 @@ groundspeed, time, fuel, and horizontal-distance integration. A real waypoint
 inserted into the leg keeps each instruction on the resulting leg containing
 its physical target.
 
-Document schema version 7 persists the optional second altitude instruction.
-Versions 1 through 6 remain readable and migrate without invented inputs.
+Document schema version 9 persists the current planning inputs. Earlier versions
+remain readable and migrate without invented route geometry.

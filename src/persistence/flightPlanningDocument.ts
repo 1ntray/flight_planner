@@ -22,6 +22,8 @@ import {
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
@@ -433,6 +435,13 @@ function requireRoutePlanningInputs(
     record.magneticVariationDegEast,
     `${path}.magneticVariationDegEast`,
   );
+  const magneticVariationMode =
+    record.magneticVariationMode === undefined
+      ? 'manual'
+      : requireString(
+          record.magneticVariationMode,
+          `${path}.magneticVariationMode`,
+        );
   const windRecord = requireRecord(record.wind, `${path}.wind`);
   const directionFromTrueDeg = requireFiniteNumber(
     windRecord.directionFromTrueDeg,
@@ -454,6 +463,14 @@ function requireRoutePlanningInputs(
       `${path}.magneticVariationDegEast must be between -180 and 180`,
     );
   }
+  if (
+    magneticVariationMode !== 'automatic-wmm2025' &&
+    magneticVariationMode !== 'manual'
+  ) {
+    throw new RangeError(
+      `${path}.magneticVariationMode must be automatic-wmm2025 or manual`,
+    );
+  }
   if (directionFromTrueDeg < 0 || directionFromTrueDeg >= 360) {
     throw new RangeError(
       `${path}.wind.directionFromTrueDeg must be in [0, 360)`,
@@ -465,6 +482,7 @@ function requireRoutePlanningInputs(
 
   return {
     departureTimeUtcMs,
+    magneticVariationMode,
     magneticVariationDegEast,
     wind: { directionFromTrueDeg, speedKt },
   };
@@ -1011,6 +1029,7 @@ function requireOperationalInputs(
   path: string,
   flightPlan: FlightPlan,
   aircraft: AircraftDefinition,
+  legacyV8 = false,
 ): OperationalPlanningInputs | null {
   if (value === null) {
     return null;
@@ -1120,21 +1139,28 @@ function requireOperationalInputs(
     if (flightPlan.waypoints.some(({ id }) => id === waypoint.id)) {
       throw new RangeError(`${path}.alternate.waypoint.id must be route-unique`);
     }
-    alternate = {
-      waypoint,
-      elevationFtMsl: requireNonNegativeNumber(
-        alternateRecord.elevationFtMsl,
-        `${path}.alternate.elevationFtMsl`,
-      ),
-      weather: requirePlanningWeather(
-        alternateRecord.weather,
-        `${path}.alternate.weather`,
-      ),
-      altitudeFtMsl: requireNonNegativeNumber(
-        alternateRecord.altitudeFtMsl,
-        `${path}.alternate.altitudeFtMsl`,
-      ),
-    };
+    alternate = legacyV8
+      ? {
+          waypoint,
+          distanceNm: 0,
+          timeMinutes: 0,
+          fuelLitres: 0,
+        }
+      : {
+          waypoint,
+          distanceNm: requireNonNegativeNumber(
+            alternateRecord.distanceNm,
+            `${path}.alternate.distanceNm`,
+          ),
+          timeMinutes: requireNonNegativeNumber(
+            alternateRecord.timeMinutes,
+            `${path}.alternate.timeMinutes`,
+          ),
+          fuelLitres: requireNonNegativeNumber(
+            alternateRecord.fuelLitres,
+            `${path}.alternate.fuelLitres`,
+          ),
+        };
   }
 
   return {
@@ -1152,10 +1178,15 @@ function requireOperationalInputs(
       record.extraFuelLitres,
       `${path}.extraFuelLitres`,
     ),
-    finalReserveMinutes: requireNonNegativeNumber(
-      record.finalReserveMinutes,
-      `${path}.finalReserveMinutes`,
-    ),
+    finalReserveLitres: legacyV8
+      ? requireNonNegativeNumber(
+          record.finalReserveMinutes,
+          `${path}.finalReserveMinutes`,
+        ) / 60 * aircraft.fuelSystem.reserveFuelFlowLph
+      : requireNonNegativeNumber(
+          record.finalReserveLitres,
+          `${path}.finalReserveLitres`,
+        ),
     sectorOperations,
     alternate,
   };
@@ -1168,6 +1199,8 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION &&
@@ -1188,6 +1221,8 @@ export function parseFlightPlanningDocument(
     record.flightPlan,
     'document.flightPlan',
     record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION ||
+      record.schemaVersion === LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION ||
+      record.schemaVersion === LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
@@ -1204,6 +1239,7 @@ export function parseFlightPlanningDocument(
       flightPlan,
       planningInputs: {
         departureTimeUtcMs: legacyPlanning.departureTimeUtcMs,
+        magneticVariationMode: 'manual',
         magneticVariationDegEast: legacyPlanning.magneticVariationDegEast,
         wind: legacyPlanning.wind,
       },
@@ -1339,6 +1375,7 @@ export function parseFlightPlanningDocument(
       'document.operationalInputs',
       flightPlan,
       aircraftDefinition,
+      record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
     ),
     useForecastWinds: record.useForecastWinds,
   };

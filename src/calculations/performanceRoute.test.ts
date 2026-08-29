@@ -168,6 +168,33 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('stops solving an altitude target after its distance bracket converges', () => {
+    let windQueryCount = 0;
+    const result = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance: {
+        ...performance,
+        legAltitudePlans: [{
+          fromWaypointId: 'A',
+          toWaypointId: 'B',
+          targetPlacement: {
+            mode: 'distance-along-leg',
+            distanceFromStartNm: 20,
+          },
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      resolveWind: () => {
+        windQueryCount += 1;
+        return navigation.wind;
+      },
+    });
+
+    expect(result.status).toBe('ok');
+    expect(windQueryCount).toBeLessThan(7_500);
+  });
+
   it('supports repeated altitude changes on successive real legs', () => {
     const flightPlan: FlightPlan = {
       waypoints: [

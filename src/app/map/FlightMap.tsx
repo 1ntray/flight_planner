@@ -401,6 +401,7 @@ export interface FlightMapProps {
   alternateWaypoint?: Waypoint;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
+  onSelectAlternateAerodrome: (feature: AeronauticalPointFeature) => void;
   onAttachWaypoint: (id: string, feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
   onAddShapingPoint: (
@@ -453,6 +454,7 @@ export function FlightMap({
   alternateWaypoint,
   onAddWaypoint,
   onAddAnchoredWaypoint,
+  onSelectAlternateAerodrome,
   onAttachWaypoint,
   onMoveWaypoint,
   onAddShapingPoint,
@@ -652,6 +654,8 @@ export function FlightMap({
           visibility={aeronauticalLayerVisibility}
           anchoringEnabled={tool.kind === 'add-waypoint'}
           onAnchorPoint={onAddAnchoredWaypoint}
+          alternateAerodromeSelectionEnabled={tool.kind === 'select-alternate-aerodrome'}
+          onSelectAlternateAerodrome={onSelectAlternateAerodrome}
           onPointFeaturesChange={setVisibleAeronauticalPointFeatures}
           onDatasetChange={setAeronauticalDataset}
           onStatusChange={setAeronauticalStatus}

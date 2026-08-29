@@ -16,6 +16,7 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        magneticVariationMode: 'automatic-wmm2025',
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 0, speedKt: 0 },
       },
@@ -33,6 +34,7 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        magneticVariationMode: 'automatic-wmm2025',
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 10, speedKt: 12.5 },
       },
@@ -45,6 +47,7 @@ describe('parseNavigationInputDraft', () => {
   ])('parses $direction variation into the east-positive convention', ({ direction, expected }) => {
     const result = parseNavigationInputDraft({
       ...validDraft,
+      magneticVariationMode: 'manual',
       magneticVariationDeg: '12.5',
       magneticVariationDirection: direction,
     });
@@ -60,6 +63,7 @@ describe('parseNavigationInputDraft', () => {
       description: 'an invalid departure time',
       draft: {
         ...validDraft,
+        magneticVariationMode: 'manual',
         departureTimeUtc: '2026-02-30T12:00',
       },
       message: 'Departure time must be a valid UTC date and time',
@@ -68,6 +72,7 @@ describe('parseNavigationInputDraft', () => {
       description: 'a non-numeric wind direction',
       draft: {
         ...validDraft,
+        magneticVariationMode: 'manual',
         windDirectionFromTrueDeg: 'north',
       },
       message: 'Wind direction must be a number',
@@ -76,6 +81,7 @@ describe('parseNavigationInputDraft', () => {
       description: 'a negative magnetic variation magnitude',
       draft: {
         ...validDraft,
+        magneticVariationMode: 'manual',
         magneticVariationDeg: '-1',
       },
       message: 'Magnetic variation must be between 0 and 180 degrees',
@@ -84,6 +90,7 @@ describe('parseNavigationInputDraft', () => {
       description: 'an excessive magnetic variation magnitude',
       draft: {
         ...validDraft,
+        magneticVariationMode: 'manual',
         magneticVariationDeg: '181',
       },
       message: 'Magnetic variation must be between 0 and 180 degrees',
@@ -97,9 +104,23 @@ describe('parseNavigationInputDraft', () => {
       message: 'Wind speed must not be negative',
     },
   ])('rejects $description', ({ draft, message }) => {
-    expect(parseNavigationInputDraft(draft)).toEqual({
+    expect(parseNavigationInputDraft(draft as typeof validDraft)).toEqual({
       status: 'invalid',
       message,
+    });
+  });
+
+  it('retains a valid manual fallback while automatic mode is selected', () => {
+    const result = parseNavigationInputDraft({
+      ...validDraft,
+      magneticVariationMode: 'automatic-wmm2025',
+      magneticVariationDeg: '8.2',
+      magneticVariationDirection: 'W',
+    });
+
+    expect(result).toMatchObject({
+      status: 'valid',
+      value: { magneticVariationDegEast: -8.2 },
     });
   });
 });
@@ -112,6 +133,7 @@ describe('departure-time input helpers', () => {
 
     expect(draft.departureTimeUtc).toBe('2026-08-27T12:05');
     expect(draft.magneticVariationDeg).toBe('0');
+    expect(draft.magneticVariationMode).toBe('automatic-wmm2025');
     expect(draft.magneticVariationDirection).toBe('E');
   });
 
@@ -124,12 +146,14 @@ describe('departure-time input helpers', () => {
   it('formats semantic planning inputs back into an editable draft', () => {
     const draft = createNavigationInputDraft({
       departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+      magneticVariationMode: 'manual',
       magneticVariationDegEast: -8.2,
       wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
     });
 
     expect(draft).toEqual({
       departureTimeUtc: '2026-08-27T12:05',
+      magneticVariationMode: 'manual',
       magneticVariationDeg: '8.2',
       magneticVariationDirection: 'W',
       windDirectionFromTrueDeg: '275',
@@ -139,6 +163,7 @@ describe('departure-time input helpers', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        magneticVariationMode: 'manual',
         magneticVariationDegEast: -8.2,
         wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
       },

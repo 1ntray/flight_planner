@@ -3,6 +3,7 @@ import type { RoutePlanningInputs } from '../../domain';
 
 export interface NavigationInputDraft {
   departureTimeUtc: string;
+  magneticVariationMode: 'automatic-wmm2025' | 'manual';
   magneticVariationDeg: string;
   magneticVariationDirection: 'E' | 'W';
   windDirectionFromTrueDeg: string;
@@ -29,6 +30,7 @@ export function createDefaultNavigationInputDraft(
 
   return {
     departureTimeUtc: formatUtcDateTimeInput(roundedDepartureTimeUtcMs),
+    magneticVariationMode: 'automatic-wmm2025',
     magneticVariationDeg: '0',
     magneticVariationDirection: 'E',
     windDirectionFromTrueDeg: '0',
@@ -43,6 +45,7 @@ export function createNavigationInputDraft(
 
   return {
     departureTimeUtc: formatUtcDateTimeInput(inputs.departureTimeUtcMs),
+    magneticVariationMode: inputs.magneticVariationMode ?? 'manual',
     magneticVariationDeg: String(variationMagnitude),
     magneticVariationDirection:
       inputs.magneticVariationDegEast < 0 ? 'W' : 'E',
@@ -104,6 +107,13 @@ export function parseNavigationInputDraft(
     };
   }
 
+  if (
+    draft.magneticVariationMode !== 'automatic-wmm2025' &&
+    draft.magneticVariationMode !== 'manual'
+  ) {
+    return { status: 'invalid', message: 'Magnetic variation mode must be automatic or manual' };
+  }
+
   const magneticVariationDeg = parseRequiredNumber(
     draft.magneticVariationDeg,
     'Magnetic variation',
@@ -112,14 +122,12 @@ export function parseNavigationInputDraft(
   if (typeof magneticVariationDeg === 'string') {
     return { status: 'invalid', message: magneticVariationDeg };
   }
-
   if (magneticVariationDeg < 0 || magneticVariationDeg > 180) {
     return {
       status: 'invalid',
       message: 'Magnetic variation must be between 0 and 180 degrees',
     };
   }
-
   if (
     draft.magneticVariationDirection !== 'E' &&
     draft.magneticVariationDirection !== 'W'
@@ -129,6 +137,13 @@ export function parseNavigationInputDraft(
       message: 'Magnetic variation direction must be east or west',
     };
   }
+  // Retain the manual fallback value while automatic WMM is selected, so
+  // switching modes does not discard the user's explicit variation.
+  const magneticVariationDegEast = magneticVariationDeg === 0
+    ? 0
+    : draft.magneticVariationDirection === 'E'
+      ? magneticVariationDeg
+      : -magneticVariationDeg;
 
   const windDirectionFromTrueDeg = parseRequiredNumber(
     draft.windDirectionFromTrueDeg,
@@ -156,12 +171,8 @@ export function parseNavigationInputDraft(
     status: 'valid',
     value: {
       departureTimeUtcMs,
-      magneticVariationDegEast:
-        magneticVariationDeg === 0
-          ? 0
-          : draft.magneticVariationDirection === 'E'
-            ? magneticVariationDeg
-            : -magneticVariationDeg,
+      magneticVariationMode: draft.magneticVariationMode,
+      magneticVariationDegEast,
       wind: {
         directionFromTrueDeg: normalizeTrackDeg(windDirectionFromTrueDeg),
         speedKt: windSpeedKt,

@@ -13,7 +13,9 @@ export const LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION = 3 as const;
 export const LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION = 4 as const;
 export const LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION = 5 as const;
 export const LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION = 6 as const;
-export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 7 as const;
+export const LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION = 7 as const;
+export const LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION = 8 as const;
+export const FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION = 9 as const;
 
 export type LegacyFlightPlanV3 = Omit<
   FlightPlan,
@@ -91,6 +93,26 @@ export interface FlightPlanningDocumentV6 {
 }
 
 export interface FlightPlanningDocumentV7 {
+  readonly schemaVersion: typeof LEGACY_MAGNETIC_VARIATION_DOCUMENT_SCHEMA_VERSION;
+  readonly flightPlan: FlightPlan;
+  readonly planningInputs: RoutePlanningInputs;
+  readonly aircraftDefinition: AircraftDefinition;
+  readonly performanceInputs: AircraftPerformancePlanInputs | null;
+  readonly operationalInputs: OperationalPlanningInputs | null;
+  readonly useForecastWinds: boolean;
+}
+
+export interface FlightPlanningDocumentV8 {
+  readonly schemaVersion: typeof LEGACY_ALTERNATE_PERFORMANCE_DOCUMENT_SCHEMA_VERSION;
+  readonly flightPlan: FlightPlan;
+  readonly planningInputs: RoutePlanningInputs;
+  readonly aircraftDefinition: AircraftDefinition;
+  readonly performanceInputs: AircraftPerformancePlanInputs | null;
+  readonly operationalInputs: OperationalPlanningInputs | null;
+  readonly useForecastWinds: boolean;
+}
+
+export interface FlightPlanningDocumentV9 {
   readonly schemaVersion: typeof FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION;
   readonly flightPlan: FlightPlan;
   readonly planningInputs: RoutePlanningInputs;
@@ -100,4 +122,4 @@ export interface FlightPlanningDocumentV7 {
   readonly useForecastWinds: boolean;
 }
 
-export type FlightPlanningDocument = FlightPlanningDocumentV7;
+export type FlightPlanningDocument = FlightPlanningDocumentV9;
