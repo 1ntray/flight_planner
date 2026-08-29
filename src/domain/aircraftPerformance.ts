@@ -1,4 +1,8 @@
 import type { Position } from './position';
+import type {
+  AircraftFuelSystemDefinition,
+  AircraftWeightBalanceDefinition,
+} from './operationalPlanning';
 
 export type FlightPhase = 'climb' | 'cruise' | 'descent';
 
@@ -41,6 +45,10 @@ export interface AircraftDefinition {
   readonly displayName: string;
   readonly registration?: string;
   readonly performance: AircraftPerformanceProfile;
+  /** Optional for legacy/custom snapshots that predate operational planning. */
+  readonly fuelSystem?: AircraftFuelSystemDefinition;
+  /** Optional for legacy/custom snapshots that predate operational planning. */
+  readonly weightBalance?: AircraftWeightBalanceDefinition;
 }
 
 export interface AerodromePlanningWeather {

@@ -2,11 +2,11 @@
 
 ## Aircraft definition, profile, and units
 
-An `AircraftDefinition` owns stable aircraft identity, a revision, a display
-name, and a serializable performance profile. The current catalog contains one
-project aircraft, but selection and calculation boundaries accept any complete
-definition. The current entry is the Zlin Z242. A saved plan contains the
-selected definition as an immutable
+An `AircraftDefinition` owns stable aircraft identity, registration, a revision,
+a display name, a serializable performance profile, and optional fuel/loading
+definitions. The current catalog contains the Zlin Z242 aircraft LN-UPS,
+LN-UPT, and LN-UPR with their registration-specific basic empty mass and moment.
+A saved plan contains the selected definition as an immutable
 snapshot; calculations never depend on a later catalog lookup.
 
 The first project-specific profile uses climb IAS 80 kt, cruise IAS 103 kt,
@@ -59,8 +59,11 @@ its weather as the inbound destination environment and outbound departure
 environment. If an onward departure time is omitted, it defaults to the
 preceding calculated arrival time plus the airport's stop duration. A blank
 duration means zero minutes. Stop time shifts the following sector's UTC
-timeline and weather sampling, but is not airborne EET and consumes no fuel in
-the current model. One mass is still used for all sectors.
+timeline and weather sampling, but is not airborne EET. Operational planning
+applies the 7 L ground allowance before the first takeoff and after each full
+stop, but not after a touch and go. Performance uses one mass throughout each
+individual sector; fuel burn and optional refuelling determine the takeoff mass
+of later sectors.
 
 An optional target distance says where along the shaped WGS84 leg the requested
 altitude must have been reached. Automatic climbs begin at FROM; automatic
@@ -82,10 +85,10 @@ boundary. Open-Meteo profile requests select pressure levels around every
 required step altitude, interpolate vectors in time and actual geopotential
 height, and allow one timing/position refinement pass.
 
-Aircraft mass, departure/destination weather, elevations, pattern height, and
-the leg altitude schedule are flight-specific plan inputs. They deliberately
-remain outside `AircraftDefinition`; selecting an aircraft does not overwrite
-those values. The 100 ft integration step and the supplied IAS-to-TAS equation
+Departure/destination weather, elevations, pattern height, and the leg altitude
+schedule are flight-specific plan inputs. When operational loading is complete,
+aircraft mass is derived from the selected registration, occupants, baggage,
+and fuel rather than entered independently. The 100 ft integration step and the supplied IAS-to-TAS equation
 are calculation conventions rather than editable aircraft parameters.
 
 The manual-planning 2/3-climb and midpoint-descent TAS/wind conventions are not

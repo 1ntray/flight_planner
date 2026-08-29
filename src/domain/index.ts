@@ -32,6 +32,7 @@ export {
   LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION,
 } from './flightPlanningDocument';
 export type {
   FlightPlanningDocument,
@@ -40,6 +41,7 @@ export type {
   FlightPlanningDocumentV3,
   FlightPlanningDocumentV4,
   FlightPlanningDocumentV5,
+  FlightPlanningDocumentV6,
   LegacyAircraftPerformancePlanInputsV3,
   LegacyAircraftPerformanceProfileV2,
   LegacyFlightPlanV3,
@@ -51,11 +53,22 @@ export type {
   Wind,
 } from './navigation';
 export type { Position } from './position';
+export type {
+  AircraftFuelSystemDefinition,
+  AircraftWeightBalanceDefinition,
+  AlternatePlanningInputs,
+  FuelTankDefinition,
+  FuelTankKind,
+  IntermediateOperationKind,
+  OperationalPlanningInputs,
+  SectorOperationPlan,
+} from './operationalPlanning';
 export type { LegShape, RouteShapingPoint } from './routeShape';
 export {
   AIRCRAFT_CATALOG,
   PROJECT_AIRCRAFT_DEFINITION,
   PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+  ZLIN_Z242_FUEL_SYSTEM,
 } from './projectAircraftPerformanceProfile';
 export { MAX_WAYPOINT_NAME_LENGTH } from './waypoint';
 export type { AeronauticalWaypointAnchor, Waypoint } from './waypoint';

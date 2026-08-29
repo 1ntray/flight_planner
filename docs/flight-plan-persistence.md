@@ -2,18 +2,19 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 5 contains the route,
+The exported format is a versioned JSON document. Version 6 contains the route,
 route-wide navigation inputs, the complete selected aircraft-definition
-snapshot, optional performance inputs, and the forecast preference. Versions
-1 through 4 are validated and explicitly migrated on load.
+snapshot, optional performance and operational inputs, and the forecast
+preference. Versions 1 through 5 are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV5 {
-  schemaVersion: 5;
+interface FlightPlanningDocumentV6 {
+  schemaVersion: 6;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
   performanceInputs: AircraftPerformancePlanInputs | null;
+  operationalInputs: OperationalPlanningInputs | null;
   useForecastWinds: boolean;
 }
 ```
@@ -32,9 +33,16 @@ departure instead.
 Navlog sectors, calculated legs, ETAs, phase boundaries, and totals are derived
 and are not persisted.
 
+Operational inputs contain total ramp fuel, occupant and baggage masses,
+extra/reserve policy, one T&G/full-stop operation per intermediate airport,
+optional full-stop fuel-onboard targets, and an optional alternate waypoint,
+elevation, weather, and altitude snapshot. Tank split, fuel remaining, loading
+states, OFP rows, warnings, and requirement totals are recalculated.
+
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
-calculation. Loading a plan uses this snapshot even if the local catalog later
+calculation. It may also snapshot the fuel-system and weight-and-balance
+definition. Loading a plan uses this snapshot even if the local catalog later
 contains a newer revision of the same aircraft.
 
 Text-field drafts are not persisted. Export is disabled while the current draft
@@ -91,6 +99,7 @@ protects:
 - point-feature-only anchor references and complete dataset provenance,
 - navigation and performance input units and numeric bounds,
 - aircraft identity, revision, phase values, and climb-model coefficients,
+- fuel capacities/arms, loading stations/limits, and operational inputs,
 - unique altitude plans associated only with adjacent real-waypoint legs,
 - the forecast preference boolean.
 
@@ -105,7 +114,8 @@ had no field capable of storing them. Schema-three documents gain empty sector
 boundary and intermediate-airport collections, preserving their original
 single-sector meaning. Schema-four fixed onward UTC departures are retained as
 legacy compatibility values so importing an existing plan does not change its
-timeline; entering a stop duration replaces that legacy value.
+timeline; entering a stop duration replaces that legacy value. Version-five
+documents gain `operationalInputs: null` and preserve their previous behaviour.
 
 ## AIRAC stability
 

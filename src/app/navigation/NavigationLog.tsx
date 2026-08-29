@@ -7,6 +7,8 @@ import { LegAltitudeControls } from './LegAltitudeControls';
 import { SectorStopControls } from './SectorStopControls';
 import type { AltitudePlacementLeg } from './altitudePlanState';
 import type { PerformanceInputDraft } from './performanceInput';
+import type { OperationalInputDraft } from './operationalInput';
+import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
 import {
   FORECAST_SOURCE_LABEL,
@@ -20,10 +22,12 @@ export interface NavigationLogProps {
   aircraftDefinition: AircraftDefinition;
   draft: NavigationInputDraft;
   performanceDraft: PerformanceInputDraft;
+  operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
   onDraftChange: (draft: NavigationInputDraft) => void;
   onAircraftDefinitionChange: (aircraft: AircraftDefinition) => void;
   onPerformanceDraftChange: (draft: PerformanceInputDraft) => void;
+  onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
@@ -36,10 +40,12 @@ export function NavigationLog({
   aircraftDefinition,
   draft,
   performanceDraft,
+  operationalDraft,
   useForecastWinds,
   onDraftChange,
   onAircraftDefinitionChange,
   onPerformanceDraftChange,
+  onOperationalDraftChange,
   onUseForecastWindsChange,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
@@ -48,8 +54,11 @@ export function NavigationLog({
   const {
     parsedInputs,
     parsedPerformance,
+    parsedOperational,
+    derivedTakeoffMassKg,
     calculatedRoute,
     performanceRoute,
+    operationalPlan,
     forecast,
   } = calculations;
 
@@ -61,7 +70,6 @@ export function NavigationLog({
   };
   const showControls = section !== 'tables';
   const showTables = section !== 'controls';
-
   return (
     <>
       {showControls ? (
@@ -221,9 +229,26 @@ export function NavigationLog({
         onChange={onAircraftDefinitionChange}
       />
 
+      <OperationalPlanningInputs
+        aircraft={aircraftDefinition}
+        draft={operationalDraft}
+        {...(parsedOperational.status === 'invalid'
+          ? { errorMessage: parsedOperational.message }
+          : {})}
+        {...(derivedTakeoffMassKg === null
+          ? {}
+          : {
+              calculatedTakeoffMassKg: derivedTakeoffMassKg,
+            })}
+        onChange={onOperationalDraftChange}
+      />
+
       <AircraftPerformanceInputs
         draft={performanceDraft}
         profile={aircraftDefinition.performance}
+        {...(derivedTakeoffMassKg === null
+          ? {}
+          : { derivedMassKg: derivedTakeoffMassKg })}
         {...(parsedPerformance.status === 'invalid'
           ? { errorMessage: parsedPerformance.message }
           : {})}
@@ -233,7 +258,9 @@ export function NavigationLog({
       <SectorStopControls
         flightPlan={flightPlan}
         draft={performanceDraft}
+        operationalDraft={operationalDraft}
         onDraftChange={onPerformanceDraftChange}
+        onOperationalDraftChange={onOperationalDraftChange}
       />
 
       <LegAltitudeControls
@@ -256,10 +283,23 @@ export function NavigationLog({
         </p>
       ) : null}
 
+      {operationalPlan?.status === 'no-solution' ? (
+        <p className="navigation-inputs__error performance-route-error" role="alert">
+          Operational plan unavailable: {operationalPlan.message}.
+        </p>
+      ) : null}
+
       <SectorRouteTables
         flightPlan={flightPlan}
         route={calculatedRoute}
         performanceRoute={performanceRoute}
+        operationalPlan={operationalPlan}
+        aircraftDefinition={aircraftDefinition}
+        operationalInputs={
+          parsedOperational.status === 'valid'
+            ? parsedOperational.value
+            : null
+        }
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }

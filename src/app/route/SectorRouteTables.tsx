@@ -3,17 +3,26 @@ import { useMemo } from 'react';
 import { deriveFlightPlanSectors } from '../../calculations';
 import type {
   CalculatedNavigationRoute,
+  CalculatedOperationalFlightPlan,
   CalculatedPerformanceRoute,
   CalculatedPerformanceRouteSuccess,
 } from '../../calculations';
-import type { FlightPlan } from '../../domain';
+import type {
+  AircraftDefinition,
+  FlightPlan,
+  OperationalPlanningInputs,
+} from '../../domain';
 import type { ForecastLegWind } from '../../weather';
 import { RouteTable } from './RouteTable';
+import { OperationalSectorSummary } from './OperationalSectorSummary';
 
 export interface SectorRouteTablesProps {
   flightPlan: FlightPlan;
   route: CalculatedNavigationRoute;
   performanceRoute?: CalculatedPerformanceRoute | null;
+  operationalPlan?: CalculatedOperationalFlightPlan | null;
+  aircraftDefinition: AircraftDefinition;
+  operationalInputs?: OperationalPlanningInputs | null;
   forecastWinds?: readonly ForecastLegWind[];
 }
 
@@ -71,6 +80,9 @@ export function SectorRouteTables({
   flightPlan,
   route,
   performanceRoute = null,
+  operationalPlan = null,
+  aircraftDefinition,
+  operationalInputs = null,
   forecastWinds = [],
 }: SectorRouteTablesProps) {
   const sectors = useMemo(
@@ -79,13 +91,29 @@ export function SectorRouteTables({
   );
 
   if (sectors.length <= 1) {
+    const operationalSector =
+      operationalPlan?.status === 'ok' ? operationalPlan.sectors[0] : undefined;
     return (
-      <RouteTable
-        waypoints={flightPlan.waypoints}
-        route={route}
-        performanceRoute={performanceRoute}
-        forecastWinds={forecastWinds}
-      />
+      <div className="sector-navlogs">
+        <RouteTable
+          waypoints={flightPlan.waypoints}
+          route={route}
+          performanceRoute={performanceRoute}
+          forecastWinds={forecastWinds}
+          {...(operationalSector === undefined ? {} : { operationalSector })}
+        />
+        {operationalSector === undefined || operationalInputs === null ? null : (
+          <OperationalSectorSummary
+            sector={operationalSector}
+            aircraft={aircraftDefinition}
+            inputs={operationalInputs}
+            {...(operationalPlan?.status === 'ok' &&
+            operationalPlan.alternatePerformanceRoute !== null
+              ? { alternateDistanceNm: operationalPlan.alternatePerformanceRoute.totalDistanceNm }
+              : {})}
+          />
+        )}
+      </div>
     );
   }
 
@@ -101,6 +129,10 @@ export function SectorRouteTables({
         );
         const performanceSector =
           performance?.status === 'ok' ? performance.sectors[0] : undefined;
+        const operationalSector =
+          operationalPlan?.status === 'ok'
+            ? operationalPlan.sectors[sector.sectorIndex]
+            : undefined;
         const navigation = sectorNavigationRoute(
           route,
           waypointIds,
@@ -128,7 +160,19 @@ export function SectorRouteTables({
               route={navigation}
               performanceRoute={performance}
               forecastWinds={forecastWinds}
+              {...(operationalSector === undefined ? {} : { operationalSector })}
             />
+            {operationalSector === undefined || operationalInputs === null ? null : (
+              <OperationalSectorSummary
+                sector={operationalSector}
+                aircraft={aircraftDefinition}
+                inputs={operationalInputs}
+                {...(operationalPlan?.status === 'ok' &&
+                operationalPlan.alternatePerformanceRoute !== null
+                  ? { alternateDistanceNm: operationalPlan.alternatePerformanceRoute.totalDistanceNm }
+                  : {})}
+              />
+            )}
           </section>
         );
       })}

@@ -151,6 +151,7 @@ function validateLegAltitudePlans(
 export function parsePerformanceInputDraft(
   draft: PerformanceInputDraft,
   sectorBoundaryWaypointIds: readonly string[] = [],
+  derivedMassKg?: number,
 ): PerformanceInputParseResult {
   const legPlanError = validateLegAltitudePlans(draft.legAltitudePlans);
 
@@ -159,7 +160,7 @@ export function parsePerformanceInputDraft(
   }
 
   const scalarValues = [
-    draft.massKg,
+    derivedMassKg === undefined ? draft.massKg : String(derivedMassKg),
     draft.defaultAltitudeFtMsl,
     draft.departureElevationFtMsl,
     draft.destinationElevationFtMsl,
@@ -186,7 +187,7 @@ export function parsePerformanceInputDraft(
   }
 
   const fields = [
-    ['massKg', draft.massKg, 'Aircraft mass', null],
+    ['massKg', derivedMassKg === undefined ? draft.massKg : String(derivedMassKg), 'Aircraft mass', null],
     ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0],
     ['departureElevationFtMsl', draft.departureElevationFtMsl, 'Departure elevation', 0],
     ['destinationElevationFtMsl', draft.destinationElevationFtMsl, 'Destination elevation', 0],

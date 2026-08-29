@@ -8,17 +8,28 @@ import type {
   PerformanceInputDraft,
   SectorStopInputDraft,
 } from './performanceInput';
+import {
+  createEmptySectorOperationInputDraft,
+} from './operationalInput';
+import type {
+  OperationalInputDraft,
+  SectorOperationInputDraft,
+} from './operationalInput';
 
 export interface SectorStopControlsProps {
   flightPlan: FlightPlan;
   draft: PerformanceInputDraft;
+  operationalDraft: OperationalInputDraft;
   onDraftChange: (draft: PerformanceInputDraft) => void;
+  onOperationalDraftChange: (draft: OperationalInputDraft) => void;
 }
 
 export function SectorStopControls({
   flightPlan,
   draft,
+  operationalDraft,
   onDraftChange,
+  onOperationalDraftChange,
 }: SectorStopControlsProps) {
   const stopWaypoints = useMemo(() => {
     const ids = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
@@ -54,6 +65,28 @@ export function SectorStopControls({
     });
   };
 
+  const updateOperation = (
+    waypointId: string,
+    field: Exclude<keyof SectorOperationInputDraft, 'waypointId'>,
+    value: string,
+  ) => {
+    const existing = operationalDraft.sectorOperations.find(
+      (operation) => operation.waypointId === waypointId,
+    ) ?? createEmptySectorOperationInputDraft(waypointId);
+    const updated = { ...existing, [field]: value };
+
+    onOperationalDraftChange({
+      ...operationalDraft,
+      sectorOperations: operationalDraft.sectorOperations.some(
+        (operation) => operation.waypointId === waypointId,
+      )
+        ? operationalDraft.sectorOperations.map((operation) =>
+            operation.waypointId === waypointId ? updated : operation,
+          )
+        : [...operationalDraft.sectorOperations, updated],
+    });
+  };
+
   return (
     <section className="sector-stop-controls" aria-label="Intermediate airports">
       <div>
@@ -69,6 +102,9 @@ export function SectorStopControls({
         const stop = draft.sectorStopPlans.find(
           (candidate) => candidate.waypointId === waypoint.id,
         ) ?? createEmptySectorStopInputDraft(waypoint.id);
+        const operation = operationalDraft.sectorOperations.find(
+          (candidate) => candidate.waypointId === waypoint.id,
+        ) ?? createEmptySectorOperationInputDraft(waypoint.id);
 
         return (
           <fieldset key={waypoint.id} className="navigation-inputs sector-stop-controls__airport">
@@ -118,6 +154,22 @@ export function SectorStopControls({
               </span>
             </label>
             <label>
+              <span>Operation</span>
+              <select
+                value={operation.kind}
+                onChange={(event) =>
+                  updateOperation(
+                    waypoint.id,
+                    'kind',
+                    event.currentTarget.value,
+                  )
+                }
+              >
+                <option value="touch-and-go">Touch and go</option>
+                <option value="full-stop">Full stop</option>
+              </select>
+            </label>
+            <label>
               <span>Stop duration</span>
               <span className="navigation-inputs__control">
                 <input
@@ -137,6 +189,28 @@ export function SectorStopControls({
                 <span>min</span>
               </span>
             </label>
+            {operation.kind === 'full-stop' ? (
+              <label>
+                <span>Fuel before taxi</span>
+                <span className="navigation-inputs__control">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="Carry arrival fuel"
+                    value={operation.departureFuelOnboardLitres}
+                    onChange={(event) =>
+                      updateOperation(
+                        waypoint.id,
+                        'departureFuelOnboardLitres',
+                        event.currentTarget.value,
+                      )
+                    }
+                  />
+                  <span>L</span>
+                </span>
+              </label>
+            ) : null}
             {stop.legacyOnwardDepartureTimeUtcMs !== undefined &&
             stop.stopDurationMinutes.trim() === '' ? (
               <p className="plan-file-controls__description">

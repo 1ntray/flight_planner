@@ -125,6 +125,12 @@ export interface PerformanceRouteCalculationInput {
   readonly performance: AircraftPerformancePlanInputs;
   readonly profile: AircraftPerformanceProfile;
   readonly resolveWind?: WindResolver;
+  /**
+   * Derived takeoff masses for sequential sectors. This is calculation input,
+   * never persisted editable plan state. Each sector still uses one constant
+   * mass throughout its climb calculation.
+   */
+  readonly sectorMassesKg?: readonly number[];
 }
 
 interface LegContext {
@@ -915,6 +921,9 @@ export function calculatePerformanceRoute(
       },
       performance: {
         ...input.performance,
+        massKg:
+          input.sectorMassesKg?.[sector.sectorIndex] ??
+          input.performance.massKg,
         departureElevationFtMsl:
           departureStop?.elevationFtMsl ??
           input.performance.departureElevationFtMsl,

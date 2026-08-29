@@ -76,3 +76,25 @@ export type {
   PerformanceRouteNoSolutionReason,
   WindResolver,
 } from './performanceRoute';
+export {
+  allocateFuelToTanks,
+  calculateLoadingState,
+  calculateInitialTakeoffLoading,
+  calculateOperationalFlightPlan,
+  consumeFuelFromTanks,
+} from './operationalPlanning';
+export type {
+  CalculatedFuelRequirementLine,
+  CalculatedLoadingState,
+  CalculatedMinimumFlight,
+  CalculatedOfpLegRow,
+  CalculatedOfpProgressValue,
+  CalculatedOperationalFlightPlan,
+  CalculatedOperationalFlightPlanNoSolution,
+  CalculatedOperationalFlightPlanSuccess,
+  CalculatedSectorOperationalFlightPlan,
+  CalculatedTankFuel,
+  OperationalFlightPlanCalculationInput,
+  OperationalWarning,
+  OperationalWarningCode,
+} from './operationalPlanning';

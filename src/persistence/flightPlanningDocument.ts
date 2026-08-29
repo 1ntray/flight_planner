@@ -10,6 +10,7 @@ import type {
   LegShape,
   LegacyAircraftPerformanceProfileV2,
   NavigationPlanInputs,
+  OperationalPlanningInputs,
   Position,
   RoutePlanningInputs,
   RouteShapingPoint,
@@ -21,6 +22,7 @@ import {
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
   PROJECT_AIRCRAFT_DEFINITION,
   PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
@@ -607,6 +609,109 @@ function requireAircraftDefinition(
     throw new RangeError(`${path}.revision must be a positive integer`);
   }
 
+  let fuelSystem: AircraftDefinition['fuelSystem'];
+  if (record.fuelSystem !== undefined) {
+    const fuel = requireRecord(record.fuelSystem, `${path}.fuelSystem`);
+    const main = requireRecord(fuel.main, `${path}.fuelSystem.main`);
+    const auxiliary = requireRecord(
+      fuel.auxiliary,
+      `${path}.fuelSystem.auxiliary`,
+    );
+    const allowance = requireRecord(
+      fuel.groundDepartureAllowance,
+      `${path}.fuelSystem.groundDepartureAllowance`,
+    );
+    const order = requireArray(
+      fuel.consumptionOrder,
+      `${path}.fuelSystem.consumptionOrder`,
+    );
+    if (order.length !== 2 || order[0] !== 'auxiliary' || order[1] !== 'main') {
+      throw new RangeError(
+        `${path}.fuelSystem.consumptionOrder must be auxiliary then main`,
+      );
+    }
+    fuelSystem = {
+      densityKgPerLitre: requirePositiveNumber(
+        fuel.densityKgPerLitre,
+        `${path}.fuelSystem.densityKgPerLitre`,
+      ),
+      main: {
+        usableCapacityLitres: requirePositiveNumber(
+          main.usableCapacityLitres,
+          `${path}.fuelSystem.main.usableCapacityLitres`,
+        ),
+        armM: requireFiniteNumber(main.armM, `${path}.fuelSystem.main.armM`),
+      },
+      auxiliary: {
+        usableCapacityLitres: requirePositiveNumber(
+          auxiliary.usableCapacityLitres,
+          `${path}.fuelSystem.auxiliary.usableCapacityLitres`,
+        ),
+        armM: requireFiniteNumber(
+          auxiliary.armM,
+          `${path}.fuelSystem.auxiliary.armM`,
+        ),
+      },
+      consumptionOrder: ['auxiliary', 'main'],
+      groundDepartureAllowance: {
+        fuelLitres: requireNonNegativeNumber(
+          allowance.fuelLitres,
+          `${path}.fuelSystem.groundDepartureAllowance.fuelLitres`,
+        ),
+        planningTimeMinutes: requireNonNegativeNumber(
+          allowance.planningTimeMinutes,
+          `${path}.fuelSystem.groundDepartureAllowance.planningTimeMinutes`,
+        ),
+      },
+      reserveFuelFlowLph: requirePositiveNumber(
+        fuel.reserveFuelFlowLph,
+        `${path}.fuelSystem.reserveFuelFlowLph`,
+      ),
+    };
+  }
+
+  let weightBalance: AircraftDefinition['weightBalance'];
+  if (record.weightBalance !== undefined) {
+    const loading = requireRecord(
+      record.weightBalance,
+      `${path}.weightBalance`,
+    );
+    weightBalance = {
+      basicEmptyMassKg: requirePositiveNumber(
+        loading.basicEmptyMassKg,
+        `${path}.weightBalance.basicEmptyMassKg`,
+      ),
+      basicEmptyMomentKgm: requireFiniteNumber(
+        loading.basicEmptyMomentKgm,
+        `${path}.weightBalance.basicEmptyMomentKgm`,
+      ),
+      leftSeatArmM: requireFiniteNumber(
+        loading.leftSeatArmM,
+        `${path}.weightBalance.leftSeatArmM`,
+      ),
+      rightSeatArmM: requireFiniteNumber(
+        loading.rightSeatArmM,
+        `${path}.weightBalance.rightSeatArmM`,
+      ),
+      baggageArmM: requireFiniteNumber(
+        loading.baggageArmM,
+        `${path}.weightBalance.baggageArmM`,
+      ),
+      maximumBaggageMassKg: requireNonNegativeNumber(
+        loading.maximumBaggageMassKg,
+        `${path}.weightBalance.maximumBaggageMassKg`,
+      ),
+      maximumTakeoffMassKg: requirePositiveNumber(
+        loading.maximumTakeoffMassKg,
+        `${path}.weightBalance.maximumTakeoffMassKg`,
+      ),
+      maximumLandingMassKg: requirePositiveNumber(
+        loading.maximumLandingMassKg,
+        `${path}.weightBalance.maximumLandingMassKg`,
+      ),
+    };
+  }
+
   return {
     aircraftId: requireString(record.aircraftId, `${path}.aircraftId`),
     revision,
@@ -618,6 +723,8 @@ function requireAircraftDefinition(
       record.performance,
       `${path}.performance`,
     ),
+    ...(fuelSystem === undefined ? {} : { fuelSystem }),
+    ...(weightBalance === undefined ? {} : { weightBalance }),
   };
 }
 
@@ -627,6 +734,7 @@ function migrateLegacyAircraftProfile(
   const isProjectProfile = profile.profileId === 'project-aircraft-performance';
 
   return {
+    ...(isProjectProfile ? PROJECT_AIRCRAFT_DEFINITION : {}),
     aircraftId: isProjectProfile
       ? PROJECT_AIRCRAFT_DEFINITION.aircraftId
       : profile.profileId,
@@ -859,6 +967,161 @@ function requirePerformanceInputs(
   };
 }
 
+function requireOperationalInputs(
+  value: unknown,
+  path: string,
+  flightPlan: FlightPlan,
+  aircraft: AircraftDefinition,
+): OperationalPlanningInputs | null {
+  if (value === null) {
+    return null;
+  }
+
+  const record = requireRecord(value, path);
+  const fuelOnboardLitres = requireNonNegativeNumber(
+    record.fuelOnboardLitres,
+    `${path}.fuelOnboardLitres`,
+  );
+  const baggageMassKg = requireNonNegativeNumber(
+    record.baggageMassKg,
+    `${path}.baggageMassKg`,
+  );
+
+  if (aircraft.fuelSystem === undefined || aircraft.weightBalance === undefined) {
+    throw new RangeError(
+      `${path} requires an aircraft fuel-system and weight-and-balance definition`,
+    );
+  }
+
+  const usableCapacityLitres =
+    aircraft.fuelSystem.main.usableCapacityLitres +
+    aircraft.fuelSystem.auxiliary.usableCapacityLitres;
+  if (fuelOnboardLitres > usableCapacityLitres) {
+    throw new RangeError(
+      `${path}.fuelOnboardLitres must not exceed ${usableCapacityLitres}`,
+    );
+  }
+  if (baggageMassKg > aircraft.weightBalance.maximumBaggageMassKg) {
+    throw new RangeError(
+      `${path}.baggageMassKg must not exceed ${aircraft.weightBalance.maximumBaggageMassKg}`,
+    );
+  }
+
+  const boundaryIds = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
+  const seenOperationIds = new Set<string>();
+  const sectorOperations = requireArray(
+    record.sectorOperations,
+    `${path}.sectorOperations`,
+  ).map((value, index) => {
+    const operationPath = `${path}.sectorOperations[${index}]`;
+    const operation = requireRecord(value, operationPath);
+    const waypointId = requireString(
+      operation.waypointId,
+      `${operationPath}.waypointId`,
+    );
+    if (!boundaryIds.has(waypointId)) {
+      throw new RangeError(`${operationPath} is not a route sector boundary`);
+    }
+    if (seenOperationIds.has(waypointId)) {
+      throw new RangeError(`${operationPath} duplicates a sector operation`);
+    }
+    seenOperationIds.add(waypointId);
+
+    if (operation.kind !== 'touch-and-go' && operation.kind !== 'full-stop') {
+      throw new RangeError(`${operationPath}.kind is not supported`);
+    }
+    const departureFuelOnboardLitres =
+      operation.departureFuelOnboardLitres === undefined
+        ? undefined
+        : requireNonNegativeNumber(
+            operation.departureFuelOnboardLitres,
+            `${operationPath}.departureFuelOnboardLitres`,
+          );
+    if (
+      operation.kind === 'touch-and-go' &&
+      departureFuelOnboardLitres !== undefined
+    ) {
+      throw new RangeError(
+        `${operationPath} cannot refuel during a touch-and-go`,
+      );
+    }
+    if (
+      departureFuelOnboardLitres !== undefined &&
+      departureFuelOnboardLitres > usableCapacityLitres
+    ) {
+      throw new RangeError(
+        `${operationPath}.departureFuelOnboardLitres must not exceed ${usableCapacityLitres}`,
+      );
+    }
+
+    return {
+      waypointId,
+      kind: operation.kind as 'touch-and-go' | 'full-stop',
+      ...(departureFuelOnboardLitres === undefined
+        ? {}
+        : { departureFuelOnboardLitres }),
+    };
+  });
+
+  if (sectorOperations.length !== boundaryIds.size) {
+    throw new RangeError(
+      `${path}.sectorOperations must provide every route sector boundary`,
+    );
+  }
+
+  let alternate: OperationalPlanningInputs['alternate'];
+  if (record.alternate === null) {
+    alternate = null;
+  } else {
+    const alternateRecord = requireRecord(record.alternate, `${path}.alternate`);
+    const waypoint = requireWaypoint(
+      alternateRecord.waypoint,
+      `${path}.alternate.waypoint`,
+    );
+    if (flightPlan.waypoints.some(({ id }) => id === waypoint.id)) {
+      throw new RangeError(`${path}.alternate.waypoint.id must be route-unique`);
+    }
+    alternate = {
+      waypoint,
+      elevationFtMsl: requireNonNegativeNumber(
+        alternateRecord.elevationFtMsl,
+        `${path}.alternate.elevationFtMsl`,
+      ),
+      weather: requirePlanningWeather(
+        alternateRecord.weather,
+        `${path}.alternate.weather`,
+      ),
+      altitudeFtMsl: requireNonNegativeNumber(
+        alternateRecord.altitudeFtMsl,
+        `${path}.alternate.altitudeFtMsl`,
+      ),
+    };
+  }
+
+  return {
+    fuelOnboardLitres,
+    leftSeatMassKg: requireNonNegativeNumber(
+      record.leftSeatMassKg,
+      `${path}.leftSeatMassKg`,
+    ),
+    rightSeatMassKg: requireNonNegativeNumber(
+      record.rightSeatMassKg,
+      `${path}.rightSeatMassKg`,
+    ),
+    baggageMassKg,
+    extraFuelLitres: requireNonNegativeNumber(
+      record.extraFuelLitres,
+      `${path}.extraFuelLitres`,
+    ),
+    finalReserveMinutes: requireNonNegativeNumber(
+      record.finalReserveMinutes,
+      `${path}.finalReserveMinutes`,
+    ),
+    sectorOperations,
+    alternate,
+  };
+}
+
 export function parseFlightPlanningDocument(
   value: unknown,
 ): FlightPlanningDocument {
@@ -866,6 +1129,7 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION &&
@@ -884,6 +1148,7 @@ export function parseFlightPlanningDocument(
     record.flightPlan,
     'document.flightPlan',
     record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION ||
+      record.schemaVersion === LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   );
 
@@ -903,6 +1168,7 @@ export function parseFlightPlanningDocument(
       },
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
+      operationalInputs: null,
       useForecastWinds: record.useForecastWinds,
     };
   }
@@ -929,6 +1195,7 @@ export function parseFlightPlanningDocument(
         flightPlan,
         false,
       ),
+      operationalInputs: null,
       useForecastWinds: record.useForecastWinds,
     };
   }
@@ -954,6 +1221,7 @@ export function parseFlightPlanningDocument(
         flightPlan,
         false,
       ),
+      operationalInputs: null,
       useForecastWinds: record.useForecastWinds,
     };
   }
@@ -978,9 +1246,38 @@ export function parseFlightPlanningDocument(
         flightPlan,
         true,
       ),
+      operationalInputs: null,
       useForecastWinds: record.useForecastWinds,
     };
   }
+
+  if (record.schemaVersion === LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION) {
+    return {
+      schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+      flightPlan,
+      planningInputs: requireRoutePlanningInputs(
+        record.planningInputs,
+        'document.planningInputs',
+      ),
+      aircraftDefinition: requireAircraftDefinition(
+        record.aircraftDefinition,
+        'document.aircraftDefinition',
+      ),
+      performanceInputs: requirePerformanceInputs(
+        record.performanceInputs,
+        'document.performanceInputs',
+        flightPlan,
+        true,
+      ),
+      operationalInputs: null,
+      useForecastWinds: record.useForecastWinds,
+    };
+  }
+
+  const aircraftDefinition = requireAircraftDefinition(
+    record.aircraftDefinition,
+    'document.aircraftDefinition',
+  );
 
   return {
     schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
@@ -989,15 +1286,18 @@ export function parseFlightPlanningDocument(
       record.planningInputs,
       'document.planningInputs',
     ),
-    aircraftDefinition: requireAircraftDefinition(
-      record.aircraftDefinition,
-      'document.aircraftDefinition',
-    ),
+    aircraftDefinition,
     performanceInputs: requirePerformanceInputs(
       record.performanceInputs,
       'document.performanceInputs',
       flightPlan,
       true,
+    ),
+    operationalInputs: requireOperationalInputs(
+      record.operationalInputs,
+      'document.operationalInputs',
+      flightPlan,
+      aircraftDefinition,
     ),
     useForecastWinds: record.useForecastWinds,
   };

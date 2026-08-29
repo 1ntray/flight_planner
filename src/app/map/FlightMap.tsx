@@ -3,9 +3,11 @@ import type { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
+  CircleMarker,
   Pane,
   Polyline,
   TileLayer,
+  Tooltip,
   useMap,
   useMapEvents,
 } from 'react-leaflet';
@@ -23,6 +25,7 @@ import type {
   Position,
   RouteShapingPoint,
   LegAltitudePlan,
+  Waypoint,
 } from '../../domain';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import { AeronauticalLayerControl } from './AeronauticalLayerControl';
@@ -391,6 +394,7 @@ export interface FlightMapProps {
   altitudeFocusRequest: number;
   waypointNameFocusRequest: number;
   performanceRoute: CalculatedPerformanceRoute | null;
+  alternateWaypoint?: Waypoint;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
   onMoveWaypoint: (id: string, position: Position) => void;
@@ -431,6 +435,7 @@ export function FlightMap({
   altitudeFocusRequest,
   waypointNameFocusRequest,
   performanceRoute,
+  alternateWaypoint,
   onAddWaypoint,
   onAddAnchoredWaypoint,
   onMoveWaypoint,
@@ -632,6 +637,39 @@ export function FlightMap({
             onSetAltitudeTarget={onSetAltitudeTarget}
           />
         </Pane>
+
+        {alternateWaypoint === undefined ||
+        flightPlan.waypoints.length === 0 ? null : (
+          <Pane name="alternate-route" style={{ zIndex: 490 }}>
+            <Polyline
+              positions={[
+                [
+                  flightPlan.waypoints.at(-1)!.position.latitude,
+                  flightPlan.waypoints.at(-1)!.position.longitude,
+                ],
+                [
+                  alternateWaypoint.position.latitude,
+                  alternateWaypoint.position.longitude,
+                ],
+              ]}
+              pathOptions={{ color: '#704887', weight: 3, dashArray: '7 7' }}
+              interactive={false}
+            />
+            <CircleMarker
+              center={[
+                alternateWaypoint.position.latitude,
+                alternateWaypoint.position.longitude,
+              ]}
+              radius={7}
+              pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#704887', fillOpacity: 1 }}
+              interactive={false}
+            >
+              <Tooltip permanent direction="top" className="waypoint-label">
+                ALT {alternateWaypoint.name}
+              </Tooltip>
+            </CircleMarker>
+          </Pane>
+        )}
 
         <RoutePointMarkers
           flightPlan={flightPlan}

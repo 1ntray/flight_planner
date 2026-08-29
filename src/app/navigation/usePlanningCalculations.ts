@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 
 import {
   calculateNavigationRoute,
+  calculateInitialTakeoffLoading,
+  calculateOperationalFlightPlan,
   calculatePerformanceRoute,
   calculatePlanningEnvironment,
   calculateTasFromIas,
@@ -9,6 +11,7 @@ import {
 import type {
   CalculatedNavigationRoute,
   CalculatedPerformanceRoute,
+  CalculatedOperationalFlightPlan,
 } from '../../calculations';
 import type { AircraftDefinition, FlightPlan } from '../../domain';
 import { createSampledWindResolver } from '../../weather';
@@ -26,6 +29,13 @@ import type {
   PerformanceInputDraft,
   PerformanceInputParseResult,
 } from './performanceInput';
+import {
+  parseOperationalInputDraft,
+} from './operationalInput';
+import type {
+  OperationalInputDraft,
+  OperationalInputParseResult,
+} from './operationalInput';
 import { useOpenMeteoPerformanceWinds } from './useOpenMeteoPerformanceWinds';
 import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
 import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
@@ -33,8 +43,11 @@ import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
 export interface PlanningCalculations {
   parsedInputs: NavigationInputParseResult;
   parsedPerformance: PerformanceInputParseResult;
+  parsedOperational: OperationalInputParseResult;
+  derivedTakeoffMassKg: number | null;
   calculatedRoute: CalculatedNavigationRoute;
   performanceRoute: CalculatedPerformanceRoute | null;
+  operationalPlan: CalculatedOperationalFlightPlan | null;
   forecast: {
     winds: readonly ForecastLegWind[];
     status: RouteForecastStatus;
@@ -46,6 +59,7 @@ export interface UsePlanningCalculationsInput {
   aircraftDefinition: AircraftDefinition;
   navigationDraft: NavigationInputDraft;
   performanceDraft: PerformanceInputDraft;
+  operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
 }
 
@@ -55,18 +69,49 @@ export function usePlanningCalculations({
   aircraftDefinition,
   navigationDraft,
   performanceDraft,
+  operationalDraft,
   useForecastWinds,
 }: UsePlanningCalculationsInput): PlanningCalculations {
   const parsedInputs = useMemo(
     () => parseNavigationInputDraft(navigationDraft),
     [navigationDraft],
   );
+  const parsedOperational = useMemo(
+    () => parseOperationalInputDraft(
+      operationalDraft,
+      aircraftDefinition,
+      flightPlan.sectorBoundaryWaypointIds ?? [],
+    ),
+    [
+      aircraftDefinition,
+      flightPlan.sectorBoundaryWaypointIds,
+      operationalDraft,
+    ],
+  );
+  const derivedMassKg = useMemo(
+    () => {
+      if (parsedOperational.status !== 'valid') {
+        return undefined;
+      }
+
+      try {
+        return calculateInitialTakeoffLoading(
+          aircraftDefinition,
+          parsedOperational.value,
+        ).totalMassKg;
+      } catch {
+        return undefined;
+      }
+    },
+    [aircraftDefinition, parsedOperational],
+  );
   const parsedPerformance = useMemo(
     () => parsePerformanceInputDraft(
       performanceDraft,
       flightPlan.sectorBoundaryWaypointIds ?? [],
+      derivedMassKg,
     ),
-    [flightPlan.sectorBoundaryWaypointIds, performanceDraft],
+    [derivedMassKg, flightPlan.sectorBoundaryWaypointIds, performanceDraft],
   );
   const legacyPlanning = useMemo(() => {
     if (
@@ -96,6 +141,29 @@ export function usePlanningCalculations({
     () => calculateNavigationRoute({ flightPlan, planning: legacyPlanning }),
     [flightPlan, legacyPlanning],
   );
+  const manualOperationalPlan = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid' ||
+      parsedOperational.status !== 'valid'
+    ) {
+      return null;
+    }
+
+    return calculateOperationalFlightPlan({
+      flightPlan,
+      navigation: parsedInputs.value,
+      performance: parsedPerformance.value,
+      aircraft: aircraftDefinition,
+      operational: parsedOperational.value,
+    });
+  }, [
+    aircraftDefinition,
+    flightPlan,
+    parsedInputs,
+    parsedOperational,
+    parsedPerformance,
+  ]);
   const manualPerformanceRoute = useMemo(() => {
     if (
       parsedInputs.status !== 'valid' ||
@@ -104,19 +172,37 @@ export function usePlanningCalculations({
       return null;
     }
 
+    if (manualOperationalPlan?.status === 'ok') {
+      return manualOperationalPlan.performanceRoute;
+    }
+
     return calculatePerformanceRoute({
       flightPlan,
       navigation: parsedInputs.value,
       performance: parsedPerformance.value,
       profile: aircraftDefinition.performance,
     });
-  }, [aircraftDefinition, flightPlan, parsedInputs, parsedPerformance]);
+  }, [
+    aircraftDefinition,
+    flightPlan,
+    manualOperationalPlan,
+    parsedInputs,
+    parsedPerformance,
+  ]);
   const legForecast = useOpenMeteoRouteWinds({
     enabled: useForecastWinds && parsedPerformance.status !== 'valid',
     flightPlan,
     planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
   });
+  const additionalPreliminaryRoutes = useMemo(
+    () =>
+      manualOperationalPlan?.status === 'ok' &&
+      manualOperationalPlan.alternatePerformanceRoute !== null
+        ? [manualOperationalPlan.alternatePerformanceRoute]
+        : [],
+    [manualOperationalPlan],
+  );
   const performanceForecast = useOpenMeteoPerformanceWinds({
     enabled: useForecastWinds && parsedPerformance.status === 'valid',
     flightPlan,
@@ -125,6 +211,7 @@ export function usePlanningCalculations({
       parsedPerformance.status === 'valid' ? parsedPerformance.value : null,
     profile: aircraftDefinition.performance,
     preliminaryRoute: manualPerformanceRoute,
+    additionalPreliminaryRoutes,
   });
   const forecast =
     parsedPerformance.status === 'valid'
@@ -146,12 +233,44 @@ export function usePlanningCalculations({
       }),
     [flightPlan, forecast.winds, legacyPlanning, parsedPerformance.status],
   );
+  const operationalPlan = useMemo(() => {
+    if (
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid' ||
+      parsedOperational.status !== 'valid'
+    ) {
+      return null;
+    }
+
+    return calculateOperationalFlightPlan({
+      flightPlan,
+      navigation: parsedInputs.value,
+      performance: parsedPerformance.value,
+      aircraft: aircraftDefinition,
+      operational: parsedOperational.value,
+      resolveWind: createSampledWindResolver(
+        forecast.winds,
+        parsedInputs.value.wind,
+      ),
+    });
+  }, [
+    aircraftDefinition,
+    flightPlan,
+    forecast.winds,
+    parsedInputs,
+    parsedOperational,
+    parsedPerformance,
+  ]);
   const performanceRoute = useMemo(() => {
     if (
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid'
     ) {
       return null;
+    }
+
+    if (operationalPlan?.status === 'ok') {
+      return operationalPlan.performanceRoute;
     }
 
     return calculatePerformanceRoute({
@@ -168,6 +287,7 @@ export function usePlanningCalculations({
     aircraftDefinition,
     flightPlan,
     forecast.winds,
+    operationalPlan,
     parsedInputs,
     parsedPerformance,
   ]);
@@ -175,8 +295,11 @@ export function usePlanningCalculations({
   return {
     parsedInputs,
     parsedPerformance,
+    parsedOperational,
+    derivedTakeoffMassKg: derivedMassKg ?? null,
     calculatedRoute,
     performanceRoute,
+    operationalPlan,
     forecast,
   };
 }

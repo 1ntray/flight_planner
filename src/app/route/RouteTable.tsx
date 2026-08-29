@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type {
   CalculatedNavigationRoute,
   CalculatedPerformanceRoute,
+  CalculatedSectorOperationalFlightPlan,
   WindAdjustedLegResult,
 } from '../../calculations';
 import type { Waypoint } from '../../domain';
@@ -33,6 +34,7 @@ export interface RouteTableProps {
   route: CalculatedNavigationRoute;
   performanceRoute?: CalculatedPerformanceRoute | null;
   forecastWinds?: readonly ForecastLegWind[];
+  operationalSector?: CalculatedSectorOperationalFlightPlan;
 }
 
 function legKey(fromId: string, toId: string): string {
@@ -54,6 +56,7 @@ export function RouteTable({
   route,
   performanceRoute = null,
   forecastWinds = [],
+  operationalSector,
 }: RouteTableProps) {
   const waypointNames = useMemo(
     () => new Map(waypoints.map((waypoint) => [waypoint.id, waypoint.name])),
@@ -87,6 +90,15 @@ export function RouteTable({
       ),
     [performanceRoute],
   );
+  const operationalByLeg = useMemo(
+    () => new Map(
+      (operationalSector?.rows ?? []).map((row) => [
+        legKey(row.leg.fromId, row.leg.toId),
+        row,
+      ]),
+    ),
+    [operationalSector],
+  );
   const effectiveRouteArrivalUtcMs =
     performanceRoute?.status === 'ok'
       ? performanceRoute.estimatedArrivalTimeUtcMs
@@ -111,6 +123,7 @@ export function RouteTable({
             <col className="route-table__groundspeed-column" />
             <col className="route-table__time-column" />
             <col className="route-table__fuel-column" />
+            <col className="route-table__fuel-column" />
           </colgroup>
           <thead>
             <tr>
@@ -128,20 +141,23 @@ export function RouteTable({
               <th scope="col" aria-label="Target altitude feet mean sea level">
                 ALT<span className="route-table__unit">FT</span>
               </th>
-              <th scope="col" aria-label="Distance nautical miles">
-                DIST<span className="route-table__unit">NM</span>
+              <th scope="col" aria-label="Intermediate and accumulated distance nautical miles">
+                DIST<span className="route-table__unit">INT / ACC NM</span>
               </th>
               <th scope="col" aria-label="Groundspeed knots">
                 GS<span className="route-table__unit">KT</span>
               </th>
               <th
                 scope="col"
-                aria-label="Estimated elapsed time minutes and estimated arrival UTC"
+                aria-label="Intermediate and accumulated airborne time minutes"
               >
-                EET<span className="route-table__unit">MIN / Z</span>
+                TIME<span className="route-table__unit">INT / ACC MIN</span>
               </th>
-              <th scope="col" aria-label="Calculated fuel litres">
-                FUEL<span className="route-table__unit">L</span>
+              <th scope="col" aria-label="Intermediate and accumulated airborne fuel litres">
+                FUEL<span className="route-table__unit">INT / ACC L</span>
+              </th>
+              <th scope="col" aria-label="Estimated fuel remaining litres">
+                REM<span className="route-table__unit">L</span>
               </th>
             </tr>
           </thead>
@@ -149,6 +165,9 @@ export function RouteTable({
             {route.legs.map((leg) => {
               const navigation = leg.navigation;
               const performanceLeg = performanceByLeg.get(
+                legKey(leg.fromId, leg.toId),
+              );
+              const operationalRow = operationalByLeg.get(
                 legKey(leg.fromId, leg.toId),
               );
               const performanceNavigation =
@@ -246,7 +265,14 @@ export function RouteTable({
                       </span>
                     )}
                   </td>
-                  <td>{formatDistanceNmValue(leg.distanceNm)}</td>
+                  <td>
+                    {formatDistanceNmValue(operationalRow?.intermediate.distanceNm ?? leg.distanceNm)}
+                    {operationalRow === undefined ? null : (
+                      <span className="route-table__secondary-value">
+                        {formatDistanceNmValue(operationalRow.accumulated.distanceNm)}
+                      </span>
+                    )}
+                  </td>
                   <td>
                     {performanceLeg?.effectiveGroundSpeedKt !== undefined
                       ? performanceLeg.effectiveGroundSpeedKt === null
@@ -265,7 +291,11 @@ export function RouteTable({
                     {effectiveEetSeconds === null
                       ? (noSolutionMessage === null ? '—' : 'NO SOL')
                       : formatEetMinutesValue(effectiveEetSeconds)}
-                    {eta === null ? null : (
+                    {operationalRow !== undefined ? (
+                      <span className="route-table__secondary-value">
+                        {formatEetMinutesValue(operationalRow.accumulated.airborneSeconds)}
+                      </span>
+                    ) : eta === null ? null : (
                       <span className="route-table__secondary-value">
                         {eta}
                       </span>
@@ -275,6 +305,16 @@ export function RouteTable({
                     {performanceLeg === undefined
                       ? '—'
                       : performanceLeg.fuelLitres.toFixed(1)}
+                    {operationalRow === undefined ? null : (
+                      <span className="route-table__secondary-value">
+                        {operationalRow.accumulated.airborneFuelLitres.toFixed(1)}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    {operationalRow === undefined
+                      ? '—'
+                      : operationalRow.estimatedFuelRemainingLitres.toFixed(1)}
                   </td>
                 </tr>
               );
@@ -283,7 +323,14 @@ export function RouteTable({
           <tfoot>
             <tr>
               <td colSpan={6}>Total</td>
-              <td>{formatDistanceNmValue(route.totalDistanceNm)}</td>
+              <td>
+                {formatDistanceNmValue(operationalSector?.intermediateTotal.distanceNm ?? route.totalDistanceNm)}
+                {operationalSector === undefined ? null : (
+                  <span className="route-table__secondary-value">
+                    {formatDistanceNmValue(operationalSector.accumulatedTotal.distanceNm)}
+                  </span>
+                )}
+              </td>
               <td aria-hidden="true" />
               <td
                 title={
@@ -297,7 +344,11 @@ export function RouteTable({
                   : route.totalEetSeconds === null
                   ? '—'
                   : formatEetMinutesValue(route.totalEetSeconds)}
-                {effectiveRouteArrivalUtcMs === null ||
+                {operationalSector !== undefined ? (
+                  <span className="route-table__secondary-value">
+                    {formatEetMinutesValue(operationalSector.accumulatedTotal.airborneSeconds)}
+                  </span>
+                ) : effectiveRouteArrivalUtcMs === null ||
                 route.departureTimeUtcMs === null ? null : (
                   <span className="route-table__secondary-value">
                     {formatUtcRouteTime(
@@ -311,7 +362,13 @@ export function RouteTable({
                 {performanceRoute?.status === 'ok'
                   ? performanceRoute.totalFuelLitres.toFixed(1)
                   : '—'}
+                {operationalSector === undefined ? null : (
+                  <span className="route-table__secondary-value">
+                    {operationalSector.accumulatedTotal.airborneFuelLitres.toFixed(1)}
+                  </span>
+                )}
               </td>
+              <td>{operationalSector?.fuelAtLandingLitres.toFixed(1) ?? '—'}</td>
             </tr>
           </tfoot>
         </table>

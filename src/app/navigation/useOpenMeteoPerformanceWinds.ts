@@ -32,6 +32,7 @@ export interface UseOpenMeteoPerformanceWindsInput {
   performance: AircraftPerformancePlanInputs | null;
   profile: AircraftPerformanceProfile;
   preliminaryRoute: CalculatedPerformanceRoute | null;
+  additionalPreliminaryRoutes?: readonly CalculatedPerformanceRoute[];
 }
 
 export interface UseOpenMeteoPerformanceWindsResult {
@@ -50,11 +51,24 @@ export function useOpenMeteoPerformanceWinds({
   performance,
   profile,
   preliminaryRoute,
+  additionalPreliminaryRoutes = [],
 }: UseOpenMeteoPerformanceWindsInput): UseOpenMeteoPerformanceWindsResult {
   const [stored, setStored] = useState<StoredState>({ status: 'idle' });
   const contextKey = useMemo(
-    () => JSON.stringify({ flightPlan, navigation, performance, profile }),
-    [flightPlan, navigation, performance, profile],
+    () => JSON.stringify({
+      flightPlan,
+      navigation,
+      performance,
+      profile,
+      additionalPreliminaryRoutes,
+    }),
+    [
+      additionalPreliminaryRoutes,
+      flightPlan,
+      navigation,
+      performance,
+      profile,
+    ],
   );
 
   useEffect(() => {
@@ -68,7 +82,13 @@ export function useOpenMeteoPerformanceWinds({
       return;
     }
 
-    const initialRequests = buildPerformanceWeatherSampleRequests(preliminaryRoute);
+    const additionalRequests = additionalPreliminaryRoutes.flatMap((route) =>
+      buildPerformanceWeatherSampleRequests(route),
+    );
+    const initialRequests = [
+      ...buildPerformanceWeatherSampleRequests(preliminaryRoute),
+      ...additionalRequests,
+    ];
 
     if (initialRequests.length === 0) {
       setStored({ status: 'idle' });
@@ -91,7 +111,10 @@ export function useOpenMeteoPerformanceWinds({
             profile,
             resolveWind: createSampledWindResolver(winds, navigation.wind),
           });
-          const refinedRequests = buildPerformanceWeatherSampleRequests(firstRoute);
+          const refinedRequests = [
+            ...buildPerformanceWeatherSampleRequests(firstRoute),
+            ...additionalRequests,
+          ];
           let refined = false;
 
           if (
@@ -127,6 +150,7 @@ export function useOpenMeteoPerformanceWinds({
     navigation,
     performance,
     preliminaryRoute,
+    additionalPreliminaryRoutes,
     profile,
   ]);
 

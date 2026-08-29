@@ -12,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 5,
+  schemaVersion: 6,
   flightPlan: {
     waypoints: [
       {
@@ -84,6 +84,7 @@ const document: FlightPlanningDocument = {
     }],
     sectorStopPlans: [],
   },
+  operationalInputs: null,
   useForecastWinds: true,
 };
 
@@ -99,6 +100,35 @@ describe('flight-planning document persistence', () => {
       .toBe('2608');
   });
 
+  it('round-trips operational loading, stop, and alternate snapshots', () => {
+    const operationalDocument: FlightPlanningDocument = {
+      ...document,
+      operationalInputs: {
+        fuelOnboardLitres: 224,
+        leftSeatMassKg: 82,
+        rightSeatMassKg: 74,
+        baggageMassKg: 12,
+        extraFuelLitres: 18,
+        finalReserveMinutes: 60,
+        sectorOperations: [],
+        alternate: {
+          waypoint: {
+            id: 'ALT',
+            name: 'ENAL',
+            position: { latitude: 62.56, longitude: 6.11 },
+          },
+          elevationFtMsl: 70,
+          weather: { qnhHpa: 1015, isaDeviationC: 2 },
+          altitudeFtMsl: 4500,
+        },
+      },
+    };
+
+    expect(parseFlightPlanningDocumentJson(
+      serializeFlightPlanningDocument(operationalDocument),
+    )).toEqual(operationalDocument);
+  });
+
   it('serializes only versioned input data rather than calculated output', () => {
     const serialized = JSON.parse(
       serializeFlightPlanningDocument(document),
@@ -110,6 +140,7 @@ describe('flight-planning document persistence', () => {
       'planningInputs',
       'aircraftDefinition',
       'performanceInputs',
+      'operationalInputs',
       'useForecastWinds',
     ]);
     expect(serializeFlightPlanningDocument(document)).not.toContain(
@@ -125,8 +156,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 6 }),
-    ).toThrow('Unsupported flight-planning document schema version 6');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 7 }),
+    ).toThrow('Unsupported flight-planning document schema version 7');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -294,7 +325,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       planningInputs: document.planningInputs,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
@@ -322,7 +353,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: document.performanceInputs,
     });
@@ -342,7 +373,7 @@ describe('flight-planning document persistence', () => {
       useForecastWinds: document.useForecastWinds,
     });
 
-    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.schemaVersion).toBe(6);
     expect(migrated.flightPlan.sectorBoundaryWaypointIds).toEqual([]);
     expect(migrated.performanceInputs?.sectorStopPlans).toEqual([]);
   });
@@ -413,9 +444,21 @@ describe('flight-planning document persistence', () => {
       },
     });
 
-    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.schemaVersion).toBe(6);
     expect(migrated.performanceInputs?.sectorStopPlans?.[0])
       .toMatchObject({ onwardDepartureTimeUtcMs: legacyDepartureTime });
+  });
+
+  it('migrates V5 without inventing operational inputs', () => {
+    const { operationalInputs: _operationalInputs, ...legacyDocument } =
+      document;
+    const migrated = parseFlightPlanningDocument({
+      ...legacyDocument,
+      schemaVersion: 5,
+    });
+
+    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.operationalInputs).toBeNull();
   });
 
   it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {

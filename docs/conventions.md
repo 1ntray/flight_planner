@@ -41,7 +41,8 @@ Domain collections are exposed as readonly arrays to calculation code. Pure
 calculation functions return new values and do not mutate their inputs.
 
 The top-level `App` component owns the `FlightPlan`, selected serializable
-aircraft-definition snapshot, navigation and aircraft performance input drafts,
+aircraft-definition snapshot, navigation, aircraft performance, and operational
+loading/fuel input drafts,
 forecast-source preference, and selected route-point
 descriptor. Selection and
 in-progress drag positions are UI state; calculated legs are not. UI consumers
@@ -141,6 +142,11 @@ Run `pnpm typecheck` and `pnpm test` before merging changes.
 - Intermediate sector-stop inputs contain only airport elevation, weather, and
   a non-negative stop duration. Calculated onward departure times, sector legs,
   and navlog totals remain derived.
+- Operational inputs store total ramp fuel, people/baggage loading, reserve and
+  extra-fuel policy, intermediate T&G/full-stop choices, optional full-stop
+  refuelling targets, and an optional alternate waypoint/environment snapshot.
+  Tank allocation, fuel burn, mass, moment, CG arm, OFP progress, requirements,
+  endurance, and minimum-flight values remain derived.
 - Calculated legs, expanded geometry, forecast responses, loading state,
   selection, and drag state are derived or transient and must not be saved.
 - Imported JSON crosses an untrusted input boundary and must be validated by

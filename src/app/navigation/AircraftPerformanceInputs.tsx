@@ -5,6 +5,7 @@ export interface AircraftPerformanceInputsProps {
   draft: PerformanceInputDraft;
   profile: AircraftPerformanceProfile;
   errorMessage?: string;
+  derivedMassKg?: number;
   onChange: (draft: PerformanceInputDraft) => void;
 }
 
@@ -56,6 +57,7 @@ export function AircraftPerformanceInputs({
   draft,
   profile,
   errorMessage,
+  derivedMassKg,
   onChange,
 }: AircraftPerformanceInputsProps) {
   const invalid = errorMessage !== undefined;
@@ -71,16 +73,23 @@ export function AircraftPerformanceInputs({
         flight-specific inputs to calculate phases and fuel.
       </p>
 
-      <NumericField
-        label="Aircraft mass"
-        field="massKg"
-        unit="kg"
-        min="0.1"
-        step="1"
-        draft={draft}
-        invalid={invalid}
-        onChange={onChange}
-      />
+      {derivedMassKg === undefined ? (
+        <NumericField
+          label="Aircraft mass"
+          field="massKg"
+          unit="kg"
+          min="0.1"
+          step="1"
+          draft={draft}
+          invalid={invalid}
+          onChange={onChange}
+        />
+      ) : (
+        <p className="navigation-inputs__derived-value">
+          Aircraft mass <strong>{derivedMassKg.toFixed(1)} kg</strong>
+          <span>Derived from loading and takeoff fuel.</span>
+        </p>
+      )}
       <NumericField
         label="Default leg altitude"
         field="defaultAltitudeFtMsl"

@@ -13,6 +13,7 @@ import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   PROJECT_AIRCRAFT_DEFINITION,
 } from '../domain';
+import { calculateInitialTakeoffLoading } from '../calculations';
 import {
   clearLocalDraft,
   loadLocalDraft,
@@ -46,6 +47,13 @@ import {
   parsePerformanceInputDraft,
 } from './navigation/performanceInput';
 import type { PerformanceInputDraft } from './navigation/performanceInput';
+import {
+  createEmptyOperationalInputDraft,
+  createEmptySectorOperationInputDraft,
+  createOperationalInputDraft,
+  parseOperationalInputDraft,
+} from './navigation/operationalInput';
+import type { OperationalInputDraft } from './navigation/operationalInput';
 import {
   removeAltitudePlansTouchingWaypoint,
   setLegAltitudeOverride,
@@ -88,6 +96,7 @@ interface PlanningState {
   aircraftDefinition: AircraftDefinition;
   navigationInputDraft: NavigationInputDraft;
   performanceInputDraft: PerformanceInputDraft;
+  operationalInputDraft: OperationalInputDraft;
   useForecastWinds: boolean;
   document: FlightPlanningDocument;
 }
@@ -105,6 +114,7 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
   };
   const navigationInputDraft = createDefaultNavigationInputDraft(nowUtcMs);
   const performanceInputDraft = createEmptyPerformanceInputDraft();
+  const operationalInputDraft = createEmptyOperationalInputDraft();
   const parsedPlanningInputs = parseNavigationInputDraft(
     navigationInputDraft,
   );
@@ -118,6 +128,7 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
     aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
     navigationInputDraft,
     performanceInputDraft,
+    operationalInputDraft,
     useForecastWinds: false,
     document: {
       schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
@@ -125,6 +136,7 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
       planningInputs: parsedPlanningInputs.value,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
+      operationalInputs: null,
       useForecastWinds: false,
     },
   };
@@ -144,6 +156,10 @@ function createInitialPlanningState(): InitialPlanningState {
         result.document.performanceInputs === null
           ? createEmptyPerformanceInputDraft()
           : createPerformanceInputDraft(result.document.performanceInputs),
+      operationalInputDraft:
+        result.document.operationalInputs === null
+          ? createEmptyOperationalInputDraft()
+          : createOperationalInputDraft(result.document.operationalInputs),
       useForecastWinds: result.document.useForecastWinds,
       document: result.document,
       restoredFromLocalDraft: true,
@@ -197,6 +213,10 @@ export function App() {
     useState<PerformanceInputDraft>(
       initialPlanningState.performanceInputDraft,
     );
+  const [operationalInputDraft, setOperationalInputDraft] =
+    useState<OperationalInputDraft>(
+      initialPlanningState.operationalInputDraft,
+    );
   const [localDraftStatus, setLocalDraftStatus] =
     useState<LocalDraftStatus>(initialPlanningState.localDraftStatus);
   const lastSavedDocumentJsonRef = useRef<string | null>(
@@ -213,24 +233,57 @@ export function App() {
     () => parseNavigationInputDraft(navigationInputDraft),
     [navigationInputDraft],
   );
+  const parsedOperationalInputs = useMemo(
+    () => parseOperationalInputDraft(
+      operationalInputDraft,
+      aircraftDefinition,
+      flightPlan.sectorBoundaryWaypointIds ?? [],
+    ),
+    [
+      aircraftDefinition,
+      flightPlan.sectorBoundaryWaypointIds,
+      operationalInputDraft,
+    ],
+  );
+  const operationalTakeoffMassKg = useMemo(() => {
+    if (parsedOperationalInputs.status !== 'valid') {
+      return undefined;
+    }
+
+    try {
+      return calculateInitialTakeoffLoading(
+        aircraftDefinition,
+        parsedOperationalInputs.value,
+      ).totalMassKg;
+    } catch {
+      return undefined;
+    }
+  }, [aircraftDefinition, parsedOperationalInputs]);
   const parsedPerformanceInputs = useMemo(
     () => parsePerformanceInputDraft(
       performanceInputDraft,
       flightPlan.sectorBoundaryWaypointIds ?? [],
+      operationalTakeoffMassKg,
     ),
-    [flightPlan.sectorBoundaryWaypointIds, performanceInputDraft],
+    [
+      flightPlan.sectorBoundaryWaypointIds,
+      operationalTakeoffMassKg,
+      performanceInputDraft,
+    ],
   );
   const calculations = usePlanningCalculations({
     flightPlan,
     aircraftDefinition,
     navigationDraft: navigationInputDraft,
     performanceDraft: performanceInputDraft,
+    operationalDraft: operationalInputDraft,
     useForecastWinds,
   });
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
       parsedPlanningInputs.status === 'valid' &&
-      parsedPerformanceInputs.status !== 'invalid'
+      parsedPerformanceInputs.status !== 'invalid' &&
+      parsedOperationalInputs.status !== 'invalid'
         ? {
             schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
             flightPlan,
@@ -240,6 +293,10 @@ export function App() {
               parsedPerformanceInputs.status === 'valid'
                 ? parsedPerformanceInputs.value
                 : null,
+            operationalInputs:
+              parsedOperationalInputs.status === 'valid'
+                ? parsedOperationalInputs.value
+                : null,
             useForecastWinds,
           }
         : null,
@@ -247,6 +304,7 @@ export function App() {
       flightPlan,
       aircraftDefinition,
       parsedPerformanceInputs,
+      parsedOperationalInputs,
       parsedPlanningInputs,
       useForecastWinds,
     ],
@@ -416,6 +474,12 @@ export function App() {
           (stop) => stop.waypointId !== selectedRoutePoint.id,
         ),
       }));
+      setOperationalInputDraft((currentDraft) => ({
+        ...currentDraft,
+        sectorOperations: currentDraft.sectorOperations.filter(
+          (operation) => operation.waypointId !== selectedRoutePoint.id,
+        ),
+      }));
     }
     setMapSelection(null);
     setMapTool({ kind: 'select' });
@@ -431,6 +495,11 @@ export function App() {
       ...currentDraft,
       legAltitudePlans: [],
       sectorStopPlans: [],
+    }));
+    setOperationalInputDraft((currentDraft) => ({
+      ...currentDraft,
+      sectorOperations: [],
+      alternateEnabled: false,
     }));
     setMapSelection(null);
     setMapTool({ kind: 'select' });
@@ -448,6 +517,7 @@ export function App() {
     setAircraftDefinition(freshState.aircraftDefinition);
     setNavigationInputDraft(freshState.navigationInputDraft);
     setPerformanceInputDraft(freshState.performanceInputDraft);
+    setOperationalInputDraft(freshState.operationalInputDraft);
     setUseForecastWinds(freshState.useForecastWinds);
     setMapSelection(null);
     setMapTool({ kind: 'select' });
@@ -474,6 +544,11 @@ export function App() {
         document.performanceInputs === null
           ? createEmptyPerformanceInputDraft()
           : createPerformanceInputDraft(document.performanceInputs),
+      );
+      setOperationalInputDraft(
+        document.operationalInputs === null
+          ? createEmptyOperationalInputDraft()
+          : createOperationalInputDraft(document.operationalInputs),
       );
       setUseForecastWinds(document.useForecastWinds);
       setMapSelection(null);
@@ -523,6 +598,21 @@ export function App() {
             ]
         : currentDraft.sectorStopPlans.filter(
             (stop) => stop.waypointId !== waypointId,
+          ),
+    }));
+    setOperationalInputDraft((currentDraft) => ({
+      ...currentDraft,
+      sectorOperations: enabled
+        ? currentDraft.sectorOperations.some(
+            (operation) => operation.waypointId === waypointId,
+          )
+          ? currentDraft.sectorOperations
+          : [
+              ...currentDraft.sectorOperations,
+              createEmptySectorOperationInputDraft(waypointId),
+            ]
+        : currentDraft.sectorOperations.filter(
+            (operation) => operation.waypointId !== waypointId,
           ),
     }));
   }, [flightPlan]);
@@ -696,10 +786,12 @@ export function App() {
     aircraftDefinition,
     draft: navigationInputDraft,
     performanceDraft: performanceInputDraft,
+    operationalDraft: operationalInputDraft,
     useForecastWinds,
     onDraftChange: setNavigationInputDraft,
     onAircraftDefinitionChange: setAircraftDefinition,
     onPerformanceDraftChange: setPerformanceInputDraft,
+    onOperationalDraftChange: setOperationalInputDraft,
     onUseForecastWindsChange: setUseForecastWinds,
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
@@ -710,7 +802,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.16</p>
+          <p className="eyebrow">MVP 0.17</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -731,6 +823,13 @@ export function App() {
             altitudeFocusRequest={altitudeFocusRequest}
             waypointNameFocusRequest={waypointNameFocusRequest}
             performanceRoute={calculations.performanceRoute}
+            {...(calculations.parsedOperational.status === 'valid' &&
+            calculations.parsedOperational.value.alternate !== null
+              ? {
+                  alternateWaypoint:
+                    calculations.parsedOperational.value.alternate.waypoint,
+                }
+              : {})}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}
             onMoveWaypoint={moveWaypoint}

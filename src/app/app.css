@@ -484,6 +484,40 @@ h3 {
   margin: 0;
 }
 
+.navigation-inputs__derived-value {
+  display: grid;
+  align-content: center;
+  gap: 0.1rem;
+  margin: 0;
+  color: #526175;
+  font-size: 0.72rem;
+}
+
+.navigation-inputs__derived-value span {
+  color: #7a8797;
+  font-size: 0.64rem;
+}
+
+.operational-planning-inputs__result {
+  padding: 0.45rem;
+  border-radius: 0.3rem;
+  background: #eef6f2;
+}
+
+.operational-planning-inputs__alternate {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid #dbe3eb;
+}
+
+.operational-planning-inputs__alternate label {
+  display: grid;
+  gap: 0.25rem;
+}
+
 .button {
   min-height: 2.4rem;
   padding: 0.45rem 0.7rem;
@@ -715,6 +749,101 @@ kbd {
   border-bottom: 0;
   background: #f4f7fa;
   font-weight: 700;
+}
+
+.operational-summary {
+  padding: 0.7rem;
+  border: 1px solid #cdd9e4;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.operational-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.operational-summary h4 {
+  margin: 0 0 0.4rem;
+  color: #34465a;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operational-summary__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+}
+
+.operational-summary__table th,
+.operational-summary__table td {
+  padding: 0.3rem 0.25rem;
+  border-bottom: 1px solid #dfe6ed;
+  text-align: right;
+}
+
+.operational-summary__table th:first-child {
+  text-align: left;
+}
+
+.operational-summary__table thead th {
+  color: #68778a;
+  font-size: 0.62rem;
+}
+
+.operational-summary__total-row {
+  font-weight: 750;
+}
+
+.operational-summary__note {
+  margin: 0.4rem 0 0;
+  color: #68778a;
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.operational-summary__minimum-flight {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+}
+
+.operational-summary__minimum-flight div {
+  padding: 0.4rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.3rem;
+  background: #ffffff;
+}
+
+.operational-summary__minimum-flight dt,
+.operational-summary__minimum-flight dd {
+  margin: 0;
+}
+
+.operational-summary__minimum-flight dt {
+  color: #68778a;
+  font-size: 0.6rem;
+}
+
+.operational-summary__minimum-flight dd {
+  margin-top: 0.15rem;
+  color: #26384c;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.operational-summary__warnings {
+  margin: 0.65rem 0 0;
+  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+  border: 1px solid #e0aaa6;
+  border-radius: 0.3rem;
+  color: #8f2722;
+  background: #fff8f7;
+  font-size: 0.7rem;
 }
 
 .empty-route {
@@ -1189,5 +1318,9 @@ kbd {
     padding-left: 0;
     border-top: 1px solid #cad5e1;
     border-left: 0;
+  }
+
+  .operational-summary__grid {
+    grid-template-columns: 1fr;
   }
 }
