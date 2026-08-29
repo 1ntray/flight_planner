@@ -1,8 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Popup } from 'react-leaflet';
+import { useEffect, useRef, useState } from 'react';
 
 import type { LegAltitudePlan, Waypoint } from '../../domain';
+import {
+  formatLegAltitudeDraft,
+  parseLegAltitudeDraft,
+} from './legAltitudeDraft';
 import type { SelectedRouteLeg } from './routeDisplay';
+import { StableMapPopup } from './StableMapPopup';
 
 export interface LegMapPopupProps {
   selection: SelectedRouteLeg;
@@ -32,6 +36,17 @@ export function LegMapPopup({
   onClose,
 }: LegMapPopupProps) {
   const altitudeInputRef = useRef<HTMLInputElement>(null);
+  const currentAltitudeFtMsl = plan?.altitudeFtMsl;
+  const [altitudeDraft, setAltitudeDraft] = useState(() =>
+    formatLegAltitudeDraft(currentAltitudeFtMsl),
+  );
+  useEffect(() => {
+    setAltitudeDraft(formatLegAltitudeDraft(currentAltitudeFtMsl));
+  }, [
+    currentAltitudeFtMsl,
+    selection.candidate.fromWaypointId,
+    selection.candidate.toWaypointId,
+  ]);
 
   useEffect(() => {
     if (altitudeFocusRequest > 0) {
@@ -44,13 +59,21 @@ export function LegMapPopup({
     plan?.targetPlacement?.mode === 'distance-along-leg'
       ? plan.targetPlacement.distanceFromStartNm
       : null;
+  const parsedAltitudeDraft = parseLegAltitudeDraft(altitudeDraft);
+  const commitAltitudeDraft = () => {
+    if (parsedAltitudeDraft.status === 'invalid') {
+      setAltitudeDraft(formatLegAltitudeDraft(currentAltitudeFtMsl));
+      return;
+    }
+
+    if (parsedAltitudeDraft.value !== (currentAltitudeFtMsl ?? null)) {
+      onSetAltitude(parsedAltitudeDraft.value);
+    }
+  };
 
   return (
-    <Popup
-      position={[
-        selection.candidate.position.latitude,
-        selection.candidate.position.longitude,
-      ]}
+    <StableMapPopup
+      position={selection.candidate.position}
       closeButton={false}
       closeOnClick={false}
       autoClose={false}
@@ -69,15 +92,17 @@ export function LegMapPopup({
             type="number"
             min="0"
             step="100"
-            value={plan?.altitudeFtMsl ?? ''}
+            value={altitudeDraft}
             placeholder={defaultAltitudeFtMsl || 'global'}
-            onChange={(event) =>
-              onSetAltitude(
-                event.currentTarget.value === ''
-                  ? null
-                  : Number(event.currentTarget.value),
-              )
-            }
+            aria-invalid={parsedAltitudeDraft.status === 'invalid'}
+            onChange={(event) => setAltitudeDraft(event.currentTarget.value)}
+            onBlur={commitAltitudeDraft}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
+            }}
           />
           <span>ft MSL</span>
         </span>
@@ -89,10 +114,10 @@ export function LegMapPopup({
         <button
           type="button"
           className="button"
-          aria-keyshortcuts="+"
+          aria-keyshortcuts="I"
           onClick={onInsertWaypoint}
         >
-          Add waypoint <kbd>+</kbd>
+          Add waypoint <kbd>I</kbd>
         </button>
         <button
           type="button"
@@ -114,6 +139,6 @@ export function LegMapPopup({
           Close
         </button>
       </div>
-    </Popup>
+    </StableMapPopup>
   );
 }

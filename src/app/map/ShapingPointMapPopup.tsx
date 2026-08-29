@@ -1,6 +1,5 @@
-import { Popup } from 'react-leaflet';
-
 import type { Position } from '../../domain';
+import { StableMapPopup } from './StableMapPopup';
 
 export interface ShapingPointMapPopupProps {
   position: Position;
@@ -14,8 +13,8 @@ export function ShapingPointMapPopup({
   onClose,
 }: ShapingPointMapPopupProps) {
   return (
-    <Popup
-      position={[position.latitude, position.longitude]}
+    <StableMapPopup
+      position={position}
       closeButton={false}
       closeOnClick={false}
       autoClose={false}
@@ -36,6 +35,6 @@ export function ShapingPointMapPopup({
           Close
         </button>
       </div>
-    </Popup>
+    </StableMapPopup>
   );
 }

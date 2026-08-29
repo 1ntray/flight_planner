@@ -19,8 +19,10 @@ const legSelection: MapSelection = {
 
 describe('planner keyboard shortcuts', () => {
   it('resolves leg and point commands only for compatible selections', () => {
-    expect(resolvePlannerShortcut({ key: '+', editing: false, selection: legSelection, tool: selectTool }))
+    expect(resolvePlannerShortcut({ key: 'i', editing: false, selection: legSelection, tool: selectTool }))
       .toBe('insert-waypoint');
+    expect(resolvePlannerShortcut({ key: '+', editing: false, selection: legSelection, tool: selectTool }))
+      .toBeNull();
     expect(resolvePlannerShortcut({ key: 'a', editing: false, selection: legSelection, tool: selectTool }))
       .toBe('edit-altitude');
     expect(resolvePlannerShortcut({ key: 'Delete', editing: false, selection: legSelection, tool: selectTool }))
@@ -31,6 +33,14 @@ describe('planner keyboard shortcuts', () => {
       selection: { kind: 'waypoint', id: 'A' },
       tool: selectTool,
     })).toBe('delete-selection');
+    expect(resolvePlannerShortcut({
+      key: 'n',
+      editing: false,
+      selection: { kind: 'waypoint', id: 'A' },
+      tool: selectTool,
+    })).toBe('edit-waypoint-name');
+    expect(resolvePlannerShortcut({ key: 'n', editing: false, selection: legSelection, tool: selectTool }))
+      .toBeNull();
   });
 
   it('ignores shortcuts while editing or using browser/system modifiers', () => {

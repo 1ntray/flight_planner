@@ -71,6 +71,13 @@ identifier remains available in the separate anchor snapshot.
   it is not persistent route or calculation state.
 - Keyboard shortcuts are ignored while an input, textarea, select, or editable
   element has focus.
+- Map-popup form text is transient UI state until its documented commit action.
+  Leg altitude commits on blur or Enter, preventing partial numeric input from
+  repeatedly updating planning calculations.
+- Map-level popups keep one Leaflet instance and update its WGS84 position
+  without reopening it. Selected waypoint and shaping-point popups use the same
+  temporary drag position as their markers, while canonical coordinates still
+  commit only on `dragend`.
 - The base-map source is isolated in `src/app/map/tileSource.ts` so it can be
   replaced without changing map interaction code.
 - Aeronautical overlay components consume normalized domain features through

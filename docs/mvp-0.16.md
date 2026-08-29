@@ -30,10 +30,18 @@ the user toggles it, selects another tool, inserts into a route line, or presses
 Escape. Clicking a route line in Select/Edit selects its snapped route location;
 dragging beyond the existing threshold still creates a shaping point.
 
-The `+`, `A`, and `P` shortcuts require a selected leg. `Delete` requires a
-selected real waypoint or shaping point. `L` requires an intermediate real
-waypoint. `?` opens the shortcut reference. All planner shortcuts pause while
-the user is editing a form control.
+The `I`, `A`, and `P` shortcuts require a selected leg. `N` focuses the name
+field for a selected real waypoint. `Delete` requires a selected real waypoint
+or shaping point. `L` requires an intermediate real waypoint. `?` opens the
+shortcut reference. All planner shortcuts pause while the user is editing a
+form control.
+
+Leg-altitude popup input is a transient UI draft. It commits to the planning
+input state on blur or Enter so partial typing does not trigger recalculation.
+Popup positions remain stable across unrelated renders to prevent React-Leaflet
+from reopening a popup and dropping keyboard focus. Map-level popups update the
+existing Leaflet instance when their WGS84 display position changes, so selected
+waypoint and shaping-point popups follow marker drags without flashing.
 
 Selections, active tools, popup state, and shortcut focus requests are UI state
 and are not persisted. Route mutations continue to use the existing pure route

@@ -37,6 +37,7 @@ import type { AeronauticalLayerId } from './aeronauticalLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
+  getRoutePointDisplayPosition,
 } from './routeDisplay';
 import type {
   DraggedRoutePointPosition,
@@ -388,6 +389,7 @@ export interface FlightMapProps {
   altitudePlans: readonly LegAltitudePlan[];
   defaultAltitudeFtMsl: string;
   altitudeFocusRequest: number;
+  waypointNameFocusRequest: number;
   performanceRoute: CalculatedPerformanceRoute | null;
   onAddWaypoint: (position: Position) => void;
   onAddAnchoredWaypoint: (feature: AeronauticalPointFeature) => void;
@@ -427,6 +429,7 @@ export function FlightMap({
   altitudePlans,
   defaultAltitudeFtMsl,
   altitudeFocusRequest,
+  waypointNameFocusRequest,
   performanceRoute,
   onAddWaypoint,
   onAddAnchoredWaypoint,
@@ -472,12 +475,27 @@ export function FlightMap({
   const selectedWaypointIndex = selectedWaypoint === undefined
     ? -1
     : flightPlan.waypoints.findIndex(({ id }) => id === selectedWaypoint.id);
+  const selectedWaypointDisplayPosition = selectedWaypoint === undefined
+    ? undefined
+    : getRoutePointDisplayPosition(
+        selectedWaypoint.id,
+        selectedWaypoint.position,
+        draggedPoint,
+      );
   const selectedShapingPoint =
     selection?.kind === 'shaping-point'
       ? flightPlan.legShapes
           .flatMap(({ points }) => points)
           .find(({ id }) => id === selection.id)
       : undefined;
+  const selectedShapingPointDisplayPosition =
+    selectedShapingPoint === undefined
+      ? undefined
+      : getRoutePointDisplayPosition(
+          selectedShapingPoint.id,
+          selectedShapingPoint.position,
+          draggedPoint,
+        );
   const selectedLeg = selection?.kind === 'leg' ? selection : null;
   const selectedLegFrom = selectedLeg === null
     ? undefined
@@ -640,6 +658,8 @@ export function FlightMap({
         {tool.kind !== 'select' || selectedWaypoint === undefined ? null : (
           <WaypointMapPopup
             waypoint={selectedWaypoint}
+            position={selectedWaypointDisplayPosition ?? selectedWaypoint.position}
+            nameFocusRequest={waypointNameFocusRequest}
             canBeSectorBoundary={
               selectedWaypointIndex > 0 &&
               selectedWaypointIndex < flightPlan.waypoints.length - 1
@@ -657,9 +677,11 @@ export function FlightMap({
           />
         )}
 
-        {tool.kind !== 'select' || selectedShapingPoint === undefined ? null : (
+        {tool.kind !== 'select' ||
+        selectedShapingPoint === undefined ||
+        selectedShapingPointDisplayPosition === undefined ? null : (
           <ShapingPointMapPopup
-            position={selectedShapingPoint.position}
+            position={selectedShapingPointDisplayPosition}
             onDelete={onDeleteSelection}
             onClose={() => onSelectionChange(null)}
           />

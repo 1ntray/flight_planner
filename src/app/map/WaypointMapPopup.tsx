@@ -1,10 +1,11 @@
-import { Popup } from 'react-leaflet';
-
-import type { Waypoint } from '../../domain';
+import type { Position, Waypoint } from '../../domain';
 import { WaypointEditor } from '../route/WaypointEditor';
+import { StableMapPopup } from './StableMapPopup';
 
 export interface WaypointMapPopupProps {
   waypoint: Waypoint;
+  position: Position;
+  nameFocusRequest: number;
   canBeSectorBoundary: boolean;
   isSectorBoundary: boolean;
   onRename: (id: string, name: string) => void;
@@ -16,6 +17,8 @@ export interface WaypointMapPopupProps {
 
 export function WaypointMapPopup({
   waypoint,
+  position,
+  nameFocusRequest,
   canBeSectorBoundary,
   isSectorBoundary,
   onRename,
@@ -25,14 +28,18 @@ export function WaypointMapPopup({
   onClose,
 }: WaypointMapPopupProps) {
   return (
-    <Popup
-      position={[waypoint.position.latitude, waypoint.position.longitude]}
+    <StableMapPopup
+      position={position}
       closeButton={false}
       closeOnClick={false}
       autoClose={false}
       className="waypoint-map-popup"
     >
-      <WaypointEditor waypoint={waypoint} onRename={onRename} />
+      <WaypointEditor
+        waypoint={waypoint}
+        nameFocusRequest={nameFocusRequest}
+        onRename={onRename}
+      />
       <dl className="waypoint-map-popup__details">
         <div>
           <dt>Position</dt>
@@ -82,6 +89,6 @@ export function WaypointMapPopup({
           Close
         </button>
       </div>
-    </Popup>
+    </StableMapPopup>
   );
 }

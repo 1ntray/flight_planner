@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import type { Waypoint } from '../../domain';
@@ -6,6 +6,7 @@ import { MAX_WAYPOINT_NAME_LENGTH } from './waypointState';
 
 export interface WaypointEditorProps {
   waypoint: Waypoint;
+  nameFocusRequest: number;
   onRename: (id: string, name: string) => void;
 }
 
@@ -23,12 +24,24 @@ function getNameValidationMessage(name: string): string | null {
   return null;
 }
 
-export function WaypointEditor({ waypoint, onRename }: WaypointEditorProps) {
+export function WaypointEditor({
+  waypoint,
+  nameFocusRequest,
+  onRename,
+}: WaypointEditorProps) {
   const [draftName, setDraftName] = useState(waypoint.name);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDraftName(waypoint.name);
   }, [waypoint.id, waypoint.name]);
+
+  useEffect(() => {
+    if (nameFocusRequest > 0) {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }
+  }, [nameFocusRequest]);
 
   const normalizedName = draftName.trim();
   const validationMessage = getNameValidationMessage(draftName);
@@ -56,8 +69,10 @@ export function WaypointEditor({ waypoint, onRename }: WaypointEditorProps) {
       <label htmlFor="selected-waypoint-name">Navlog name</label>
       <div className="waypoint-editor__name-control">
         <input
+          ref={nameInputRef}
           id="selected-waypoint-name"
           type="text"
+          aria-keyshortcuts="N"
           value={draftName}
           maxLength={MAX_WAYPOINT_NAME_LENGTH}
           aria-invalid={validationMessage !== null}

@@ -185,6 +185,7 @@ export function App() {
   const [activeSidebarTab, setActiveSidebarTab] =
     useState<'planning' | 'shortcuts'>('planning');
   const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
+  const [waypointNameFocusRequest, setWaypointNameFocusRequest] = useState(0);
   const [navigationInputDraft, setNavigationInputDraft] =
     useState<NavigationInputDraft>(
       initialPlanningState.navigationInputDraft,
@@ -632,6 +633,12 @@ export function App() {
             insertWaypoint(mapSelection.candidate);
           }
           break;
+        case 'edit-waypoint-name':
+          if (mapSelection?.kind === 'waypoint') {
+            setMapTool({ kind: 'select' });
+            setWaypointNameFocusRequest((current) => current + 1);
+          }
+          break;
         case 'edit-altitude':
           if (mapSelection?.kind === 'leg') {
             setMapTool({ kind: 'select' });
@@ -722,6 +729,7 @@ export function App() {
             altitudePlans={performanceInputDraft.legAltitudePlans}
             defaultAltitudeFtMsl={performanceInputDraft.defaultAltitudeFtMsl}
             altitudeFocusRequest={altitudeFocusRequest}
+            waypointNameFocusRequest={waypointNameFocusRequest}
             performanceRoute={calculations.performanceRoute}
             onAddWaypoint={addWaypoint}
             onAddAnchoredWaypoint={addAnchoredWaypoint}

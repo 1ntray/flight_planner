@@ -4,6 +4,7 @@ export type PlannerShortcutAction =
   | 'cancel'
   | 'delete-selection'
   | 'insert-waypoint'
+  | 'edit-waypoint-name'
   | 'edit-altitude'
   | 'place-altitude-target'
   | 'toggle-add-waypoint'
@@ -33,7 +34,8 @@ export const PLANNER_SHORTCUTS: readonly PlannerShortcutDefinition[] = [
   { keys: 'V', action: 'Select/edit mode', availability: 'Always' },
   { keys: 'W', action: 'Toggle Add waypoint mode', availability: 'Always' },
   { keys: 'Delete', action: 'Remove the selected waypoint or shaping point', availability: 'Point selected' },
-  { keys: '+', action: 'Insert a real waypoint at the selected route location', availability: 'Leg selected' },
+  { keys: 'I', action: 'Insert a real waypoint at the selected route location', availability: 'Leg selected' },
+  { keys: 'N', action: 'Edit the selected waypoint name', availability: 'Waypoint selected' },
   { keys: 'A', action: 'Edit the selected leg altitude', availability: 'Leg selected' },
   { keys: 'P', action: 'Place the selected leg altitude target on the map', availability: 'Leg selected' },
   { keys: 'L', action: 'Mark or remove an intermediate landing', availability: 'Intermediate waypoint selected' },
@@ -76,10 +78,12 @@ export function resolvePlannerShortcut(
     return 'delete-selection';
   }
   if (
-    (context.key === '+' || context.code === 'NumpadAdd') &&
-    context.selection?.kind === 'leg'
+    key === 'i' && context.selection?.kind === 'leg'
   ) {
     return 'insert-waypoint';
+  }
+  if (key === 'n' && context.selection?.kind === 'waypoint') {
+    return 'edit-waypoint-name';
   }
   if (key === 'a' && context.selection?.kind === 'leg') {
     return 'edit-altitude';
