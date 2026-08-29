@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { FlightPlan } from '../../domain';
 import {
   buildRouteDisplayLegs,
+  getRouteSectorColor,
   getRoutePointDisplayPosition,
 } from './routeDisplay';
 
@@ -132,5 +133,18 @@ describe('route display geometry', () => {
       [69.18, 18.4],
       [69.2, 18.5],
     ]);
+  });
+
+  it('assigns a stable, distinct color index to each derived sector', () => {
+    const display = buildRouteDisplayLegs({
+      ...flightPlan,
+      sectorBoundaryWaypointIds: ['stable-b'],
+    }, null, null);
+
+    expect(display.map(({ sectorIndex }) => sectorIndex)).toEqual([0, 1]);
+    expect(getRouteSectorColor(display[0]!.sectorIndex)).not.toBe(
+      getRouteSectorColor(display[1]!.sectorIndex),
+    );
+    expect(getRouteSectorColor(5)).toBe(getRouteSectorColor(0));
   });
 });

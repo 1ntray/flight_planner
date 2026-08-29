@@ -21,6 +21,7 @@ import {
   LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION,
   LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION,
   MAX_WAYPOINT_NAME_LENGTH,
@@ -824,7 +825,15 @@ function requirePerformanceInputs(
             legRecord.altitudeFtMsl,
             `${legPath}.altitudeFtMsl`,
           );
+    const endAltitudeFtMsl =
+      legRecord.endAltitudeFtMsl === undefined
+        ? undefined
+        : requireNonNegativeNumber(
+            legRecord.endAltitudeFtMsl,
+            `${legPath}.endAltitudeFtMsl`,
+          );
     let targetPlacement;
+    let endTargetPlacement;
 
     if (legRecord.targetPlacement !== undefined) {
       const placement = requireRecord(
@@ -849,11 +858,41 @@ function requirePerformanceInputs(
       }
     }
 
+    if (legRecord.endTargetPlacement !== undefined) {
+      const placement = requireRecord(
+        legRecord.endTargetPlacement,
+        `${legPath}.endTargetPlacement`,
+      );
+
+      if (placement.mode === 'automatic') {
+        endTargetPlacement = { mode: 'automatic' as const };
+      } else if (placement.mode === 'distance-along-leg') {
+        endTargetPlacement = {
+          mode: 'distance-along-leg' as const,
+          distanceFromStartNm: requireNonNegativeNumber(
+            placement.distanceFromStartNm,
+            `${legPath}.endTargetPlacement.distanceFromStartNm`,
+          ),
+        };
+      } else {
+        throw new RangeError(
+          `${legPath}.endTargetPlacement.mode is not supported`,
+        );
+      }
+    }
+    if (endTargetPlacement !== undefined && endAltitudeFtMsl === undefined) {
+      throw new RangeError(
+        `${legPath}.endTargetPlacement requires endAltitudeFtMsl`,
+      );
+    }
+
     return {
       fromWaypointId,
       toWaypointId,
       ...(altitudeFtMsl === undefined ? {} : { altitudeFtMsl }),
       ...(targetPlacement === undefined ? {} : { targetPlacement }),
+      ...(endAltitudeFtMsl === undefined ? {} : { endAltitudeFtMsl }),
+      ...(endTargetPlacement === undefined ? {} : { endTargetPlacement }),
     };
   });
   const rawSectorStopPlans =
@@ -1129,6 +1168,7 @@ export function parseFlightPlanningDocument(
 
   if (
     record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION &&
+    record.schemaVersion !== LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION &&
     record.schemaVersion !== LEGACY_AIRCRAFT_DEFINITION_DOCUMENT_SCHEMA_VERSION &&
@@ -1148,6 +1188,7 @@ export function parseFlightPlanningDocument(
     record.flightPlan,
     'document.flightPlan',
     record.schemaVersion === FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION ||
+      record.schemaVersion === LEGACY_OPERATIONAL_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_STOP_DURATION_DOCUMENT_SCHEMA_VERSION ||
       record.schemaVersion === LEGACY_SECTOR_DEPARTURE_DOCUMENT_SCHEMA_VERSION,
   );

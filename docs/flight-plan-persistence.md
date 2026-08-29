@@ -2,14 +2,14 @@
 
 ## Document boundary
 
-The exported format is a versioned JSON document. Version 6 contains the route,
+The exported format is a versioned JSON document. Version 7 contains the route,
 route-wide navigation inputs, the complete selected aircraft-definition
 snapshot, optional performance and operational inputs, and the forecast
-preference. Versions 1 through 5 are validated and explicitly migrated on load.
+preference. Versions 1 through 6 are validated and explicitly migrated on load.
 
 ```ts
-interface FlightPlanningDocumentV6 {
-  schemaVersion: 6;
+interface FlightPlanningDocumentV7 {
+  schemaVersion: 7;
   flightPlan: FlightPlan;
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
@@ -23,7 +23,8 @@ interface FlightPlanningDocumentV6 {
 `legShapes`, plus references to intermediate waypoints explicitly marked as
 sector boundaries. Performance inputs store mass, endpoint weather/elevations, the
 global altitude, and sparse per-adjacent-leg altitude/target overrides in their
-documented internal units.
+documented internal units. A leg may optionally have a second altitude and
+reach-by target after its primary target.
 
 Each sector boundary with active performance inputs has one intermediate-airport
 snapshot containing elevation, QNH, ISA deviation, and a non-negative stop
@@ -116,6 +117,8 @@ single-sector meaning. Schema-four fixed onward UTC departures are retained as
 legacy compatibility values so importing an existing plan does not change its
 timeline; entering a stop duration replaces that legacy value. Version-five
 documents gain `operationalInputs: null` and preserve their previous behaviour.
+Version-six documents retain all operational inputs and migrate without
+inventing the new optional second altitude instruction.
 
 ## AIRAC stability
 

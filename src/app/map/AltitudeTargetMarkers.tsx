@@ -33,6 +33,7 @@ export interface AltitudeTargetMarkersProps {
     fromWaypointId: string,
     toWaypointId: string,
     distanceFromStartNm: number,
+    target: 'primary' | 'end',
   ) => void;
 }
 
@@ -52,10 +53,6 @@ export function AltitudeTargetMarkers({
   return (
     <>
       {plans.flatMap((plan) => {
-        if (plan.targetPlacement?.mode !== 'distance-along-leg') {
-          return [];
-        }
-
         const leg = legs.find(
           (candidate) =>
             candidate.fromId === plan.fromWaypointId &&
@@ -65,11 +62,6 @@ export function AltitudeTargetMarkers({
         if (leg === undefined) {
           return [];
         }
-
-        const target = calculatePositionAlongGeometry(
-          leg.geometry,
-          plan.targetPlacement.distanceFromStartNm,
-        );
         const performanceLeg =
           performanceRoute?.status === 'ok'
             ? performanceRoute.legs.find(
@@ -78,19 +70,6 @@ export function AltitudeTargetMarkers({
                   candidate.toId === plan.toWaypointId,
               )
             : undefined;
-        const matchingTransition = performanceLeg?.steps.find(
-          (step) =>
-            step.phase !== 'cruise' &&
-            Math.abs(
-              step.endDistanceFromLegNm - target.distanceFromStartNm,
-            ) <= 1e-6,
-        );
-        const targetLabel =
-          matchingTransition?.phase === 'climb'
-            ? 'TOC'
-            : matchingTransition?.phase === 'descent'
-              ? 'BOD'
-              : 'ALT';
         const snapMarker = (marker: LeafletMarker) => {
           const snapped = calculateNearestPointOnGeometry(
             leg.geometry,
@@ -103,33 +82,60 @@ export function AltitudeTargetMarkers({
           return snapped;
         };
 
-        return [
-          <Marker
-            key={`${plan.fromWaypointId}:${plan.toWaypointId}`}
-            position={[target.position.latitude, target.position.longitude]}
-            icon={altitudeTargetIcons[targetLabel]}
-            draggable
-            bubblingMouseEvents={false}
-            title="Altitude target — drag along route"
-            alt="Altitude target"
-            eventHandlers={{
-              drag: (event) => snapMarker(event.target as LeafletMarker),
-              dragend: (event) => {
-                const snapped = snapMarker(event.target as LeafletMarker);
-                onSetTargetDistance(
-                  plan.fromWaypointId,
-                  plan.toWaypointId,
-                  snapped.distanceFromStartNm,
-                );
-              },
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -15]} opacity={0.95}>
-              {targetLabel} · reach altitude at{' '}
-              {target.distanceFromStartNm.toFixed(1)} NM
-            </Tooltip>
-          </Marker>,
-        ];
+        return ([
+          ['primary', plan.targetPlacement] as const,
+          ['end', plan.endTargetPlacement] as const,
+        ]).flatMap(([targetKind, placement]) => {
+          if (placement?.mode !== 'distance-along-leg') {
+            return [];
+          }
+          const target = calculatePositionAlongGeometry(
+            leg.geometry,
+            placement.distanceFromStartNm,
+          );
+          const matchingTransition = performanceLeg?.steps.find(
+            (step) =>
+              step.phase !== 'cruise' &&
+              Math.abs(
+                step.endDistanceFromLegNm - target.distanceFromStartNm,
+              ) <= 1e-6,
+          );
+          const targetLabel =
+            matchingTransition?.phase === 'climb'
+              ? 'TOC'
+              : matchingTransition?.phase === 'descent'
+                ? 'BOD'
+                : 'ALT';
+
+          return [
+            <Marker
+              key={`${plan.fromWaypointId}:${plan.toWaypointId}:${targetKind}`}
+              position={[target.position.latitude, target.position.longitude]}
+              icon={altitudeTargetIcons[targetLabel]}
+              draggable
+              bubblingMouseEvents={false}
+              title={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target — drag along route`}
+              alt={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target`}
+              eventHandlers={{
+                drag: (event) => snapMarker(event.target as LeafletMarker),
+                dragend: (event) => {
+                  const snapped = snapMarker(event.target as LeafletMarker);
+                  onSetTargetDistance(
+                    plan.fromWaypointId,
+                    plan.toWaypointId,
+                    snapped.distanceFromStartNm,
+                    targetKind,
+                  );
+                },
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -15]} opacity={0.95}>
+                {targetLabel} · {targetKind === 'primary' ? 'planned' : 'end'} altitude at{' '}
+                {target.distanceFromStartNm.toFixed(1)} NM
+              </Tooltip>
+            </Marker>,
+          ];
+        });
       })}
     </>
   );

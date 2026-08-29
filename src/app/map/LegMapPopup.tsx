@@ -17,8 +17,11 @@ export interface LegMapPopupProps {
   altitudeFocusRequest: number;
   onInsertWaypoint: () => void;
   onSetAltitude: (altitudeFtMsl: number | null) => void;
+  onSetEndAltitude: (altitudeFtMsl: number | null) => void;
   onPlaceAltitudeTarget: () => void;
+  onPlaceEndAltitudeTarget: () => void;
   onResetAltitudeTarget: () => void;
+  onResetEndAltitudeTarget: () => void;
   onClose: () => void;
 }
 
@@ -31,19 +34,33 @@ export function LegMapPopup({
   altitudeFocusRequest,
   onInsertWaypoint,
   onSetAltitude,
+  onSetEndAltitude,
   onPlaceAltitudeTarget,
+  onPlaceEndAltitudeTarget,
   onResetAltitudeTarget,
+  onResetEndAltitudeTarget,
   onClose,
 }: LegMapPopupProps) {
   const altitudeInputRef = useRef<HTMLInputElement>(null);
   const currentAltitudeFtMsl = plan?.altitudeFtMsl;
+  const currentEndAltitudeFtMsl = plan?.endAltitudeFtMsl;
   const [altitudeDraft, setAltitudeDraft] = useState(() =>
     formatLegAltitudeDraft(currentAltitudeFtMsl),
+  );
+  const [endAltitudeDraft, setEndAltitudeDraft] = useState(() =>
+    formatLegAltitudeDraft(currentEndAltitudeFtMsl),
   );
   useEffect(() => {
     setAltitudeDraft(formatLegAltitudeDraft(currentAltitudeFtMsl));
   }, [
     currentAltitudeFtMsl,
+    selection.candidate.fromWaypointId,
+    selection.candidate.toWaypointId,
+  ]);
+  useEffect(() => {
+    setEndAltitudeDraft(formatLegAltitudeDraft(currentEndAltitudeFtMsl));
+  }, [
+    currentEndAltitudeFtMsl,
     selection.candidate.fromWaypointId,
     selection.candidate.toWaypointId,
   ]);
@@ -60,6 +77,11 @@ export function LegMapPopup({
       ? plan.targetPlacement.distanceFromStartNm
       : null;
   const parsedAltitudeDraft = parseLegAltitudeDraft(altitudeDraft);
+  const endTargetDistance =
+    plan?.endTargetPlacement?.mode === 'distance-along-leg'
+      ? plan.endTargetPlacement.distanceFromStartNm
+      : null;
+  const parsedEndAltitudeDraft = parseLegAltitudeDraft(endAltitudeDraft);
   const commitAltitudeDraft = () => {
     if (parsedAltitudeDraft.status === 'invalid') {
       setAltitudeDraft(formatLegAltitudeDraft(currentAltitudeFtMsl));
@@ -68,6 +90,16 @@ export function LegMapPopup({
 
     if (parsedAltitudeDraft.value !== (currentAltitudeFtMsl ?? null)) {
       onSetAltitude(parsedAltitudeDraft.value);
+    }
+  };
+  const commitEndAltitudeDraft = () => {
+    if (parsedEndAltitudeDraft.status === 'invalid') {
+      setEndAltitudeDraft(formatLegAltitudeDraft(currentEndAltitudeFtMsl));
+      return;
+    }
+
+    if (parsedEndAltitudeDraft.value !== (currentEndAltitudeFtMsl ?? null)) {
+      onSetEndAltitude(parsedEndAltitudeDraft.value);
     }
   };
 
@@ -108,7 +140,32 @@ export function LegMapPopup({
         </span>
       </label>
       <p className="leg-map-popup__target">
-        Altitude target: {targetDistance === null ? 'automatic' : `${targetDistance.toFixed(1)} NM`}
+        Planned-altitude target: {targetDistance === null ? 'automatic' : `${targetDistance.toFixed(1)} NM`}
+      </p>
+      <label>
+        <span>End altitude (optional)</span>
+        <span className="navigation-inputs__control">
+          <input
+            type="number"
+            min="0"
+            step="100"
+            value={endAltitudeDraft}
+            placeholder="same as planned"
+            aria-invalid={parsedEndAltitudeDraft.status === 'invalid'}
+            onChange={(event) => setEndAltitudeDraft(event.currentTarget.value)}
+            onBlur={commitEndAltitudeDraft}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
+            }}
+          />
+          <span>ft MSL</span>
+        </span>
+      </label>
+      <p className="leg-map-popup__target">
+        End-altitude target: {endTargetDistance === null ? 'automatic' : `${endTargetDistance.toFixed(1)} NM`}
       </p>
       <div className="map-popup-actions">
         <button
@@ -125,7 +182,7 @@ export function LegMapPopup({
           aria-keyshortcuts="P"
           onClick={onPlaceAltitudeTarget}
         >
-          Place target <kbd>P</kbd>
+          Place planned target <kbd>P</kbd>
         </button>
         <button
           type="button"
@@ -134,6 +191,22 @@ export function LegMapPopup({
           onClick={onResetAltitudeTarget}
         >
           Automatic target
+        </button>
+        <button
+          type="button"
+          className="button"
+          disabled={currentEndAltitudeFtMsl === undefined}
+          onClick={onPlaceEndAltitudeTarget}
+        >
+          Place end target
+        </button>
+        <button
+          type="button"
+          className="button"
+          disabled={endTargetDistance === null}
+          onClick={onResetEndAltitudeTarget}
+        >
+          Automatic end target
         </button>
         <button type="button" className="button" onClick={onClose}>
           Close

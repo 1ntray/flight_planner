@@ -46,7 +46,7 @@ export function MapToolControl({
       {tool.kind === 'place-altitude-target' ? (
         <div className="map-tool-control__placement" role="status">
           <span>
-            Place altitude target for{' '}
+            Place {tool.target === 'primary' ? 'planned' : 'end'} altitude target for{' '}
             <strong>{fromName ?? 'FROM'} → {toName ?? 'TO'}</strong>
           </span>
           <button

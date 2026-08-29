@@ -1,0 +1,43 @@
+# MVP 0.18
+
+## Goal
+
+MVP 0.18 makes the on-screen sector navlogs follow the two-page Zlin OFP more
+closely, improves map readability, and permits two vertical transitions inside
+one real-waypoint leg.
+
+## OFP-aligned navlog
+
+Each sector navlog uses the page-one OFP column order and grouping: FROM, TAS,
+TT, VAR, MT, wind, accumulated distance/time, fuel flow/intermediate/accumulated,
+TO, MSA/planned altitude, MH, intermediate groundspeed/distance/time,
+ETO/ATO/difference, estimated/actual fuel remaining, and frequency. Calculated
+planning values are filled; actual-time, actual-fuel, MSA, and frequency fields
+remain visibly blank until the application has authoritative inputs for them.
+Intermediate totals reset for each sector, while accumulated values continue
+from the original takeoff.
+
+The page-two loading table now shows auxiliary and main fuel consumed between
+takeoff and landing as separate negative rows. The calculation continues to
+consume auxiliary fuel before main fuel and derives both rows from the takeoff
+and landing tank states.
+
+## Map interaction
+
+Primary sectors receive repeating, high-contrast route colours so intermediate
+landings remain visible. Selection still uses the separate selected-leg colour.
+Creating a shaping point by dragging the route no longer opens its removal
+popup; selecting the handle later still provides removal.
+
+## Two transitions on one leg
+
+A per-leg altitude plan has a primary planned altitude/reach-by target and one
+optional end altitude/reach-by target. Both targets are distances along the
+actual shaped WGS84 geometry. The interval-integrated performance engine applies
+the second transition after the primary target, preserving full TAS, wind,
+groundspeed, time, fuel, and horizontal-distance integration. A real waypoint
+inserted into the leg keeps each instruction on the resulting leg containing
+its physical target.
+
+Document schema version 7 persists the optional second altitude instruction.
+Versions 1 through 6 remain readable and migrate without invented inputs.

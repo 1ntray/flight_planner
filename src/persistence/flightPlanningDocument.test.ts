@@ -12,7 +12,7 @@ import {
 } from './flightPlanningDocument';
 
 const document: FlightPlanningDocument = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   flightPlan: {
     waypoints: [
       {
@@ -80,6 +80,11 @@ const document: FlightPlanningDocument = {
       targetPlacement: {
         mode: 'distance-along-leg',
         distanceFromStartNm: 12.5,
+      },
+      endAltitudeFtMsl: 2500,
+      endTargetPlacement: {
+        mode: 'distance-along-leg',
+        distanceFromStartNm: 42,
       },
     }],
     sectorStopPlans: [],
@@ -156,8 +161,8 @@ describe('flight-planning document persistence', () => {
       'not valid JSON',
     );
     expect(() =>
-      parseFlightPlanningDocument({ ...document, schemaVersion: 7 }),
-    ).toThrow('Unsupported flight-planning document schema version 7');
+      parseFlightPlanningDocument({ ...document, schemaVersion: 8 }),
+    ).toThrow('Unsupported flight-planning document schema version 8');
   });
 
   it('rejects invalid positions, waypoint names, and duplicate point IDs', () => {
@@ -325,7 +330,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 6,
+      schemaVersion: 7,
       planningInputs: document.planningInputs,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
@@ -353,7 +358,7 @@ describe('flight-planning document persistence', () => {
     });
 
     expect(migrated).toMatchObject({
-      schemaVersion: 6,
+      schemaVersion: 7,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: document.performanceInputs,
     });
@@ -373,7 +378,7 @@ describe('flight-planning document persistence', () => {
       useForecastWinds: document.useForecastWinds,
     });
 
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.flightPlan.sectorBoundaryWaypointIds).toEqual([]);
     expect(migrated.performanceInputs?.sectorStopPlans).toEqual([]);
   });
@@ -444,7 +449,7 @@ describe('flight-planning document persistence', () => {
       },
     });
 
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.performanceInputs?.sectorStopPlans?.[0])
       .toMatchObject({ onwardDepartureTimeUtcMs: legacyDepartureTime });
   });
@@ -457,8 +462,28 @@ describe('flight-planning document persistence', () => {
       schemaVersion: 5,
     });
 
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.operationalInputs).toBeNull();
+  });
+
+  it('migrates V6 operational plans without inventing a second altitude target', () => {
+    const legacyDocument = {
+      ...document,
+      schemaVersion: 6,
+      performanceInputs: {
+        ...document.performanceInputs!,
+        legAltitudePlans: document.performanceInputs!.legAltitudePlans.map(
+          ({ endAltitudeFtMsl: _endAltitude, endTargetPlacement: _endTarget, ...plan }) => plan,
+        ),
+      },
+    };
+
+    const migrated = parseFlightPlanningDocument(legacyDocument);
+
+    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.performanceInputs?.legAltitudePlans[0])
+      .not.toHaveProperty('endAltitudeFtMsl');
+    expect(migrated.operationalInputs).toEqual(document.operationalInputs);
   });
 
   it('preserves serialized aircraft coefficients instead of consulting the catalog', () => {

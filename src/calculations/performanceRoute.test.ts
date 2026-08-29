@@ -149,6 +149,64 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('supports climb and descent targets on the same non-final leg', () => {
+    const flightPlan: FlightPlan = {
+      waypoints: [
+        { id: 'A', name: 'WP1', position: { latitude: 0, longitude: 0 } },
+        { id: 'B', name: 'WP2', position: { latitude: 0, longitude: 2 } },
+        { id: 'C', name: 'WP3', position: { latitude: 0, longitude: 4 } },
+        { id: 'D', name: 'WP4', position: { latitude: 0, longitude: 6 } },
+      ],
+      legShapes: [],
+    };
+    const result = calculatePerformanceRoute({
+      flightPlan,
+      navigation,
+      performance: {
+        ...performance,
+        defaultAltitudeFtMsl: 2500,
+        departureElevationFtMsl: 2500,
+        legAltitudePlans: [{
+          fromWaypointId: 'B',
+          toWaypointId: 'C',
+          altitudeFtMsl: 4000,
+          targetPlacement: {
+            mode: 'distance-along-leg',
+            distanceFromStartNm: 20,
+          },
+          endAltitudeFtMsl: 2000,
+          endTargetPlacement: {
+            mode: 'distance-along-leg',
+            distanceFromStartNm: 100,
+          },
+        }, {
+          fromWaypointId: 'C',
+          toWaypointId: 'D',
+          altitudeFtMsl: 2000,
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      const combinedLeg = result.legs[1]!;
+      expect(combinedLeg.phases.map(({ phase }) => phase)).toEqual([
+        'cruise',
+        'climb',
+        'cruise',
+        'descent',
+        'cruise',
+      ]);
+      expect(combinedLeg.steps.filter(({ phase }) => phase === 'climb').at(-1)
+        ?.endDistanceFromLegNm).toBeCloseTo(20, 6);
+      expect(combinedLeg.steps.filter(({ phase }) => phase === 'descent').at(-1)
+        ?.endDistanceFromLegNm).toBeCloseTo(100, 6);
+      expect(combinedLeg.endAltitudeFtMsl).toBe(2000);
+      expect(result.legs[2]?.startAltitudeFtMsl).toBe(2000);
+    }
+  });
+
   it('uses altitude-dependent wind during vertical distance integration', () => {
     const calm = calculatePerformanceRoute({
       flightPlan: longLeg,

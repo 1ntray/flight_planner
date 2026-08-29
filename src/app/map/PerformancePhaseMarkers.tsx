@@ -44,19 +44,26 @@ export function PerformancePhaseMarkers({
   return (
     <>
       {boundaries.flatMap((boundary) => {
-        const explicitTarget = altitudePlans.find(
+        const altitudePlan = altitudePlans.find(
           (plan) =>
             plan.fromWaypointId === boundary.fromWaypointId &&
             plan.toWaypointId === boundary.toWaypointId,
-        )?.targetPlacement;
+        );
+        const explicitTargets = [
+          altitudePlan?.targetPlacement,
+          altitudePlan?.endTargetPlacement,
+        ];
 
         if (
           boundary.boundary === 'end' &&
-          explicitTarget?.mode === 'distance-along-leg' &&
-          Math.abs(
-            explicitTarget.distanceFromStartNm -
-              boundary.distanceFromLegStartNm,
-          ) <= TARGET_TOLERANCE_NM
+          explicitTargets.some(
+            (target) =>
+              target?.mode === 'distance-along-leg' &&
+              Math.abs(
+                target.distanceFromStartNm -
+                  boundary.distanceFromLegStartNm,
+              ) <= TARGET_TOLERANCE_NM,
+          )
         ) {
           return [];
         }

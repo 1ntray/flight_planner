@@ -66,11 +66,18 @@ individual sector; fuel burn and optional refuelling determine the takeoff mass
 of later sectors.
 
 An optional target distance says where along the shaped WGS84 leg the requested
-altitude must have been reached. Automatic climbs begin at FROM; automatic
-descents are arranged to reach the target at TO. A target can be entered as
-distance from FROM, selected on the route line, or dragged along the route.
-It is input attached to the adjacent real-waypoint leg, not a waypoint or a
-route-shaping point. Inserting a real waypoint splits and preserves this input.
+altitude must have been reached. A leg can also specify one optional end
+altitude with its own reach-by target. The resulting phase sequence may contain,
+for example, climb, cruise, descent, and another cruise segment on the same
+navlog leg. The second transition starts only after the first target has been
+reached; overlapping transitions are reported as no solution.
+
+Automatic climbs begin at FROM; automatic descents are arranged to reach their
+target at TO. Either target can be entered as distance from FROM, selected on
+the route line, or dragged along the route. These are inputs attached to the
+adjacent real-waypoint leg, not waypoints or route-shaping points. Inserting a
+real waypoint splits and preserves both instructions at their physical route
+locations.
 
 Climb and descent horizontal motion is integrated in the same 100 ft intervals.
 TAS is evaluated at interval midpoint altitude, wind is requested through a
@@ -98,7 +105,7 @@ not the default calculation method.
 ## Navlog summaries and map boundaries
 
 A navlog leg still occupies one row even when it contains many integrated
-steps. WIND, TH, and MH use a cruise step at the leg's requested altitude when
+steps. WIND, TH, and MH use a cruise step at the leg's primary requested altitude when
 one exists. If several such cruise fragments exist, the longest is used. If
 there is cruise only at another altitude, the longest cruise fragment is used.
 When a vertical transition occupies the whole leg, wind is a duration-weighted

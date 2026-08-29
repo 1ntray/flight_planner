@@ -143,6 +143,26 @@ function validateLegAltitudePlans(
     ) {
       return 'Altitude target distance must be a non-negative number';
     }
+    if (
+      plan.endAltitudeFtMsl !== undefined &&
+      (!Number.isFinite(plan.endAltitudeFtMsl) ||
+        plan.endAltitudeFtMsl < 0)
+    ) {
+      return 'Leg end altitude must be a non-negative number';
+    }
+    if (
+      plan.endTargetPlacement !== undefined &&
+      plan.endAltitudeFtMsl === undefined
+    ) {
+      return 'End-altitude target requires a leg end altitude';
+    }
+    if (
+      plan.endTargetPlacement?.mode === 'distance-along-leg' &&
+      (!Number.isFinite(plan.endTargetPlacement.distanceFromStartNm) ||
+        plan.endTargetPlacement.distanceFromStartNm < 0)
+    ) {
+      return 'End-altitude target distance must be a non-negative number';
+    }
   }
 
   return null;

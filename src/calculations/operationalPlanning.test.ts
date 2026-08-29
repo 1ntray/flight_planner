@@ -208,6 +208,14 @@ describe('operational planning', () => {
           result.performanceRoute.sectors[2]!.totalEetSeconds) / 60,
         9,
       );
+      expect(
+        first.takeoffLoading.fuel.auxiliaryLitres -
+          first.landingLoading.fuel.auxiliaryLitres,
+      ).toBeCloseTo(first.intermediateTotal.airborneFuelLitres, 9);
+      expect(
+        first.takeoffLoading.fuel.mainLitres -
+          first.landingLoading.fuel.mainLitres,
+      ).toBeCloseTo(0, 9);
     }
   });
 

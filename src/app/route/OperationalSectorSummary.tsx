@@ -51,6 +51,7 @@ function LoadingTotals({
   return (
     <tr className="operational-summary__total-row">
       <th scope="row">{label}</th>
+      <td>—</td>
       <td>{loading.totalMassKg.toFixed(1)}</td>
       <td>{loading.totalMomentKgm.toFixed(1)}</td>
       <td>{loading.armM.toFixed(3)}</td>
@@ -79,6 +80,14 @@ export function OperationalSectorSummary({
       : sector.minimumFlight.requiredFuelRemainingLitres === null
         ? '—'
         : `${sector.minimumFlight.requiredFuelRemainingLitres.toFixed(1)} L`;
+  const auxiliaryFuelUsedLitres =
+    sector.takeoffLoading.fuel.auxiliaryLitres -
+    sector.landingLoading.fuel.auxiliaryLitres;
+  const mainFuelUsedLitres =
+    sector.takeoffLoading.fuel.mainLitres -
+    sector.landingLoading.fuel.mainLitres;
+  const usedValue = (value: number) =>
+    Math.abs(value) < 1e-9 ? '0.0' : `-${value.toFixed(1)}`;
 
   return (
     <section className="operational-summary" aria-label="OFP fuel and mass and balance">
@@ -121,16 +130,18 @@ export function OperationalSectorSummary({
           <h4>Mass &amp; balance</h4>
           <table className="operational-summary__table">
             <thead>
-              <tr><th>Station</th><th>kg</th><th>kgm</th><th>arm m</th></tr>
+              <tr><th>Station</th><th>L</th><th>kg</th><th>kgm</th><th>arm m</th></tr>
             </thead>
             <tbody>
-              <tr><th scope="row">Basic aircraft</th><td>{loading.basicEmptyMassKg.toFixed(1)}</td><td>{loading.basicEmptyMomentKgm.toFixed(1)}</td><td>{(loading.basicEmptyMomentKgm / loading.basicEmptyMassKg).toFixed(3)}</td></tr>
-              <tr><th scope="row">Left seat</th><td>{inputs.leftSeatMassKg.toFixed(1)}</td><td>{(inputs.leftSeatMassKg * loading.leftSeatArmM).toFixed(1)}</td><td>{loading.leftSeatArmM.toFixed(3)}</td></tr>
-              <tr><th scope="row">Right seat</th><td>{inputs.rightSeatMassKg.toFixed(1)}</td><td>{(inputs.rightSeatMassKg * loading.rightSeatArmM).toFixed(1)}</td><td>{loading.rightSeatArmM.toFixed(3)}</td></tr>
-              <tr><th scope="row">Main fuel T/O</th><td>{fuelMass(sector.takeoffLoading.fuel.mainLitres).toFixed(1)}</td><td>{(fuelMass(sector.takeoffLoading.fuel.mainLitres) * system.main.armM).toFixed(1)}</td><td>{system.main.armM.toFixed(3)}</td></tr>
-              <tr><th scope="row">Aux fuel T/O</th><td>{fuelMass(sector.takeoffLoading.fuel.auxiliaryLitres).toFixed(1)}</td><td>{(fuelMass(sector.takeoffLoading.fuel.auxiliaryLitres) * system.auxiliary.armM).toFixed(1)}</td><td>{system.auxiliary.armM.toFixed(3)}</td></tr>
-              <tr><th scope="row">Baggage</th><td>{inputs.baggageMassKg.toFixed(1)}</td><td>{(inputs.baggageMassKg * loading.baggageArmM).toFixed(1)}</td><td>{loading.baggageArmM.toFixed(3)}</td></tr>
+              <tr><th scope="row">A/C {aircraft.registration ?? ''}</th><td>—</td><td>{loading.basicEmptyMassKg.toFixed(1)}</td><td>{loading.basicEmptyMomentKgm.toFixed(1)}</td><td>{(loading.basicEmptyMomentKgm / loading.basicEmptyMassKg).toFixed(3)}</td></tr>
+              <tr><th scope="row">Left seat</th><td>—</td><td>{inputs.leftSeatMassKg.toFixed(1)}</td><td>{(inputs.leftSeatMassKg * loading.leftSeatArmM).toFixed(1)}</td><td>{loading.leftSeatArmM.toFixed(3)}</td></tr>
+              <tr><th scope="row">Right seat</th><td>—</td><td>{inputs.rightSeatMassKg.toFixed(1)}</td><td>{(inputs.rightSeatMassKg * loading.rightSeatArmM).toFixed(1)}</td><td>{loading.rightSeatArmM.toFixed(3)}</td></tr>
+              <tr><th scope="row">Fuel (Main)</th><td>{sector.takeoffLoading.fuel.mainLitres.toFixed(1)}</td><td>{fuelMass(sector.takeoffLoading.fuel.mainLitres).toFixed(1)}</td><td>{(fuelMass(sector.takeoffLoading.fuel.mainLitres) * system.main.armM).toFixed(1)}</td><td>{system.main.armM.toFixed(3)}</td></tr>
+              <tr><th scope="row">Fuel (Auxiliary)</th><td>{sector.takeoffLoading.fuel.auxiliaryLitres.toFixed(1)}</td><td>{fuelMass(sector.takeoffLoading.fuel.auxiliaryLitres).toFixed(1)}</td><td>{(fuelMass(sector.takeoffLoading.fuel.auxiliaryLitres) * system.auxiliary.armM).toFixed(1)}</td><td>{system.auxiliary.armM.toFixed(3)}</td></tr>
+              <tr><th scope="row">Baggage</th><td>—</td><td>{inputs.baggageMassKg.toFixed(1)}</td><td>{(inputs.baggageMassKg * loading.baggageArmM).toFixed(1)}</td><td>{loading.baggageArmM.toFixed(3)}</td></tr>
               <LoadingTotals label="Takeoff" loading={sector.takeoffLoading} />
+              <tr className="operational-summary__fuel-used"><th scope="row">Enroute fuel used (Aux)</th><td>{usedValue(auxiliaryFuelUsedLitres)}</td><td>{usedValue(fuelMass(auxiliaryFuelUsedLitres))}</td><td>{usedValue(fuelMass(auxiliaryFuelUsedLitres) * system.auxiliary.armM)}</td><td>{system.auxiliary.armM.toFixed(3)}</td></tr>
+              <tr className="operational-summary__fuel-used"><th scope="row">Enroute fuel used (Main)</th><td>{usedValue(mainFuelUsedLitres)}</td><td>{usedValue(fuelMass(mainFuelUsedLitres))}</td><td>{usedValue(fuelMass(mainFuelUsedLitres) * system.main.armM)}</td><td>{system.main.armM.toFixed(3)}</td></tr>
               <LoadingTotals label="Landing" loading={sector.landingLoading} />
             </tbody>
           </table>

@@ -5,6 +5,7 @@ import type { RouteWaypointInsertionCandidate } from '../route/routeInsertion';
 export interface AltitudePlacementLeg {
   fromWaypointId: string;
   toWaypointId: string;
+  target: 'primary' | 'end';
 }
 
 function legMatches(
@@ -32,7 +33,9 @@ function updateLegPlan(
   );
   const keepUpdated =
     updated.altitudeFtMsl !== undefined ||
-    updated.targetPlacement !== undefined;
+    updated.targetPlacement !== undefined ||
+    updated.endAltitudeFtMsl !== undefined ||
+    updated.endTargetPlacement !== undefined;
 
   return [
     ...plans.filter(
@@ -61,6 +64,26 @@ export function setLegAltitudeOverride(
       return { ...plan, altitudeFtMsl };
     },
   );
+}
+
+export function setLegEndAltitudeOverride(
+  plans: readonly LegAltitudePlan[],
+  fromWaypointId: string,
+  toWaypointId: string,
+  altitudeFtMsl: number | null,
+): LegAltitudePlan[] {
+  return updateLegPlan(plans, fromWaypointId, toWaypointId, (plan) => {
+    if (altitudeFtMsl === null) {
+      const {
+        endAltitudeFtMsl: _removedAltitude,
+        endTargetPlacement: _removedPlacement,
+        ...withoutEndAltitude
+      } = plan;
+      return withoutEndAltitude;
+    }
+
+    return { ...plan, endAltitudeFtMsl: altitudeFtMsl };
+  });
 }
 
 /**
@@ -130,6 +153,37 @@ export function splitLegAltitudePlanForWaypointInsertion(
     ...(rightPlacement === undefined ? {} : { targetPlacement: rightPlacement }),
   };
 
+  if (sourcePlan.endAltitudeFtMsl !== undefined) {
+    const endPlacement = sourcePlan.endTargetPlacement;
+    if (
+      endPlacement?.mode === 'distance-along-leg' &&
+      endPlacement.distanceFromStartNm <= splitDistanceNm
+    ) {
+      Object.assign(left, {
+        endAltitudeFtMsl: sourcePlan.endAltitudeFtMsl,
+        endTargetPlacement: endPlacement,
+      });
+      Object.assign(right, {
+        altitudeFtMsl: sourcePlan.endAltitudeFtMsl,
+      });
+    } else {
+      Object.assign(right, {
+        endAltitudeFtMsl: sourcePlan.endAltitudeFtMsl,
+        ...(endPlacement?.mode === 'distance-along-leg'
+          ? {
+              endTargetPlacement: {
+                mode: 'distance-along-leg' as const,
+                distanceFromStartNm:
+                  endPlacement.distanceFromStartNm - splitDistanceNm,
+              },
+            }
+          : endPlacement === undefined
+            ? {}
+            : { endTargetPlacement: endPlacement }),
+      });
+    }
+  }
+
   return [
     ...plans.filter(
       (plan) => !legMatches(plan, candidate.fromWaypointId, candidate.toWaypointId),
@@ -174,4 +228,26 @@ export function setLegAltitudeTargetDistance(
       };
     },
   );
+}
+
+export function setLegEndAltitudeTargetDistance(
+  plans: readonly LegAltitudePlan[],
+  fromWaypointId: string,
+  toWaypointId: string,
+  distanceFromStartNm: number | null,
+): LegAltitudePlan[] {
+  return updateLegPlan(plans, fromWaypointId, toWaypointId, (plan) => {
+    if (distanceFromStartNm === null) {
+      const { endTargetPlacement: _removed, ...withoutPlacement } = plan;
+      return withoutPlacement;
+    }
+
+    return {
+      ...plan,
+      endTargetPlacement: {
+        mode: 'distance-along-leg',
+        distanceFromStartNm,
+      },
+    };
+  });
 }

@@ -23,6 +23,7 @@ export type MapTool =
       kind: 'place-altitude-target';
       fromWaypointId: string;
       toWaypointId: string;
+      target: 'primary' | 'end';
     };
 
 export type DraggedRoutePointPosition =
@@ -39,6 +40,7 @@ export interface PendingRouteShapingPoint {
 export interface RouteDisplayLeg {
   fromWaypointId: string;
   toWaypointId: string;
+  sectorIndex: number;
   positions: LatLngTuple[];
   segments: RouteDisplaySegment[];
 }
@@ -50,6 +52,21 @@ export interface RouteDisplaySegment {
   startPosition: Position;
   endPosition: Position;
   positions: [LatLngTuple, LatLngTuple];
+}
+
+export const ROUTE_SECTOR_COLORS = [
+  '#176da5',
+  '#c43d3d',
+  '#238653',
+  '#7b4ab5',
+  '#c56b16',
+] as const;
+
+export function getRouteSectorColor(sectorIndex: number): string {
+  if (!Number.isInteger(sectorIndex) || sectorIndex < 0) {
+    throw new RangeError('Sector index must be a non-negative integer');
+  }
+  return ROUTE_SECTOR_COLORS[sectorIndex % ROUTE_SECTOR_COLORS.length]!;
 }
 
 export function getRoutePointDisplayPosition(
@@ -71,6 +88,11 @@ export function buildRouteDisplayLegs(
   draggedPoint: DraggedRoutePointPosition | null,
   pendingPoint: PendingRouteShapingPoint | null,
 ): RouteDisplayLeg[] {
+  const sectorBoundaries = new Set(
+    flightPlan.sectorBoundaryWaypointIds ?? [],
+  );
+  let sectorIndex = 0;
+
   return flightPlan.waypoints.slice(1).map((to, index) => {
     const from = flightPlan.waypoints[index];
 
@@ -139,11 +161,16 @@ export function buildRouteDisplayLegs(
       );
     }
 
-    return {
+    const result = {
       fromWaypointId: from.id,
       toWaypointId: to.id,
+      sectorIndex,
       positions,
       segments,
     };
+    if (sectorBoundaries.has(to.id)) {
+      sectorIndex += 1;
+    }
+    return result;
   });
 }

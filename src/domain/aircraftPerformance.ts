@@ -75,6 +75,14 @@ export interface LegAltitudePlan {
   readonly altitudeFtMsl?: number;
   /** Where the requested altitude must have been attained. */
   readonly targetPlacement?: AltitudeTargetPlacement;
+  /**
+   * Optional altitude to attain later on the same leg. This permits a climb
+   * to the planned level followed by a descent to the TO waypoint without
+   * introducing a real or shaping waypoint.
+   */
+  readonly endAltitudeFtMsl?: number;
+  /** Where the optional end altitude must have been attained. */
+  readonly endTargetPlacement?: AltitudeTargetPlacement;
 }
 
 export interface SectorStopPlan {

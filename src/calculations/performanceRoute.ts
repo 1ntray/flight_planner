@@ -480,15 +480,34 @@ function calculateSingleSectorPerformanceRoute({
       }
     }
 
-    if (plan.targetPlacement?.mode === 'distance-along-leg') {
-      requireFinite(
-        plan.targetPlacement.distanceFromStartNm,
-        'Altitude target distance',
+    if (plan.endAltitudeFtMsl !== undefined) {
+      requireFinite(plan.endAltitudeFtMsl, 'Leg end altitude');
+      if (plan.endAltitudeFtMsl < 0) {
+        throw new RangeError('Leg end altitude must not be negative');
+      }
+    }
+    if (
+      plan.endAltitudeFtMsl === undefined &&
+      plan.endTargetPlacement !== undefined
+    ) {
+      throw new RangeError(
+        'End-altitude target requires a leg end altitude',
       );
-      if (
-        plan.targetPlacement.distanceFromStartNm < 0
-      ) {
-        throw new RangeError('Altitude target distance must not be negative');
+    }
+
+    for (const [placement, label] of [
+      [plan.targetPlacement, 'Altitude target'],
+      [plan.endTargetPlacement, 'End-altitude target'],
+    ] as const) {
+      if (placement?.mode !== 'distance-along-leg') {
+        continue;
+      }
+      requireFinite(
+        placement.distanceFromStartNm,
+        `${label} distance`,
+      );
+      if (placement.distanceFromStartNm < 0) {
+        throw new RangeError(`${label} distance must not be negative`);
       }
 
       const matchingLeg = geometricLegs.find(
@@ -498,7 +517,7 @@ function calculateSingleSectorPerformanceRoute({
       )!;
 
       if (
-        plan.targetPlacement.distanceFromStartNm >
+        placement.distanceFromStartNm >
         matchingLeg.distanceNm + TARGET_DISTANCE_TOLERANCE_NM
       ) {
         return {
@@ -506,7 +525,7 @@ function calculateSingleSectorPerformanceRoute({
           reason: 'phase-overlap',
           legFromId: plan.fromWaypointId,
           legToId: plan.toWaypointId,
-          message: 'Altitude target is beyond the current shaped leg geometry',
+          message: `${label} is beyond the current shaped leg geometry`,
         };
       }
     }
@@ -746,6 +765,24 @@ function calculateSingleSectorPerformanceRoute({
     }
 
     currentAltitudeFtMsl = targetAltitudeFtMsl;
+
+    if (plan?.endAltitudeFtMsl !== undefined) {
+      const configuredEndTargetDistanceNm =
+        plan.endTargetPlacement?.mode === 'distance-along-leg'
+          ? plan.endTargetPlacement.distanceFromStartNm
+          : null;
+      const endTransitionFailure = addTransition(
+        currentAltitudeFtMsl,
+        plan.endAltitudeFtMsl,
+        configuredEndTargetDistanceNm,
+      );
+
+      if (endTransitionFailure !== null) {
+        return endTransitionFailure;
+      }
+
+      currentAltitudeFtMsl = plan.endAltitudeFtMsl;
+    }
 
     if (isFinalLeg && currentAltitudeFtMsl !== arrivalTargetAltitudeFtMsl) {
       const arrivalFailure = addTransition(

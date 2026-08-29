@@ -40,6 +40,7 @@ import type { AeronauticalLayerId } from './aeronauticalLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
+  getRouteSectorColor,
   getRoutePointDisplayPosition,
 } from './routeDisplay';
 import type {
@@ -117,6 +118,7 @@ interface RouteLineProps {
     fromWaypointId: string,
     toWaypointId: string,
     distanceFromStartNm: number,
+    target: 'primary' | 'end',
   ) => void;
 }
 
@@ -160,7 +162,7 @@ function RouteLines({
               selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
               selectedLeg.candidate.toWaypointId === leg.toWaypointId
                 ? '#e08b28'
-                : '#176da5',
+                : getRouteSectorColor(leg.sectorIndex),
             weight:
               selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
               selectedLeg.candidate.toWaypointId === leg.toWaypointId
@@ -231,6 +233,7 @@ function RouteLines({
                           leg.fromWaypointId,
                           leg.toWaypointId,
                           snapped.distanceFromStartNm,
+                          tool.target,
                         );
                         return;
                       }
@@ -417,11 +420,21 @@ export interface FlightMapProps {
     toWaypointId: string,
     altitudeFtMsl: number | null,
   ) => void;
-  onResetAltitudeTarget: (fromWaypointId: string, toWaypointId: string) => void;
+  onSetLegEndAltitude: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    altitudeFtMsl: number | null,
+  ) => void;
+  onResetAltitudeTarget: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    target: 'primary' | 'end',
+  ) => void;
   onSetAltitudeTarget: (
     fromWaypointId: string,
     toWaypointId: string,
     distanceFromStartNm: number,
+    target: 'primary' | 'end',
   ) => void;
 }
 
@@ -449,6 +462,7 @@ export function FlightMap({
   onDetachWaypoint,
   onToggleWaypointSectorBoundary,
   onSetLegAltitude,
+  onSetLegEndAltitude,
   onResetAltitudeTarget,
   onSetAltitudeTarget,
 }: FlightMapProps) {
@@ -537,7 +551,7 @@ export function FlightMap({
         pendingPoint.insertionIndex,
         point,
       );
-      onSelectionChange({ kind: 'shaping-point', id: point.id });
+      onSelectionChange(null);
     },
     [onAddShapingPoint, onSelectionChange],
   );
@@ -744,17 +758,41 @@ export function FlightMap({
                 altitudeFtMsl,
               )
             }
+            onSetEndAltitude={(altitudeFtMsl) =>
+              onSetLegEndAltitude(
+                selectedLeg.candidate.fromWaypointId,
+                selectedLeg.candidate.toWaypointId,
+                altitudeFtMsl,
+              )
+            }
             onPlaceAltitudeTarget={() =>
               onToolChange({
                 kind: 'place-altitude-target',
                 fromWaypointId: selectedLeg.candidate.fromWaypointId,
                 toWaypointId: selectedLeg.candidate.toWaypointId,
+                target: 'primary',
+              })
+            }
+            onPlaceEndAltitudeTarget={() =>
+              onToolChange({
+                kind: 'place-altitude-target',
+                fromWaypointId: selectedLeg.candidate.fromWaypointId,
+                toWaypointId: selectedLeg.candidate.toWaypointId,
+                target: 'end',
               })
             }
             onResetAltitudeTarget={() =>
               onResetAltitudeTarget(
                 selectedLeg.candidate.fromWaypointId,
                 selectedLeg.candidate.toWaypointId,
+                'primary',
+              )
+            }
+            onResetEndAltitudeTarget={() =>
+              onResetAltitudeTarget(
+                selectedLeg.candidate.fromWaypointId,
+                selectedLeg.candidate.toWaypointId,
+                'end',
               )
             }
             onClose={() => onSelectionChange(null)}

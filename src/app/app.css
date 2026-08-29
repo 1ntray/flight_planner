@@ -434,6 +434,37 @@ h3 {
   font-size: 0.9rem;
 }
 
+.sector-navlog__times {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+}
+
+.sector-navlog__times div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.3rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.25rem;
+  background: #f8fafc;
+  font-size: 0.66rem;
+}
+
+.sector-navlog__times dt {
+  color: #68778a;
+  font-weight: 750;
+}
+
+.sector-navlog__times dd {
+  overflow: hidden;
+  margin: 0;
+  color: #26384c;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .navigation-inputs__forecast-toggle {
   display: flex;
   align-items: center;
@@ -628,6 +659,20 @@ kbd {
   gap: 0.4rem;
 }
 
+.leg-altitude-controls__leg {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.35rem;
+  background: #ffffff;
+}
+
+.leg-altitude-controls__row--end {
+  padding-top: 0.35rem;
+  border-top: 1px dashed #dbe3eb;
+}
+
 .leg-altitude-controls__row strong,
 .leg-altitude-controls__row label {
   color: #526175;
@@ -749,6 +794,52 @@ kbd {
   border-bottom: 0;
   background: #f4f7fa;
   font-weight: 700;
+}
+
+.route-table--ofp {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+  font-size: 0.68rem;
+}
+
+.route-table--ofp th,
+.route-table--ofp td {
+  min-width: 3.75rem;
+  padding: 0.45rem 0.3rem;
+  text-align: right;
+}
+
+.route-table--ofp th:first-child,
+.route-table--ofp td:first-child,
+.route-table--ofp th:nth-child(13),
+.route-table--ofp td:nth-child(13) {
+  min-width: 6.5rem;
+  text-align: left;
+}
+
+.route-table--ofp thead tr:first-child th {
+  top: 0;
+  height: 1.7rem;
+  border-bottom-color: #aebccc;
+  text-align: center;
+}
+
+.route-table--ofp thead tr:nth-child(2) th {
+  top: 1.7rem;
+}
+
+.route-table--ofp tfoot td {
+  position: static;
+}
+
+.route-table__alternate-row td {
+  border-top: 2px solid #704887;
+  background: #f4eff8;
+}
+
+.operational-summary__fuel-used {
+  color: #8f2722;
 }
 
 .operational-summary {

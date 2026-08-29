@@ -15,6 +15,7 @@ import type {
 import type { ForecastLegWind } from '../../weather';
 import { RouteTable } from './RouteTable';
 import { OperationalSectorSummary } from './OperationalSectorSummary';
+import { formatUtcRouteTime } from './routeFormatting';
 
 export interface SectorRouteTablesProps {
   flightPlan: FlightPlan;
@@ -89,16 +90,48 @@ export function SectorRouteTables({
     () => deriveFlightPlanSectors(flightPlan),
     [flightPlan],
   );
+  const alternatePerformanceRoute =
+    operationalPlan?.status === 'ok'
+      ? operationalPlan.alternatePerformanceRoute
+      : null;
+  const alternateWaypoints =
+    operationalInputs?.alternate === null ||
+    operationalInputs?.alternate === undefined ||
+    flightPlan.waypoints.at(-1) === undefined
+      ? []
+      : [flightPlan.waypoints.at(-1)!, operationalInputs.alternate.waypoint];
 
   if (sectors.length <= 1) {
     const operationalSector =
       operationalPlan?.status === 'ok' ? operationalPlan.sectors[0] : undefined;
+    const performanceSector =
+      performanceRoute?.status === 'ok'
+        ? performanceRoute.sectors[0]
+        : undefined;
+    const fromName = flightPlan.waypoints[0]?.name;
+    const toName = flightPlan.waypoints.at(-1)?.name;
+    const departureTimeUtcMs = performanceSector?.departureTimeUtcMs ?? null;
+    const arrivalTimeUtcMs = performanceSector?.estimatedArrivalTimeUtcMs ?? null;
     return (
       <div className="sector-navlogs">
+        {fromName === undefined || toName === undefined ? null : (
+          <div className="sector-navlog__heading">
+            <p className="eyebrow">Sector 1</p>
+            <h3>{fromName} → {toName}</h3>
+            <dl className="sector-navlog__times">
+              <div><dt>DEP</dt><dd>{fromName}</dd></div>
+              <div><dt>Take-off</dt><dd>{departureTimeUtcMs === null ? '—' : formatUtcRouteTime(departureTimeUtcMs, departureTimeUtcMs)}</dd></div>
+              <div><dt>DEST</dt><dd>{toName}</dd></div>
+              <div><dt>Landing / pattern</dt><dd>{arrivalTimeUtcMs === null || departureTimeUtcMs === null ? '—' : formatUtcRouteTime(arrivalTimeUtcMs, departureTimeUtcMs)}</dd></div>
+            </dl>
+          </div>
+        )}
         <RouteTable
           waypoints={flightPlan.waypoints}
           route={route}
           performanceRoute={performanceRoute}
+          alternatePerformanceRoute={alternatePerformanceRoute}
+          alternateWaypoints={alternateWaypoints}
           forecastWinds={forecastWinds}
           {...(operationalSector === undefined ? {} : { operationalSector })}
         />
@@ -142,6 +175,8 @@ export function SectorRouteTables({
         );
         const fromName = sector.flightPlan.waypoints[0]!.name;
         const toName = sector.flightPlan.waypoints.at(-1)!.name;
+        const departureTimeUtcMs = performanceSector?.departureTimeUtcMs ?? null;
+        const arrivalTimeUtcMs = performanceSector?.estimatedArrivalTimeUtcMs ?? null;
 
         return (
           <section
@@ -154,11 +189,19 @@ export function SectorRouteTables({
               <h3 id={`sector-navlog-${sector.sectorIndex}`}>
                 {fromName} → {toName}
               </h3>
+              <dl className="sector-navlog__times">
+                <div><dt>DEP</dt><dd>{fromName}</dd></div>
+                <div><dt>Take-off</dt><dd>{departureTimeUtcMs === null ? '—' : formatUtcRouteTime(departureTimeUtcMs, departureTimeUtcMs)}</dd></div>
+                <div><dt>DEST</dt><dd>{toName}</dd></div>
+                <div><dt>Landing / pattern</dt><dd>{arrivalTimeUtcMs === null || departureTimeUtcMs === null ? '—' : formatUtcRouteTime(arrivalTimeUtcMs, departureTimeUtcMs)}</dd></div>
+              </dl>
             </div>
             <RouteTable
               waypoints={sector.flightPlan.waypoints}
               route={navigation}
               performanceRoute={performance}
+              alternatePerformanceRoute={alternatePerformanceRoute}
+              alternateWaypoints={alternateWaypoints}
               forecastWinds={forecastWinds}
               {...(operationalSector === undefined ? {} : { operationalSector })}
             />

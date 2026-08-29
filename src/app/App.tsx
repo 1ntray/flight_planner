@@ -58,6 +58,8 @@ import {
   removeAltitudePlansTouchingWaypoint,
   setLegAltitudeOverride,
   setLegAltitudeTargetDistance,
+  setLegEndAltitudeOverride,
+  setLegEndAltitudeTargetDistance,
   splitLegAltitudePlanForWaypointInsertion,
 } from './navigation/altitudePlanState';
 import type { AltitudePlacementLeg } from './navigation/altitudePlanState';
@@ -636,10 +638,13 @@ export function App() {
       fromWaypointId: string,
       toWaypointId: string,
       distanceFromStartNm: number,
+      target: 'primary' | 'end',
     ) => {
       setPerformanceInputDraft((currentDraft) => ({
         ...currentDraft,
-        legAltitudePlans: setLegAltitudeTargetDistance(
+        legAltitudePlans: (target === 'primary'
+          ? setLegAltitudeTargetDistance
+          : setLegEndAltitudeTargetDistance)(
           currentDraft.legAltitudePlans,
           fromWaypointId,
           toWaypointId,
@@ -647,6 +652,24 @@ export function App() {
         ),
       }));
       setMapTool({ kind: 'select' });
+    },
+    [],
+  );
+  const setLegEndAltitude = useCallback(
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      altitudeFtMsl: number | null,
+    ) => {
+      setPerformanceInputDraft((currentDraft) => ({
+        ...currentDraft,
+        legAltitudePlans: setLegEndAltitudeOverride(
+          currentDraft.legAltitudePlans,
+          fromWaypointId,
+          toWaypointId,
+          altitudeFtMsl,
+        ),
+      }));
     },
     [],
   );
@@ -669,10 +692,16 @@ export function App() {
     [],
   );
   const resetAltitudeTarget = useCallback(
-    (fromWaypointId: string, toWaypointId: string) => {
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      target: 'primary' | 'end',
+    ) => {
       setPerformanceInputDraft((currentDraft) => ({
         ...currentDraft,
-        legAltitudePlans: setLegAltitudeTargetDistance(
+        legAltitudePlans: (target === 'primary'
+          ? setLegAltitudeTargetDistance
+          : setLegEndAltitudeTargetDistance)(
           currentDraft.legAltitudePlans,
           fromWaypointId,
           toWaypointId,
@@ -687,6 +716,7 @@ export function App() {
       ? {
           fromWaypointId: mapTool.fromWaypointId,
           toWaypointId: mapTool.toWaypointId,
+          target: mapTool.target,
         }
       : null;
   const setAltitudePlacementLeg = useCallback(
@@ -741,6 +771,7 @@ export function App() {
               kind: 'place-altitude-target',
               fromWaypointId: mapSelection.candidate.fromWaypointId,
               toWaypointId: mapSelection.candidate.toWaypointId,
+              target: 'primary',
             });
           }
           break;
@@ -802,7 +833,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.17</p>
+          <p className="eyebrow">MVP 0.18</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
@@ -843,6 +874,7 @@ export function App() {
             onDetachWaypoint={detachWaypoint}
             onToggleWaypointSectorBoundary={toggleWaypointSectorBoundary}
             onSetLegAltitude={setLegAltitude}
+            onSetLegEndAltitude={setLegEndAltitude}
             onResetAltitudeTarget={resetAltitudeTarget}
             onSetAltitudeTarget={setAltitudeTarget}
           />

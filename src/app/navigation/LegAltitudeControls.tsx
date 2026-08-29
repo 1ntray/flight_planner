@@ -5,6 +5,8 @@ import type { FlightPlan } from '../../domain';
 import {
   setLegAltitudeOverride,
   setLegAltitudeTargetDistance,
+  setLegEndAltitudeOverride,
+  setLegEndAltitudeTargetDistance,
 } from './altitudePlanState';
 import type { AltitudePlacementLeg } from './altitudePlanState';
 import type { PerformanceInputDraft } from './performanceInput';
@@ -66,18 +68,28 @@ export function LegAltitudeControls({
           plan?.targetPlacement?.mode === 'distance-along-leg'
             ? plan.targetPlacement.distanceFromStartNm
             : null;
-        const choosingOnMap =
+        const endPlacementDistance =
+          plan?.endTargetPlacement?.mode === 'distance-along-leg'
+            ? plan.endTargetPlacement.distanceFromStartNm
+            : null;
+        const choosingPrimaryOnMap =
           placementLeg?.fromWaypointId === leg.fromId &&
-          placementLeg.toWaypointId === leg.toId;
+          placementLeg.toWaypointId === leg.toId &&
+          placementLeg.target === 'primary';
+        const choosingEndOnMap =
+          placementLeg?.fromWaypointId === leg.fromId &&
+          placementLeg.toWaypointId === leg.toId &&
+          placementLeg.target === 'end';
 
         return (
-          <div className="leg-altitude-controls__row" key={legKey(leg.fromId, leg.toId)}>
+          <article className="leg-altitude-controls__leg" key={legKey(leg.fromId, leg.toId)}>
             <strong>
               {waypointNames.get(leg.fromId) ?? leg.fromId} →{' '}
               {waypointNames.get(leg.toId) ?? leg.toId}
             </strong>
+            <div className="leg-altitude-controls__row">
             <label>
-              <span>Altitude</span>
+              <span>Planned altitude</span>
               <span className="navigation-inputs__control">
                 <input
                   type="number"
@@ -133,21 +145,99 @@ export function LegAltitudeControls({
             </label>
             <button
               type="button"
-              className={`button${choosingOnMap ? ' button--active' : ''}`}
+              className={`button${choosingPrimaryOnMap ? ' button--active' : ''}`}
               onClick={() =>
                 onPlacementLegChange(
-                  choosingOnMap
+                  choosingPrimaryOnMap
                     ? null
                     : {
                         fromWaypointId: leg.fromId,
                         toWaypointId: leg.toId,
+                        target: 'primary',
                       },
                 )
               }
             >
-              {choosingOnMap ? 'Cancel map pick' : 'Choose on map'}
+              {choosingPrimaryOnMap ? 'Cancel map pick' : 'Choose on map'}
             </button>
-          </div>
+            </div>
+            <div className="leg-altitude-controls__row leg-altitude-controls__row--end">
+              <label>
+                <span>End altitude (optional)</span>
+                <span className="navigation-inputs__control">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={plan?.endAltitudeFtMsl ?? ''}
+                    placeholder="same as planned"
+                    onChange={(event) => {
+                      const value = event.currentTarget.value;
+                      onDraftChange({
+                        ...draft,
+                        legAltitudePlans: setLegEndAltitudeOverride(
+                          draft.legAltitudePlans,
+                          leg.fromId,
+                          leg.toId,
+                          value === '' ? null : Number(value),
+                        ),
+                      });
+                    }}
+                  />
+                  <span>ft</span>
+                </span>
+              </label>
+              <label>
+                <span>Reach end at</span>
+                <span className="navigation-inputs__control">
+                  <input
+                    type="number"
+                    min="0"
+                    max={leg.distanceNm}
+                    step="0.1"
+                    disabled={plan?.endAltitudeFtMsl === undefined}
+                    value={
+                      endPlacementDistance === null
+                        ? ''
+                        : Number(endPlacementDistance.toFixed(2))
+                    }
+                    placeholder="automatic"
+                    onChange={(event) => {
+                      const value = event.currentTarget.value;
+                      onDraftChange({
+                        ...draft,
+                        legAltitudePlans: setLegEndAltitudeTargetDistance(
+                          draft.legAltitudePlans,
+                          leg.fromId,
+                          leg.toId,
+                          value === '' ? null : Number(value),
+                        ),
+                      });
+                    }}
+                  />
+                  <span>NM</span>
+                </span>
+              </label>
+              <button
+                type="button"
+                className={`button${choosingEndOnMap ? ' button--active' : ''}`}
+                disabled={plan?.endAltitudeFtMsl === undefined}
+                onClick={() =>
+                  onPlacementLegChange(
+                    choosingEndOnMap
+                      ? null
+                      : {
+                          fromWaypointId: leg.fromId,
+                          toWaypointId: leg.toId,
+                          target: 'end',
+                        },
+                  )
+                }
+              >
+                {choosingEndOnMap ? 'Cancel map pick' : 'Choose on map'}
+              </button>
+            </div>
+          </article>
         );
       })}
     </section>
