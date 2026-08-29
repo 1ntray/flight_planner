@@ -1,7 +1,8 @@
 import type {
   AeronauticalAreaFeature,
-  AeronauticalDatasetRef,
+  AeronauticalDatasetMetadata,
   AeronauticalFeature,
+  AeronauticalFeatureDetails,
   AeronauticalFeatureRef,
   Position,
   Wgs84Bounds,
@@ -87,14 +88,15 @@ function featureIsWithin(
 }
 
 function featureRefMatches(
-  feature: AeronauticalFeature,
-  ref: AeronauticalFeatureRef,
+  featureRef: AeronauticalFeatureRef,
+  requestedRef: AeronauticalFeatureRef,
 ): boolean {
   return (
-    feature.ref.dataset.providerId === ref.dataset.providerId &&
-    feature.ref.dataset.datasetId === ref.dataset.datasetId &&
-    feature.ref.featureId === ref.featureId &&
-    feature.ref.featureVersionId === ref.featureVersionId
+    featureRef.dataset.providerId === requestedRef.dataset.providerId &&
+    featureRef.dataset.datasetId === requestedRef.dataset.datasetId &&
+    featureRef.featureId === requestedRef.featureId &&
+    featureRef.featureVersionId === requestedRef.featureVersionId &&
+    featureRef.featureKind === requestedRef.featureKind
   );
 }
 
@@ -102,13 +104,14 @@ export class InMemoryAeronauticalRepository
   implements AeronauticalDataRepository
 {
   constructor(
-    private readonly dataset: AeronauticalDatasetRef | null,
+    private readonly dataset: AeronauticalDatasetMetadata | null,
     private readonly features: readonly AeronauticalFeature[],
+    private readonly featureDetails: readonly AeronauticalFeatureDetails[] = [],
   ) {}
 
   async getDatasetMetadata(
     options?: AeronauticalQueryOptions,
-  ): Promise<AeronauticalDatasetRef | null> {
+  ): Promise<AeronauticalDatasetMetadata | null> {
     options?.signal?.throwIfAborted();
     return this.dataset;
   }
@@ -132,10 +135,23 @@ export class InMemoryAeronauticalRepository
     options?: AeronauticalQueryOptions,
   ): Promise<AeronauticalFeature | null> {
     options?.signal?.throwIfAborted();
-    return this.features.find((feature) => featureRefMatches(feature, ref)) ?? null;
+    return (
+      this.features.find((feature) => featureRefMatches(feature.ref, ref)) ?? null
+    );
+  }
+
+  async getFeatureDetails(
+    ref: AeronauticalFeatureRef,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AeronauticalFeatureDetails | null> {
+    options?.signal?.throwIfAborted();
+    return (
+      this.featureDetails.find((details) =>
+        featureRefMatches(details.ref, ref),
+      ) ?? null
+    );
   }
 }
 
 export const EMPTY_AERONAUTICAL_REPOSITORY: AeronauticalDataRepository =
   new InMemoryAeronauticalRepository(null, []);
-

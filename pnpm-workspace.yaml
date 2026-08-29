@@ -1,0 +1,3 @@
+allowBuilds:
+  # Vite and tsx both require esbuild's platform-specific binary.
+  esbuild: true

@@ -30,6 +30,20 @@ export interface AeronauticalDatasetRef {
   readonly revisionId?: string;
 }
 
+/** Full provenance for a locally imported dataset revision. */
+export interface AeronauticalDatasetMetadata extends AeronauticalDatasetRef {
+  readonly editionLabel: string;
+  readonly retrievedAtUtc: string;
+  readonly importedAtUtc: string;
+  readonly sourceReference: string;
+}
+
+export interface AeronauticalSourceReference {
+  readonly sourceAerodrome: string;
+  readonly aipSection: string;
+  readonly sourceReference: string;
+}
+
 export interface AeronauticalFeatureRef {
   readonly dataset: AeronauticalDatasetRef;
   readonly featureId: string;
@@ -72,4 +86,3 @@ export interface Wgs84Bounds {
   readonly north: number;
   readonly east: number;
 }
-

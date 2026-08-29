@@ -29,8 +29,29 @@ Every feature reference identifies an exact dataset revision with:
 - effective start and end timestamps;
 - optional dataset revision and feature-version IDs.
 
+Repository-level dataset metadata additionally records the selected edition,
+source reference, retrieval timestamp, and import timestamp. Feature references
+retain the smaller dataset identity so waypoint anchors do not embed the full
+import record.
+
 This generic metadata can carry normalized AIXM time-slice identity without
 making the rest of the application depend on AIXM types.
+
+## Detailed aerodrome data
+
+The map-facing `AeronauticalPointFeature` remains lightweight. OFP-relevant
+aerodrome data is stored separately as `AerodromeDetails` and is resolved with
+`AeronauticalDataRepository.getFeatureDetails`. The current model contains:
+
+- ICAO identifier, published name, ARP, and aerodrome elevation;
+- physical runway length;
+- runway-direction designator and published true bearing;
+- standard TORA, TODA, ASDA, and LDA per runway direction; and
+- traceable source aerodrome, AIP sections, and source reference.
+
+Frequencies are deliberately excluded. A later communication-service model
+will be able to relate a service to an aerodrome, airspace, or both without
+making frequencies an aerodrome-owned property.
 
 ## Anchored waypoint contract
 
@@ -69,11 +90,32 @@ spatial indexing and appropriate caching for large datasets.
 
 ## Current repository configuration
 
-No operational aeronautical dataset is configured by default. The application
-therefore shows the layer controls and an explicit no-dataset status without
-displaying invented operational features.
+The default repository loads a local normalized Avinor eAIP dataset for ENDU,
+effective 11 June 2026. The browser never parses eAIP HTML and never contacts
+Avinor when the planner starts. ENDU is exposed as a normal aerodrome point, so
+the existing overlay and waypoint-anchor behavior is unchanged.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
 name identifies it as synthetic and not for navigation. It exists only for UI
 and interaction verification.
+
+## Avinor eAIP importer
+
+The Node-only importer is under `tools/aeronautical/avinor-eaip`. It uses a
+fixed edition configuration, semantic AIP section headings, published table
+headers, and HTML rowspan/colspan expansion. Generated HTML element IDs and
+the numeric suffixes in hidden eAIP markers are not identities.
+
+The ENDU slice reads AD 2.1, AD 2.2, AD 2.12, and the standard declared-distance
+table in AD 2.13. The separate `Reduced (Alternate) Take-off PSN` table is
+intentionally ignored. Missing optional values become `null` with an importer
+warning; malformed required values fail the import.
+
+Parser tests use a checked-in fixture and do not require Avinor to be online.
+To explicitly retrieve the configured edition and regenerate the local JSON
+dataset and import report, run:
+
+```sh
+pnpm aero:import:endu
+```

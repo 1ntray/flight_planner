@@ -1,11 +1,11 @@
 import type {
-  AeronauticalDatasetRef,
+  AeronauticalDatasetMetadata,
   AeronauticalFeature,
   AeronauticalFeatureKind,
 } from '../domain';
 import { InMemoryAeronauticalRepository } from './inMemoryRepository';
 
-const DEMO_DATASET: AeronauticalDatasetRef = {
+const DEMO_DATASET: AeronauticalDatasetMetadata = {
   datasetId: 'synthetic-demo-1',
   providerId: 'flight-planner-demo',
   sourceName: 'Synthetic development data — not for navigation',
@@ -13,6 +13,10 @@ const DEMO_DATASET: AeronauticalDatasetRef = {
   effectiveFromUtc: '2026-01-01T00:00:00Z',
   effectiveToUtc: null,
   revisionId: '1',
+  editionLabel: 'synthetic-demo-1',
+  retrievedAtUtc: '2026-01-01T00:00:00Z',
+  importedAtUtc: '2026-01-01T00:00:00Z',
+  sourceReference: 'synthetic://flight-planner/demo-aeronautical-data',
 };
 
 function featureRef(featureId: string, featureKind: AeronauticalFeatureKind) {
@@ -74,4 +78,3 @@ const DEMO_FEATURES: readonly AeronauticalFeature[] = [
 
 export const DEMO_AERONAUTICAL_REPOSITORY =
   new InMemoryAeronauticalRepository(DEMO_DATASET, DEMO_FEATURES);
-

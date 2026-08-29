@@ -1,6 +1,8 @@
 import type {
+  AeronauticalDatasetMetadata,
   AeronauticalDatasetRef,
   AeronauticalFeature,
+  AeronauticalFeatureDetails,
   AeronauticalFeatureKind,
   AeronauticalFeatureRef,
   Wgs84Bounds,
@@ -18,7 +20,7 @@ export interface AeronauticalQueryOptions {
 export interface AeronauticalDataRepository {
   getDatasetMetadata(
     options?: AeronauticalQueryOptions,
-  ): Promise<AeronauticalDatasetRef | null>;
+  ): Promise<AeronauticalDatasetMetadata | null>;
 
   queryFeatures(
     query: AeronauticalFeatureQuery,
@@ -29,5 +31,9 @@ export interface AeronauticalDataRepository {
     ref: AeronauticalFeatureRef,
     options?: AeronauticalQueryOptions,
   ): Promise<AeronauticalFeature | null>;
-}
 
+  getFeatureDetails(
+    ref: AeronauticalFeatureRef,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AeronauticalFeatureDetails | null>;
+}

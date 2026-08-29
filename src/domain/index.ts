@@ -2,6 +2,7 @@ export type { CalculatedLeg } from './calculatedLeg';
 export type {
   AeronauticalAreaFeature,
   AeronauticalAreaKind,
+  AeronauticalDatasetMetadata,
   AeronauticalDatasetRef,
   AeronauticalFeature,
   AeronauticalFeatureKind,
@@ -9,8 +10,16 @@ export type {
   AeronauticalPointFeature,
   AeronauticalPointKind,
   AeronauticalPolygon,
+  AeronauticalSourceReference,
   Wgs84Bounds,
 } from './aeronautical';
+export type {
+  AerodromeDetails,
+  AerodromeRunway,
+  AeronauticalFeatureDetails,
+  RunwayDeclaredDistances,
+  RunwayDirection,
+} from './aerodrome';
 export type { FlightPlan } from './flightPlan';
 export type {
   AerodromePlanningWeather,

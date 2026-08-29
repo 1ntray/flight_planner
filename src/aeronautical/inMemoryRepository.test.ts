@@ -1,18 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
-  AeronauticalDatasetRef,
+  AerodromeDetails,
+  AeronauticalDatasetMetadata,
   AeronauticalFeature,
 } from '../domain';
 import { InMemoryAeronauticalRepository } from './inMemoryRepository';
 
-const dataset: AeronauticalDatasetRef = {
+const dataset: AeronauticalDatasetMetadata = {
   datasetId: 'test-dataset',
   providerId: 'test-provider',
   sourceName: 'Test source',
   airacCycle: '2608',
   effectiveFromUtc: '2026-08-06T00:00:00Z',
   effectiveToUtc: '2026-09-03T00:00:00Z',
+  editionLabel: 'test-edition',
+  retrievedAtUtc: '2026-07-01T12:00:00Z',
+  importedAtUtc: '2026-07-01T12:01:00Z',
+  sourceReference: 'https://example.test/aeronautical-data',
 };
 
 const features: readonly AeronauticalFeature[] = [
@@ -59,8 +64,25 @@ const features: readonly AeronauticalFeature[] = [
   },
 ];
 
+const aerodromeDetails: AerodromeDetails = {
+  detailKind: 'aerodrome',
+  ref: {
+    dataset,
+    featureId: 'aerodrome-details',
+    featureKind: 'aerodrome',
+  },
+  icaoIdentifier: 'TEST',
+  name: 'Test aerodrome',
+  arpPosition: { latitude: 69.3, longitude: 18.8 },
+  elevationFt: 100,
+  runways: [],
+  sourceReferences: [],
+};
+
 describe('InMemoryAeronauticalRepository', () => {
-  const repository = new InMemoryAeronauticalRepository(dataset, features);
+  const repository = new InMemoryAeronauticalRepository(dataset, features, [
+    aerodromeDetails,
+  ]);
   const bounds = { south: 69.2, west: 18.5, north: 69.6, east: 19.1 };
 
   it('returns exact dataset provenance', async () => {
@@ -95,6 +117,15 @@ describe('InMemoryAeronauticalRepository', () => {
     ).resolves.toBeNull();
   });
 
+  it('keeps detailed aerodrome data separate from lightweight map features', async () => {
+    await expect(
+      repository.getFeatureDetails(aerodromeDetails.ref),
+    ).resolves.toBe(aerodromeDetails);
+    await expect(
+      repository.getFeature(aerodromeDetails.ref),
+    ).resolves.toBeNull();
+  });
+
   it('honours an aborted query without returning stale features', async () => {
     const controller = new AbortController();
     controller.abort();
@@ -107,4 +138,3 @@ describe('InMemoryAeronauticalRepository', () => {
     ).rejects.toMatchObject({ name: 'AbortError' });
   });
 });
-

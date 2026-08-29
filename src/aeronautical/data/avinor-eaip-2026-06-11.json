@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "datasetId": "avinor-eaip-2026-06-11",
+    "providerId": "avinor",
+    "sourceName": "eAIP",
+    "airacCycle": null,
+    "effectiveFromUtc": "2026-06-11T00:00:00Z",
+    "effectiveToUtc": null,
+    "revisionId": "AIP AMDT 04/2026",
+    "editionLabel": "2026-06-11-AIRAC",
+    "retrievedAtUtc": "2026-08-29T13:32:35.532Z",
+    "importedAtUtc": "2026-08-29T13:32:35.533Z",
+    "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+  },
+  "features": [
+    {
+      "geometryType": "point",
+      "pointKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENDU",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "identifier": "ENDU",
+      "name": "BARDUFOSS",
+      "suggestedWaypointName": "ENDU",
+      "position": {
+        "latitude": 69.05583333333333,
+        "longitude": 18.540277777777778
+      }
+    }
+  ],
+  "featureDetails": [
+    {
+      "detailKind": "aerodrome",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "aerodrome:ENDU",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "aerodrome"
+      },
+      "icaoIdentifier": "ENDU",
+      "name": "BARDUFOSS",
+      "arpPosition": {
+        "latitude": 69.05583333333333,
+        "longitude": 18.540277777777778
+      },
+      "elevationFt": 254,
+      "runways": [
+        {
+          "identifier": "10/28",
+          "lengthM": 2995,
+          "directions": [
+            {
+              "designator": "10",
+              "trueBearingDeg": 109.01,
+              "declaredDistances": {
+                "toraM": 2443,
+                "todaM": 2443,
+                "asdaM": 2443,
+                "ldaM": 2001
+              }
+            },
+            {
+              "designator": "28",
+              "trueBearingDeg": 289.05,
+              "declaredDistances": {
+                "toraM": 2443,
+                "todaM": 2443,
+                "asdaM": 2443,
+                "ldaM": 2443
+              }
+            }
+          ]
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.1",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.2",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.12",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        },
+        {
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.13",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    }
+  ]
+}
