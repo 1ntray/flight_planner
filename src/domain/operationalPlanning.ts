@@ -44,6 +44,8 @@ export interface SectorOperationPlan {
 export interface AlternatePlanningInputs {
   /** The primary destination is derived as FROM; this is the alternate TO snapshot. */
   readonly waypoint: Waypoint;
+  /** Pilot-selected cruise/planning altitude used for alternate navigation. */
+  readonly plannedAltitudeFtMsl: number;
   /** Pilot-entered OFP requirement; it is not derived from the navigation line. */
   readonly distanceNm: number;
   /** Pilot-entered OFP requirement, in airborne minutes. */

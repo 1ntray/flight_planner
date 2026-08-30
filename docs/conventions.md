@@ -75,6 +75,16 @@ identifier remains available in the separate anchor snapshot.
 - Map-popup form text is transient UI state until its documented commit action.
   Leg altitude commits on blur or Enter, preventing partial numeric input from
   repeatedly updating planning calculations.
+- Planning altitudes above 60,000 ft are rejected before route integration.
+  Development builds warn in the browser console when a synchronous planning
+  calculation stage takes at least 100 ms; production builds do not emit these
+  measurements.
+- Before each synchronous planning stage, the application stores a compact
+  diagnostic breadcrumb containing the stage name and numeric route-complexity
+  summary, but no coordinates. Successful completion clears it. If a browser
+  renderer is force-closed during a stage, the next launch enters calculation
+  recovery mode instead of automatically repeating that work. This breadcrumb
+  is diagnostic state and is not route or planning persistence.
 - Map-level popups keep one Leaflet instance and update its WGS84 position
   without reopening it. Selected waypoint and shaping-point popups use the same
   temporary drag position as their markers, while canonical coordinates still

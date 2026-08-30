@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 import type { LegAltitudePlan, Waypoint } from '../../domain';
 import {
   formatLegAltitudeDraft,
@@ -44,6 +45,7 @@ export function LegMapPopup({
   onClose,
 }: LegMapPopupProps) {
   const altitudeInputRef = useRef<HTMLInputElement>(null);
+  const handledAltitudeFocusRequestRef = useRef(altitudeFocusRequest);
   const currentAltitudeFtMsl = plan?.altitudeFtMsl;
   const currentEndAltitudeFtMsl = plan?.endAltitudeFtMsl;
   const [altitudeDraft, setAltitudeDraft] = useState(() =>
@@ -68,9 +70,19 @@ export function LegMapPopup({
   ]);
 
   useEffect(() => {
-    if (altitudeFocusRequest > 0) {
-      altitudeInputRef.current?.focus();
-      altitudeInputRef.current?.select();
+    const altitudeInput = altitudeInputRef.current;
+
+    if (altitudeFocusRequest > handledAltitudeFocusRequestRef.current) {
+      handledAltitudeFocusRequestRef.current = altitudeFocusRequest;
+      altitudeInput?.focus();
+      altitudeInput?.select();
+    } else if (
+      altitudeInput !== null &&
+      document.activeElement === altitudeInput
+    ) {
+      // Some browsers restore focus to a remounted popup input. Only the
+      // explicit altitude shortcut should focus this field.
+      altitudeInput.blur();
     }
   }, [altitudeFocusRequest]);
 
@@ -131,6 +143,7 @@ export function LegMapPopup({
             ref={altitudeInputRef}
             type="number"
             min="0"
+            max={MAX_SUPPORTED_PLANNING_ALTITUDE_FT}
             step="100"
             value={altitudeDraft}
             placeholder={defaultAltitudeFtMsl || 'global'}
@@ -156,6 +169,7 @@ export function LegMapPopup({
           <input
             type="number"
             min="0"
+            max={MAX_SUPPORTED_PLANNING_ALTITUDE_FT}
             step="100"
             value={endAltitudeDraft}
             placeholder="same as planned"
@@ -180,9 +194,10 @@ export function LegMapPopup({
           type="button"
           className="button"
           disabled={targetDistance === null}
+          aria-keyshortcuts="T"
           onClick={onResetAltitudeTarget}
         >
-          Automatic target
+          Automatic target <kbd>T</kbd>
         </button>
         <button
           type="button"
@@ -196,17 +211,19 @@ export function LegMapPopup({
           type="button"
           className="button"
           disabled={endTargetDistance === null}
+          aria-keyshortcuts="Shift+T"
           onClick={onResetEndAltitudeTarget}
         >
-          Automatic end target
+          Automatic end target <kbd>⇧T</kbd>
         </button>
         <button
           type="button"
           className="button"
           disabled={currentEndAltitudeFtMsl === undefined}
+          aria-keyshortcuts="Shift+P"
           onClick={onPlaceEndAltitudeTarget}
         >
-          Place end target
+          Place end target <kbd>⇧P</kbd>
         </button>
         <button
           type="button"
@@ -216,8 +233,8 @@ export function LegMapPopup({
         >
           Add waypoint <kbd>I</kbd>
         </button>
-        <button type="button" className="button" onClick={onClose}>
-          Close
+        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
+          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

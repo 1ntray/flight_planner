@@ -4,6 +4,13 @@ import type {
   AircraftWeightBalanceDefinition,
 } from './operationalPlanning';
 
+/**
+ * Defensive limit for user-entered planning altitudes. This is not an
+ * operational limitation for a particular aircraft; it bounds the current
+ * atmosphere/performance model and prevents accidental enormous integrations.
+ */
+export const MAX_SUPPORTED_PLANNING_ALTITUDE_FT = 60_000;
+
 export type FlightPhase = 'climb' | 'cruise' | 'descent';
 
 export interface EffectiveAltitudeLinearMassClimbRateModel {

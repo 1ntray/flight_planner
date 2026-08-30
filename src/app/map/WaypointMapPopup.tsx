@@ -1,3 +1,5 @@
+import { DomEvent } from 'leaflet';
+
 import type { Position, Waypoint } from '../../domain';
 import { WaypointEditor } from '../route/WaypointEditor';
 import { StableMapPopup } from './StableMapPopup';
@@ -10,6 +12,7 @@ export interface WaypointMapPopupProps {
   isSectorBoundary: boolean;
   onRename: (id: string, name: string) => void;
   onDetach: (id: string) => void;
+  onShowSourceAerodrome: (waypoint: Waypoint) => void;
   onToggleSectorBoundary: (id: string) => void;
   onDelete: () => void;
   onClose: () => void;
@@ -23,6 +26,7 @@ export function WaypointMapPopup({
   isSectorBoundary,
   onRename,
   onDetach,
+  onShowSourceAerodrome,
   onToggleSectorBoundary,
   onDelete,
   onClose,
@@ -67,7 +71,7 @@ export function WaypointMapPopup({
           aria-keyshortcuts="L"
           onClick={() => onToggleSectorBoundary(waypoint.id)}
         >
-          {isSectorBoundary ? 'Remove landing' : 'Mark landing'}
+          {isSectorBoundary ? 'Remove landing' : 'Mark landing'} <kbd>L</kbd>
         </button>
         <button
           type="button"
@@ -77,16 +81,31 @@ export function WaypointMapPopup({
         >
           Detach
         </button>
+        {waypoint.anchor?.feature.featureKind !== 'aerodrome' ? null : (
+          <button
+            type="button"
+            className="button"
+            onClick={(event) => {
+              // The popup sits inside the Leaflet map. Without stopping this
+              // native event, the map's Select-mode click handler immediately
+              // clears the information popup opened below.
+              DomEvent.stop(event.nativeEvent);
+              onShowSourceAerodrome(waypoint);
+            }}
+          >
+            Aerodrome info
+          </button>
+        )}
         <button
           type="button"
           className="button button--danger"
           aria-keyshortcuts="Delete"
           onClick={onDelete}
         >
-          Delete
+          Delete <kbd>Del</kbd>
         </button>
-        <button type="button" className="button" onClick={onClose}>
-          Close
+        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
+          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

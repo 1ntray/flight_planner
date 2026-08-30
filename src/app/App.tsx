@@ -154,6 +154,22 @@ function getEndpointAerodromeReference(
   };
 }
 
+function createAlternateAerodromeWaypoint(
+  feature: AeronauticalPointFeature,
+): Waypoint {
+  return {
+    id: `alternate-${crypto.randomUUID()}`,
+    name: feature.suggestedWaypointName,
+    position: feature.position,
+    anchor: {
+      kind: 'aeronautical-feature',
+      feature: feature.ref,
+      publishedIdentifier: feature.identifier,
+      ...(feature.name === undefined ? {} : { publishedName: feature.name }),
+    },
+  };
+}
+
 interface PlanningState {
   flightPlan: FlightPlan;
   aircraftDefinition: AircraftDefinition;
@@ -632,21 +648,37 @@ export function App() {
       setOperationalInputDraft((currentDraft) => ({
         ...currentDraft,
         alternateEnabled: true,
-        alternateWaypoint: {
-          id: `alternate-${crypto.randomUUID()}`,
-          name: feature.suggestedWaypointName,
-          position: feature.position,
-          anchor: {
-            kind: 'aeronautical-feature',
-            feature: feature.ref,
-            publishedIdentifier: feature.identifier,
-            ...(feature.name === undefined
-              ? {}
-              : { publishedName: feature.name }),
-          },
-        },
+        alternateWaypoint: createAlternateAerodromeWaypoint(feature),
       }));
       setMapTool({ kind: 'select' });
+    },
+    [],
+  );
+
+  const chooseAlternateAerodromeByIcao = useCallback(
+    async (icaoIdentifier: string): Promise<string | null> => {
+      const normalizedIdentifier = icaoIdentifier.trim().toUpperCase();
+      if (normalizedIdentifier === '') {
+        return 'Enter an alternate ICAO code.';
+      }
+
+      try {
+        const feature = await aeronauticalRepository.findAerodromeByIdentifier(
+          normalizedIdentifier,
+        );
+        if (feature === null) {
+          return `No aerodrome with ICAO code ${normalizedIdentifier} was found in the loaded dataset.`;
+        }
+
+        setOperationalInputDraft((currentDraft) => ({
+          ...currentDraft,
+          alternateEnabled: true,
+          alternateWaypoint: createAlternateAerodromeWaypoint(feature),
+        }));
+        return null;
+      } catch {
+        return 'The alternate aerodrome could not be looked up.';
+      }
     },
     [],
   );
@@ -716,7 +748,7 @@ export function App() {
       }));
       setFlightPlan(insertWaypointIntoFlightPlan(flightPlan, candidate, id));
       setMapSelection({ kind: 'waypoint', id });
-      setMapTool({ kind: 'select' });
+      setMapTool({ kind: 'edit-route' });
     },
     [flightPlan],
   );
@@ -775,8 +807,10 @@ export function App() {
       }));
     }
     setMapSelection(null);
-    setMapTool({ kind: 'select' });
-  }, [mapSelection, performanceInputDraft.legAltitudePlans]);
+    if (mapTool.kind !== 'edit-route') {
+      setMapTool({ kind: 'select' });
+    }
+  }, [mapSelection, performanceInputDraft.legAltitudePlans, mapTool.kind]);
 
   const clearRoute = () => {
     setFlightPlan({
@@ -851,9 +885,11 @@ export function App() {
       setUseForecastWinds(document.useForecastWinds);
       setForecastRequestKey(0);
       setMapSelection(null);
-      setMapTool({ kind: 'select' });
+      if (mapTool.kind !== 'edit-route') {
+        setMapTool({ kind: 'select' });
+      }
     },
-    [],
+    [mapTool.kind],
   );
   const selectedWaypoint =
     mapSelection?.kind === 'waypoint'
@@ -948,9 +984,13 @@ export function App() {
           distanceFromStartNm,
         ),
       }));
-      setMapTool({ kind: 'select' });
+      // Target-marker dragging is part of Edit route. Only the explicit
+      // one-shot map-placement tool returns to Select after a placement.
+      if (mapTool.kind !== 'edit-route') {
+        setMapTool({ kind: 'select' });
+      }
     },
-    [],
+    [mapTool.kind],
   );
   const setLegEndAltitude = useCallback(
     (
@@ -1266,14 +1306,7 @@ export function App() {
       setUseForecastWinds(true);
       setForecastRequestKey((current) => current + 1);
     },
-    onChooseAlternateOnMap: () => {
-      setOperationalInputDraft((currentDraft) => ({
-        ...currentDraft,
-        alternateEnabled: true,
-      }));
-      setMapSelection(null);
-      setMapTool({ kind: 'select-alternate-aerodrome' });
-    },
+    onChooseAlternateByIcao: chooseAlternateAerodromeByIcao,
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
     calculations,
@@ -1283,7 +1316,7 @@ export function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">MVP 0.19</p>
+          <p className="eyebrow">MVP 0.20</p>
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">

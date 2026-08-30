@@ -27,13 +27,25 @@ export function BatchEntryBar({
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const shouldSelectInputRef = useRef(true);
 
   useEffect(() => {
     setValue(initialValue);
     setError(null);
+    shouldSelectInputRef.current = true;
+  }, [initialValue, itemLabel, title]);
+
+  useEffect(() => {
+    if (!shouldSelectInputRef.current || value !== initialValue) {
+      return;
+    }
+
+    // Wait until the controlled value has been committed. Selecting before
+    // that commit leaves the caret at the end when moving to the next item.
     inputRef.current?.focus();
     inputRef.current?.select();
-  }, [initialValue, itemLabel, title]);
+    shouldSelectInputRef.current = false;
+  }, [initialValue, value]);
 
   const commitAndMove = (direction: -1 | 1) => {
     const message = onCommit(value);

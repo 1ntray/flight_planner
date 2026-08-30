@@ -2,10 +2,9 @@ import type { AircraftDefinition, FlightPlan } from '../../domain';
 import { SectorRouteTables } from '../route/SectorRouteTables';
 import { CollapsibleSection } from '../layout/CollapsibleSection';
 import type { NavigationInputDraft } from './navigationInput';
-import { AircraftPerformanceInputs } from './AircraftPerformanceInputs';
 import { AircraftSelector } from './AircraftSelector';
+import { AirportInputs } from './AirportInputs';
 import { LegAltitudeControls } from './LegAltitudeControls';
-import { SectorStopControls } from './SectorStopControls';
 import type { AltitudePlacementLeg } from './altitudePlanState';
 import type {
   PerformanceInputDefaults,
@@ -25,6 +24,25 @@ function withoutTrailingPunctuation(value: string): string {
   return value.replace(/[.!?]+$/, '');
 }
 
+function routeAirportSummary(flightPlan: FlightPlan): string {
+  const boundaryIds = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
+  const departure = flightPlan.waypoints[0];
+  const destination = flightPlan.waypoints.at(-1);
+  if (departure === undefined || destination === undefined) {
+    return 'No route airports';
+  }
+
+  const intermediate = flightPlan.waypoints.filter(
+    (waypoint) => boundaryIds.has(waypoint.id),
+  );
+  return [departure, ...intermediate, destination]
+    .filter((waypoint, index, all) =>
+      index === 0 || waypoint.id !== all[index - 1]?.id,
+    )
+    .map((waypoint) => waypoint.name)
+    .join(' → ');
+}
+
 export interface NavigationLogProps {
   section?: 'all' | 'controls' | 'tables';
   flightPlan: FlightPlan;
@@ -40,7 +58,7 @@ export interface NavigationLogProps {
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   onLoadForecastWinds: () => void;
-  onChooseAlternateOnMap: () => void;
+  onChooseAlternateByIcao: (icaoIdentifier: string) => Promise<string | null>;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
   calculations: PlanningCalculations;
@@ -61,7 +79,7 @@ export function NavigationLog({
   onOperationalDraftChange,
   onUseForecastWindsChange,
   onLoadForecastWinds,
-  onChooseAlternateOnMap,
+  onChooseAlternateByIcao,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
   calculations,
@@ -76,6 +94,9 @@ export function NavigationLog({
     alternateTrueAirspeedKt,
     performanceRoute,
     operationalPlan,
+    calculationRecovery,
+    calculationsSuspended,
+    resumeCalculations,
     forecast,
   } = calculations;
 
@@ -89,6 +110,32 @@ export function NavigationLog({
   const showTables = section !== 'controls';
   return (
     <>
+      {showControls && calculationsSuspended && calculationRecovery !== null ? (
+        <section className="calculation-recovery" role="alert">
+          <strong>Calculations paused after an unfinished stage</strong>
+          <p>
+            The previous page stopped while running{' '}
+            <strong>{calculationRecovery.stage}</strong>. Route editing remains
+            available, but performance, operational, forecast, and magnetic
+            calculations are paused so the planner can reopen safely.
+          </p>
+          <p className="calculation-recovery__details">
+            Recorded {new Date(calculationRecovery.startedAtUtcMs).toLocaleString()}
+            {' · '}{calculationRecovery.context.waypointCount ?? 0} waypoint(s)
+            {' · '}{calculationRecovery.context.altitudePlanCount ?? 0} leg altitude plan(s)
+            {' · '}maximum recorded altitude{' '}
+            {calculationRecovery.context.maximumPlannedAltitudeFt ?? 0} ft
+          </p>
+          <p>Edit the plan first if needed, then retry the calculations.</p>
+          <button
+            type="button"
+            className="button"
+            onClick={resumeCalculations}
+          >
+            Retry calculations
+          </button>
+        </section>
+      ) : null}
       {showControls ? (
         <>
       <CollapsibleSection
@@ -315,7 +362,9 @@ export function NavigationLog({
 
       <CollapsibleSection
         title="Aircraft"
-        summary={aircraftDefinition.displayName}
+        summary={aircraftDefinition.registration === undefined
+          ? aircraftDefinition.displayName
+          : `${aircraftDefinition.displayName} · ${aircraftDefinition.registration}`}
       >
       <AircraftSelector
         aircraftDefinition={aircraftDefinition}
@@ -340,35 +389,16 @@ export function NavigationLog({
               calculatedTakeoffMassKg: derivedTakeoffMassKg,
             })}
         onChange={onOperationalDraftChange}
-        onChooseAlternateOnMap={onChooseAlternateOnMap}
+        onChooseAlternateByIcao={onChooseAlternateByIcao}
       />
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Performance"
-        summary={`${performanceDraft.defaultAltitudeFtMsl || '—'} ft default`}
+        title="Airports"
+        summary={routeAirportSummary(flightPlan)}
         hasIssue={parsedPerformance.status === 'invalid'}
       >
-      <AircraftPerformanceInputs
-        draft={performanceDraft}
-        defaults={performanceInputDefaults}
-        profile={aircraftDefinition.performance}
-        {...(derivedTakeoffMassKg === null
-          ? {}
-          : { derivedMassKg: derivedTakeoffMassKg })}
-        {...(parsedPerformance.status === 'invalid'
-          ? { errorMessage: parsedPerformance.message }
-          : {})}
-        onChange={onPerformanceDraftChange}
-      />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Intermediate airports"
-        summary={(flightPlan.sectorBoundaryWaypointIds?.length ?? 0) === 0 ? 'None' : `${flightPlan.sectorBoundaryWaypointIds!.length} landing(s)`}
-        hasIssue={parsedPerformance.status === 'invalid' && (flightPlan.sectorBoundaryWaypointIds?.length ?? 0) > 0}
-      >
-      <SectorStopControls
+      <AirportInputs
         flightPlan={flightPlan}
         draft={performanceDraft}
         operationalDraft={operationalDraft}
@@ -380,7 +410,7 @@ export function NavigationLog({
 
       <CollapsibleSection
         title="Altitude schedule"
-        summary={`${flightPlan.waypoints.length > 1 ? flightPlan.waypoints.length - 1 : 0} leg(s)`}
+        summary={`${performanceDraft.defaultAltitudeFtMsl || '—'} ft default · ${flightPlan.waypoints.length > 1 ? flightPlan.waypoints.length - 1 : 0} leg(s)`}
         hasIssue={performanceRoute?.status === 'no-solution'}
       >
       <LegAltitudeControls

@@ -5,6 +5,7 @@ import type {
   AeronauticalFeatureDetails,
   AeronauticalFeatureKind,
   AeronauticalFeatureRef,
+  AeronauticalPointFeature,
   Wgs84Bounds,
 } from '../domain';
 
@@ -36,4 +37,10 @@ export interface AeronauticalDataRepository {
     ref: AeronauticalFeatureRef,
     options?: AeronauticalQueryOptions,
   ): Promise<AeronauticalFeatureDetails | null>;
+
+  /** Resolves an aerodrome by published ICAO identifier, independent of map viewport. */
+  findAerodromeByIdentifier(
+    identifier: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AeronauticalPointFeature | null>;
 }

@@ -26,10 +26,15 @@ describe('leg altitude input drafts', () => {
       status: 'valid',
       value: 0,
     });
+    expect(parseLegAltitudeDraft('60000')).toEqual({
+      status: 'valid',
+      value: 60000,
+    });
   });
 
-  it('rejects negative and non-finite values', () => {
+  it('rejects negative, excessive, and non-finite values', () => {
     expect(parseLegAltitudeDraft('-1')).toEqual({ status: 'invalid' });
+    expect(parseLegAltitudeDraft('60001')).toEqual({ status: 'invalid' });
     expect(parseLegAltitudeDraft('not a number')).toEqual({
       status: 'invalid',
     });

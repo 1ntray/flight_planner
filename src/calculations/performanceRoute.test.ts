@@ -6,7 +6,11 @@ import type {
   NavigationPlanInputs,
 } from '../domain';
 import { PROJECT_AIRCRAFT_PERFORMANCE_PROFILE } from '../domain';
-import { calculatePerformanceRoute } from './performanceRoute';
+import {
+  calculatePerformanceRoute,
+  isPerformanceWorkLimitExceeded,
+  MAX_PERFORMANCE_WORK_UNITS,
+} from './performanceRoute';
 
 const navigation: NavigationPlanInputs = {
   departureTimeUtcMs: Date.UTC(2026, 7, 28, 10),
@@ -36,6 +40,11 @@ const longLeg: FlightPlan = {
 };
 
 describe('calculatePerformanceRoute', () => {
+  it('enforces a finite calculation work ceiling', () => {
+    expect(isPerformanceWorkLimitExceeded(MAX_PERFORMANCE_WORK_UNITS)).toBe(false);
+    expect(isPerformanceWorkLimitExceeded(MAX_PERFORMANCE_WORK_UNITS + 1)).toBe(true);
+    expect(isPerformanceWorkLimitExceeded(Number.POSITIVE_INFINITY)).toBe(true);
+  });
   it('integrates climb, cruise, and arrival descent inside one real leg', () => {
     const result = calculatePerformanceRoute({
       flightPlan: longLeg,
@@ -227,6 +236,39 @@ describe('calculatePerformanceRoute', () => {
         'cruise',
         'descent',
       ]);
+    }
+  });
+
+  it('starts the next leg with an automatic descent when its planned altitude is lower', () => {
+    const flightPlan: FlightPlan = {
+      waypoints: [
+        ...longLeg.waypoints,
+        { id: 'C', name: 'C', position: { latitude: 1, longitude: 2 } },
+      ],
+      legShapes: [],
+    };
+    const result = calculatePerformanceRoute({
+      flightPlan,
+      navigation,
+      performance: {
+        ...performance,
+        legAltitudePlans: [{
+          fromWaypointId: 'B',
+          toWaypointId: 'C',
+          altitudeFtMsl: 3000,
+        }],
+      },
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      const secondLeg = result.legs[1]!;
+      expect(secondLeg.startAltitudeFtMsl).toBe(5000);
+      expect(secondLeg.targetAltitudeFtMsl).toBe(3000);
+      expect(secondLeg.phases[0]?.phase).toBe('descent');
+      expect(secondLeg.steps.find(({ phase }) => phase === 'descent')
+        ?.startDistanceFromLegNm).toBeCloseTo(0, 9);
     }
   });
 

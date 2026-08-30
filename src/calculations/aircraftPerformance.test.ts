@@ -116,6 +116,15 @@ describe('project aircraft performance', () => {
         expect(Number.isFinite(result.rocFtPerMin)).toBe(true);
       }
     });
+
+    it('rejects altitudes outside the bounded vertical integration range', () => {
+      expect(() => climbTime(0, 60001, 0, 820)).toThrow(
+        'End altitude must be between 0 and 60000 ft',
+      );
+      expect(() => createDescentIntervals(60001, 0, 500)).toThrow(
+        'Start altitude must be between 0 and 60000 ft',
+      );
+    });
   });
 
   describe('calculateTasFromIas', () => {

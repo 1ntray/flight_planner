@@ -39,6 +39,7 @@ describe('operational input parsing', () => {
           name: 'ENAL',
           position: { latitude: 62.56, longitude: 6.11 },
         },
+        plannedAltitudeFtMsl: 2500,
         distanceNm: 45,
         timeMinutes: 30,
         fuelLitres: 18,

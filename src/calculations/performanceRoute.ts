@@ -9,6 +9,7 @@ import type {
   Wind,
   WindSampleQuery,
 } from '../domain';
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../domain';
 import {
   calculateClimbTime,
   calculatePhaseFuel,
@@ -27,6 +28,29 @@ import { deriveFlightPlanSectors } from './flightSectors';
 const MILLISECONDS_PER_MINUTE = 60_000;
 const TARGET_DISTANCE_TOLERANCE_NM = 1e-7;
 const TARGET_SOLVER_ITERATIONS = 56;
+export const MAX_PERFORMANCE_WORK_UNITS = 100_000;
+
+export function isPerformanceWorkLimitExceeded(usedUnits: number): boolean {
+  return !Number.isFinite(usedUnits) || usedUnits > MAX_PERFORMANCE_WORK_UNITS;
+}
+
+interface PerformanceWorkBudget {
+  usedUnits: number;
+}
+
+class PerformanceWorkLimitError extends Error {
+  readonly fromId: string;
+  readonly toId: string;
+
+  constructor(fromId: string, toId: string) {
+    super(
+      `Performance calculation exceeded ${MAX_PERFORMANCE_WORK_UNITS} work units`,
+    );
+    this.name = 'PerformanceWorkLimitError';
+    this.fromId = fromId;
+    this.toId = toId;
+  }
+}
 
 export type WindResolver = (query: WindSampleQuery) => Wind;
 
@@ -76,7 +100,8 @@ export type PerformanceRouteNoSolutionReason =
   | 'insufficient-leg-distance'
   | 'phase-overlap'
   | 'missing-sector-stop-plan'
-  | 'sector-departure-before-arrival';
+  | 'sector-departure-before-arrival'
+  | 'calculation-work-limit';
 
 export interface CalculatedPerformanceSector {
   readonly sectorIndex: number;
@@ -130,12 +155,18 @@ export interface PerformanceRouteCalculationInput {
   readonly sectorMassesKg?: readonly number[];
 }
 
+interface BudgetedPerformanceRouteCalculationInput
+  extends PerformanceRouteCalculationInput {
+  readonly workBudget: PerformanceWorkBudget;
+}
+
 interface LegContext {
   readonly leg: CalculatedLeg;
   readonly navigation: RoutePlanningInputs;
   readonly environment: PlanningEnvironment;
   readonly profile: AircraftPerformanceProfile;
   readonly resolveWind: WindResolver;
+  readonly workBudget: PerformanceWorkBudget;
 }
 
 type StepCalculation =
@@ -150,6 +181,27 @@ type StepCalculation =
 function requireFinite(value: number, label: string): void {
   if (!Number.isFinite(value)) {
     throw new RangeError(`${label} must be a finite number`);
+  }
+}
+
+function consumePerformanceWork(context: LegContext, units = 1): void {
+  context.workBudget.usedUnits += units;
+
+  if (isPerformanceWorkLimitExceeded(context.workBudget.usedUnits)) {
+    throw new PerformanceWorkLimitError(
+      context.leg.fromId,
+      context.leg.toId,
+    );
+  }
+}
+
+function requireSupportedAltitude(value: number, label: string): void {
+  requireFinite(value, label);
+
+  if (value < 0 || value > MAX_SUPPORTED_PLANNING_ALTITUDE_FT) {
+    throw new RangeError(
+      `${label} must be between 0 and ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT} ft`,
+    );
   }
 }
 
@@ -205,6 +257,7 @@ function calculateVerticalSteps(
       : context.profile.descent.fuelFlowLph;
 
   for (const interval of intervals) {
+    consumePerformanceWork(context);
     const trueAirspeedKt = calculateTasFromIas(
       indicatedAirspeedKt,
       interval.representativeAltitudeFt,
@@ -292,6 +345,7 @@ function calculateCruiseStep(
   endDistanceNm: number,
   startTimeUtcMs: number,
 ): StepCalculation {
+  consumePerformanceWork(context);
   const distanceNm = endDistanceNm - startDistanceNm;
 
   if (distanceNm <= TARGET_DISTANCE_TOLERANCE_NM) {
@@ -417,24 +471,16 @@ function calculateSingleSectorPerformanceRoute({
   performance,
   profile,
   resolveWind = () => navigation.wind,
-}: PerformanceRouteCalculationInput): CalculatedSingleSectorPerformanceRoute {
+  workBudget,
+}: BudgetedPerformanceRouteCalculationInput): CalculatedSingleSectorPerformanceRoute {
   requireFinite(performance.massKg, 'Aircraft mass');
-  requireFinite(performance.defaultAltitudeFtMsl, 'Default altitude');
-  requireFinite(performance.departureElevationFtMsl, 'Departure elevation');
-  requireFinite(performance.destinationElevationFtMsl, 'Destination elevation');
-  requireFinite(performance.patternHeightAglFt, 'Pattern height');
+  requireSupportedAltitude(performance.defaultAltitudeFtMsl, 'Default altitude');
+  requireSupportedAltitude(performance.departureElevationFtMsl, 'Departure elevation');
+  requireSupportedAltitude(performance.destinationElevationFtMsl, 'Destination elevation');
+  requireSupportedAltitude(performance.patternHeightAglFt, 'Pattern height');
 
   if (performance.massKg <= 0) {
     throw new RangeError('Aircraft mass must be greater than zero');
-  }
-
-  if (
-    performance.defaultAltitudeFtMsl < 0 ||
-    performance.departureElevationFtMsl < 0 ||
-    performance.destinationElevationFtMsl < 0 ||
-    performance.patternHeightAglFt < 0
-  ) {
-    throw new RangeError('Performance altitudes must not be negative');
   }
 
   const environment = calculatePlanningEnvironment(
@@ -463,17 +509,11 @@ function calculateSingleSectorPerformanceRoute({
     }
 
     if (plan.altitudeFtMsl !== undefined) {
-      requireFinite(plan.altitudeFtMsl, 'Leg altitude');
-      if (plan.altitudeFtMsl < 0) {
-        throw new RangeError('Leg altitude must not be negative');
-      }
+      requireSupportedAltitude(plan.altitudeFtMsl, 'Leg altitude');
     }
 
     if (plan.endAltitudeFtMsl !== undefined) {
-      requireFinite(plan.endAltitudeFtMsl, 'Leg end altitude');
-      if (plan.endAltitudeFtMsl < 0) {
-        throw new RangeError('Leg end altitude must not be negative');
-      }
+      requireSupportedAltitude(plan.endAltitudeFtMsl, 'Leg end altitude');
     }
     if (
       plan.endAltitudeFtMsl === undefined &&
@@ -545,6 +585,7 @@ function calculateSingleSectorPerformanceRoute({
       environment,
       profile,
       resolveWind,
+      workBudget,
     };
     const startAltitudeFtMsl = currentAltitudeFtMsl;
     const legStartTimeUtcMs = currentTimeUtcMs;
@@ -589,9 +630,12 @@ function calculateSingleSectorPerformanceRoute({
         };
       }
 
-      const targetDistanceNm =
-        requestedTargetDistanceNm ??
-        (phase === 'climb' ? null : leg.distanceNm);
+      // The planned altitude is the leg's initial vertical target: without a
+      // custom "reach at" point, climb *and descent* start as early as the
+      // vertical profile allows. A final arrival descent and an explicit end
+      // altitude still pass a concrete target distance and retain their
+      // end-of-leg semantics.
+      const targetDistanceNm = requestedTargetDistanceNm;
 
       if (targetDistanceNm === null) {
         const transition = calculateVerticalSteps(
@@ -769,7 +813,7 @@ function calculateSingleSectorPerformanceRoute({
       const configuredEndTargetDistanceNm =
         plan.endTargetPlacement?.mode === 'distance-along-leg'
           ? plan.endTargetPlacement.distanceFromStartNm
-          : null;
+          : leg.distanceNm;
       const endTransitionFailure = addTransition(
         currentAltitudeFtMsl,
         plan.endAltitudeFtMsl,
@@ -859,8 +903,8 @@ function calculateSingleSectorPerformanceRoute({
   };
 }
 
-export function calculatePerformanceRoute(
-  input: PerformanceRouteCalculationInput,
+function calculatePerformanceRouteWithBudget(
+  input: BudgetedPerformanceRouteCalculationInput,
 ): CalculatedPerformanceRoute {
   const sectors = deriveFlightPlanSectors(input.flightPlan);
 
@@ -1025,4 +1069,28 @@ export function calculatePerformanceRoute(
     estimatedArrivalTimeUtcMs: finalSector.estimatedArrivalTimeUtcMs,
     arrivalTargetAltitudeFtMsl: finalSector.arrivalTargetAltitudeFtMsl,
   };
+}
+
+export function calculatePerformanceRoute(
+  input: PerformanceRouteCalculationInput,
+): CalculatedPerformanceRoute {
+  try {
+    return calculatePerformanceRouteWithBudget({
+      ...input,
+      workBudget: { usedUnits: 0 },
+    });
+  } catch (error) {
+    if (error instanceof PerformanceWorkLimitError) {
+      return {
+        status: 'no-solution',
+        reason: 'calculation-work-limit',
+        legFromId: error.fromId,
+        legToId: error.toId,
+        message:
+          'The performance solver exceeded its bounded work limit. Simplify the altitude schedule before retrying',
+      };
+    }
+
+    throw error;
+  }
 }

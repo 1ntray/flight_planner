@@ -1,3 +1,5 @@
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
+
 export type ParsedLegAltitudeDraft =
   | { status: 'valid'; value: number | null }
   | { status: 'invalid' };
@@ -19,7 +21,11 @@ export function parseLegAltitudeDraft(
 
   const altitudeFtMsl = Number(normalizedDraft);
 
-  if (!Number.isFinite(altitudeFtMsl) || altitudeFtMsl < 0) {
+  if (
+    !Number.isFinite(altitudeFtMsl) ||
+    altitudeFtMsl < 0 ||
+    altitudeFtMsl > MAX_SUPPORTED_PLANNING_ALTITUDE_FT
+  ) {
     return { status: 'invalid' };
   }
 

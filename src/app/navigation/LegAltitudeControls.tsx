@@ -77,6 +77,23 @@ export function LegAltitudeControls({
         </p>
       </div>
 
+      <label className="leg-altitude-controls__default-altitude">
+        <span>Default leg altitude</span>
+        <span className="navigation-inputs__control">
+          <input
+            type="number"
+            min="0"
+            step="100"
+            value={draft.defaultAltitudeFtMsl}
+            onChange={(event) => onDraftChange({
+              ...draft,
+              defaultAltitudeFtMsl: event.currentTarget.value,
+            })}
+          />
+          <span>ft MSL</span>
+        </span>
+      </label>
+
       {legs.map((leg) => {
         const plan = plans.get(legKey(leg.fromId, leg.toId));
         const isArrivalLeg = arrivalLegKeys.has(legKey(leg.fromId, leg.toId));

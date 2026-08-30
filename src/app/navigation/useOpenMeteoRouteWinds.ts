@@ -57,28 +57,23 @@ export function useOpenMeteoRouteWinds({
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeContextKeyRef = useRef<string | null>(null);
   const contextKey = useMemo(
-    () =>
-      JSON.stringify({
+    () => {
+      if (!enabled || requestKey <= 0) {
+        return 'forecast-not-requested';
+      }
+
+      return JSON.stringify({
         planning,
         waypoints: flightPlan.waypoints.map(({ id, position }) => ({
           id,
           position,
         })),
         legShapes: flightPlan.legShapes,
-      }),
-    [flightPlan, planning],
+      });
+    },
+    [enabled, flightPlan, planning, requestKey],
   );
-  const initialRequests = useMemo(
-    () =>
-      planning === null
-        ? []
-        : buildWeatherSampleRequests(
-            preliminaryRoute,
-            planning.plannedAltitudeFtMsl,
-          ),
-    [planning, preliminaryRoute],
-  );
-  const canLoad = planning !== null && initialRequests.length > 0;
+  const canLoad = planning !== null && preliminaryRoute.legs.length > 0;
 
   useEffect(() => {
     if (
@@ -101,6 +96,15 @@ export function useOpenMeteoRouteWinds({
 
   useEffect(() => {
     if (requestKey <= 0 || !enabled || !canLoad || planning === null) {
+      return;
+    }
+
+    const initialRequests = buildWeatherSampleRequests(
+      preliminaryRoute,
+      planning.plannedAltitudeFtMsl,
+    );
+
+    if (initialRequests.length === 0) {
       return;
     }
 

@@ -100,6 +100,38 @@ export function SectorRouteTables({
     flightPlan.waypoints.at(-1) === undefined
       ? []
       : [flightPlan.waypoints.at(-1)!, operationalInputs.alternate.waypoint];
+  const alternateProgress = operationalInputs?.alternate === null ||
+    operationalInputs?.alternate === undefined
+    ? null
+    : (() => {
+        const finalOperationalSector =
+          operationalPlan?.status === 'ok' ? operationalPlan.sectors.at(-1) : undefined;
+        const finalPerformanceRoute =
+          performanceRoute?.status === 'ok' ? performanceRoute : undefined;
+        const baseDistanceNm =
+          finalOperationalSector?.accumulatedTotal.distanceNm ?? route.totalDistanceNm;
+        const baseTimeSeconds =
+          finalOperationalSector?.accumulatedTotal.airborneSeconds ??
+          finalPerformanceRoute?.totalEetSeconds ??
+          route.totalEetSeconds ??
+          0;
+        const baseFuelLitres =
+          finalOperationalSector?.accumulatedTotal.airborneFuelLitres ??
+          finalPerformanceRoute?.totalFuelLitres ??
+          null;
+        const alternate = operationalInputs.alternate;
+
+        return {
+          accumulatedDistanceNm: baseDistanceNm + alternate.distanceNm,
+          accumulatedTimeSeconds: baseTimeSeconds + alternate.timeMinutes * 60,
+          accumulatedFuelLitres:
+            baseFuelLitres === null ? null : baseFuelLitres + alternate.fuelLitres,
+          estimatedFuelRemainingLitres:
+            finalOperationalSector === undefined
+              ? null
+              : finalOperationalSector.fuelAtLandingLitres - alternate.fuelLitres,
+        };
+      })();
 
   if (sectors.length <= 1) {
     const operationalSector =
@@ -134,6 +166,7 @@ export function SectorRouteTables({
           alternateInputs={operationalInputs?.alternate ?? null}
           alternateTrueAirspeedKt={alternateTrueAirspeedKt}
           alternateWaypoints={alternateWaypoints}
+          alternateProgress={alternateProgress}
           forecastWinds={forecastWinds}
           {...(operationalSector === undefined ? {} : { operationalSector })}
         />
@@ -175,6 +208,7 @@ export function SectorRouteTables({
         const toName = sector.flightPlan.waypoints.at(-1)!.name;
         const departureTimeUtcMs = performanceSector?.departureTimeUtcMs ?? null;
         const arrivalTimeUtcMs = performanceSector?.estimatedArrivalTimeUtcMs ?? null;
+        const isFinalSector = sector.sectorIndex === sectors.length - 1;
 
         return (
           <section
@@ -197,11 +231,12 @@ export function SectorRouteTables({
             <RouteTable
               waypoints={sector.flightPlan.waypoints}
               route={navigation}
-              alternateNavigationRoute={alternateNavigationRoute}
+              alternateNavigationRoute={isFinalSector ? alternateNavigationRoute : null}
               performanceRoute={performance}
-              alternateInputs={operationalInputs?.alternate ?? null}
-              alternateTrueAirspeedKt={alternateTrueAirspeedKt}
-              alternateWaypoints={alternateWaypoints}
+              alternateInputs={isFinalSector ? operationalInputs?.alternate ?? null : null}
+              alternateTrueAirspeedKt={isFinalSector ? alternateTrueAirspeedKt : null}
+              alternateWaypoints={isFinalSector ? alternateWaypoints : []}
+              alternateProgress={isFinalSector ? alternateProgress : null}
               forecastWinds={forecastWinds}
               {...(operationalSector === undefined ? {} : { operationalSector })}
             />

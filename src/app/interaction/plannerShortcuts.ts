@@ -46,7 +46,7 @@ export const PLANNER_SHORTCUTS: readonly PlannerShortcutDefinition[] = [
   { keys: 'V', action: 'Select/edit mode', availability: 'Always' },
   { keys: 'E', action: 'Toggle Edit route mode', availability: 'Always' },
   { keys: 'W', action: 'Toggle Add waypoint mode', availability: 'Always' },
-  { keys: '[ / ]', action: 'Previous / next selected waypoint or leg', availability: 'Route available' },
+  { keys: ', / .', action: 'Previous / next selected waypoint or leg', availability: 'Route available' },
   { keys: 'Delete', action: 'Remove the selected waypoint or shaping point', availability: 'Point selected' },
   { keys: 'I', action: 'Insert a real waypoint at the selected route location', availability: 'Leg selected' },
   { keys: 'N', action: 'Edit the selected waypoint name', availability: 'Waypoint selected' },
@@ -140,10 +140,10 @@ export function resolvePlannerShortcut(
   if (key === 'l' && context.selection?.kind === 'waypoint') {
     return 'toggle-landing';
   }
-  if (context.key === '[') {
+  if (context.key === ',') {
     return 'previous-selection';
   }
-  if (context.key === ']') {
+  if (context.key === '.') {
     return 'next-selection';
   }
   return null;

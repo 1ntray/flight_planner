@@ -332,6 +332,7 @@ describe('operational planning', () => {
             name: 'ALTERNATE',
             position: { latitude: 1, longitude: 3 },
           },
+          plannedAltitudeFtMsl: 2500,
           distanceNm: 42,
           timeMinutes: 31,
           fuelLitres: 19,

@@ -2,6 +2,7 @@ import type {
   AircraftPerformancePlanInputs,
   LegAltitudePlan,
 } from '../../domain';
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 
 export const DEFAULT_PLANNING_QNH_HPA = 1013;
 export const DEFAULT_PLANNING_ISA_DEVIATION_C = 0;
@@ -111,6 +112,7 @@ function parseNumber(
   value: string,
   label: string,
   minimum: number | null,
+  maximum: number | null = null,
 ): number | string {
   if (value.trim() === '') {
     return `${label} is required`;
@@ -124,6 +126,10 @@ function parseNumber(
 
   if (minimum !== null && parsed < minimum) {
     return `${label} must be at least ${minimum}`;
+  }
+
+  if (maximum !== null && parsed > maximum) {
+    return `${label} must not exceed ${maximum}`;
   }
 
   return parsed;
@@ -156,9 +162,11 @@ function validateLegAltitudePlans(
 
     if (
       plan.altitudeFtMsl !== undefined &&
-      (!Number.isFinite(plan.altitudeFtMsl) || plan.altitudeFtMsl < 0)
+      (!Number.isFinite(plan.altitudeFtMsl) ||
+        plan.altitudeFtMsl < 0 ||
+        plan.altitudeFtMsl > MAX_SUPPORTED_PLANNING_ALTITUDE_FT)
     ) {
-      return 'Leg altitude must be a non-negative number';
+      return `Leg altitude must be between 0 and ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT}`;
     }
 
     if (
@@ -171,9 +179,10 @@ function validateLegAltitudePlans(
     if (
       plan.endAltitudeFtMsl !== undefined &&
       (!Number.isFinite(plan.endAltitudeFtMsl) ||
-        plan.endAltitudeFtMsl < 0)
+        plan.endAltitudeFtMsl < 0 ||
+        plan.endAltitudeFtMsl > MAX_SUPPORTED_PLANNING_ALTITUDE_FT)
     ) {
-      return 'Leg end altitude must be a non-negative number';
+      return `Leg end altitude must be between 0 and ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT}`;
     }
     if (
       plan.endTargetPlacement !== undefined &&
@@ -218,9 +227,6 @@ export function parsePerformanceInputDraft(
   if (
     scalarValues.every((value) => value.trim() === '') &&
     (draft.defaultAltitudeFtMsl === '' || draft.defaultAltitudeFtMsl === '2500') &&
-    (draft.patternHeightAglFt === '' ||
-      draft.patternHeightAglFt ===
-        String(DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT)) &&
     draft.legAltitudePlans.length === 0 &&
     draft.sectorStopPlans.every((stop) =>
       [
@@ -235,8 +241,8 @@ export function parsePerformanceInputDraft(
   }
 
   const fields = [
-    ['massKg', derivedMassKg === undefined ? draft.massKg : String(derivedMassKg), 'Aircraft mass', null],
-    ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0],
+    ['massKg', derivedMassKg === undefined ? draft.massKg : String(derivedMassKg), 'Aircraft mass', null, null],
+    ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0, MAX_SUPPORTED_PLANNING_ALTITUDE_FT],
     [
       'departureElevationFtMsl',
       resolveDefaultValue(
@@ -245,6 +251,7 @@ export function parsePerformanceInputDraft(
       ),
       'Departure elevation',
       0,
+      MAX_SUPPORTED_PLANNING_ALTITUDE_FT,
     ],
     [
       'destinationElevationFtMsl',
@@ -254,20 +261,20 @@ export function parsePerformanceInputDraft(
       ),
       'Destination elevation',
       0,
+      MAX_SUPPORTED_PLANNING_ALTITUDE_FT,
     ],
     [
       'patternHeightAglFt',
-      resolveDefaultValue(
-        draft.patternHeightAglFt,
-        DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT,
-      ),
+      String(DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT),
       'Pattern height',
       0,
+      MAX_SUPPORTED_PLANNING_ALTITUDE_FT,
     ],
     [
       'departureQnhHpa',
       resolveDefaultValue(draft.departureQnhHpa, DEFAULT_PLANNING_QNH_HPA),
       'Departure QNH',
+      null,
       null,
     ],
     [
@@ -278,11 +285,13 @@ export function parsePerformanceInputDraft(
       ),
       'Departure ISA deviation',
       null,
+      null,
     ],
     [
       'destinationQnhHpa',
       resolveDefaultValue(draft.destinationQnhHpa, DEFAULT_PLANNING_QNH_HPA),
       'Destination QNH',
+      null,
       null,
     ],
     [
@@ -293,12 +302,13 @@ export function parsePerformanceInputDraft(
       ),
       'Destination ISA deviation',
       null,
+      null,
     ],
   ] as const;
   const parsed = new Map<string, number>();
 
-  for (const [field, value, label, minimum] of fields) {
-    const result = parseNumber(value, label, minimum);
+  for (const [field, value, label, minimum, maximum] of fields) {
+    const result = parseNumber(value, label, minimum, maximum);
 
     if (typeof result === 'string') {
       return { status: 'invalid', message: result };
@@ -335,6 +345,7 @@ export function parsePerformanceInputDraft(
       ),
       `Sector stop ${index + 1} elevation`,
       0,
+      MAX_SUPPORTED_PLANNING_ALTITUDE_FT,
     );
     const qnhHpa = parseNumber(
       resolveDefaultValue(stop.qnhHpa, DEFAULT_PLANNING_QNH_HPA),

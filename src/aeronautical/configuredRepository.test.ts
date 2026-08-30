@@ -45,7 +45,19 @@ describe('aeronautical repository configuration', () => {
       detailKind: 'aerodrome',
       icaoIdentifier: 'ENDU',
       elevationFt: 254,
-      runways: [{ identifier: '10/28', lengthM: 2995 }],
+      runways: [{
+        identifier: '10/28',
+        directions: [
+          {
+            designator: '10',
+            declaredDistances: { todaM: 2443, ldaM: 2001 },
+          },
+          {
+            designator: '28',
+            declaredDistances: { todaM: 2443, ldaM: 2443 },
+          },
+        ],
+      }],
     });
   });
 
@@ -58,5 +70,14 @@ describe('aeronautical repository configuration', () => {
     expect(features).toHaveLength(53);
     expect(features.map((feature) => feature.identifier)).toContain('ENTC');
     expect(features.map((feature) => feature.identifier)).toContain('ENVA');
+  });
+
+  it('resolves alternate aerodromes by ICAO code without a map viewport', async () => {
+    await expect(
+      getConfiguredAeronauticalRepository('').findAerodromeByIdentifier(' entc '),
+    ).resolves.toMatchObject({
+      pointKind: 'aerodrome',
+      identifier: 'ENTC',
+    });
   });
 });

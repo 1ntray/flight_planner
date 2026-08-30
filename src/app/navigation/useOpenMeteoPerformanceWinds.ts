@@ -56,37 +56,34 @@ export function useOpenMeteoPerformanceWinds({
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeContextKeyRef = useRef<string | null>(null);
   const contextKey = useMemo(
-    () => JSON.stringify({
-      flightPlan,
-      navigation,
-      performance,
-      profile,
-      additionalPreliminaryRoutes,
-    }),
+    () => {
+      if (!enabled || requestKey <= 0) {
+        return 'forecast-not-requested';
+      }
+
+      return JSON.stringify({
+        flightPlan,
+        navigation,
+        performance,
+        profile,
+        additionalPreliminaryRoutes,
+      });
+    },
     [
       additionalPreliminaryRoutes,
+      enabled,
       flightPlan,
       navigation,
       performance,
       profile,
+      requestKey,
     ],
   );
-  const initialRequests = useMemo(() => {
-    if (preliminaryRoute?.status !== 'ok') {
-      return [];
-    }
-
-    return [
-      ...buildPerformanceWeatherSampleRequests(preliminaryRoute),
-      ...additionalPreliminaryRoutes.flatMap((route) =>
-        buildPerformanceWeatherSampleRequests(route),
-      ),
-    ];
-  }, [additionalPreliminaryRoutes, preliminaryRoute]);
   const canLoad =
     navigation !== null &&
     performance !== null &&
-    initialRequests.length > 0;
+    preliminaryRoute?.status === 'ok' &&
+    preliminaryRoute.legs.length > 0;
 
   useEffect(() => {
     if (
@@ -115,6 +112,21 @@ export function useOpenMeteoPerformanceWinds({
       navigation === null ||
       performance === null
     ) {
+      return;
+    }
+
+    if (preliminaryRoute?.status !== 'ok') {
+      return;
+    }
+
+    const initialRequests = [
+      ...buildPerformanceWeatherSampleRequests(preliminaryRoute),
+      ...additionalPreliminaryRoutes.flatMap((route) =>
+        buildPerformanceWeatherSampleRequests(route),
+      ),
+    ];
+
+    if (initialRequests.length === 0) {
       return;
     }
 

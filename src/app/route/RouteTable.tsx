@@ -34,6 +34,12 @@ export interface RouteTableProps {
   alternateInputs?: AlternatePlanningInputs | null;
   alternateTrueAirspeedKt?: number | null;
   alternateWaypoints?: readonly Waypoint[];
+  alternateProgress?: {
+    readonly accumulatedDistanceNm: number;
+    readonly accumulatedTimeSeconds: number;
+    readonly accumulatedFuelLitres: number | null;
+    readonly estimatedFuelRemainingLitres: number | null;
+  } | null;
   forecastWinds?: readonly ForecastLegWind[];
 }
 
@@ -130,11 +136,13 @@ function AlternateRow({
   alternate,
   trueAirspeedKt,
   waypointNames,
+  progress,
 }: {
   alternateNavigationRoute: CalculatedNavigationRoute | null | undefined;
   alternate: AlternatePlanningInputs;
   trueAirspeedKt: number | null | undefined;
   waypointNames: ReadonlyMap<string, string>;
+  progress: RouteTableProps['alternateProgress'];
 }) {
   const leg = alternateNavigationRoute?.legs[0];
   if (leg === undefined) return null;
@@ -148,17 +156,20 @@ function AlternateRow({
       <td>{formatMagneticTrackDeg(leg.magneticTrackDeg)}</td>
       <td>{formatWindValue(leg.wind)}</td>
       <td>{windCorrection(leg.trueTrackDeg, navigation?.trueHeadingDeg ?? null)}</td>
-      <td>—</td><td>—</td>
+      <td>{progress === null || progress === undefined ? '—' : formatDistanceNmValue(progress.accumulatedDistanceNm)}</td>
+      <td>{progress === null || progress === undefined ? '—' : formatEetMinutesValue(progress.accumulatedTimeSeconds)}</td>
       <td>—</td>
-      <td>{formatFuel(alternate.fuelLitres)}</td><td>—</td>
+      <td>{formatFuel(alternate.fuelLitres)}</td>
+      <td>{progress === null || progress === undefined ? '—' : formatFuel(progress.accumulatedFuelLitres)}</td>
       <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
-      <td>—</td><td>—</td>
+      <td>—</td><td>{Math.round(alternate.plannedAltitudeFtMsl)}</td>
       <td>{formatMagneticHeadingDeg(leg.magneticHeadingDeg)}</td>
       <td>{navigation === null ? '—' : formatGroundSpeedKtValue(navigation.groundSpeedKt)}</td>
       <td>{formatDistanceNmValue(alternate.distanceNm)}</td>
       <td>{formatEetMinutesValue(alternate.timeMinutes * 60)}</td>
-      <td>—</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+      <td>—</td><td>—</td><td>—</td>
+      <td>{progress === null || progress === undefined ? '—' : formatFuel(progress.estimatedFuelRemainingLitres)}</td>
+      <td>—</td><td>—</td>
     </tr>
   );
 }
@@ -172,6 +183,7 @@ export function RouteTable({
   alternateInputs = null,
   alternateTrueAirspeedKt = null,
   alternateWaypoints = [],
+  alternateProgress = null,
   forecastWinds = [],
 }: RouteTableProps) {
   const waypointNames = useMemo(
@@ -325,19 +337,30 @@ export function RouteTable({
                 </tr>
               );
             })}
+            {alternateInputs === null ? null : (
+              <AlternateRow
+                alternateNavigationRoute={alternateNavigationRoute}
+                alternate={alternateInputs}
+                trueAirspeedKt={alternateTrueAirspeedKt}
+                waypointNames={waypointNames}
+                progress={alternateProgress}
+              />
+            )}
           </tbody>
           <tfoot>
             <tr>
               <td>Total</td><td colSpan={6} />
-              <td>{formatDistanceNmValue(operationalSector?.accumulatedTotal.distanceNm ?? route.totalDistanceNm)}</td>
-              <td>{operationalSector === undefined
+              <td>{formatDistanceNmValue(alternateProgress?.accumulatedDistanceNm ?? operationalSector?.accumulatedTotal.distanceNm ?? route.totalDistanceNm)}</td>
+              <td>{alternateProgress === null
+                ? operationalSector === undefined
                 ? route.totalEetSeconds === null
                   ? '—'
                   : formatEetMinutesValue(route.totalEetSeconds)
-                : formatEetMinutesValue(operationalSector.accumulatedTotal.airborneSeconds)}</td>
+                : formatEetMinutesValue(operationalSector.accumulatedTotal.airborneSeconds)
+                : formatEetMinutesValue(alternateProgress.accumulatedTimeSeconds)}</td>
               <td>—</td>
               <td>{formatFuel(operationalSector?.intermediateTotal.airborneFuelLitres ?? (performanceRoute?.status === 'ok' ? performanceRoute.totalFuelLitres : null))}</td>
-              <td>{formatFuel(operationalSector?.accumulatedTotal.airborneFuelLitres)}</td>
+              <td>{formatFuel(alternateProgress?.accumulatedFuelLitres ?? operationalSector?.accumulatedTotal.airborneFuelLitres)}</td>
               <td>Total</td><td colSpan={4} />
               <td>{formatDistanceNmValue(operationalSector?.intermediateTotal.distanceNm ?? route.totalDistanceNm)}</td>
               <td>{operationalSector === undefined
@@ -346,16 +369,8 @@ export function RouteTable({
                   : formatEetMinutesValue(route.totalEetSeconds)
                 : formatEetMinutesValue(operationalSector.intermediateTotal.airborneSeconds)}</td>
               <td colSpan={3} />
-              <td>{formatFuel(operationalSector?.fuelAtLandingLitres)}</td><td /><td />
+              <td>{formatFuel(alternateProgress?.estimatedFuelRemainingLitres ?? operationalSector?.fuelAtLandingLitres)}</td><td /><td />
             </tr>
-            {alternateInputs === null ? null : (
-              <AlternateRow
-                alternateNavigationRoute={alternateNavigationRoute}
-                alternate={alternateInputs}
-                trueAirspeedKt={alternateTrueAirspeedKt}
-                waypointNames={waypointNames}
-              />
-            )}
           </tfoot>
         </table>
       )}

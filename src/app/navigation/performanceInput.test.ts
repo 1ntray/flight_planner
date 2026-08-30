@@ -100,7 +100,7 @@ describe('performance input parsing', () => {
     expect(blankWeatherDraft.destinationIsaDeviationC).toBe('');
   });
 
-  it('uses the standard pattern-height preset while a blank field remains overridable', () => {
+  it('uses the fixed standard pattern height regardless of legacy draft input', () => {
     const blankPatternHeightDraft = {
       ...createPerformanceInputDraft(inputs),
       patternHeightAglFt: '',
@@ -117,7 +117,7 @@ describe('performance input parsing', () => {
       patternHeightAglFt: '1500',
     })).toMatchObject({
       status: 'valid',
-      value: { patternHeightAglFt: 1500 },
+      value: { patternHeightAglFt: 1000 },
     });
   });
 
@@ -134,6 +134,38 @@ describe('performance input parsing', () => {
         targetPlacement: { mode: 'distance-along-leg', distanceFromStartNm: -1 },
       }],
     })).toMatchObject({ status: 'invalid', message: expect.stringContaining('non-negative') });
+  });
+
+  it('rejects planning altitudes above the supported calculation range', () => {
+    expect(parsePerformanceInputDraft({
+      ...createPerformanceInputDraft(inputs),
+      defaultAltitudeFtMsl: '60001',
+    })).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('must not exceed 60000'),
+    });
+    expect(parsePerformanceInputDraft({
+      ...createPerformanceInputDraft(inputs),
+      legAltitudePlans: [{
+        fromWaypointId: 'A',
+        toWaypointId: 'B',
+        altitudeFtMsl: 60001,
+      }],
+    })).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('between 0 and 60000'),
+    });
+    expect(parsePerformanceInputDraft({
+      ...createPerformanceInputDraft(inputs),
+      legAltitudePlans: [{
+        fromWaypointId: 'A',
+        toWaypointId: 'B',
+        endAltitudeFtMsl: 60001,
+      }],
+    })).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('between 0 and 60000'),
+    });
   });
 
   it('parses intermediate-airport data and requires every marked stop', () => {

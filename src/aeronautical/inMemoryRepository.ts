@@ -4,6 +4,7 @@ import type {
   AeronauticalFeature,
   AeronauticalFeatureDetails,
   AeronauticalFeatureRef,
+  AeronauticalPointFeature,
   Position,
   Wgs84Bounds,
 } from '../domain';
@@ -150,6 +151,24 @@ export class InMemoryAeronauticalRepository
         featureRefMatches(details.ref, ref),
       ) ?? null
     );
+  }
+
+  async findAerodromeByIdentifier(
+    identifier: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AeronauticalPointFeature | null> {
+    options?.signal?.throwIfAborted();
+    const normalizedIdentifier = identifier.trim().toUpperCase();
+    if (normalizedIdentifier === '') {
+      return null;
+    }
+
+    return this.features.find(
+      (feature): feature is AeronauticalPointFeature =>
+        feature.geometryType === 'point' &&
+        feature.pointKind === 'aerodrome' &&
+        feature.identifier.trim().toUpperCase() === normalizedIdentifier,
+    ) ?? null;
   }
 }
 

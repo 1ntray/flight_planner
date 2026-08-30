@@ -63,6 +63,8 @@ import { MapToolControl } from './MapToolControl';
 import { WaypointMapPopup } from './WaypointMapPopup';
 import { ShapingPointMapPopup } from './ShapingPointMapPopup';
 import { LegMapPopup } from './LegMapPopup';
+import { AerodromeInfoPopup } from './AerodromeInfoPopup';
+import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
 import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
 import './rasterTileSeamWorkaround.css';
 
@@ -495,6 +497,8 @@ export function FlightMap({
     useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
   const [visibleAeronauticalPointFeatures, setVisibleAeronauticalPointFeatures] =
     useState<readonly AeronauticalPointFeature[]>([]);
+  const [selectedAerodromeInformation, setSelectedAerodromeInformation] =
+    useState<AeronauticalPointFeature | null>(null);
   const pendingShapingPoint =
     routeLineInteraction?.mode === 'shaping'
       ? routeLineInteraction.pendingPoint
@@ -593,6 +597,54 @@ export function FlightMap({
     },
     [],
   );
+  const showAerodromeInformation = useCallback(
+    (feature: AeronauticalPointFeature) => {
+      setSelectedAerodromeInformation(feature);
+      onSelectionChange(null);
+    },
+    [onSelectionChange],
+  );
+  const showWaypointSourceAerodrome = useCallback(
+    (waypoint: Waypoint) => {
+      const feature = aerodromeInfoFeatureFromWaypoint(waypoint);
+      if (feature === null) return;
+      showAerodromeInformation(feature);
+    },
+    [showAerodromeInformation],
+  );
+  useEffect(() => {
+    if (tool.kind !== 'select' || suppressSelectionPopups) {
+      setSelectedAerodromeInformation(null);
+    }
+  }, [suppressSelectionPopups, tool.kind]);
+  useEffect(() => {
+    if (selectedAerodromeInformation === null) {
+      return;
+    }
+
+    const closeAerodromeInformationOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      // Let the information popup consume Escape before the global planner
+      // shortcuts handle it as a generic selection cancellation.
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedAerodromeInformation(null);
+    };
+
+    window.addEventListener(
+      'keydown',
+      closeAerodromeInformationOnEscape,
+      true,
+    );
+    return () => window.removeEventListener(
+      'keydown',
+      closeAerodromeInformationOnEscape,
+      true,
+    );
+  }, [selectedAerodromeInformation]);
   const beginRouteLineInteraction = useCallback(
     (interaction: RouteLinePress) => {
       suppressNextMapClick.current = true;
@@ -603,6 +655,7 @@ export function FlightMap({
   const selectMapLeg = useCallback(
     (selected: SelectedRouteLeg) => {
       suppressNextMapClick.current = false;
+      setSelectedAerodromeInformation(null);
       onSelectionChange(selected);
     },
     [onSelectionChange],
@@ -645,7 +698,10 @@ export function FlightMap({
         <MapClickHandler
           tool={tool}
           onAddWaypoint={onAddWaypoint}
-          onClearSelection={() => onSelectionChange(null)}
+          onClearSelection={() => {
+            onSelectionChange(null);
+            setSelectedAerodromeInformation(null);
+          }}
           consumeSuppressedClick={consumeSuppressedMapClick}
         />
         <RouteLineInteractionHandler
@@ -664,6 +720,7 @@ export function FlightMap({
           visibility={aeronauticalLayerVisibility}
           anchoringEnabled={tool.kind === 'add-waypoint'}
           onAnchorPoint={onAddAnchoredWaypoint}
+          onSelectAerodromeInformation={showAerodromeInformation}
           alternateAerodromeSelectionEnabled={tool.kind === 'select-alternate-aerodrome'}
           onSelectAlternateAerodrome={onSelectAlternateAerodrome}
           onPointFeaturesChange={setVisibleAeronauticalPointFeatures}
@@ -731,8 +788,20 @@ export function FlightMap({
           aeronauticalPointFeatures={visibleAeronauticalPointFeatures}
           onAttachWaypoint={onAttachWaypoint}
           onMoveShapingPoint={onMoveShapingPoint}
-          onSelectRoutePoint={onSelectionChange}
+          onSelectRoutePoint={(selected) => {
+            setSelectedAerodromeInformation(null);
+            onSelectionChange(selected);
+          }}
         />
+        {tool.kind !== 'select' ||
+        suppressSelectionPopups ||
+        selectedAerodromeInformation === null ? null : (
+          <AerodromeInfoPopup
+            feature={selectedAerodromeInformation}
+            repository={aeronauticalRepository}
+            onClose={() => setSelectedAerodromeInformation(null)}
+          />
+        )}
         <PerformancePhaseMarkers
           flightPlan={flightPlan}
           performanceRoute={performanceRoute}
@@ -764,6 +833,7 @@ export function FlightMap({
             }
             onRename={onRenameWaypoint}
             onDetach={onDetachWaypoint}
+            onShowSourceAerodrome={showWaypointSourceAerodrome}
             onToggleSectorBoundary={onToggleWaypointSectorBoundary}
             onDelete={onDeleteSelection}
             onClose={() => onSelectionChange(null)}

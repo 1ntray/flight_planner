@@ -85,7 +85,7 @@ h3 {
   min-height: 0;
   flex: 1;
   grid-template-columns: minmax(0, 3fr) minmax(28rem, 2fr);
-  grid-template-rows: minmax(22rem, 1fr) minmax(13rem, 32vh);
+  grid-template-rows: minmax(22rem, 1fr) auto;
   gap: 1rem;
 }
 
@@ -256,6 +256,11 @@ h3 {
   display: flex;
   min-height: 0;
   grid-column: 1 / -1;
+  justify-self: start;
+  align-self: start;
+  width: fit-content;
+  max-width: 100%;
+  max-height: 32vh;
   flex-direction: column;
   padding: 0.75rem 1rem;
 }
@@ -271,8 +276,9 @@ h3 {
 .navlog-dock__content {
   display: flex;
   min-height: 0;
+  max-width: 100%;
   overflow: auto;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
   overscroll-behavior: contain;
 }
@@ -458,6 +464,31 @@ h3 {
 
 .navigation-inputs__error {
   color: #a12c27;
+}
+
+.calculation-recovery {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #c67a28;
+  border-radius: 0.4rem;
+  background: #fff7e8;
+  color: #6b4216;
+  font-size: 0.78rem;
+}
+
+.calculation-recovery p {
+  margin: 0;
+}
+
+.calculation-recovery__details {
+  color: #7b5a34;
+  font-size: 0.72rem;
+}
+
+.calculation-recovery .button {
+  justify-self: start;
 }
 
 .navigation-inputs label {
@@ -724,28 +755,30 @@ kbd {
 
 .leg-altitude-controls {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.65rem;
   margin: 0 0 0.75rem;
-  padding: 0.7rem;
-  border: 1px solid #dbe3eb;
-  border-radius: 0.4rem;
-  background: #f8fafc;
+  padding: 0.1rem;
 }
 
 .leg-altitude-controls__row {
   display: grid;
   align-items: end;
-  grid-template-columns: minmax(5rem, 0.8fr) minmax(5rem, 1fr) minmax(5rem, 1fr) auto;
-  gap: 0.4rem;
+  grid-template-columns: minmax(9rem, 1fr) minmax(11rem, 1.2fr) max-content;
+  gap: 0.5rem;
 }
 
 .leg-altitude-controls__leg {
   display: grid;
-  gap: 0.35rem;
-  padding: 0.5rem;
+  gap: 0.45rem;
+  padding: 0.6rem;
   border: 1px solid #dbe3eb;
-  border-radius: 0.35rem;
-  background: #ffffff;
+  border-radius: 0.4rem;
+  background: #fbfcfd;
+}
+
+.leg-altitude-controls__leg > strong {
+  color: #26384c;
+  font-size: 0.78rem;
 }
 
 .leg-altitude-controls__arrival-note {
@@ -756,7 +789,7 @@ kbd {
 }
 
 .leg-altitude-controls__row--end {
-  padding-top: 0.35rem;
+  padding-top: 0.45rem;
   border-top: 1px dashed #dbe3eb;
 }
 
@@ -779,9 +812,87 @@ kbd {
   border-radius: 0.3rem;
 }
 
+.leg-altitude-controls__default-altitude {
+  display: grid;
+  grid-template-columns: max-content minmax(9rem, 11rem);
+  align-items: center;
+  gap: 0.45rem;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.35rem;
+  color: #526175;
+  background: #f8fafc;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.leg-altitude-controls__default-altitude .navigation-inputs__control {
+  min-width: 0;
+}
+
+.leg-altitude-controls__default-altitude input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.38rem;
+  border: 1px solid #aebccc;
+  border-radius: 0.3rem;
+  color: #26384c;
+  background: #ffffff;
+}
+
+.leg-altitude-controls__default-altitude input:focus-visible {
+  outline: 3px solid #e08b28;
+  outline-offset: 1px;
+}
+
+.airport-inputs {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.airport-inputs__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.18rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.airport-inputs__tabs .button {
+  flex: 0 1 auto;
+  min-height: 2rem;
+  padding: 0.3rem 0.5rem;
+  border-color: transparent;
+  border-radius: 0.28rem;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.airport-inputs__tabs .button:hover:not(:disabled) {
+  border-color: #dbe3eb;
+  background: #ffffff;
+}
+
+.airport-inputs__tabs .button--active,
+.airport-inputs__tabs .button--active:hover:not(:disabled) {
+  border-color: #2e6f9f;
+  background: #3e73a7;
+}
+
+.airport-inputs__fields {
+  margin: 0;
+}
+
 .leg-altitude-controls__row .button {
   min-height: 2rem;
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 0.6rem;
   font-size: 0.68rem;
 }
 
@@ -885,24 +996,30 @@ kbd {
 
 .route-table--ofp {
   width: max-content;
-  min-width: 100%;
+  min-width: 0;
   table-layout: auto;
   font-size: 0.68rem;
 }
 
 .route-table--ofp th,
 .route-table--ofp td {
-  min-width: 3.75rem;
-  padding: 0.45rem 0.3rem;
-  text-align: right;
+  min-width: 3rem;
+  padding: 0.45rem 0.35rem;
+  text-align: center;
 }
 
 .route-table--ofp th:first-child,
 .route-table--ofp td:first-child,
 .route-table--ofp th:nth-child(13),
 .route-table--ofp td:nth-child(13) {
-  min-width: 6.5rem;
-  text-align: left;
+  min-width: 5rem;
+}
+
+/* The base route table right-aligns numeric cells. Give the OFP table a
+ * higher-specificity rule so every individual and grouped field stays centred. */
+.route-table--ofp th:nth-child(n + 3),
+.route-table--ofp td:nth-child(n + 3) {
+  text-align: center;
 }
 
 .route-table--ofp thead tr:first-child th {
@@ -930,6 +1047,9 @@ kbd {
 }
 
 .operational-summary {
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
   padding: 0.7rem;
   border: 1px solid #cdd9e4;
   border-radius: 0.4rem;
@@ -938,7 +1058,9 @@ kbd {
 
 .operational-summary__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, max-content);
+  justify-content: start;
+  align-items: start;
   gap: 0.8rem;
 }
 
@@ -951,16 +1073,27 @@ kbd {
 }
 
 .operational-summary__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.7rem;
+  width: max-content;
+  border: 1px solid #cdd9e4;
+  border-spacing: 0;
+  border-collapse: separate;
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background: #ffffff;
+  color: #26384c;
+  font-size: 0.72rem;
 }
 
 .operational-summary__table th,
 .operational-summary__table td {
-  padding: 0.3rem 0.25rem;
+  padding: 0.34rem 0.4rem;
   border-bottom: 1px solid #dfe6ed;
   text-align: right;
+}
+
+.operational-summary__table tbody tr:last-child th,
+.operational-summary__table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .operational-summary__table th:first-child {
@@ -968,11 +1101,20 @@ kbd {
 }
 
 .operational-summary__table thead th {
+  border-bottom: 1px solid #b8c7d7;
+  background: #f1f5f9;
   color: #68778a;
-  font-size: 0.62rem;
+  font-size: 0.63rem;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+}
+
+.operational-summary__table tbody tr:hover {
+  background: #f8fafc;
 }
 
 .operational-summary__total-row {
+  background: #f1f5f9;
   font-weight: 750;
 }
 
@@ -985,9 +1127,10 @@ kbd {
 
 .operational-summary__minimum-flight {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(7.6rem, 1fr));
+  align-self: end;
   gap: 0.4rem;
-  margin: 0.5rem 0 0;
+  margin: 0;
 }
 
 .operational-summary__minimum-flight div {
@@ -1000,6 +1143,12 @@ kbd {
 .operational-summary__minimum-flight dt,
 .operational-summary__minimum-flight dd {
   margin: 0;
+}
+
+.operational-summary__mass-balance-content {
+  display: flex;
+  align-items: end;
+  gap: 0.65rem;
 }
 
 .operational-summary__minimum-flight dt {
@@ -1265,7 +1414,8 @@ kbd {
 
 .leaflet-popup.waypoint-map-popup .leaflet-popup-content,
 .leaflet-popup.leg-map-popup .leaflet-popup-content,
-.leaflet-popup.route-point-map-popup .leaflet-popup-content {
+.leaflet-popup.route-point-map-popup .leaflet-popup-content,
+.leaflet-popup.aerodrome-info-popup .leaflet-popup-content {
   display: grid;
   width: min(20rem, 70vw);
   gap: 0.6rem;
@@ -1299,6 +1449,103 @@ kbd {
 
 .waypoint-map-popup__details dd {
   margin: 0;
+}
+
+.aerodrome-info-popup__heading {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.aerodrome-info-popup__heading .eyebrow {
+  margin: 0;
+}
+
+.aerodrome-info-popup__heading h3,
+.aerodrome-info-popup__heading p {
+  margin: 0;
+}
+
+.aerodrome-info-popup__heading h3 {
+  color: #26384c;
+  font-size: 1rem;
+}
+
+.aerodrome-info-popup__heading p:last-child {
+  color: #526175;
+  font-size: 0.75rem;
+}
+
+.aerodrome-info-popup__facts {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.7rem;
+}
+
+.aerodrome-info-popup__facts > div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.aerodrome-info-popup__facts dt {
+  color: #68778a;
+  font-weight: 700;
+}
+
+.aerodrome-info-popup__facts dd {
+  margin: 0;
+}
+
+.aerodrome-info-popup__status {
+  margin: 0;
+  color: #68778a;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.aerodrome-info-popup__runways {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.aerodrome-info-popup__runways h4 {
+  margin: 0;
+  color: #34465a;
+  font-size: 0.72rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.aerodrome-info-popup__runways table {
+  width: 100%;
+  border: 1px solid #cdd9e4;
+  border-spacing: 0;
+  border-collapse: separate;
+  border-radius: 0.3rem;
+  overflow: hidden;
+  background: #ffffff;
+  color: #26384c;
+  font-size: 0.68rem;
+}
+
+.aerodrome-info-popup__runways th,
+.aerodrome-info-popup__runways td {
+  padding: 0.28rem 0.35rem;
+  border-bottom: 1px solid #dfe6ed;
+  text-align: left;
+}
+
+.aerodrome-info-popup__runways thead th {
+  background: #f1f5f9;
+  color: #68778a;
+  font-size: 0.61rem;
+  letter-spacing: 0.025em;
+}
+
+.aerodrome-info-popup__runways tbody tr:last-child th,
+.aerodrome-info-popup__runways tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .map-popup-actions {
@@ -1488,6 +1735,16 @@ kbd {
 
 .altitude-target-marker {
   display: grid;
+  width: 1rem !important;
+  height: 1rem !important;
+  place-items: center;
+  overflow: visible !important;
+}
+
+.altitude-target-marker > span {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
   border: 2px solid #ffffff;
   border-radius: 50%;
   color: #ffffff;
@@ -1498,16 +1755,18 @@ kbd {
   font-size: 0.48rem;
   font-weight: 800;
   place-items: center;
+  pointer-events: none;
+  transform: translate(-0.45rem, -0.45rem);
 }
 
-.altitude-target-marker--toc {
+.altitude-target-marker--toc > span {
   background: #247a51;
   box-shadow:
     0 0 0 3px rgb(36 122 81 / 32%),
     0 1px 5px rgb(0 0 0 / 45%);
 }
 
-.altitude-target-marker--bod {
+.altitude-target-marker--bod > span {
   background: #a94037;
   box-shadow:
     0 0 0 3px rgb(169 64 55 / 32%),
@@ -1644,6 +1903,9 @@ kbd {
   .navlog-dock {
     max-height: 60vh;
     grid-column: 1;
+    justify-self: stretch;
+    align-self: stretch;
+    width: 100%;
   }
 
   .map-tool-control {
@@ -1662,5 +1924,23 @@ kbd {
 
   .operational-summary__grid {
     grid-template-columns: 1fr;
+  }
+
+  .operational-summary__mass-balance-content {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .operational-summary__minimum-flight {
+    margin-top: 0.5rem;
+  }
+
+  .leg-altitude-controls__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leg-altitude-controls__row .button {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }

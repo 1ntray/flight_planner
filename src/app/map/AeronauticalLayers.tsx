@@ -58,6 +58,7 @@ export interface AeronauticalLayersProps {
   visibility: AeronauticalLayerVisibility;
   anchoringEnabled: boolean;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
+  onSelectAerodromeInformation: (feature: AeronauticalPointFeature) => void;
   alternateAerodromeSelectionEnabled: boolean;
   onSelectAlternateAerodrome: (feature: AeronauticalPointFeature) => void;
   onPointFeaturesChange: (
@@ -97,6 +98,7 @@ export function AeronauticalLayers({
   visibility,
   anchoringEnabled,
   onAnchorPoint,
+  onSelectAerodromeInformation,
   alternateAerodromeSelectionEnabled,
   onSelectAlternateAerodrome,
   onPointFeaturesChange,
@@ -249,6 +251,8 @@ export function AeronauticalLayers({
                   onSelectAlternateAerodrome(feature);
                 } else if (anchoringEnabled) {
                   onAnchorPoint(feature);
+                } else if (feature.pointKind === 'aerodrome') {
+                  onSelectAerodromeInformation(feature);
                 } else {
                   event.target.openPopup();
                 }
@@ -259,8 +263,7 @@ export function AeronauticalLayers({
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
-            {anchoringEnabled ||
-            (alternateAerodromeSelectionEnabled && feature.pointKind === 'aerodrome') ? null : (
+            {feature.pointKind === 'aerodrome' || anchoringEnabled ? null : (
               <Popup>
                 <strong>{feature.identifier}</strong>
                 {feature.name === undefined ? null : <><br />{feature.name}</>}

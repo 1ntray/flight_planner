@@ -78,6 +78,22 @@ therefore never be reused as route waypoint IDs.
 
 Aeronautical point and area clicks do not bubble to the empty-map waypoint
 handler. In Select/Edit mode, point and area clicks show feature information.
+
+Selecting an aerodrome in Select mode opens its basic published-aerodrome
+information: identity, ARP, elevation, active dataset/AIRAC provenance, and
+published TODA/LDA values per available runway direction. Details are resolved on demand through
+`AeronauticalDataRepository.getFeatureDetails`, so the map overlay remains
+lightweight. An aerodrome-anchored route waypoint exposes an **Aerodrome info**
+action in its waypoint popup; this reaches the same information even when the
+route handle visually sits above the aerodrome marker. The popup uses the
+waypoint's saved coordinate snapshot while its published details are looked up
+by its saved source reference.
+
+Live operational data such as METAR, TAF, NOTAMs, or weather products is not
+part of `AeronauticalDataRepository` or the persisted `FlightPlan`. A future
+popup section may compose one or more dedicated, time-aware operational-data
+providers alongside the published aeronautical details without coupling either
+data source to route geometry or anchor persistence.
 In explicit Add waypoint mode, point clicks add one anchored waypoint at the
 published coordinate. Area features remain information-only and cannot add a
 waypoint in any mode.

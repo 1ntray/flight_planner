@@ -14,8 +14,10 @@ function targetIcon(className: string, label: string) {
   return divIcon({
     className: `altitude-target-marker ${className}`,
     html: `<span>${label}</span>`,
-    iconAnchor: [15, 15],
-    iconSize: [30, 30],
+    // The label deliberately overflows this small Leaflet icon box. It stays
+    // readable without competing with a nearby waypoint's hit target.
+    iconAnchor: [8, 8],
+    iconSize: [16, 16],
   });
 }
 
@@ -116,6 +118,7 @@ export function AltitudeTargetMarkers({
               icon={altitudeTargetIcons[targetLabel]}
               draggable={geometryEditingEnabled}
               bubblingMouseEvents={false}
+              zIndexOffset={200}
               title={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target — drag along route`}
               alt={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target`}
               eventHandlers={{

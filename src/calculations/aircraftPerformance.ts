@@ -3,8 +3,11 @@ import type {
   ClimbRateModel,
   PlanningEnvironment,
 } from '../domain';
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../domain';
 
 export const PERFORMANCE_ALTITUDE_STEP_FT = 100;
+export const MAX_VERTICAL_INTERVAL_COUNT =
+  MAX_SUPPORTED_PLANNING_ALTITUDE_FT / PERFORMANCE_ALTITUDE_STEP_FT;
 export const PATTERN_ALTITUDE_ROUNDING_FT = 100;
 export const ENDU_DEFAULT_PATTERN_ALTITUDE_FT_MSL = 1500;
 export const DEFAULT_PATTERN_HEIGHT_AGL_FT = 1000;
@@ -39,6 +42,32 @@ function requireFinite(value: number, label: string): void {
   }
 }
 
+function requireSupportedAltitude(value: number, label: string): void {
+  requireFinite(value, label);
+
+  if (value < 0 || value > MAX_SUPPORTED_PLANNING_ALTITUDE_FT) {
+    throw new RangeError(
+      `${label} must be between 0 and ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT} ft`,
+    );
+  }
+}
+
+function requireSupportedVerticalRange(
+  startAltitudeFt: number,
+  endAltitudeFt: number,
+): void {
+  const intervalCount = Math.ceil(
+    Math.abs(endAltitudeFt - startAltitudeFt) /
+      PERFORMANCE_ALTITUDE_STEP_FT,
+  );
+
+  if (intervalCount > MAX_VERTICAL_INTERVAL_COUNT) {
+    throw new RangeError(
+      `Vertical calculation must not exceed ${MAX_VERTICAL_INTERVAL_COUNT} intervals`,
+    );
+  }
+}
+
 function validateClimbRateModel(model: ClimbRateModel): void {
   requireFinite(
     model.isaAltitudeFactorFtPerC,
@@ -68,13 +97,16 @@ export function calculatePatternAltitudeFtMsl(
   aerodromeElevationFtMsl: number,
   patternHeightAglFt: number,
 ): number {
-  requireFinite(aerodromeElevationFtMsl, 'Aerodrome elevation');
-  requireFinite(patternHeightAglFt, 'Pattern height');
+  requireSupportedAltitude(aerodromeElevationFtMsl, 'Aerodrome elevation');
+  requireSupportedAltitude(patternHeightAglFt, 'Pattern height');
 
-  return Math.round(
+  const patternAltitudeFtMsl = Math.round(
     (aerodromeElevationFtMsl + patternHeightAglFt) /
       PATTERN_ALTITUDE_ROUNDING_FT,
   ) * PATTERN_ALTITUDE_ROUNDING_FT;
+
+  requireSupportedAltitude(patternAltitudeFtMsl, 'Pattern altitude');
+  return patternAltitudeFtMsl;
 }
 
 /**
@@ -87,6 +119,9 @@ export function calculateAerodromePatternAltitudeFtMsl(
   patternHeightAglFt: number,
   aerodromeIdentifier?: string,
 ): number {
+  requireSupportedAltitude(aerodromeElevationFtMsl, 'Aerodrome elevation');
+  requireSupportedAltitude(patternHeightAglFt, 'Pattern height');
+
   if (
     aerodromeIdentifier === 'ENDU' &&
     patternHeightAglFt === DEFAULT_PATTERN_HEIGHT_AGL_FT
@@ -106,7 +141,7 @@ export function calculateClimbRate(
   massKg: number,
   model: ClimbRateModel,
 ): number {
-  requireFinite(altitudeFt, 'Altitude');
+  requireSupportedAltitude(altitudeFt, 'Altitude');
   requireFinite(isaDeviationC, 'ISA deviation');
   requireFinite(massKg, 'Aircraft mass');
   validateClimbRateModel(model);
@@ -136,10 +171,11 @@ export function calculateClimbTime(
   massKg: number,
   model: ClimbRateModel,
 ): ClimbCalculationResult {
-  requireFinite(startAltitudeFt, 'Start altitude');
-  requireFinite(endAltitudeFt, 'End altitude');
+  requireSupportedAltitude(startAltitudeFt, 'Start altitude');
+  requireSupportedAltitude(endAltitudeFt, 'End altitude');
   requireFinite(isaDeviationC, 'ISA deviation');
   requireFinite(massKg, 'Aircraft mass');
+  requireSupportedVerticalRange(startAltitudeFt, endAltitudeFt);
 
   if (endAltitudeFt <= startAltitudeFt) {
     return { status: 'ok', timeMinutes: 0, intervals: [] };
@@ -194,7 +230,7 @@ export function calculateTasFromIas(
   isaDeviationC: number,
 ): number {
   requireFinite(iasKt, 'IAS');
-  requireFinite(altitudeFt, 'Altitude');
+  requireSupportedAltitude(altitudeFt, 'Altitude');
   requireFinite(qnhHpa, 'QNH');
   requireFinite(isaDeviationC, 'ISA deviation');
 
@@ -232,9 +268,10 @@ export function calculateDescentTime(
   endAltitudeFt: number,
   descentRateFtPerMin: number,
 ): number {
-  requireFinite(startAltitudeFt, 'Start altitude');
-  requireFinite(endAltitudeFt, 'End altitude');
+  requireSupportedAltitude(startAltitudeFt, 'Start altitude');
+  requireSupportedAltitude(endAltitudeFt, 'End altitude');
   requireFinite(descentRateFtPerMin, 'Descent rate');
+  requireSupportedVerticalRange(startAltitudeFt, endAltitudeFt);
 
   if (descentRateFtPerMin <= 0) {
     throw new RangeError('Descent rate must be greater than zero');

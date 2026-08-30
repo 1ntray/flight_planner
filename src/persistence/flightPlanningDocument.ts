@@ -1142,12 +1142,20 @@ function requireOperationalInputs(
     alternate = legacyV8
       ? {
           waypoint,
+          plannedAltitudeFtMsl: 2500,
           distanceNm: 0,
           timeMinutes: 0,
           fuelLitres: 0,
         }
       : {
           waypoint,
+          plannedAltitudeFtMsl:
+            alternateRecord.plannedAltitudeFtMsl === undefined
+              ? 2500
+              : requireNonNegativeNumber(
+                  alternateRecord.plannedAltitudeFtMsl,
+                  `${path}.alternate.plannedAltitudeFtMsl`,
+                ),
           distanceNm: requireNonNegativeNumber(
             alternateRecord.distanceNm,
             `${path}.alternate.distanceNm`,

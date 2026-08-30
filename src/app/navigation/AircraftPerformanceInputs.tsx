@@ -1,3 +1,4 @@
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 import type { AircraftPerformanceProfile } from '../../domain';
 import type {
   PerformanceInputDefaults,
@@ -27,6 +28,7 @@ interface NumericFieldProps {
   unit: string;
   placeholder?: string | undefined;
   min?: string;
+  max?: string;
   step?: string;
   draft: PerformanceInputDraft;
   invalid: boolean;
@@ -39,6 +41,7 @@ function NumericField({
   unit,
   placeholder,
   min,
+  max,
   step = '1',
   draft,
   invalid,
@@ -51,6 +54,7 @@ function NumericField({
         <input
           type="number"
           min={min}
+          max={max}
           step={step}
           value={draft[field]}
           placeholder={placeholder}
@@ -108,6 +112,7 @@ export function AircraftPerformanceInputs({
         field="defaultAltitudeFtMsl"
         unit="ft MSL"
         min="0"
+        max={String(MAX_SUPPORTED_PLANNING_ALTITUDE_FT)}
         step="100"
         draft={draft}
         invalid={invalid}
@@ -118,6 +123,7 @@ export function AircraftPerformanceInputs({
         field="departureElevationFtMsl"
         unit="ft MSL"
         min="0"
+        max={String(MAX_SUPPORTED_PLANNING_ALTITUDE_FT)}
         placeholder={
           defaults.departureElevationFtMsl === undefined
             ? undefined
@@ -132,6 +138,7 @@ export function AircraftPerformanceInputs({
         field="destinationElevationFtMsl"
         unit="ft MSL"
         min="0"
+        max={String(MAX_SUPPORTED_PLANNING_ALTITUDE_FT)}
         placeholder={
           defaults.destinationElevationFtMsl === undefined
             ? undefined
@@ -146,6 +153,7 @@ export function AircraftPerformanceInputs({
         field="patternHeightAglFt"
         unit="ft AGL"
         min="0"
+        max={String(MAX_SUPPORTED_PLANNING_ALTITUDE_FT)}
         placeholder={`${DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT} (standard)`}
         draft={draft}
         invalid={invalid}

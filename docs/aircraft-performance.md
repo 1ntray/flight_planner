@@ -23,6 +23,17 @@ integrated from the starting altitude in 100 ft steps (with an exact partial
 final step), evaluating ROC at the start of each interval. A zero or negative
 required ROC returns an impossible-climb result; it is never clamped.
 
+Planning altitude and elevation inputs are bounded to 60,000 ft for the current
+calculation model. This is a defensive software limit, not a published aircraft
+operating limit. The vertical integrators also reject calculations requiring
+more than 600 of their 100 ft intervals, preventing malformed inputs from
+blocking the browser's main thread.
+
+The route performance solver also has a bounded work counter covering repeated
+vertical-step and target-placement evaluation. If that budget is exhausted,
+the calculation returns an explicit no-solution result rather than continuing
+to monopolize the browser renderer.
+
 The constants of that equation are data in the profile's discriminated
 `effective-altitude-linear-mass` climb-rate model. The pure climb functions
 receive the model explicitly. Future aircraft can therefore use other model

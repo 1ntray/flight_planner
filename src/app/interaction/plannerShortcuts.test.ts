@@ -61,9 +61,9 @@ describe('planner keyboard shortcuts', () => {
       .toBe('cancel');
     expect(resolvePlannerShortcut({ key: 'e', editing: false, selection: null, tool: selectTool }))
       .toBe('toggle-edit-route');
-    expect(resolvePlannerShortcut({ key: ']', editing: false, selection: null, tool: selectTool }))
+    expect(resolvePlannerShortcut({ key: '.', editing: false, selection: null, tool: selectTool }))
       .toBe('next-selection');
-    expect(resolvePlannerShortcut({ key: '[', editing: false, selection: null, tool: selectTool }))
+    expect(resolvePlannerShortcut({ key: ',', editing: false, selection: null, tool: selectTool }))
       .toBe('previous-selection');
   });
 

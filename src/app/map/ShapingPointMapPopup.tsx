@@ -29,10 +29,10 @@ export function ShapingPointMapPopup({
           aria-keyshortcuts="Delete"
           onClick={onDelete}
         >
-          Delete
+          Delete <kbd>Del</kbd>
         </button>
-        <button type="button" className="button" onClick={onClose}>
-          Close
+        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
+          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

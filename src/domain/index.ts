@@ -35,6 +35,7 @@ export type {
   SectorStopPlan,
   WindSampleQuery,
 } from './aircraftPerformance';
+export { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from './aircraftPerformance';
 export {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
   LEGACY_AIRCRAFT_PROFILE_DOCUMENT_SCHEMA_VERSION,

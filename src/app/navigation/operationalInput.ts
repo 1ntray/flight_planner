@@ -1,3 +1,4 @@
+import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 import type {
   AircraftDefinition,
   OperationalPlanningInputs,
@@ -21,6 +22,7 @@ export interface OperationalInputDraft {
   alternateEnabled: boolean;
   /** Snapshot chosen from an aerodrome feature; never a primary route waypoint. */
   alternateWaypoint: Waypoint | null;
+  alternatePlannedAltitudeFtMsl: string;
   alternateDistanceNm: string;
   alternateTimeMinutes: string;
   alternateFuelLitres: string;
@@ -42,6 +44,7 @@ export function createEmptyOperationalInputDraft(): OperationalInputDraft {
     sectorOperations: [],
     alternateEnabled: false,
     alternateWaypoint: null,
+    alternatePlannedAltitudeFtMsl: '2500',
     alternateDistanceNm: '',
     alternateTimeMinutes: '',
     alternateFuelLitres: '',
@@ -79,6 +82,8 @@ export function createOperationalInputDraft(
     })),
     alternateEnabled: alternate !== null,
     alternateWaypoint: alternate?.waypoint ?? null,
+    alternatePlannedAltitudeFtMsl:
+      alternate === null ? '2500' : String(alternate.plannedAltitudeFtMsl),
     alternateDistanceNm: alternate === null ? '' : String(alternate.distanceNm),
     alternateTimeMinutes: alternate === null ? '' : String(alternate.timeMinutes),
     alternateFuelLitres: alternate === null ? '' : String(alternate.fuelLitres),
@@ -234,6 +239,7 @@ export function parseOperationalInputDraft(
   let alternate: OperationalPlanningInputs['alternate'] = null;
   if (draft.alternateEnabled) {
     const alternateFields = [
+      [draft.alternatePlannedAltitudeFtMsl, 'Alternate planned altitude', 0],
       [draft.alternateDistanceNm, 'Alternate distance', 0],
       [draft.alternateTimeMinutes, 'Alternate time', 0],
       [draft.alternateFuelLitres, 'Alternate fuel', 0],
@@ -247,18 +253,26 @@ export function parseOperationalInputDraft(
       alternateParsed.push(result);
     }
     const [
+      plannedAltitudeFtMsl,
       distanceNm,
       timeMinutes,
       fuelLitres,
-    ] = alternateParsed as [number, number, number];
+    ] = alternateParsed as [number, number, number, number];
+    if (plannedAltitudeFtMsl > MAX_SUPPORTED_PLANNING_ALTITUDE_FT) {
+      return {
+        status: 'invalid',
+        message: `Alternate planned altitude must not exceed ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT} ft`,
+      };
+    }
     if (draft.alternateWaypoint === null) {
       return {
         status: 'invalid',
-        message: 'Choose an alternate aerodrome on the map',
+        message: 'Choose an alternate aerodrome by ICAO code',
       };
     }
     alternate = {
       waypoint: draft.alternateWaypoint,
+      plannedAltitudeFtMsl,
       distanceNm,
       timeMinutes,
       fuelLitres,

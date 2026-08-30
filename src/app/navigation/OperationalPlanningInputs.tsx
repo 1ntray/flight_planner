@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import type { AircraftDefinition } from '../../domain';
 import type { OperationalInputDraft } from './operationalInput';
 
@@ -6,7 +8,7 @@ export interface OperationalPlanningInputsProps {
   draft: OperationalInputDraft;
   errorMessage?: string;
   calculatedTakeoffMassKg?: number;
-  onChooseAlternateOnMap: () => void;
+  onChooseAlternateByIcao: (icaoIdentifier: string) => Promise<string | null>;
   onChange: (draft: OperationalInputDraft) => void;
 }
 
@@ -66,9 +68,11 @@ export function OperationalPlanningInputs({
   draft,
   errorMessage,
   calculatedTakeoffMassKg,
-  onChooseAlternateOnMap,
+  onChooseAlternateByIcao,
   onChange,
 }: OperationalPlanningInputsProps) {
+  const [alternateIcaoDraft, setAlternateIcaoDraft] = useState('');
+  const [alternateLookupError, setAlternateLookupError] = useState<string | null>(null);
   const fuelSystem = aircraft.fuelSystem;
   const loading = aircraft.weightBalance;
   const invalid = errorMessage !== undefined;
@@ -187,12 +191,48 @@ export function OperationalPlanningInputs({
         <div className="operational-planning-inputs__alternate">
           <p className="navigation-inputs__scope">
             {draft.alternateWaypoint === null
-              ? 'Choose an aerodrome on the map, then enter your own alternate requirements.'
+              ? 'Enter an alternate ICAO code, then enter your own alternate requirements.'
               : `Alternate: ${draft.alternateWaypoint.name}`}
           </p>
-          <button type="button" className="button" onClick={onChooseAlternateOnMap}>
-            {draft.alternateWaypoint === null ? 'Choose aerodrome on map' : 'Change aerodrome on map'}
-          </button>
+          <label>
+            <span>Alternate ICAO</span>
+            <span className="navigation-inputs__control">
+              <input
+                type="text"
+                value={alternateIcaoDraft}
+                placeholder={draft.alternateWaypoint?.anchor?.publishedIdentifier ?? 'e.g. ENTC'}
+                autoCapitalize="characters"
+                onChange={(event) => {
+                  setAlternateIcaoDraft(event.currentTarget.value.toUpperCase());
+                  setAlternateLookupError(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter') return;
+                  event.preventDefault();
+                  void onChooseAlternateByIcao(alternateIcaoDraft).then(
+                    setAlternateLookupError,
+                  );
+                }}
+              />
+              <button
+                type="button"
+                className="button"
+                onClick={() => {
+                  void onChooseAlternateByIcao(alternateIcaoDraft).then(
+                    setAlternateLookupError,
+                  );
+                }}
+              >
+                Set alternate
+              </button>
+            </span>
+          </label>
+          {alternateLookupError === null ? null : (
+            <p className="navigation-inputs__error" role="alert">
+              {alternateLookupError}
+            </p>
+          )}
+          <NumericField label="Alternate planned altitude" field="alternatePlannedAltitudeFtMsl" unit="ft MSL" min="0" step="100" draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate distance" field="alternateDistanceNm" unit="NM" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate time" field="alternateTimeMinutes" unit="min" min="0" step="1" draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate fuel" field="alternateFuelLitres" unit="L" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />

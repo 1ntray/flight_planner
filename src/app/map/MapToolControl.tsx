@@ -100,7 +100,7 @@ export function MapToolControl({
             aria-keyshortcuts="Escape"
             onClick={() => onToolChange({ kind: 'select' })}
           >
-            Cancel
+            Cancel <kbd>Esc</kbd>
           </button>
         </div>
       ) : null}

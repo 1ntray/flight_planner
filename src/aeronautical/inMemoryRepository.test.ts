@@ -23,6 +23,18 @@ const dataset: AeronauticalDatasetMetadata = {
 const features: readonly AeronauticalFeature[] = [
   {
     geometryType: 'point',
+    pointKind: 'aerodrome',
+    ref: {
+      dataset,
+      featureId: 'test-aerodrome',
+      featureKind: 'aerodrome',
+    },
+    identifier: 'TEST',
+    suggestedWaypointName: 'TEST',
+    position: { latitude: 69.31, longitude: 18.81 },
+  },
+  {
+    geometryType: 'point',
     pointKind: 'reporting-point',
     ref: {
       dataset,
@@ -95,7 +107,7 @@ describe('InMemoryAeronauticalRepository', () => {
         bounds,
         featureKinds: ['reporting-point', 'navaid', 'ctr'],
       }),
-    ).resolves.toEqual([features[0], features[2]]);
+    ).resolves.toEqual([features[1], features[3]]);
 
     await expect(
       repository.queryFeatures({
@@ -124,6 +136,12 @@ describe('InMemoryAeronauticalRepository', () => {
     await expect(
       repository.getFeature(aerodromeDetails.ref),
     ).resolves.toBeNull();
+  });
+
+  it('finds an aerodrome by ICAO identifier without a viewport query', async () => {
+    await expect(repository.findAerodromeByIdentifier(' test ')).resolves
+      .toMatchObject({ identifier: 'TEST', pointKind: 'aerodrome' });
+    await expect(repository.findAerodromeByIdentifier('MISSING')).resolves.toBeNull();
   });
 
   it('honours an aborted query without returning stale features', async () => {

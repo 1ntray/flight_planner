@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   calculateNavigationRoute,
@@ -15,10 +15,20 @@ import type {
   CalculatedPerformanceRoute,
   CalculatedOperationalFlightPlan,
 } from '../../calculations';
-import type { AircraftDefinition, FlightPlan } from '../../domain';
+import type {
+  AircraftDefinition,
+  AircraftPerformancePlanInputs,
+  FlightPlan,
+} from '../../domain';
 import { createSampledWindResolver } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
 import { calculateNavigationSummaryRoute } from './calculateNavigationSummaryRoute';
+import {
+  clearCalculationBreadcrumb,
+  measureDevelopmentCalculation,
+  readUnfinishedCalculationBreadcrumb,
+} from './calculationTiming';
+import type { CalculationBreadcrumb } from './calculationTiming';
 import { calculateWithOptionalForecast } from './forecastCalculationSelection';
 import {
   parseNavigationInputDraft,
@@ -46,6 +56,44 @@ import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
 
 const NO_ADDITIONAL_PERFORMANCE_ROUTES:
   readonly CalculatedPerformanceRoute[] = [];
+const EMPTY_CALCULATED_ROUTE: CalculatedNavigationRoute = {
+  departureTimeUtcMs: null,
+  legs: [],
+  totalDistanceNm: 0,
+  totalEetSeconds: null,
+  estimatedArrivalTimeUtcMs: null,
+};
+
+function calculationContext(
+  flightPlan: FlightPlan,
+  performance?: AircraftPerformancePlanInputs,
+): Readonly<Record<string, number>> {
+  const plannedAltitudes = performance === undefined
+    ? []
+    : [
+        performance.defaultAltitudeFtMsl,
+        performance.departureElevationFtMsl,
+        performance.destinationElevationFtMsl,
+        ...performance.legAltitudePlans.flatMap((plan) => [
+          ...(plan.altitudeFtMsl === undefined ? [] : [plan.altitudeFtMsl]),
+          ...(plan.endAltitudeFtMsl === undefined
+            ? []
+            : [plan.endAltitudeFtMsl]),
+        ]),
+      ];
+
+  return {
+    waypointCount: flightPlan.waypoints.length,
+    shapingPointCount: flightPlan.legShapes.reduce(
+      (count, shape) => count + shape.points.length,
+      0,
+    ),
+    altitudePlanCount: performance?.legAltitudePlans.length ?? 0,
+    sectorCount: (flightPlan.sectorBoundaryWaypointIds?.length ?? 0) + 1,
+    maximumPlannedAltitudeFt:
+      plannedAltitudes.length === 0 ? 0 : Math.max(...plannedAltitudes),
+  };
+}
 
 export interface PlanningCalculations {
   parsedInputs: NavigationInputParseResult;
@@ -57,6 +105,9 @@ export interface PlanningCalculations {
   alternateTrueAirspeedKt: number | null;
   performanceRoute: CalculatedPerformanceRoute | null;
   operationalPlan: CalculatedOperationalFlightPlan | null;
+  calculationRecovery: CalculationBreadcrumb | null;
+  calculationsSuspended: boolean;
+  resumeCalculations: () => void;
   forecast: {
     winds: readonly ForecastLegWind[];
     status: RouteForecastStatus;
@@ -86,6 +137,15 @@ export function usePlanningCalculations({
   useForecastWinds,
   forecastRequestKey,
 }: UsePlanningCalculationsInput): PlanningCalculations {
+  const [calculationRecovery, setCalculationRecovery] =
+    useState<CalculationBreadcrumb | null>(
+      () => readUnfinishedCalculationBreadcrumb(),
+    );
+  const calculationsSuspended = calculationRecovery !== null;
+  const resumeCalculations = useCallback(() => {
+    clearCalculationBreadcrumb();
+    setCalculationRecovery(null);
+  }, []);
   const parsedInputs = useMemo(
     () => parseNavigationInputDraft(navigationDraft),
     [navigationDraft],
@@ -135,6 +195,7 @@ export function usePlanningCalculations({
   );
   const legacyPlanning = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid'
     ) {
@@ -156,13 +217,25 @@ export function usePlanningCalculations({
       ),
       plannedAltitudeFtMsl: parsedPerformance.value.defaultAltitudeFtMsl,
     };
-  }, [aircraftDefinition, parsedInputs, parsedPerformance]);
+  }, [
+    aircraftDefinition,
+    calculationsSuspended,
+    parsedInputs,
+    parsedPerformance,
+  ]);
   const manualWindRoute = useMemo(
-    () => calculateNavigationRoute({ flightPlan, planning: legacyPlanning }),
-    [flightPlan, legacyPlanning],
+    () => calculationsSuspended
+      ? EMPTY_CALCULATED_ROUTE
+      : measureDevelopmentCalculation(
+          'manual navigation route',
+          () => calculateNavigationRoute({ flightPlan, planning: legacyPlanning }),
+          calculationContext(flightPlan),
+        ),
+    [calculationsSuspended, flightPlan, legacyPlanning],
   );
   const manualOperationalPlan = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid' ||
       parsedOperational.status !== 'valid'
@@ -170,15 +243,20 @@ export function usePlanningCalculations({
       return null;
     }
 
-    return calculateOperationalFlightPlan({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-      aircraft: aircraftDefinition,
-      operational: parsedOperational.value,
-    });
+    return measureDevelopmentCalculation(
+      'manual operational flight plan',
+      () => calculateOperationalFlightPlan({
+        flightPlan,
+        navigation: parsedInputs.value,
+        performance: parsedPerformance.value,
+        aircraft: aircraftDefinition,
+        operational: parsedOperational.value,
+      }),
+      calculationContext(flightPlan, parsedPerformance.value),
+    );
   }, [
     aircraftDefinition,
+    calculationsSuspended,
     flightPlan,
     parsedInputs,
     parsedOperational,
@@ -186,6 +264,7 @@ export function usePlanningCalculations({
   ]);
   const manualPerformanceRoute = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid'
     ) {
@@ -196,28 +275,39 @@ export function usePlanningCalculations({
       return manualOperationalPlan.performanceRoute;
     }
 
-    return calculatePerformanceRoute({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-      profile: aircraftDefinition.performance,
-    });
+    return measureDevelopmentCalculation(
+      'manual performance route',
+      () => calculatePerformanceRoute({
+        flightPlan,
+        navigation: parsedInputs.value,
+        performance: parsedPerformance.value,
+        profile: aircraftDefinition.performance,
+      }),
+      calculationContext(flightPlan, parsedPerformance.value),
+    );
   }, [
     aircraftDefinition,
+    calculationsSuspended,
     flightPlan,
     manualOperationalPlan,
     parsedInputs,
     parsedPerformance,
   ]);
   const legForecast = useOpenMeteoRouteWinds({
-    enabled: useForecastWinds && parsedPerformance.status !== 'valid',
+    enabled:
+      !calculationsSuspended &&
+      useForecastWinds &&
+      parsedPerformance.status !== 'valid',
     flightPlan,
     planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
     requestKey: forecastRequestKey,
   });
   const performanceForecast = useOpenMeteoPerformanceWinds({
-    enabled: useForecastWinds && parsedPerformance.status === 'valid',
+    enabled:
+      !calculationsSuspended &&
+      useForecastWinds &&
+      parsedPerformance.status === 'valid',
     flightPlan,
     navigation: parsedInputs.status === 'valid' ? parsedInputs.value : null,
     performance:
@@ -227,8 +317,7 @@ export function usePlanningCalculations({
     additionalPreliminaryRoutes: NO_ADDITIONAL_PERFORMANCE_ROUTES,
     requestKey: forecastRequestKey,
   });
-  const forecast =
-    parsedPerformance.status === 'valid'
+  const selectedForecast = parsedPerformance.status === 'valid'
       ? performanceForecast
       : {
           winds:
@@ -238,18 +327,38 @@ export function usePlanningCalculations({
           status: legForecast.status,
           canLoad: legForecast.canLoad,
         };
+  const forecast = calculationsSuspended
+    ? {
+        winds: [] as readonly ForecastLegWind[],
+        status: { status: 'idle' as const },
+        canLoad: false,
+      }
+    : selectedForecast;
   const baseCalculatedRoute = useMemo(
     () =>
-      calculateNavigationSummaryRoute({
-        flightPlan,
-        planning: legacyPlanning,
-        forecastWinds: forecast.winds,
-        performancePlanActive: parsedPerformance.status === 'valid',
-      }),
-    [flightPlan, forecast.winds, legacyPlanning, parsedPerformance.status],
+      calculationsSuspended
+        ? EMPTY_CALCULATED_ROUTE
+        : measureDevelopmentCalculation(
+            'navigation summary route',
+            () => calculateNavigationSummaryRoute({
+              flightPlan,
+              planning: legacyPlanning,
+              forecastWinds: forecast.winds,
+              performancePlanActive: parsedPerformance.status === 'valid',
+            }),
+            calculationContext(flightPlan),
+          ),
+    [
+      calculationsSuspended,
+      flightPlan,
+      forecast.winds,
+      legacyPlanning,
+      parsedPerformance.status,
+    ],
   );
   const operationalPlan = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid' ||
       parsedOperational.status !== 'valid'
@@ -260,20 +369,25 @@ export function usePlanningCalculations({
     return calculateWithOptionalForecast(
       manualOperationalPlan,
       forecast.winds,
-      () => calculateOperationalFlightPlan({
-        flightPlan,
-        navigation: parsedInputs.value,
-        performance: parsedPerformance.value,
-        aircraft: aircraftDefinition,
-        operational: parsedOperational.value,
-        resolveWind: createSampledWindResolver(
-          forecast.winds,
-          parsedInputs.value.wind,
-        ),
-      }),
+      () => measureDevelopmentCalculation(
+        'forecast operational flight plan',
+        () => calculateOperationalFlightPlan({
+          flightPlan,
+          navigation: parsedInputs.value,
+          performance: parsedPerformance.value,
+          aircraft: aircraftDefinition,
+          operational: parsedOperational.value,
+          resolveWind: createSampledWindResolver(
+            forecast.winds,
+            parsedInputs.value.wind,
+          ),
+        }),
+        calculationContext(flightPlan, parsedPerformance.value),
+      ),
     );
   }, [
     aircraftDefinition,
+    calculationsSuspended,
     flightPlan,
     forecast.winds,
     manualOperationalPlan,
@@ -283,6 +397,7 @@ export function usePlanningCalculations({
   ]);
   const performanceRoute = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
       parsedPerformance.status !== 'valid'
     ) {
@@ -293,18 +408,23 @@ export function usePlanningCalculations({
       return operationalPlan.performanceRoute;
     }
 
-    return calculatePerformanceRoute({
-      flightPlan,
-      navigation: parsedInputs.value,
-      performance: parsedPerformance.value,
-      profile: aircraftDefinition.performance,
-      resolveWind: createSampledWindResolver(
-        forecast.winds,
-        parsedInputs.value.wind,
-      ),
-    });
+    return measureDevelopmentCalculation(
+      'forecast performance route',
+      () => calculatePerformanceRoute({
+        flightPlan,
+        navigation: parsedInputs.value,
+        performance: parsedPerformance.value,
+        profile: aircraftDefinition.performance,
+        resolveWind: createSampledWindResolver(
+          forecast.winds,
+          parsedInputs.value.wind,
+        ),
+      }),
+      calculationContext(flightPlan, parsedPerformance.value),
+    );
   }, [
     aircraftDefinition,
+    calculationsSuspended,
     flightPlan,
     forecast.winds,
     operationalPlan,
@@ -312,23 +432,28 @@ export function usePlanningCalculations({
     parsedPerformance,
   ]);
   const calculatedRoute = useMemo(() => {
-    if (parsedInputs.status !== 'valid') {
+    if (calculationsSuspended || parsedInputs.status !== 'valid') {
       return baseCalculatedRoute;
     }
 
-    return applyLegMagneticVariations(
-      baseCalculatedRoute,
-      calculateRouteMagneticVariations({
-        flightPlan,
-        navigationRoute: baseCalculatedRoute,
-        performanceRoute,
-        mode: parsedInputs.value.magneticVariationMode,
-        manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
-        fallbackAltitudeFtMsl: legacyPlanning?.plannedAltitudeFtMsl ?? null,
-      }),
+    return measureDevelopmentCalculation(
+      'route magnetic variation',
+      () => applyLegMagneticVariations(
+        baseCalculatedRoute,
+        calculateRouteMagneticVariations({
+          flightPlan,
+          navigationRoute: baseCalculatedRoute,
+          performanceRoute,
+          mode: parsedInputs.value.magneticVariationMode,
+          manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
+          fallbackAltitudeFtMsl: legacyPlanning?.plannedAltitudeFtMsl ?? null,
+        }),
+      ),
+      calculationContext(flightPlan),
     );
   }, [
     baseCalculatedRoute,
+    calculationsSuspended,
     flightPlan,
     legacyPlanning?.plannedAltitudeFtMsl,
     parsedInputs,
@@ -336,7 +461,9 @@ export function usePlanningCalculations({
   ]);
   const alternateCalculatedRoute = useMemo(() => {
     if (
+      calculationsSuspended ||
       parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid' ||
       parsedOperational.status !== 'valid' ||
       legacyPlanning === null ||
       operationalPlan?.status !== 'ok'
@@ -344,8 +471,9 @@ export function usePlanningCalculations({
       return null;
     }
     const finalWaypoint = flightPlan.waypoints.at(-1);
-    const alternateWaypoint = parsedOperational.value.alternate?.waypoint;
-    if (finalWaypoint === undefined || alternateWaypoint === undefined) {
+    const alternate = parsedOperational.value.alternate;
+    const alternateWaypoint = alternate?.waypoint;
+    if (finalWaypoint === undefined || alternateWaypoint === undefined || alternate === null) {
       return null;
     }
 
@@ -358,32 +486,82 @@ export function usePlanningCalculations({
       performanceRoute?.status === 'ok'
         ? performanceRoute.estimatedArrivalTimeUtcMs
         : baseCalculatedRoute.estimatedArrivalTimeUtcMs;
-    const baseRoute = calculateNavigationRoute({
-      flightPlan: alternateFlightPlan,
-      planning: {
-        ...legacyPlanning,
-        departureTimeUtcMs: alternateDepartureTimeUtcMs ??
-          legacyPlanning.departureTimeUtcMs,
-      },
-    });
-    return applyLegMagneticVariations(
-      baseRoute,
-      calculateRouteMagneticVariations({
+    const environment = calculatePlanningEnvironment(
+      parsedPerformance.value.departureWeather,
+      parsedPerformance.value.destinationWeather,
+    );
+    const alternatePlanning = {
+      ...legacyPlanning,
+      trueAirspeedKt: calculateTasFromIas(
+        aircraftDefinition.performance.cruise.iasKt,
+        alternate.plannedAltitudeFtMsl,
+        environment.qnhHpa,
+        environment.isaDeviationC,
+      ),
+      plannedAltitudeFtMsl: alternate.plannedAltitudeFtMsl,
+      departureTimeUtcMs: alternateDepartureTimeUtcMs ??
+        legacyPlanning.departureTimeUtcMs,
+    };
+    const context = calculationContext(flightPlan, parsedPerformance.value);
+    const baseRoute = measureDevelopmentCalculation(
+      'alternate navigation route',
+      () => calculateNavigationRoute({
         flightPlan: alternateFlightPlan,
-        navigationRoute: baseRoute,
-        mode: parsedInputs.value.magneticVariationMode,
-        manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
-        fallbackAltitudeFtMsl: legacyPlanning.plannedAltitudeFtMsl,
+        planning: alternatePlanning,
       }),
+      context,
+    );
+    return measureDevelopmentCalculation(
+      'alternate route magnetic variation',
+      () => applyLegMagneticVariations(
+        baseRoute,
+        calculateRouteMagneticVariations({
+          flightPlan: alternateFlightPlan,
+          navigationRoute: baseRoute,
+          mode: parsedInputs.value.magneticVariationMode,
+          manualVariationDegEast: parsedInputs.value.magneticVariationDegEast,
+          fallbackAltitudeFtMsl: alternatePlanning.plannedAltitudeFtMsl,
+        }),
+      ),
+      context,
     );
   }, [
+    calculationsSuspended,
     flightPlan.waypoints,
     legacyPlanning,
     baseCalculatedRoute.estimatedArrivalTimeUtcMs,
     operationalPlan,
     parsedInputs,
+    parsedPerformance,
     parsedOperational,
     performanceRoute,
+  ]);
+  const alternateTrueAirspeedKt = useMemo(() => {
+    if (
+      calculationsSuspended ||
+      parsedPerformance.status !== 'valid' ||
+      parsedOperational.status !== 'valid' ||
+      parsedOperational.value.alternate === null
+    ) {
+      return legacyPlanning?.trueAirspeedKt ?? null;
+    }
+
+    const environment = calculatePlanningEnvironment(
+      parsedPerformance.value.departureWeather,
+      parsedPerformance.value.destinationWeather,
+    );
+    return calculateTasFromIas(
+      aircraftDefinition.performance.cruise.iasKt,
+      parsedOperational.value.alternate.plannedAltitudeFtMsl,
+      environment.qnhHpa,
+      environment.isaDeviationC,
+    );
+  }, [
+    aircraftDefinition,
+    calculationsSuspended,
+    legacyPlanning?.trueAirspeedKt,
+    parsedOperational,
+    parsedPerformance,
   ]);
 
   return {
@@ -393,9 +571,12 @@ export function usePlanningCalculations({
     derivedTakeoffMassKg: derivedMassKg ?? null,
     calculatedRoute,
     alternateCalculatedRoute,
-    alternateTrueAirspeedKt: legacyPlanning?.trueAirspeedKt ?? null,
+    alternateTrueAirspeedKt,
     performanceRoute,
     operationalPlan,
+    calculationRecovery,
+    calculationsSuspended,
+    resumeCalculations,
     forecast,
   };
 }

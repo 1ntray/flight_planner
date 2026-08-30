@@ -126,6 +126,7 @@ export function RoutePointMarkers({
             }
             draggable={!isAnchored && geometryEditingEnabled}
             bubblingMouseEvents={false}
+            zIndexOffset={500}
             title={`${waypoint.name}${isAnchored ? ' — anchored' : ''}`}
             alt={waypoint.name}
             eventHandlers={{
