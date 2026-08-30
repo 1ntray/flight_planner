@@ -13,6 +13,7 @@ import type {
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  MAX_WAYPOINT_NAME_LENGTH,
   PROJECT_AIRCRAFT_DEFINITION,
 } from '../domain';
 import { calculateInitialTakeoffLoading } from '../calculations';
@@ -72,6 +73,13 @@ import { usePlanningCalculations } from './navigation/usePlanningCalculations';
 import type { LocalDraftStatus } from './persistence/FlightPlanFileControls';
 import { usePlannerShortcuts } from './interaction/usePlannerShortcuts';
 import type { PlannerShortcutAction } from './interaction/plannerShortcuts';
+import { BatchEntryBar } from './interaction/BatchEntryBar';
+import { CommandPalette } from './interaction/CommandPalette';
+import { usePlanningHistory } from './interaction/usePlanningHistory';
+import {
+  selectRouteLegAt,
+  traverseRouteSelection,
+} from './interaction/selectionTraversal';
 import { PlannerSidebar } from './layout/PlannerSidebar';
 import { NavlogDock } from './layout/NavlogDock';
 import {
@@ -121,6 +129,10 @@ const EMPTY_ENDPOINT_AERODROME_ELEVATIONS: EndpointAerodromeElevations = {
   destination: null,
 };
 
+type BatchEntryMode =
+  | { readonly kind: 'naming'; readonly index: number }
+  | { readonly kind: 'altitude'; readonly index: number };
+
 function getEndpointAerodromeReference(
   waypoint: Waypoint | undefined,
 ): EndpointAerodromeReference | null {
@@ -156,6 +168,8 @@ interface InitialPlanningState extends PlanningState {
   localDraftStatus: LocalDraftStatus;
   restoredFromLocalDraft: boolean;
 }
+
+type PlanningHistorySnapshot = Omit<PlanningState, 'document'>;
 
 function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
   const flightPlan: FlightPlan = {
@@ -253,6 +267,10 @@ export function App() {
     useState<'planning' | 'shortcuts'>('planning');
   const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
   const [waypointNameFocusRequest, setWaypointNameFocusRequest] = useState(0);
+  const [batchEntryMode, setBatchEntryMode] = useState<BatchEntryMode | null>(
+    null,
+  );
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [navigationInputDraft, setNavigationInputDraft] =
     useState<NavigationInputDraft>(
       initialPlanningState.navigationInputDraft,
@@ -277,6 +295,42 @@ export function App() {
     );
   const [sectorStopAerodromeElevations, setSectorStopAerodromeElevations] =
     useState<readonly EndpointAerodromeElevation[]>([]);
+  const planningHistorySnapshot = useMemo<PlanningHistorySnapshot>(
+    () => ({
+      flightPlan,
+      aircraftDefinition,
+      navigationInputDraft,
+      performanceInputDraft,
+      operationalInputDraft,
+      useForecastWinds,
+    }),
+    [
+      aircraftDefinition,
+      flightPlan,
+      navigationInputDraft,
+      operationalInputDraft,
+      performanceInputDraft,
+      useForecastWinds,
+    ],
+  );
+  const restorePlanningHistorySnapshot = useCallback(
+    (snapshot: PlanningHistorySnapshot) => {
+      setFlightPlan(snapshot.flightPlan);
+      setAircraftDefinition(snapshot.aircraftDefinition);
+      setNavigationInputDraft(snapshot.navigationInputDraft);
+      setPerformanceInputDraft(snapshot.performanceInputDraft);
+      setOperationalInputDraft(snapshot.operationalInputDraft);
+      setUseForecastWinds(snapshot.useForecastWinds);
+      setMapSelection(null);
+      setMapTool({ kind: 'select' });
+      setBatchEntryMode(null);
+    },
+    [],
+  );
+  const planningHistory = usePlanningHistory(
+    planningHistorySnapshot,
+    restorePlanningHistorySnapshot,
+  );
   const lastSavedDocumentJsonRef = useRef<string | null>(
     initialPlanningState.restoredFromLocalDraft
       ? serializeFlightPlanningDocument(initialPlanningState.document)
@@ -978,11 +1032,84 @@ export function App() {
       setMapSelection(null);
     }
   }, []);
+  const startBatchNaming = useCallback(() => {
+    if (flightPlan.waypoints.length === 0) {
+      return;
+    }
+
+    const selectedIndex =
+      mapSelection?.kind === 'waypoint'
+        ? flightPlan.waypoints.findIndex(
+            (waypoint) => waypoint.id === mapSelection.id,
+          )
+        : -1;
+    const index = selectedIndex < 0 ? 0 : selectedIndex;
+    setMapSelection({ kind: 'waypoint', id: flightPlan.waypoints[index]!.id });
+    setMapTool({ kind: 'select' });
+    setBatchEntryMode({ kind: 'naming', index });
+  }, [flightPlan.waypoints, mapSelection]);
+  const startBatchAltitude = useCallback(() => {
+    const legCount = flightPlan.waypoints.length - 1;
+    if (legCount <= 0) {
+      return;
+    }
+
+    const selectedIndex =
+      mapSelection?.kind === 'leg'
+        ? flightPlan.waypoints.findIndex(
+            (waypoint) =>
+              waypoint.id === mapSelection.candidate.fromWaypointId,
+          )
+        : -1;
+    const index = selectedIndex < 0 ? 0 : selectedIndex;
+    const legSelection = selectRouteLegAt(flightPlan, index);
+    if (legSelection === null) {
+      return;
+    }
+    setMapSelection(legSelection);
+    setMapTool({ kind: 'select' });
+    setBatchEntryMode({ kind: 'altitude', index });
+  }, [flightPlan, mapSelection]);
+  const moveBatchEntry = useCallback(
+    (direction: -1 | 1) => {
+      setBatchEntryMode((current) => {
+        if (current === null) {
+          return null;
+        }
+        const itemCount =
+          current.kind === 'naming'
+            ? flightPlan.waypoints.length
+            : flightPlan.waypoints.length - 1;
+        if (itemCount <= 0) {
+          return null;
+        }
+        const index =
+          (current.index + direction + itemCount) % itemCount;
+        if (current.kind === 'naming') {
+          setMapSelection({
+            kind: 'waypoint',
+            id: flightPlan.waypoints[index]!.id,
+          });
+        } else {
+          const legSelection = selectRouteLegAt(flightPlan, index);
+          if (legSelection !== null) {
+            setMapSelection(legSelection);
+          }
+        }
+        return { ...current, index };
+      });
+    },
+    [flightPlan],
+  );
   const handlePlannerShortcut = useCallback(
     (action: PlannerShortcutAction) => {
       switch (action) {
         case 'cancel':
-          if (mapTool.kind !== 'select') {
+          if (commandPaletteOpen) {
+            setCommandPaletteOpen(false);
+          } else if (batchEntryMode !== null) {
+            setBatchEntryMode(null);
+          } else if (mapTool.kind !== 'select') {
             setMapTool({ kind: 'select' });
           } else {
             setMapSelection(null);
@@ -1018,11 +1145,46 @@ export function App() {
             });
           }
           break;
+        case 'place-end-altitude-target':
+          if (mapSelection?.kind === 'leg') {
+            setMapTool({
+              kind: 'place-altitude-target',
+              fromWaypointId: mapSelection.candidate.fromWaypointId,
+              toWaypointId: mapSelection.candidate.toWaypointId,
+              target: 'end',
+            });
+          }
+          break;
+        case 'reset-altitude-target':
+          if (mapSelection?.kind === 'leg') {
+            resetAltitudeTarget(
+              mapSelection.candidate.fromWaypointId,
+              mapSelection.candidate.toWaypointId,
+              'primary',
+            );
+          }
+          break;
+        case 'reset-end-altitude-target':
+          if (mapSelection?.kind === 'leg') {
+            resetAltitudeTarget(
+              mapSelection.candidate.fromWaypointId,
+              mapSelection.candidate.toWaypointId,
+              'end',
+            );
+          }
+          break;
         case 'toggle-add-waypoint':
           changeMapTool(
             mapTool.kind === 'add-waypoint'
               ? { kind: 'select' }
               : { kind: 'add-waypoint' },
+          );
+          break;
+        case 'toggle-edit-route':
+          changeMapTool(
+            mapTool.kind === 'edit-route'
+              ? { kind: 'select' }
+              : { kind: 'edit-route' },
           );
           break;
         case 'select-mode':
@@ -1033,6 +1195,31 @@ export function App() {
             toggleWaypointSectorBoundary(selectedWaypoint.id);
           }
           break;
+        case 'previous-selection':
+          setMapSelection(
+            traverseRouteSelection(flightPlan, mapSelection, -1),
+          );
+          break;
+        case 'next-selection':
+          setMapSelection(
+            traverseRouteSelection(flightPlan, mapSelection, 1),
+          );
+          break;
+        case 'start-naming-mode':
+          startBatchNaming();
+          break;
+        case 'start-altitude-mode':
+          startBatchAltitude();
+          break;
+        case 'undo':
+          planningHistory.undo();
+          break;
+        case 'redo':
+          planningHistory.redo();
+          break;
+        case 'show-command-palette':
+          setCommandPaletteOpen(true);
+          break;
         case 'show-shortcuts':
           setActiveSidebarTab('shortcuts');
           break;
@@ -1040,13 +1227,20 @@ export function App() {
     },
     [
       changeMapTool,
+      batchEntryMode,
+      commandPaletteOpen,
       deleteSelectedRoutePoint,
       insertWaypoint,
       mapSelection,
       mapTool.kind,
+      flightPlan,
+      resetAltitudeTarget,
       selectedWaypoint,
       selectedWaypointCanBeSectorBoundary,
       toggleWaypointSectorBoundary,
+      startBatchAltitude,
+      startBatchNaming,
+      planningHistory,
     ],
   );
 
@@ -1093,8 +1287,8 @@ export function App() {
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
-          Select/edit is the safe default. Press W to add waypoints, click a
-          route leg to edit it, or drag the line to shape it.
+          Select is the safe default. Press W to add waypoints, E to edit route
+          geometry, or ? to see every shortcut.
         </p>
       </header>
 
@@ -1109,6 +1303,9 @@ export function App() {
             defaultAltitudeFtMsl={performanceInputDraft.defaultAltitudeFtMsl}
             altitudeFocusRequest={altitudeFocusRequest}
             waypointNameFocusRequest={waypointNameFocusRequest}
+            suppressSelectionPopups={batchEntryMode !== null}
+            canUndo={planningHistory.canUndo}
+            canRedo={planningHistory.canRedo}
             performanceRoute={calculations.performanceRoute}
             {...(calculations.parsedOperational.status === 'valid' &&
             calculations.parsedOperational.value.alternate !== null
@@ -1135,7 +1332,73 @@ export function App() {
             onSetLegEndAltitude={setLegEndAltitude}
             onResetAltitudeTarget={resetAltitudeTarget}
             onSetAltitudeTarget={setAltitudeTarget}
+            onUndo={planningHistory.undo}
+            onRedo={planningHistory.redo}
           />
+          {batchEntryMode?.kind === 'naming' ? (() => {
+            const waypoint = flightPlan.waypoints[batchEntryMode.index];
+            if (waypoint === undefined) {
+              return null;
+            }
+            return (
+              <BatchEntryBar
+                title="Sequential waypoint naming"
+                itemLabel={`${batchEntryMode.index + 1} of ${flightPlan.waypoints.length} · ${waypoint.name}`}
+                initialValue={waypoint.name}
+                placeholder="Waypoint name"
+                inputMode="text"
+                onCommit={(value) => {
+                  const name = value.trim();
+                  if (name === '') {
+                    return 'Enter a waypoint name.';
+                  }
+                  if (name.length > MAX_WAYPOINT_NAME_LENGTH) {
+                    return `Use ${MAX_WAYPOINT_NAME_LENGTH} characters or fewer.`;
+                  }
+                  renameWaypoint(waypoint.id, name);
+                  return null;
+                }}
+                onMove={moveBatchEntry}
+                onClose={() => setBatchEntryMode(null)}
+              />
+            );
+          })() : null}
+          {batchEntryMode?.kind === 'altitude' ? (() => {
+            const from = flightPlan.waypoints[batchEntryMode.index];
+            const to = flightPlan.waypoints[batchEntryMode.index + 1];
+            if (from === undefined || to === undefined) {
+              return null;
+            }
+            const plan = performanceInputDraft.legAltitudePlans.find(
+              (candidate) =>
+                candidate.fromWaypointId === from.id &&
+                candidate.toWaypointId === to.id,
+            );
+            return (
+              <BatchEntryBar
+                title="Sequential altitude entry"
+                itemLabel={`${batchEntryMode.index + 1} of ${flightPlan.waypoints.length - 1} · ${from.name} → ${to.name}`}
+                initialValue={plan?.altitudeFtMsl === undefined ? '' : String(plan.altitudeFtMsl)}
+                placeholder={performanceInputDraft.defaultAltitudeFtMsl || 'Global altitude'}
+                inputMode="numeric"
+                unit="ft MSL"
+                onCommit={(value) => {
+                  if (value.trim() === '') {
+                    setLegAltitude(from.id, to.id, null);
+                    return null;
+                  }
+                  const altitudeFtMsl = Number(value);
+                  if (!Number.isFinite(altitudeFtMsl) || altitudeFtMsl < 0) {
+                    return 'Enter a non-negative altitude or leave it blank for the global preset.';
+                  }
+                  setLegAltitude(from.id, to.id, altitudeFtMsl);
+                  return null;
+                }}
+                onMove={moveBatchEntry}
+                onClose={() => setBatchEntryMode(null)}
+              />
+            );
+          })() : null}
         </section>
 
         <PlannerSidebar
@@ -1156,6 +1419,26 @@ export function App() {
           navigationLogProps={navigationLogProps}
         />
       </div>
+      {commandPaletteOpen ? (
+        <CommandPalette
+          commands={[
+            { id: 'select-mode', label: 'Select mode', shortcut: 'V' },
+            { id: 'toggle-edit-route', label: 'Toggle Edit route mode', shortcut: 'E' },
+            { id: 'toggle-add-waypoint', label: 'Toggle Add waypoint mode', shortcut: 'W' },
+            { id: 'start-naming-mode', label: 'Sequential waypoint naming', shortcut: 'Shift+N' },
+            { id: 'start-altitude-mode', label: 'Sequential altitude entry', shortcut: 'Shift+A' },
+            { id: 'toggle-landing', label: 'Toggle intermediate landing', shortcut: 'L' },
+            { id: 'undo', label: 'Undo', shortcut: 'Ctrl/Cmd+Z' },
+            { id: 'redo', label: 'Redo', shortcut: 'Ctrl/Cmd+Shift+Z' },
+            { id: 'show-shortcuts', label: 'Open shortcut reference', shortcut: '?' },
+          ]}
+          onRun={(command) => {
+            setCommandPaletteOpen(false);
+            handlePlannerShortcut(command as PlannerShortcutAction);
+          }}
+          onClose={() => setCommandPaletteOpen(false)}
+        />
+      ) : null}
     </main>
   );
 }

@@ -179,10 +179,10 @@ export function LegMapPopup({
         <button
           type="button"
           className="button"
-          aria-keyshortcuts="I"
-          onClick={onInsertWaypoint}
+          disabled={targetDistance === null}
+          onClick={onResetAltitudeTarget}
         >
-          Add waypoint <kbd>I</kbd>
+          Automatic target
         </button>
         <button
           type="button"
@@ -195,10 +195,10 @@ export function LegMapPopup({
         <button
           type="button"
           className="button"
-          disabled={targetDistance === null}
-          onClick={onResetAltitudeTarget}
+          disabled={endTargetDistance === null}
+          onClick={onResetEndAltitudeTarget}
         >
-          Automatic target
+          Automatic end target
         </button>
         <button
           type="button"
@@ -211,10 +211,10 @@ export function LegMapPopup({
         <button
           type="button"
           className="button"
-          disabled={endTargetDistance === null}
-          onClick={onResetEndAltitudeTarget}
+          aria-keyshortcuts="I"
+          onClick={onInsertWaypoint}
         >
-          Automatic end target
+          Add waypoint <kbd>I</kbd>
         </button>
         <button type="button" className="button" onClick={onClose}>
           Close

@@ -98,7 +98,7 @@ function MapClickHandler({
 
       if (tool.kind === 'add-waypoint') {
         onAddWaypoint(toPosition(event));
-      } else if (tool.kind === 'select') {
+      } else if (tool.kind === 'select' || tool.kind === 'edit-route') {
         onClearSelection();
       }
     },
@@ -202,11 +202,11 @@ function RouteLines({
                   }}
                   eventHandlers={{
                     mousedown: (event) => {
-                      DomEvent.stop(event.originalEvent);
-
-                      if (tool.kind !== 'select') {
+                      if (tool.kind !== 'edit-route') {
                         return;
                       }
+
+                      DomEvent.stop(event.originalEvent);
 
                       map.dragging.disable();
                       onBeginInteraction({
@@ -253,7 +253,7 @@ function RouteLines({
                         position: segmentSnap.position,
                       };
 
-                      if (tool.kind === 'select') {
+                      if (tool.kind === 'select' || tool.kind === 'edit-route') {
                         onSelectLeg({
                           kind: 'leg',
                           candidate,
@@ -397,6 +397,9 @@ export interface FlightMapProps {
   defaultAltitudeFtMsl: string;
   altitudeFocusRequest: number;
   waypointNameFocusRequest: number;
+  suppressSelectionPopups?: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   performanceRoute: CalculatedPerformanceRoute | null;
   alternateWaypoint?: Waypoint;
   onAddWaypoint: (position: Position) => void;
@@ -439,6 +442,8 @@ export interface FlightMapProps {
     distanceFromStartNm: number,
     target: 'primary' | 'end',
   ) => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export function FlightMap({
@@ -450,6 +455,9 @@ export function FlightMap({
   defaultAltitudeFtMsl,
   altitudeFocusRequest,
   waypointNameFocusRequest,
+  suppressSelectionPopups = false,
+  canUndo,
+  canRedo,
   performanceRoute,
   alternateWaypoint,
   onAddWaypoint,
@@ -470,6 +478,8 @@ export function FlightMap({
   onSetLegEndAltitude,
   onResetAltitudeTarget,
   onSetAltitudeTarget,
+  onUndo,
+  onRedo,
 }: FlightMapProps) {
   const [draggedPoint, setDraggedPoint] =
     useState<DraggedRoutePointPosition | null>(null);
@@ -664,7 +674,10 @@ export function FlightMap({
         <Pane name="route-lines" style={{ zIndex: 500 }}>
           <RouteLines
             legs={routeLegs}
-            interactionEnabled={routeLineInteraction?.mode !== 'shaping'}
+          interactionEnabled={
+            routeLineInteraction?.mode !== 'shaping' &&
+            tool.kind !== 'select-alternate-aerodrome'
+          }
             tool={tool}
             selectedLeg={selectedLeg}
             onBeginInteraction={beginRouteLineInteraction}
@@ -712,6 +725,7 @@ export function FlightMap({
           selectedRoutePoint={selection}
           draggedPoint={draggedPoint}
           pendingShapingPoint={pendingShapingPoint}
+          geometryEditingEnabled={tool.kind === 'edit-route'}
           onDraggedPointChange={setDraggedPoint}
           onMoveWaypoint={onMoveWaypoint}
           aeronauticalPointFeatures={visibleAeronauticalPointFeatures}
@@ -728,10 +742,13 @@ export function FlightMap({
           flightPlan={flightPlan}
           plans={altitudePlans}
           performanceRoute={performanceRoute}
+          geometryEditingEnabled={tool.kind === 'edit-route'}
           onSetTargetDistance={onSetAltitudeTarget}
         />
 
-        {tool.kind !== 'select' || selectedWaypoint === undefined ? null : (
+        {tool.kind !== 'select' ||
+        suppressSelectionPopups ||
+        selectedWaypoint === undefined ? null : (
           <WaypointMapPopup
             waypoint={selectedWaypoint}
             position={selectedWaypointDisplayPosition ?? selectedWaypoint.position}
@@ -754,6 +771,7 @@ export function FlightMap({
         )}
 
         {tool.kind !== 'select' ||
+        suppressSelectionPopups ||
         selectedShapingPoint === undefined ||
         selectedShapingPointDisplayPosition === undefined ? null : (
           <ShapingPointMapPopup
@@ -764,6 +782,7 @@ export function FlightMap({
         )}
 
         {tool.kind !== 'select' ||
+        suppressSelectionPopups ||
         selectedLeg === null ||
         selectedLegFrom === undefined ||
         selectedLegTo === undefined ? null : (
@@ -829,7 +848,11 @@ export function FlightMap({
         tool={tool}
         fromName={toolFrom?.name}
         toName={toolTo?.name}
+        canUndo={canUndo}
+        canRedo={canRedo}
         onToolChange={onToolChange}
+        onUndo={onUndo}
+        onRedo={onRedo}
       />
 
       <AeronauticalLayerControl

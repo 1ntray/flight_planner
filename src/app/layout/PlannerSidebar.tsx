@@ -1,5 +1,6 @@
 import type { FlightPlanningDocument } from '../../domain';
 import { ShortcutReference } from '../interaction/ShortcutReference';
+import { CollapsibleSection } from './CollapsibleSection';
 import { NavigationLog } from '../navigation/NavigationLog';
 import type { NavigationLogProps } from '../navigation/NavigationLog';
 import { FlightPlanFileControls } from '../persistence/FlightPlanFileControls';
@@ -87,12 +88,14 @@ export function PlannerSidebar({
               </button>
             </div>
 
-            <FlightPlanFileControls
-              document={planningDocument}
-              localDraftStatus={localDraftStatus}
-              onImport={onImport}
-              onNewPlan={onNewPlan}
-            />
+            <CollapsibleSection title="Plan file" summary="Import, export, local draft">
+              <FlightPlanFileControls
+                document={planningDocument}
+                localDraftStatus={localDraftStatus}
+                onImport={onImport}
+                onNewPlan={onNewPlan}
+              />
+            </CollapsibleSection>
 
             <NavigationLog section="controls" {...navigationLogProps} />
           </div>

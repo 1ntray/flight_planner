@@ -29,6 +29,7 @@ export interface AltitudeTargetMarkersProps {
   flightPlan: FlightPlan;
   plans: readonly LegAltitudePlan[];
   performanceRoute: CalculatedPerformanceRoute | null;
+  geometryEditingEnabled: boolean;
   onSetTargetDistance: (
     fromWaypointId: string,
     toWaypointId: string,
@@ -46,6 +47,7 @@ export function AltitudeTargetMarkers({
   flightPlan,
   plans,
   performanceRoute,
+  geometryEditingEnabled,
   onSetTargetDistance,
 }: AltitudeTargetMarkersProps) {
   const legs = calculateRoute(flightPlan);
@@ -112,7 +114,7 @@ export function AltitudeTargetMarkers({
               key={`${plan.fromWaypointId}:${plan.toWaypointId}:${targetKind}`}
               position={[target.position.latitude, target.position.longitude]}
               icon={altitudeTargetIcons[targetLabel]}
-              draggable
+              draggable={geometryEditingEnabled}
               bubblingMouseEvents={false}
               title={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target — drag along route`}
               alt={`${targetKind === 'primary' ? 'Planned' : 'End'} altitude target`}

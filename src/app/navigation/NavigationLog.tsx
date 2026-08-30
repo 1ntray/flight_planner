@@ -1,5 +1,6 @@
 import type { AircraftDefinition, FlightPlan } from '../../domain';
 import { SectorRouteTables } from '../route/SectorRouteTables';
+import { CollapsibleSection } from '../layout/CollapsibleSection';
 import type { NavigationInputDraft } from './navigationInput';
 import { AircraftPerformanceInputs } from './AircraftPerformanceInputs';
 import { AircraftSelector } from './AircraftSelector';
@@ -13,6 +14,7 @@ import type {
 import type { OperationalInputDraft } from './operationalInput';
 import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
+import { formatPerformanceRouteFailureLeg } from './performanceRouteFormatting';
 import {
   FORECAST_SOURCE_LABEL,
   formatForecastRetrievalTime,
@@ -89,6 +91,12 @@ export function NavigationLog({
     <>
       {showControls ? (
         <>
+      <CollapsibleSection
+        title="Route and weather"
+        summary={useForecastWinds ? 'Forecast wind' : 'Manual wind'}
+        hasIssue={parsedInputs.status === 'invalid' || forecast.status.status === 'error'}
+        defaultOpen
+      >
       <fieldset className="navigation-inputs">
         <legend>Route planning inputs</legend>
         <p className="navigation-inputs__scope">
@@ -303,12 +311,23 @@ export function NavigationLog({
           </p>
         ) : null}
       </fieldset>
+      </CollapsibleSection>
 
+      <CollapsibleSection
+        title="Aircraft"
+        summary={aircraftDefinition.displayName}
+      >
       <AircraftSelector
         aircraftDefinition={aircraftDefinition}
         onChange={onAircraftDefinitionChange}
       />
+      </CollapsibleSection>
 
+      <CollapsibleSection
+        title="Fuel and mass & balance"
+        summary={`${operationalDraft.fuelOnboardLitres || '—'} L onboard`}
+        hasIssue={parsedOperational.status === 'invalid' || operationalPlan?.status === 'no-solution'}
+      >
       <OperationalPlanningInputs
         aircraft={aircraftDefinition}
         draft={operationalDraft}
@@ -323,7 +342,13 @@ export function NavigationLog({
         onChange={onOperationalDraftChange}
         onChooseAlternateOnMap={onChooseAlternateOnMap}
       />
+      </CollapsibleSection>
 
+      <CollapsibleSection
+        title="Performance"
+        summary={`${performanceDraft.defaultAltitudeFtMsl || '—'} ft default`}
+        hasIssue={parsedPerformance.status === 'invalid'}
+      >
       <AircraftPerformanceInputs
         draft={performanceDraft}
         defaults={performanceInputDefaults}
@@ -336,7 +361,13 @@ export function NavigationLog({
           : {})}
         onChange={onPerformanceDraftChange}
       />
+      </CollapsibleSection>
 
+      <CollapsibleSection
+        title="Intermediate airports"
+        summary={(flightPlan.sectorBoundaryWaypointIds?.length ?? 0) === 0 ? 'None' : `${flightPlan.sectorBoundaryWaypointIds!.length} landing(s)`}
+        hasIssue={parsedPerformance.status === 'invalid' && (flightPlan.sectorBoundaryWaypointIds?.length ?? 0) > 0}
+      >
       <SectorStopControls
         flightPlan={flightPlan}
         draft={performanceDraft}
@@ -345,7 +376,13 @@ export function NavigationLog({
         onDraftChange={onPerformanceDraftChange}
         onOperationalDraftChange={onOperationalDraftChange}
       />
+      </CollapsibleSection>
 
+      <CollapsibleSection
+        title="Altitude schedule"
+        summary={`${flightPlan.waypoints.length > 1 ? flightPlan.waypoints.length - 1 : 0} leg(s)`}
+        hasIssue={performanceRoute?.status === 'no-solution'}
+      >
       <LegAltitudeControls
         flightPlan={flightPlan}
         draft={performanceDraft}
@@ -353,6 +390,7 @@ export function NavigationLog({
         onDraftChange={onPerformanceDraftChange}
         onPlacementLegChange={onAltitudePlacementLegChange}
       />
+      </CollapsibleSection>
 
         </>
       ) : null}
@@ -361,8 +399,9 @@ export function NavigationLog({
         <>
       {performanceRoute?.status === 'no-solution' ? (
         <p className="navigation-inputs__error performance-route-error" role="alert">
-          Performance profile unavailable for {performanceRoute.legFromId} →{' '}
-          {performanceRoute.legToId}: {performanceRoute.message}.
+          Performance profile unavailable for{' '}
+          {formatPerformanceRouteFailureLeg(flightPlan, performanceRoute)}:{' '}
+          {performanceRoute.message}.
         </p>
       ) : null}
 

@@ -35,6 +35,7 @@ export function usePlannerShortcuts({
         code: event.code,
         editing: isEditingTarget(event.target),
         repeat: event.repeat,
+        shiftKey: event.shiftKey,
         altKey: event.altKey,
         ctrlKey: event.ctrlKey,
         metaKey: event.metaKey,

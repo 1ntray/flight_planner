@@ -18,6 +18,7 @@ export type MapSelection = SelectedRoutePoint | SelectedRouteLeg;
 
 export type MapTool =
   | { kind: 'select' }
+  | { kind: 'edit-route' }
   | { kind: 'add-waypoint' }
   | { kind: 'select-alternate-aerodrome' }
   | {

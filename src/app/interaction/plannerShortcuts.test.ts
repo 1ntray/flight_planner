@@ -59,5 +59,30 @@ describe('planner keyboard shortcuts', () => {
       .toBe('show-shortcuts');
     expect(resolvePlannerShortcut({ key: 'Escape', editing: false, selection: null, tool: selectTool }))
       .toBe('cancel');
+    expect(resolvePlannerShortcut({ key: 'e', editing: false, selection: null, tool: selectTool }))
+      .toBe('toggle-edit-route');
+    expect(resolvePlannerShortcut({ key: ']', editing: false, selection: null, tool: selectTool }))
+      .toBe('next-selection');
+    expect(resolvePlannerShortcut({ key: '[', editing: false, selection: null, tool: selectTool }))
+      .toBe('previous-selection');
+  });
+
+  it('resolves batch, target, and history shortcuts without stealing text editing', () => {
+    expect(resolvePlannerShortcut({ key: 'n', shiftKey: true, editing: false, selection: null, tool: selectTool }))
+      .toBe('start-naming-mode');
+    expect(resolvePlannerShortcut({ key: 'a', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('start-altitude-mode');
+    expect(resolvePlannerShortcut({ key: 'p', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('place-end-altitude-target');
+    expect(resolvePlannerShortcut({ key: 't', editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('reset-altitude-target');
+    expect(resolvePlannerShortcut({ key: 'z', ctrlKey: true, editing: false, selection: null, tool: selectTool }))
+      .toBe('undo');
+    expect(resolvePlannerShortcut({ key: 'z', ctrlKey: true, shiftKey: true, editing: false, selection: null, tool: selectTool }))
+      .toBe('redo');
+    expect(resolvePlannerShortcut({ key: 'k', ctrlKey: true, editing: false, selection: null, tool: selectTool }))
+      .toBe('show-command-palette');
+    expect(resolvePlannerShortcut({ key: 'z', ctrlKey: true, editing: true, selection: null, tool: selectTool }))
+      .toBeNull();
   });
 });

@@ -148,6 +148,74 @@ h3 {
   margin: 1rem 0 0.75rem;
 }
 
+.collapsible-section {
+  margin: 0 0 0.55rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.45rem;
+  background: #fbfcfd;
+}
+
+.collapsible-section--issue {
+  border-color: #d1814f;
+  box-shadow: inset 3px 0 #d77a42;
+}
+
+.collapsible-section__summary {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1rem minmax(0, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.52rem 0.6rem;
+  border: 0;
+  border-radius: inherit;
+  color: #26384c;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapsible-section__chevron {
+  color: #416985;
+  font-size: 1.15rem;
+  line-height: 0.8;
+}
+
+.collapsible-section__title {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.collapsible-section__detail {
+  max-width: 13rem;
+  overflow: hidden;
+  color: #68778a;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsible-section__issue {
+  padding: 0.15rem 0.32rem;
+  border-radius: 999px;
+  color: #8d3d20;
+  background: #fff0e8;
+  font-size: 0.6rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.collapsible-section__content {
+  padding: 0 0.45rem 0.45rem;
+}
+
+.collapsible-section__content > .navigation-inputs,
+.collapsible-section__content > .plan-file-controls,
+.collapsible-section__content > .sector-stop-controls,
+.collapsible-section__content > .leg-altitude-controls {
+  margin: 0;
+}
+
 .planning-actions {
   display: flex;
   justify-content: flex-end;
@@ -1028,6 +1096,7 @@ kbd {
   top: 0.75rem;
   left: 3.5rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 0.35rem;
   max-width: calc(100% - 1.5rem);
@@ -1052,6 +1121,146 @@ kbd {
   border-left: 1px solid #cad5e1;
   color: #34465a;
   font-size: 0.7rem;
+}
+
+.batch-entry-bar {
+  position: absolute;
+  z-index: 1002;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(9rem, 13rem) auto;
+  align-items: center;
+  gap: 0.45rem 0.7rem;
+  width: min(37rem, calc(100% - 1.5rem));
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgb(45 91 125 / 65%);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 26%);
+  color: #26384c;
+}
+
+.batch-entry-bar > div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.batch-entry-bar .eyebrow {
+  font-size: 0.6rem;
+}
+
+.batch-entry-bar strong {
+  overflow: hidden;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-entry-bar label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.batch-entry-bar input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.42rem;
+  border: 1px solid #8fa2b5;
+  border-radius: 0.3rem;
+  font: inherit;
+}
+
+.batch-entry-bar p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #607084;
+  font-size: 0.67rem;
+}
+
+.batch-entry-bar__error {
+  color: #a33b3b !important;
+  font-weight: 700;
+}
+
+.command-palette-backdrop {
+  position: fixed;
+  z-index: 3000;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  padding: min(16vh, 8rem) 1rem 1rem;
+  background: rgb(20 32 51 / 30%);
+}
+
+.command-palette {
+  width: min(34rem, 100%);
+  overflow: hidden;
+  border: 1px solid #7c93a8;
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 1.1rem 3rem rgb(10 25 45 / 35%);
+}
+
+.command-palette > input {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 0;
+  border-bottom: 1px solid #dbe3eb;
+  font: inherit;
+}
+
+.command-palette__results {
+  display: grid;
+  max-height: min(45vh, 21rem);
+  overflow: auto;
+  padding: 0.35rem;
+}
+
+.command-palette__results button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.58rem 0.6rem;
+  border: 0;
+  border-radius: 0.3rem;
+  color: #24374b;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.command-palette__results button:hover,
+.command-palette__results button:focus-visible {
+  background: #e9f3f9;
+}
+
+.command-palette__results p,
+.command-palette > p {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  color: #68778a;
+  font-size: 0.72rem;
+}
+
+.command-palette > p {
+  border-top: 1px solid #e3eaf0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.flight-map--tool-edit-route,
+.flight-map--tool-edit-route .leaflet-interactive {
+  cursor: move;
 }
 
 .leaflet-popup.waypoint-map-popup .leaflet-popup-content,

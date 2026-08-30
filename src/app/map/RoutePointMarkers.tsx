@@ -60,6 +60,7 @@ export interface RoutePointMarkersProps {
   selectedRoutePoint: MapSelection | null;
   draggedPoint: DraggedRoutePointPosition | null;
   pendingShapingPoint: PendingRouteShapingPoint | null;
+  geometryEditingEnabled: boolean;
   onDraggedPointChange: (
     draggedPoint: DraggedRoutePointPosition | null,
   ) => void;
@@ -80,6 +81,7 @@ export function RoutePointMarkers({
   selectedRoutePoint,
   draggedPoint,
   pendingShapingPoint,
+  geometryEditingEnabled,
   onDraggedPointChange,
   onMoveWaypoint,
   aeronauticalPointFeatures,
@@ -122,7 +124,7 @@ export function RoutePointMarkers({
                   ? selectedWaypointIcon
                   : waypointIcon
             }
-            draggable={!isAnchored}
+            draggable={!isAnchored && geometryEditingEnabled}
             bubblingMouseEvents={false}
             title={`${waypoint.name}${isAnchored ? ' — anchored' : ''}`}
             alt={waypoint.name}
@@ -201,7 +203,7 @@ export function RoutePointMarkers({
                   ? selectedShapingPointIcon
                   : shapingPointIcon
               }
-              draggable
+              draggable={geometryEditingEnabled}
               bubblingMouseEvents={false}
               title="Route shaping point"
               alt="Route shaping point"

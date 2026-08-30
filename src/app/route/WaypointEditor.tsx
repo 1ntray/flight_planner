@@ -31,16 +31,20 @@ export function WaypointEditor({
 }: WaypointEditorProps) {
   const [draftName, setDraftName] = useState(waypoint.name);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const handledNameFocusRequestRef = useRef(nameFocusRequest);
 
   useEffect(() => {
     setDraftName(waypoint.name);
   }, [waypoint.id, waypoint.name]);
 
   useEffect(() => {
-    if (nameFocusRequest > 0) {
-      nameInputRef.current?.focus();
-      nameInputRef.current?.select();
+    if (nameFocusRequest <= handledNameFocusRequestRef.current) {
+      return;
     }
+
+    handledNameFocusRequestRef.current = nameFocusRequest;
+    nameInputRef.current?.focus();
+    nameInputRef.current?.select();
   }, [nameFocusRequest]);
 
   const normalizedName = draftName.trim();
