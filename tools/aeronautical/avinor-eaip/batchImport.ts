@@ -3,18 +3,26 @@ import type { CheerioAPI } from 'cheerio';
 
 import type {
   AeronauticalDatasetMetadata,
+  AeronauticalDatasetRef,
   AeronauticalFeature,
   AeronauticalFeatureDetails,
+  AtsUnit,
+  CommunicationService,
 } from '../../../src/domain';
 import { NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION } from '../../../src/aeronautical/normalizedDataset';
 import { expandTable } from './htmlTable';
 import { importAerodromeEaip } from './importEndu';
+import {
+  importAd2OperationalData,
+  importEnr21Airspaces,
+} from './importOperationalData';
 import type {
   AvinorEaipAerodromeSource,
   AvinorEaipBatchEditionConfig,
   AvinorEaipBatchFailure,
   AvinorEaipBatchImportResult,
   AvinorEaipBatchWarning,
+  AvinorEaipEnrSource,
   AvinorEaipImportConfig,
 } from './types';
 import { AvinorEaipImportError } from './types';
@@ -162,6 +170,36 @@ function batchMetadata(
     retrievedAtUtc,
     importedAtUtc,
     sourceReference: edition.indexUrl,
+    importer: {
+      name: 'avinor-eaip-normalizer',
+      version: '3',
+    },
+  };
+}
+
+function datasetRef(metadata: AeronauticalDatasetMetadata): AeronauticalDatasetRef {
+  return {
+    datasetId: metadata.datasetId,
+    providerId: metadata.providerId,
+    sourceName: metadata.sourceName,
+    airacCycle: metadata.airacCycle,
+    effectiveFromUtc: metadata.effectiveFromUtc,
+    effectiveToUtc: metadata.effectiveToUtc,
+    ...(metadata.revisionId === undefined ? {} : { revisionId: metadata.revisionId }),
+  };
+}
+
+function operationalWarning(
+  source: AvinorEaipAerodromeSource,
+  error: unknown,
+): AvinorEaipBatchWarning {
+  const failure = asFailure(source, error);
+  return {
+    sourceAerodrome: failure.sourceAerodrome,
+    sourceUrl: failure.sourceUrl,
+    code: `operational-${failure.code}`,
+    message: failure.message,
+    aipSection: failure.aipSection,
   };
 }
 
@@ -173,13 +211,22 @@ export function importAvinorEaipAerodromes(
   sources: readonly AvinorEaipAerodromeSource[],
   edition: AvinorEaipBatchEditionConfig,
   timestamps: { readonly retrievedAtUtc: string; readonly importedAtUtc: string },
+  enr21Source?: AvinorEaipEnrSource,
 ): AvinorEaipBatchImportResult {
   const features: AeronauticalFeature[] = [];
   const featureDetails: AeronauticalFeatureDetails[] = [];
+  const atsUnits: AtsUnit[] = [];
+  const communicationServices: CommunicationService[] = [];
   const importedAerodromes: string[] = [];
   const warnings: AvinorEaipBatchWarning[] = [];
   const failures: AvinorEaipBatchFailure[] = [];
   const sourceAerodromes = new Set<string>();
+  const metadata = batchMetadata(
+    edition,
+    timestamps.retrievedAtUtc,
+    timestamps.importedAtUtc,
+  );
+  const normalizedDatasetRef = datasetRef(metadata);
 
   for (const source of sources) {
     if (sourceAerodromes.has(source.sourceAerodrome)) {
@@ -214,23 +261,69 @@ export function importAvinorEaipAerodromes(
           sourceUrl: source.sourceUrl,
         })),
       );
+
+      try {
+        const operational = importAd2OperationalData(source.html, {
+          dataset: normalizedDatasetRef,
+          effectiveDate: edition.effectiveFromUtc.slice(0, 10),
+          sourceUrl: source.sourceUrl,
+          sourceAerodrome: source.sourceAerodrome,
+          aerodromeFeatureId: `aerodrome:${source.sourceAerodrome}`,
+        });
+        features.push(...operational.features);
+        featureDetails.push(...operational.featureDetails);
+        atsUnits.push(...operational.atsUnits);
+        communicationServices.push(...operational.communicationServices);
+        warnings.push(
+          ...operational.warnings.map((warning) => ({
+            code: warning.code,
+            message: warning.message,
+            aipSection: warning.aipSection,
+            sourceAerodrome: source.sourceAerodrome,
+            sourceUrl: source.sourceUrl,
+          })),
+        );
+      } catch (error: unknown) {
+        // Aerodrome core data remains valid when an optional operational
+        // section is absent or malformed; make the partial import explicit.
+        warnings.push(operationalWarning(source, error));
+      }
     } catch (error: unknown) {
       failures.push(asFailure(source, error));
     }
   }
 
+
+  if (enr21Source !== undefined) {
+    const enr = importEnr21Airspaces(enr21Source.html, {
+      dataset: normalizedDatasetRef,
+      effectiveDate: edition.effectiveFromUtc.slice(0, 10),
+      sourceUrl: enr21Source.sourceUrl,
+      includedTypes: ['tma'],
+    });
+    features.push(...enr.features);
+    featureDetails.push(...enr.featureDetails);
+    atsUnits.push(...enr.atsUnits);
+    communicationServices.push(...enr.communicationServices);
+    warnings.push(
+      ...enr.warnings.map((warning) => ({
+        code: warning.code,
+        message: warning.message,
+        aipSection: warning.aipSection,
+        sourceAerodrome: 'ENR 2.1',
+        sourceUrl: enr21Source.sourceUrl,
+      })),
+    );
+  }
+
   return {
     dataset: {
       schemaVersion: NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION,
-      metadata: batchMetadata(
-        edition,
-        timestamps.retrievedAtUtc,
-        timestamps.importedAtUtc,
-      ),
+      metadata,
       features,
       featureDetails,
-      atsUnits: [],
-      communicationServices: [],
+      atsUnits,
+      communicationServices,
       vacCharts: [],
     },
     importedAerodromes,

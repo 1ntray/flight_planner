@@ -31,10 +31,17 @@ export interface AvinorEaipBatchEditionConfig {
   readonly revisionId?: string;
   /** AD 1.3 for the configured eAIP edition. */
   readonly indexUrl: string;
+  /** ENR 2.1 for the same configured eAIP edition. */
+  readonly enr21Url: string;
 }
 
 export interface AvinorEaipAerodromeSource {
   readonly sourceAerodrome: string;
+  readonly sourceUrl: string;
+  readonly html: string | Buffer;
+}
+
+export interface AvinorEaipEnrSource {
   readonly sourceUrl: string;
   readonly html: string | Buffer;
 }

@@ -80,6 +80,7 @@ export function StableMapPopup({
       ref={popupRef}
       pane="popupPane"
       position={initialPositionRef.current}
+      autoPan={false}
       autoPanPaddingTopLeft={FALLBACK_AUTO_PAN_PADDING.topLeft}
       autoPanPaddingBottomRight={FALLBACK_AUTO_PAN_PADDING.bottomRight}
     />

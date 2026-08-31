@@ -228,8 +228,70 @@ export function moveRouteShapingPoint(
     legShapes: flightPlan.legShapes.map((shape) => ({
       ...shape,
       points: shape.points.map((point) =>
-        point.id === pointId ? { ...point, position } : point,
+        point.id === pointId
+          ? (() => {
+              const { anchor: _anchor, ...freePoint } = point;
+              return { ...freePoint, position };
+            })()
+          : point,
       ),
+    })),
+  };
+}
+
+/** Snaps one shaping point to a reporting-point coordinate/provenance snapshot. */
+export function attachRouteShapingPointToReportingPoint(
+  flightPlan: FlightPlan,
+  pointId: string,
+  feature: AeronauticalPointFeature,
+): FlightPlan {
+  if (
+    feature.pointKind !== 'reporting-point' ||
+    feature.ref.featureKind !== 'reporting-point'
+  ) {
+    throw new RangeError('A shaping point may only attach to a reporting point');
+  }
+
+  let found = false;
+  const legShapes = flightPlan.legShapes.map((shape) => ({
+    ...shape,
+    points: shape.points.map((point) => {
+      if (point.id !== pointId) return point;
+      found = true;
+      return {
+        ...point,
+        position: { ...feature.position },
+        anchor: {
+          kind: 'aeronautical-reporting-point' as const,
+          feature: {
+            ...feature.ref,
+            dataset: { ...feature.ref.dataset },
+          },
+          publishedIdentifier: feature.identifier,
+          ...(feature.name === undefined ? {} : { publishedName: feature.name }),
+        },
+      };
+    }),
+  }));
+
+  if (!found) throw new RangeError(`Route shaping point ${pointId} does not exist`);
+  return { ...flightPlan, legShapes };
+}
+
+/** Removes reporting-point provenance while retaining the current WGS84 coordinate. */
+export function detachRouteShapingPoint(
+  flightPlan: FlightPlan,
+  pointId: string,
+): FlightPlan {
+  return {
+    ...flightPlan,
+    legShapes: flightPlan.legShapes.map((shape) => ({
+      ...shape,
+      points: shape.points.map((point) => {
+        if (point.id !== pointId || point.anchor === undefined) return point;
+        const { anchor: _anchor, ...freePoint } = point;
+        return freePoint;
+      }),
     })),
   };
 }

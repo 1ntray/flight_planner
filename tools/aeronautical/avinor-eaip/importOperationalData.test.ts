@@ -80,21 +80,100 @@ describe('Avinor operational-data importers', () => {
     });
   });
 
-  it('imports the published Bardufoss TMA geometry, FL/altitude limits, unit and frequency', () => {
+  it('keeps multiple AD 2.17 geometry/vertical-limit volumes separate', () => {
+    const result = importAd2OperationalData(fixture('multi-volume-ad2.html'), {
+      ...enduConfig,
+      sourceAerodrome: 'ENNO',
+      aerodromeFeatureId: 'aerodrome:ENNO',
+    });
+
+    expect(result.features).toHaveLength(2);
+    expect(result.features.map(({ name }) => name)).toEqual([
+      'Notodden TIZ (GND–5500 FT AMSL)',
+      'Notodden TIZ (GND–4500 FT AMSL)',
+    ]);
+    expect(result.featureDetails.map((details) =>
+      details.detailKind === 'airspace' ? details.upperLimit?.publishedText : null,
+    )).toEqual(['5500 FT AMSL', '4500 FT AMSL']);
+    expect(result.communicationServices.filter(
+      ({ publishedServiceType }) => publishedServiceType === 'APP',
+    ).map(({ id }) => id)).toEqual([
+      'communication:ad2:enno:app:124-355',
+      'communication:ad2:enno:app:134-055',
+    ]);
+    expect(result.communicationServices.find(
+      ({ publishedServiceType }) => publishedServiceType === 'AFIS',
+    )?.associations.filter(({ featureKind }) => featureKind === 'airspace')).toHaveLength(2);
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('retains AD 2.18 services when AD 2.17 explicitly publishes NIL', () => {
+    const source = `
+      <h4 class="Title">ENGK AD 2.17 ATS AIRSPACE</h4>
+      <table>
+        <tr><td>1</td><td>Designation and lateral limits</td><td>NIL</td></tr>
+        <tr><td>2</td><td>Vertical limits</td><td>NIL</td></tr>
+        <tr><td>3</td><td>Airspace classification</td><td>NIL</td></tr>
+      </table>
+      <h4 class="Title">ENGK AD 2.18 ATS COMMUNICATION FACILITIES</h4>
+      <table>
+        <tr><th>Service Designation</th><th>Call Sign</th><th>FREQ</th><th>HR</th><th>RMK</th></tr>
+        <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+        <tr><td>RADIO</td><td>Gullknapp Traffic</td><td>129.905 MHZ</td><td>HX</td><td>NIL</td></tr>
+      </table>`;
+    const result = importAd2OperationalData(source, {
+      ...enduConfig,
+      sourceAerodrome: 'ENGK',
+      aerodromeFeatureId: 'aerodrome:ENGK',
+    });
+
+    expect(result.features).toEqual([]);
+    expect(result.communicationServices).toMatchObject([
+      { publishedServiceType: 'RADIO', frequencies: [{ valueMHz: '129.905' }] },
+    ]);
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('imports every published Bardufoss TMA volume and all source frequencies', () => {
     const result = importEnr21Airspace(fixture('bardufoss-enr21.html'), {
       dataset, effectiveDate: '2026-06-11', sourceUrl: 'https://aim-prod.avinor.no/example/ENR-2.1.html',
       aerodromeFeatureId: 'aerodrome:ENDU', publishedName: 'Bardufoss TMA',
       associatedAerodromeFeatureIds: ['aerodrome:ENDU'],
     });
-    expect(result.features[0]).toMatchObject({ areaKind: 'tma', name: 'Bardufoss TMA' });
-    expect(result.featureDetails[0]).toMatchObject({
-      lowerLimit: { kind: 'distance', value: 5500, reference: 'AMSL' },
-      upperLimit: { kind: 'flight-level', level: 105 },
-    });
+    expect(result.features).toHaveLength(3);
+    expect(result.features.every(({ areaKind }) => areaKind === 'tma')).toBe(true);
+    expect(result.features.map(({ name }) => name)).toEqual([
+      'Bardufoss TMA (5500 FT AMSL–FL 105)',
+      'Bardufoss TMA (4500 FT AMSL–FL 105)',
+      'Bardufoss TMA (6500 FT AMSL–FL 105)',
+    ]);
+    expect(result.featureDetails.map((details) =>
+      details.detailKind === 'airspace' && details.lowerLimit?.kind === 'distance'
+        ? details.lowerLimit.value
+        : null,
+    ).sort((left, right) => (left ?? 0) - (right ?? 0))).toEqual([4500, 5500, 6500]);
+    expect(result.featureDetails.every((details) =>
+      details.detailKind === 'airspace' &&
+      details.airspaceClass === 'C' &&
+      details.upperLimit?.kind === 'flight-level' &&
+      details.upperLimit.level === 105,
+    )).toBe(true);
     expect(result.atsUnits[0]).toMatchObject({ publishedName: 'Bardufoss TWR' });
     expect(result.communicationServices[0]).toMatchObject({
-      callsign: 'Bardufoss Approach/ Radar', frequencies: [{ valueMHz: '118.805' }],
+      callsign: 'Bardufoss Approach/ Radar',
     });
+    expect(result.communicationServices[0]?.frequencies.map(({ valueMHz }) => valueMHz)).toEqual([
+      '118.805', '125.855', '275.300', '397.375',
+    ]);
+    expect(result.communicationServices[0]?.associations).toEqual([
+      ...result.features.map((feature) => ({
+        featureId: feature.ref.featureId,
+        featureKind: 'airspace',
+        basis: 'explicit',
+      })),
+      { featureId: 'aerodrome:ENDU', featureKind: 'aerodrome', basis: 'explicit' },
+    ]);
+    expect(result.warnings).toEqual([]);
   });
 
   it('imports only explicitly published VAC reporting-point coordinates with traceable provenance', () => {

@@ -90,6 +90,20 @@ result is a normal free waypoint.
 The same source feature may be anchored more than once. Source feature IDs must
 therefore never be reused as route waypoint IDs.
 
+## Reporting-point shaping anchors
+
+A route-shaping point may independently snap to a published **reporting point**.
+This is geometry-only: it does not create a real waypoint or a navlog leg.
+The shaping point stores its own reporting-point-specific AIRAC reference and a
+WGS84 coordinate snapshot, so a later dataset change cannot alter a saved
+route. Aerodromes, navaids, and designated points are deliberately excluded
+from shaping-point snapping.
+
+In Edit route mode, releasing an existing shaping handle or a newly dragged
+route-line handle within the display snap radius of a visible reporting point
+commits that published coordinate and provenance. Releasing it elsewhere makes
+the point free; the selected shaping-point popup also offers explicit detach.
+
 ## Map interaction and layers
 
 Aeronautical point and area clicks do not bubble to the empty-map waypoint
@@ -106,7 +120,10 @@ waypoint's saved coordinate snapshot while its published details are looked up
 by its saved source reference.
 
 Published communication services appear on aerodrome and airspace information
-popups but do not currently populate the OFP automatically.
+popups but do not currently populate the OFP automatically. The planner UI
+shows only frequency assignments from 118.000 through 136.000 MHz, inclusive.
+Assignments outside that range remain in the normalized dataset and import
+report for source traceability, but are not presented to the user.
 
 Live operational data such as METAR, TAF, NOTAMs, or weather products is not
 part of `AeronauticalDataRepository` or the persisted `FlightPlan`. A future
@@ -129,11 +146,13 @@ The default repository loads a local normalized Avinor eAIP dataset for the AD
 2 aerodromes in the selected edition, effective 11 June 2026. The browser
 never parses eAIP HTML and never contacts Avinor when the planner starts. Each
 aerodrome is exposed as a normal aerodrome point, so the existing overlay and
-waypoint-anchor behavior is unchanged. The first operational vertical slice
-adds ENDU CTR, Bardufoss TMA, ENHF TIZ, their published AD/ENR communication
-services, and 20 ENDU reporting points whose coordinates are printed on the
-VAC. The reporting points are normal point features and remain usable with any
-chart layer hidden.
+waypoint-anchor behavior is unchanged. The same import now includes published
+AD 2.17 ATS airspace and AD 2.18 communication facilities for all 53 imported
+AD 2 aerodromes, plus machine-readable TMA volumes from ENR 2.1. Multiple
+published volumes remain separate features with their own vertical limits; for
+example, all three Bardufoss TMA volumes are retained at lower limits of 4500,
+5500, and 6500 FT AMSL. The existing 20 reviewed ENDU reporting points are
+preserved and remain usable with any chart layer hidden.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
@@ -149,11 +168,23 @@ the numeric suffixes in hidden eAIP markers are not identities.
 
 The selected edition is discovered from AD 1.3. The importer includes AD 2
 aerodromes and deliberately excludes AD 3 heliports. Each AD 2 page reads AD
-2.1, AD 2.2, AD 2.12, and the standard declared-distance table in AD 2.13. The
-separate `Reduced (Alternate) Take-off PSN` table is intentionally ignored.
+2.1, AD 2.2, AD 2.12, the standard declared-distance table in AD 2.13, AD 2.17,
+and AD 2.18. The separate `Reduced (Alternate) Take-off PSN` table is
+intentionally ignored.
 Missing optional values become `null` with an importer warning; malformed
 required values fail that aerodrome's import but do not discard other valid
-aerodromes. The generated report records every warning and failure.
+aerodromes. A malformed optional operational section is reported without
+discarding valid aerodrome/runway data. The importer also reads the fixed
+edition's ENR 2.1 once and keeps each published TMA vertical volume separate.
+The generated report records every warning and failure.
+
+ENR boundaries expressed entirely as published coordinate lists are
+normalized. Twelve current TMA volumes use semantic references such as
+"along the border between Norway and Sweden". Those volumes are deliberately
+reported as unsupported instead of replacing the referenced border with a
+guessed straight segment. A future importer can resolve those references from
+an authoritative national-boundary dataset while retaining the ENR source
+semantics.
 
 Parser tests use checked-in fixtures and do not require Avinor to be online. To
 explicitly retrieve the configured edition and regenerate the local JSON dataset
@@ -171,18 +202,20 @@ pnpm aero:import:endu
 
 The importer can also run without a network connection by providing a saved AD
 1.3 index, a directory of `<ICAO>.html` AD 2 pages, and an explicit retrieval
-timestamp: `--input-index`, `--input-directory`, and `--retrieved-at`.
+timestamp: `--input-index`, `--input-directory`, and `--retrieved-at`. A full
+offline import additionally reads `ENR-2.1.html` from that directory.
 
-The reviewed operational slice is rebuilt from local semantic fixtures with:
+The reviewed ENDU reporting-point fixture can be refreshed without replacing
+the nationwide operational dataset with:
 
 ```sh
 pnpm aero:build:operational-slice
 ```
 
-This parser reads AD 2.17, AD 2.18, the selected ENR 2.1 row, and the published
-VAC coordinate table. It does not scrape Avinor in the browser. Missing values
-remain unavailable; malformed required coordinates, limits, classes, or
-frequencies are explicit import errors.
+These importers do not scrape Avinor in the browser. Missing values remain
+unavailable; malformed required coordinates, limits, classes, or frequencies
+are explicit import errors or warnings according to whether the affected
+source section is required for the core aerodrome record.
 
 ## VAC preparation boundary
 

@@ -21,6 +21,8 @@ export const NORWAY_EAIP_EDITION: AvinorEaipBatchEditionConfig = {
   revisionId: 'AIP AMDT 04/2026',
   indexUrl:
     'https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html',
+  enr21Url:
+    'https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html',
 };
 
 export const ENDU_EAIP_EDITION: AvinorEaipEditionConfig = {

@@ -1,20 +1,22 @@
-import type { Position } from '../../domain';
+import type { RouteShapingPoint } from '../../domain';
 import { StableMapPopup } from './StableMapPopup';
 
 export interface ShapingPointMapPopupProps {
-  position: Position;
+  point: RouteShapingPoint;
   onDelete: () => void;
+  onDetach: () => void;
   onClose: () => void;
 }
 
 export function ShapingPointMapPopup({
-  position,
+  point,
   onDelete,
+  onDetach,
   onClose,
 }: ShapingPointMapPopupProps) {
   return (
     <StableMapPopup
-      position={position}
+      position={point.position}
       closeButton={false}
       closeOnClick={false}
       autoClose={false}
@@ -22,7 +24,18 @@ export function ShapingPointMapPopup({
     >
       <p><strong>Route-shaping point</strong></p>
       <p>Changes distance and geometry without creating a navlog waypoint.</p>
+      {point.anchor === undefined ? null : (
+        <p>
+          Attached to reporting point <strong>{point.anchor.publishedIdentifier}</strong>.
+          Drag away or detach to make it free again.
+        </p>
+      )}
       <div className="map-popup-actions map-popup-actions--two">
+        {point.anchor === undefined ? null : (
+          <button type="button" className="button" onClick={onDetach}>
+            Detach reporting point
+          </button>
+        )}
         <button
           type="button"
           className="button button--danger"

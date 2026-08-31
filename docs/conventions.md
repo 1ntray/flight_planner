@@ -18,6 +18,11 @@ navlog leg order. Its `legShapes` collection contains optional ordered route
 shaping points associated with a specific adjacent real-waypoint pair. Shaping
 points are not waypoints and never create navlog legs.
 
+A shaping point may optionally retain a reporting-point anchor snapshot. This
+is not a real-waypoint anchor and does not change route-leg or navlog semantics:
+it only records why a geometry point uses a particular published WGS84
+coordinate. Dragging a shaping point away removes that optional anchor.
+
 `sectorBoundaryWaypointIds` identifies intermediate real waypoints at which a
 landing ends one flight sector and a new sector begins. It does not duplicate
 waypoints, geometry, or calculated legs. Sectors are derived by slicing the

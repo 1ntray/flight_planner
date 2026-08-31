@@ -104,7 +104,11 @@ export type {
   OperationalPlanningInputs,
   SectorOperationPlan,
 } from './operationalPlanning';
-export type { LegShape, RouteShapingPoint } from './routeShape';
+export type {
+  LegShape,
+  ReportingPointShapingAnchor,
+  RouteShapingPoint,
+} from './routeShape';
 export {
   AIRCRAFT_CATALOG,
   PROJECT_AIRCRAFT_DEFINITION,

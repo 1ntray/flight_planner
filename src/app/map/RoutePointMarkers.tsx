@@ -9,6 +9,7 @@ import type {
 } from '../../domain';
 import {
   findAeronauticalWaypointAttachmentTarget,
+  findReportingPointShapingAttachmentTarget,
 } from './aeronauticalWaypointAttachment';
 import { getRoutePointDisplayPosition } from './routeDisplay';
 import type {
@@ -55,6 +56,19 @@ const selectedShapingPointIcon = divIcon({
   iconSize: [16, 16],
 });
 
+const anchoredShapingPointIcon = divIcon({
+  className: 'route-shaping-marker route-shaping-marker--anchored',
+  iconAnchor: [8, 8],
+  iconSize: [16, 16],
+});
+
+const selectedAnchoredShapingPointIcon = divIcon({
+  className:
+    'route-shaping-marker route-shaping-marker--anchored route-shaping-marker--selected',
+  iconAnchor: [8, 8],
+  iconSize: [16, 16],
+});
+
 export interface RoutePointMarkersProps {
   flightPlan: FlightPlan;
   selectedRoutePoint: MapSelection | null;
@@ -68,6 +82,7 @@ export interface RoutePointMarkersProps {
   aeronauticalPointFeatures: readonly AeronauticalPointFeature[];
   onAttachWaypoint: (id: string, feature: AeronauticalPointFeature) => void;
   onMoveShapingPoint: (id: string, position: Position) => void;
+  onAttachShapingPoint: (id: string, feature: AeronauticalPointFeature) => void;
   onSelectRoutePoint: (selection: SelectedRoutePoint) => void;
 }
 
@@ -87,6 +102,7 @@ export function RoutePointMarkers({
   aeronauticalPointFeatures,
   onAttachWaypoint,
   onMoveShapingPoint,
+  onAttachShapingPoint,
   onSelectRoutePoint,
 }: RoutePointMarkersProps) {
   const map = useMap();
@@ -194,20 +210,29 @@ export function RoutePointMarkers({
               position: markerPosition(marker),
             });
           };
+          const isSelected =
+            selectedRoutePoint?.kind === 'shaping-point' &&
+            selectedRoutePoint.id === point.id;
+          const isAnchored = point.anchor !== undefined;
 
           return (
             <Marker
               key={point.id}
               position={[displayPosition.latitude, displayPosition.longitude]}
               icon={
-                selectedRoutePoint?.kind === 'shaping-point' &&
-                selectedRoutePoint.id === point.id
-                  ? selectedShapingPointIcon
-                  : shapingPointIcon
+                isAnchored
+                  ? isSelected
+                    ? selectedAnchoredShapingPointIcon
+                    : anchoredShapingPointIcon
+                  : isSelected
+                    ? selectedShapingPointIcon
+                    : shapingPointIcon
               }
               draggable={geometryEditingEnabled}
               bubblingMouseEvents={false}
-              title="Route shaping point"
+              title={isAnchored
+                ? `Route shaping point — attached to ${point.anchor!.publishedIdentifier}`
+                : 'Route shaping point'}
               alt="Route shaping point"
               eventHandlers={{
                 click: () =>
@@ -223,7 +248,22 @@ export function RoutePointMarkers({
                 },
                 dragend: (event) => {
                   const marker = event.target as LeafletMarker;
-                  onMoveShapingPoint(point.id, markerPosition(marker));
+                  const position = markerPosition(marker);
+                  const attachmentTarget = findReportingPointShapingAttachmentTarget(
+                    position,
+                    aeronauticalPointFeatures,
+                    (candidatePosition) =>
+                      map.latLngToContainerPoint([
+                        candidatePosition.latitude,
+                        candidatePosition.longitude,
+                      ]),
+                  );
+
+                  if (attachmentTarget === null) {
+                    onMoveShapingPoint(point.id, position);
+                  } else {
+                    onAttachShapingPoint(point.id, attachmentTarget);
+                  }
                   onDraggedPointChange(null);
                 },
               }}

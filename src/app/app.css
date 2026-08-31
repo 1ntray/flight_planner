@@ -1813,6 +1813,19 @@ kbd {
     0 2px 6px rgb(0 0 0 / 42%);
 }
 
+.route-shaping-marker--anchored {
+  border-color: #fff0ce;
+  background: #b76716;
+  box-shadow:
+    0 0 0 3px rgb(183 103 22 / 30%),
+    0 1px 5px rgb(0 0 0 / 45%);
+}
+
+.route-shaping-marker--anchored.route-shaping-marker--selected {
+  border-color: #fff4b5;
+  background: #d9823b;
+}
+
 .route-line-hit-target {
   cursor: grab;
 }

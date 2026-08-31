@@ -11,8 +11,10 @@ import { NORWAY_EAIP_EDITION } from './edition';
 
 const indexPath = fileURLToPath(new URL('./fixtures/ad-1.3.html', import.meta.url));
 const enduPath = fileURLToPath(new URL('./fixtures/endu.html', import.meta.url));
+const bardufossEnr21Path = fileURLToPath(new URL('./fixtures/bardufoss-enr21.html', import.meta.url));
 const indexFixture = readFileSync(indexPath, 'utf8');
 const enduFixture = readFileSync(enduPath, 'utf8');
+const bardufossEnr21Fixture = readFileSync(bardufossEnr21Path, 'utf8');
 const timestamps = {
   retrievedAtUtc: '2026-08-29T08:00:00.000Z',
   importedAtUtc: '2026-08-29T08:05:00.000Z',
@@ -73,13 +75,48 @@ describe('Avinor eAIP AD 2 batch importer', () => {
     );
 
     expect(result.importedAerodromes).toEqual(['ENDU', 'ENTC']);
-    expect(result.dataset.features.map((feature) => feature.identifier)).toEqual(['ENDU', 'ENTC']);
-    expect(result.dataset.featureDetails.map((detail) => detail.ref.featureId)).toEqual([
+    expect(result.dataset.features.filter(
+      (feature) => feature.geometryType === 'point' && feature.pointKind === 'aerodrome',
+    ).map((feature) => feature.identifier)).toEqual(['ENDU', 'ENTC']);
+    expect(result.dataset.featureDetails.filter(
+      (detail) => detail.detailKind === 'aerodrome',
+    ).map((detail) => detail.ref.featureId)).toEqual([
       'aerodrome:ENDU',
       'aerodrome:ENTC',
     ]);
+    expect(result.dataset.features.filter(
+      (feature) => feature.geometryType === 'area' && feature.areaKind === 'ctr',
+    )).toHaveLength(2);
+    expect(result.dataset.communicationServices.length).toBeGreaterThan(0);
     expect(result.dataset.metadata.sourceReference).toBe(NORWAY_EAIP_EDITION.indexUrl);
     expect(result.failures).toEqual([]);
+  });
+
+  it('merges every normalized ENR 2.1 TMA volume into the batch dataset', () => {
+    const result = importAvinorEaipAerodromes(
+      [{
+        sourceAerodrome: 'ENDU',
+        sourceUrl: 'https://example.test/EN-AD-2.ENDU-en-GB.html',
+        html: enduFixture,
+      }],
+      NORWAY_EAIP_EDITION,
+      timestamps,
+      {
+        sourceUrl: 'https://example.test/EN-ENR-2.1-en-GB.html',
+        html: bardufossEnr21Fixture,
+      },
+    );
+
+    const tmas = result.dataset.features.filter(
+      (feature) => feature.geometryType === 'area' && feature.areaKind === 'tma',
+    );
+    expect(tmas).toHaveLength(3);
+    expect(result.dataset.communicationServices.find(
+      ({ id }) => id === 'communication:enr21:bardufoss-tma:approach',
+    )?.frequencies.map(({ valueMHz }) => valueMHz)).toEqual([
+      '118.805', '125.855', '275.300', '397.375',
+    ]);
+    expect(result.warnings).toEqual([]);
   });
 
   it('reports a malformed page and continues with the remaining aerodromes', () => {

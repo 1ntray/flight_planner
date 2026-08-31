@@ -5,30 +5,38 @@
   "revisionId": "AIP AMDT 04/2026",
   "importer": {
     "name": "avinor-eaip-normalizer",
-    "version": "2"
+    "version": "3"
   },
   "counts": {
     "aerodromes": 53,
-    "airspaces": 3,
-    "atsUnits": 1,
-    "communicationServices": 7,
-    "frequencyAssignments": 18,
+    "airspaces": 136,
+    "tmaVolumes": 84,
+    "atsUnits": 15,
+    "communicationServices": 172,
+    "frequencyAssignments": 408,
     "reportingPoints": 20,
     "vacChartsPrepared": 0
   },
-  "verticalSlice": {
-    "primary": "ENDU",
-    "contrast": "ENHF",
-    "airspaces": [
-      "Bardufoss CTR",
-      "Bardufoss TMA",
-      "Hammerfest TIZ"
-    ]
+  "bardufossTmaLowerLimits": [
+    "4500 FT AMSL",
+    "5500 FT AMSL",
+    "6500 FT AMSL"
+  ],
+  "frequencyDisplay": {
+    "minimumMHz": "118.000",
+    "maximumMHz": "136.000",
+    "sourceAssignmentsOutsideRangeRetained": true
   },
-  "warnings": [],
+  "warnings": [
+    {
+      "code": "unsupported-airspace-geometry",
+      "count": 12,
+      "summary": "TMA volumes containing published national-border references are not rendered until an authoritative boundary resolver is available."
+    }
+  ],
   "errors": [],
   "limitations": [
-    "Only the reviewed ENDU/ENHF operational vertical slice is included; this is not nationwide airspace coverage.",
+    "Twelve ENR 2.1 TMA volumes with national-border references are explicitly omitted rather than approximated with straight segments.",
     "The ENDU VAC raster is not enabled because its public PDF has no embedded georeferencing and no offline warp has yet passed control-point validation.",
     "ENHF reporting points remain unavailable because the reviewed VAC does not publish a coordinate table; no coordinates were inferred visually."
   ]

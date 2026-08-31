@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import type { CommunicationService } from '../../domain';
+import { isDisplayedCommunicationFrequency } from './communicationFrequencyDisplay';
 
 export interface CommunicationServiceListProps {
   repository: AeronauticalDataRepository;
@@ -25,7 +26,13 @@ export function CommunicationServiceList({ repository, featureId }: Communicatio
   }, [featureId, repository]);
 
   if (services === null) return <p className="aerodrome-info-popup__status">Loading published frequencies…</p>;
-  if (services.length === 0) return null;
+  const displayedServices = services.flatMap((service) => {
+    const frequencies = service.frequencies.filter(
+      isDisplayedCommunicationFrequency,
+    );
+    return frequencies.length === 0 ? [] : [{ ...service, frequencies }];
+  });
+  if (displayedServices.length === 0) return null;
 
   return (
     <section className="aerodrome-info-popup__runways" aria-label="Published communication services">
@@ -33,7 +40,7 @@ export function CommunicationServiceList({ repository, featureId }: Communicatio
       <table>
         <thead><tr><th>Service</th><th>Callsign</th><th>Frequency</th></tr></thead>
         <tbody>
-          {services.flatMap((service) => service.frequencies.map((frequency, index) => (
+          {displayedServices.flatMap((service) => service.frequencies.map((frequency, index) => (
             <tr key={`${service.id}:${frequency.valueMHz}:${index}`}>
               <th scope="row">{service.publishedServiceType}</th>
               <td>{service.callsign ?? '—'}</td>

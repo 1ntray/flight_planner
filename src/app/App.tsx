@@ -87,7 +87,9 @@ import {
   appendAnchoredWaypointToFlightPlan,
   appendWaypointToFlightPlan,
   attachWaypointToAeronauticalFeatureInFlightPlan,
+  attachRouteShapingPointToReportingPoint,
   detachWaypointInFlightPlan,
+  detachRouteShapingPoint,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
   moveWaypointInFlightPlan,
@@ -717,16 +719,24 @@ export function App() {
       toWaypointId: string,
       insertionIndex: number,
       point: RouteShapingPoint,
+      anchorFeature?: AeronauticalPointFeature,
     ) => {
-      setFlightPlan((currentFlightPlan) =>
-        insertRouteShapingPoint(
+      setFlightPlan((currentFlightPlan) => {
+        const inserted = insertRouteShapingPoint(
           currentFlightPlan,
           fromWaypointId,
           toWaypointId,
           insertionIndex,
           point,
-        ),
-      );
+        );
+        return anchorFeature === undefined
+          ? inserted
+          : attachRouteShapingPointToReportingPoint(
+              inserted,
+              point.id,
+              anchorFeature,
+            );
+      });
     },
     [],
   );
@@ -734,6 +744,21 @@ export function App() {
   const moveShapingPoint = useCallback((id: string, position: Position) => {
     setFlightPlan((currentFlightPlan) =>
       moveRouteShapingPoint(currentFlightPlan, id, position),
+    );
+  }, []);
+
+  const attachShapingPoint = useCallback(
+    (id: string, feature: AeronauticalPointFeature) => {
+      setFlightPlan((currentFlightPlan) =>
+        attachRouteShapingPointToReportingPoint(currentFlightPlan, id, feature),
+      );
+    },
+    [],
+  );
+
+  const detachShapingPoint = useCallback((id: string) => {
+    setFlightPlan((currentFlightPlan) =>
+      detachRouteShapingPoint(currentFlightPlan, id),
     );
   }, []);
 
@@ -1384,6 +1409,7 @@ export function App() {
             msaFocusRequest={msaFocusRequest}
             waypointNameFocusRequest={waypointNameFocusRequest}
             batchEntryActive={batchEntryMode !== null}
+            autoShowMsaCorridor={batchEntryMode?.kind === 'msa'}
             suppressSelectionPopups={batchEntryMode !== null}
             canUndo={planningHistory.canUndo}
             canRedo={planningHistory.canRedo}
@@ -1402,6 +1428,8 @@ export function App() {
             onMoveWaypoint={moveWaypoint}
             onAddShapingPoint={addShapingPoint}
             onMoveShapingPoint={moveShapingPoint}
+            onAttachShapingPoint={attachShapingPoint}
+            onDetachShapingPoint={detachShapingPoint}
             onInsertWaypoint={insertWaypoint}
             onSelectionChange={setMapSelection}
             onToolChange={changeMapTool}

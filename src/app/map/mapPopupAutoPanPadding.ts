@@ -41,68 +41,81 @@ function translateRectangle(
 }
 
 /**
- * Returns a Leaflet `panBy` offset that separates a rendered popup from map
- * controls. Leaflet's auto-pan padding protects only map edges, so it cannot
- * on its own represent an overlay panel that occupies the top-right corner.
+ * Returns one Leaflet `panBy` offset that places a rendered popup fully inside
+ * the map and outside every protected control rectangle. Leaflet's own popup
+ * auto-pan is deliberately disabled by the caller: repeated popup updates can
+ * otherwise form a moveend -> React render -> popup update feedback loop.
  */
 export function calculatePopupCollisionPan(
   map: Rectangle,
   popup: Rectangle,
   protectedAreas: readonly Rectangle[],
 ): MapPanOffset | null {
-  let visualX = 0;
-  let visualY = 0;
+  const innerMap = {
+    top: map.top + MAP_EDGE_GAP_PX,
+    right: map.right - MAP_EDGE_GAP_PX,
+    bottom: map.bottom - MAP_EDGE_GAP_PX,
+    left: map.left + MAP_EDGE_GAP_PX,
+  };
+  const popupWidth = popup.right - popup.left;
+  const popupHeight = popup.bottom - popup.top;
 
-  // Moving for one panel can reveal an overlap with another, so resolve a
-  // small bounded set of passes. The panels are static during a popup open.
-  for (let pass = 0; pass < protectedAreas.length; pass += 1) {
-    let moved = false;
-
-    for (const area of protectedAreas) {
-      const currentPopup = translateRectangle(popup, visualX, visualY);
-      if (!rectanglesOverlap(currentPopup, area)) continue;
-
-      const candidates = [
-        { x: area.left - currentPopup.right - MAP_EDGE_GAP_PX, y: 0 },
-        { x: area.right - currentPopup.left + MAP_EDGE_GAP_PX, y: 0 },
-        { x: 0, y: area.top - currentPopup.bottom - MAP_EDGE_GAP_PX },
-        { x: 0, y: area.bottom - currentPopup.top + MAP_EDGE_GAP_PX },
-      ].filter(({ x, y }) => {
-        const movedPopup = translateRectangle(currentPopup, x, y);
-        return (
-          movedPopup.left >= map.left + MAP_EDGE_GAP_PX &&
-          movedPopup.right <= map.right - MAP_EDGE_GAP_PX &&
-          movedPopup.top >= map.top + MAP_EDGE_GAP_PX &&
-          movedPopup.bottom <= map.bottom - MAP_EDGE_GAP_PX &&
-          !rectanglesOverlap(movedPopup, area)
-        );
-      });
-
-      const candidate = candidates.sort(
-        (first, second) =>
-          Math.abs(first.x) + Math.abs(first.y) -
-          (Math.abs(second.x) + Math.abs(second.y)),
-      )[0];
-
-      // If the popup cannot fit both inside the map and outside this control,
-      // leave it where Leaflet placed it. An impossible corrective pan would
-      // make Leaflet pan back on the next update and create a feedback loop.
-      if (candidate === undefined) continue;
-
-      visualX += candidate.x;
-      visualY += candidate.y;
-      moved = true;
-    }
-
-    if (!moved) break;
+  // A pan cannot make an oversized popup fit. Returning no movement is safer
+  // than repeatedly alternating which edge is outside the map.
+  if (
+    popupWidth > innerMap.right - innerMap.left ||
+    popupHeight > innerMap.bottom - innerMap.top
+  ) {
+    return null;
   }
 
-  return visualX === 0 && visualY === 0
-    ? null
-    : {
-        x: visualX === 0 ? 0 : -visualX,
-        y: visualY === 0 ? 0 : -visualY,
-      };
+  const relevantAreas = protectedAreas.filter((area) =>
+    rectanglesOverlap(map, area),
+  );
+  const xOffsets = new Set<number>([
+    0,
+    innerMap.left - popup.left,
+    innerMap.right - popup.right,
+  ]);
+  const yOffsets = new Set<number>([
+    0,
+    innerMap.top - popup.top,
+    innerMap.bottom - popup.bottom,
+  ]);
+
+  for (const area of relevantAreas) {
+    xOffsets.add(area.left - popup.right - MAP_EDGE_GAP_PX);
+    xOffsets.add(area.right - popup.left + MAP_EDGE_GAP_PX);
+    yOffsets.add(area.top - popup.bottom - MAP_EDGE_GAP_PX);
+    yOffsets.add(area.bottom - popup.top + MAP_EDGE_GAP_PX);
+  }
+
+  const candidates = [...xOffsets]
+    .flatMap((x) => [...yOffsets].map((y) => ({ x, y })))
+    .filter(({ x, y }) => {
+      const movedPopup = translateRectangle(popup, x, y);
+      return (
+        movedPopup.left >= innerMap.left &&
+        movedPopup.right <= innerMap.right &&
+        movedPopup.top >= innerMap.top &&
+        movedPopup.bottom <= innerMap.bottom &&
+        relevantAreas.every((area) => !rectanglesOverlap(movedPopup, area))
+      );
+    });
+  const candidate = candidates.sort(
+    (first, second) =>
+      Math.abs(first.x) + Math.abs(first.y) -
+      (Math.abs(second.x) + Math.abs(second.y)),
+  )[0];
+
+  if (candidate === undefined || (candidate.x === 0 && candidate.y === 0)) {
+    return null;
+  }
+
+  return {
+    x: candidate.x === 0 ? 0 : -candidate.x,
+    y: candidate.y === 0 ? 0 : -candidate.y,
+  };
 }
 
 /**

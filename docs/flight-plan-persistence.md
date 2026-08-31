@@ -26,7 +26,9 @@ global altitude, and sparse per-adjacent-leg altitude/target overrides in their
 documented internal units. A leg may optionally have a second altitude and
 reach-by target after its primary target. It may also store a pilot-entered
 minimum safe altitude in ft MSL; this is an optional manual value, not derived
-route output.
+route output. A route-shaping point may likewise retain an optional
+reporting-point-specific source snapshot; this remains geometry input, not a
+real navlog waypoint.
 
 Each sector boundary with active performance inputs has one intermediate-airport
 snapshot containing elevation, QNH, ISA deviation, and a non-negative stop

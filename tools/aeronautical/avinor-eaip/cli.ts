@@ -6,9 +6,11 @@ import {
   importAvinorEaipAerodromes,
 } from './batchImport';
 import { NORWAY_EAIP_EDITION } from './edition';
+import { importVacReportingPoints } from './importOperationalData';
 import type {
   AvinorEaipAerodromeSource,
   AvinorEaipBatchFailure,
+  AvinorEaipEnrSource,
 } from './types';
 
 interface CliOptions {
@@ -22,6 +24,7 @@ interface CliOptions {
 
 interface AcquiredSources {
   readonly sources: readonly AvinorEaipAerodromeSource[];
+  readonly enr21Source: AvinorEaipEnrSource | null;
   readonly retrievalFailures: readonly AvinorEaipBatchFailure[];
   readonly discoveredAerodromeCount: number;
   readonly retrievedAtUtc: string;
@@ -89,10 +92,16 @@ function combineAcquisitionResults(
   discoveredAerodromeCount: number,
   retrievedAtUtc: string,
   results: readonly { readonly source: AvinorEaipAerodromeSource | null; readonly failure: AvinorEaipBatchFailure | null }[],
+  enr21Source: AvinorEaipEnrSource | null,
+  enr21Failure: AvinorEaipBatchFailure | null,
 ): AcquiredSources {
   return {
     sources: results.flatMap(({ source }) => source === null ? [] : [source]),
-    retrievalFailures: results.flatMap(({ failure }) => failure === null ? [] : [failure]),
+    enr21Source,
+    retrievalFailures: [
+      ...results.flatMap(({ failure }) => failure === null ? [] : [failure]),
+      ...(enr21Failure === null ? [] : [enr21Failure]),
+    ],
     discoveredAerodromeCount,
     retrievedAtUtc,
   };
@@ -118,7 +127,31 @@ async function acquireOnlineSources(options: CliOptions): Promise<AcquiredSource
       };
     }
   }));
-  return combineAcquisitionResults(discovered.length, retrievedAtUtc, results);
+  let enr21Source: AvinorEaipEnrSource | null = null;
+  let enr21Failure: AvinorEaipBatchFailure | null = null;
+  if (options.aerodromes === null) {
+    try {
+      enr21Source = {
+        sourceUrl: NORWAY_EAIP_EDITION.enr21Url,
+        html: await fetchPage(NORWAY_EAIP_EDITION.enr21Url),
+      };
+    } catch (error: unknown) {
+      enr21Failure = {
+        sourceAerodrome: 'ENR 2.1',
+        sourceUrl: NORWAY_EAIP_EDITION.enr21Url,
+        code: 'source-retrieval-failed',
+        message: error instanceof Error ? error.message : String(error),
+        aipSection: 'ENR 2.1',
+      };
+    }
+  }
+  return combineAcquisitionResults(
+    discovered.length,
+    retrievedAtUtc,
+    results,
+    enr21Source,
+    enr21Failure,
+  );
 }
 
 async function acquireOfflineSources(options: CliOptions): Promise<AcquiredSources> {
@@ -145,7 +178,31 @@ async function acquireOfflineSources(options: CliOptions): Promise<AcquiredSourc
       };
     }
   }));
-  return combineAcquisitionResults(discovered.length, retrievedAtUtc, results);
+  let enr21Source: AvinorEaipEnrSource | null = null;
+  let enr21Failure: AvinorEaipBatchFailure | null = null;
+  if (options.aerodromes === null) {
+    try {
+      enr21Source = {
+        sourceUrl: NORWAY_EAIP_EDITION.enr21Url,
+        html: await readFile(resolve(inputDirectory, 'ENR-2.1.html')),
+      };
+    } catch (error: unknown) {
+      enr21Failure = {
+        sourceAerodrome: 'ENR 2.1',
+        sourceUrl: NORWAY_EAIP_EDITION.enr21Url,
+        code: 'source-read-failed',
+        message: error instanceof Error ? error.message : String(error),
+        aipSection: 'ENR 2.1',
+      };
+    }
+  }
+  return combineAcquisitionResults(
+    discovered.length,
+    retrievedAtUtc,
+    results,
+    enr21Source,
+    enr21Failure,
+  );
 }
 
 async function writeJson(path: string, value: unknown): Promise<void> {
@@ -158,18 +215,64 @@ async function main(): Promise<void> {
   const options = parseOptions(process.argv.slice(2));
   const acquired = options.inputIndexPath === null ? await acquireOnlineSources(options) : await acquireOfflineSources(options);
   const importedAtUtc = new Date().toISOString();
-  const result = importAvinorEaipAerodromes(acquired.sources, NORWAY_EAIP_EDITION, { retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc });
+  const result = importAvinorEaipAerodromes(
+    acquired.sources,
+    NORWAY_EAIP_EDITION,
+    { retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc },
+    acquired.enr21Source ?? undefined,
+  );
   const failures = [...acquired.retrievalFailures, ...result.failures];
   if (result.importedAerodromes.length === 0) {
     throw new Error('No aerodromes were successfully imported; refusing to replace the dataset');
   }
-  await writeJson(options.outputPath, result.dataset);
+  const includeEnduReportingPoints =
+    options.aerodromes === null || options.aerodromes.includes('ENDU');
+  const reportingPoints = includeEnduReportingPoints
+    ? importVacReportingPoints(
+        await readFile(new URL('./fixtures/endu-vac.txt', import.meta.url), 'utf8'),
+        {
+          dataset: {
+            datasetId: result.dataset.metadata.datasetId,
+            providerId: result.dataset.metadata.providerId,
+            sourceName: result.dataset.metadata.sourceName,
+            airacCycle: result.dataset.metadata.airacCycle,
+            effectiveFromUtc: result.dataset.metadata.effectiveFromUtc,
+            effectiveToUtc: result.dataset.metadata.effectiveToUtc,
+            ...(result.dataset.metadata.revisionId === undefined
+              ? {}
+              : { revisionId: result.dataset.metadata.revisionId }),
+          },
+          effectiveDate: NORWAY_EAIP_EDITION.effectiveFromUtc.slice(0, 10),
+          aerodromeFeatureId: 'aerodrome:ENDU',
+          aerodromeIdentifier: 'ENDU',
+          sourceUrl:
+            'https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf',
+          sourcePage: '1',
+        },
+      )
+    : { features: [], details: [] };
+  const dataset = {
+    ...result.dataset,
+    features: [...result.dataset.features, ...reportingPoints.features],
+    featureDetails: [...result.dataset.featureDetails, ...reportingPoints.details],
+  };
+  await writeJson(options.outputPath, dataset);
   await writeJson(options.reportPath, {
     provider: 'Avinor', source: 'eAIP', editionLabel: NORWAY_EAIP_EDITION.editionLabel,
     effectiveFromUtc: NORWAY_EAIP_EDITION.effectiveFromUtc, sourceIndexUrl: NORWAY_EAIP_EDITION.indexUrl,
+    sourceEnr21Url: NORWAY_EAIP_EDITION.enr21Url,
     retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc,
     discoveredAerodromeCount: acquired.discoveredAerodromeCount,
-    importedAerodromes: result.importedAerodromes, warnings: result.warnings, failures,
+    importedAerodromes: result.importedAerodromes,
+    featureCounts: {
+      aerodromes: dataset.features.filter((feature) => feature.geometryType === 'point' && feature.pointKind === 'aerodrome').length,
+      airspaces: dataset.features.filter((feature) => feature.geometryType === 'area').length,
+      tmas: dataset.features.filter((feature) => feature.geometryType === 'area' && feature.areaKind === 'tma').length,
+      communicationServices: dataset.communicationServices.length,
+      frequencies: dataset.communicationServices.reduce((sum, service) => sum + service.frequencies.length, 0),
+      reportingPoints: dataset.features.filter((feature) => feature.geometryType === 'point' && feature.pointKind === 'reporting-point').length,
+    },
+    warnings: result.warnings, failures,
   });
   console.log(`Wrote ${options.outputPath}`);
   console.log(`Wrote ${options.reportPath}`);

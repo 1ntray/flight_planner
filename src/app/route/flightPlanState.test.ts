@@ -4,8 +4,10 @@ import { calculateRoute } from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import {
   appendAnchoredWaypointToFlightPlan,
+  attachRouteShapingPointToReportingPoint,
   attachWaypointToAeronauticalFeatureInFlightPlan,
   detachWaypointInFlightPlan,
+  detachRouteShapingPoint,
   insertRouteShapingPoint,
   moveRouteShapingPoint,
   renameWaypointInFlightPlan,
@@ -137,6 +139,58 @@ describe('flight plan shaping state helpers', () => {
     const moved = moveRouteShapingPoint(shaped, 'G1', position);
 
     expect(moved.legShapes[0]?.points[0]).toEqual({ id: 'G1', position });
+  });
+
+  it('snaps, detaches, and moves a shaping point independently of navlog waypoints', () => {
+    const reportingPoint = {
+      geometryType: 'point' as const,
+      pointKind: 'reporting-point' as const,
+      ref: {
+        dataset: {
+          datasetId: 'dataset-1',
+          providerId: 'provider-1',
+          sourceName: 'Test source',
+          airacCycle: '2608',
+          effectiveFromUtc: '2026-08-06T00:00:00Z',
+          effectiveToUtc: '2026-09-03T00:00:00Z',
+        },
+        featureId: 'vrp-1',
+        featureKind: 'reporting-point' as const,
+      },
+      identifier: 'VRP01',
+      name: 'Test reporting point',
+      suggestedWaypointName: 'VRP01',
+      position: { latitude: 0.3, longitude: 0.6 },
+    };
+    const shaped = insertRouteShapingPoint(flightPlan, 'A', 'B', 0, {
+      id: 'G1',
+      position: { latitude: 0.2, longitude: 0.3 },
+    });
+    const attached = attachRouteShapingPointToReportingPoint(
+      shaped,
+      'G1',
+      reportingPoint,
+    );
+
+    expect(attached.waypoints).toBe(shaped.waypoints);
+    expect(attached.legShapes[0]?.points[0]).toMatchObject({
+      id: 'G1',
+      position: reportingPoint.position,
+      anchor: {
+        kind: 'aeronautical-reporting-point',
+        publishedIdentifier: 'VRP01',
+      },
+    });
+
+    const detached = detachRouteShapingPoint(attached, 'G1');
+    expect(detached.legShapes[0]?.points[0]).not.toHaveProperty('anchor');
+    expect(detached.legShapes[0]?.points[0]?.position).toEqual(reportingPoint.position);
+
+    const moved = moveRouteShapingPoint(attached, 'G1', { latitude: 0.4, longitude: 0.7 });
+    expect(moved.legShapes[0]?.points[0]).toEqual({
+      id: 'G1',
+      position: { latitude: 0.4, longitude: 0.7 },
+    });
   });
 
   it('removing the final shaping point restores the direct leg', () => {

@@ -8,12 +8,18 @@ import type {
   AirspaceDetails,
   AirspaceType,
   AtsUnit,
+  CommunicationFrequencyAssignment,
   CommunicationService,
   CommunicationServiceType,
   Position,
   ReportingPointDetails,
 } from '../../../src/domain';
-import { expandTable, findSectionTables, normalizeText } from './htmlTable.ts';
+import {
+  expandTable,
+  findSectionTables,
+  normalizeText,
+  visibleText,
+} from './htmlTable.ts';
 import { parseCompactDmsPosition } from './parseCoordinate.ts';
 import { parseVerticalLimit, parseVerticalLimitRange } from './parseVerticalLimit.ts';
 import { AvinorEaipImportError } from './types.ts';
@@ -31,6 +37,14 @@ export interface OperationalImportResult {
   readonly featureDetails: readonly AeronauticalFeatureDetails[];
   readonly atsUnits: readonly AtsUnit[];
   readonly communicationServices: readonly CommunicationService[];
+  readonly warnings: readonly OperationalImportWarning[];
+}
+
+export interface OperationalImportWarning {
+  readonly code: string;
+  readonly message: string;
+  readonly aipSection: string;
+  readonly publishedName?: string;
 }
 
 function cheerio(source: string | Buffer) {
@@ -118,113 +132,243 @@ export function importAd2OperationalData(
   config: OperationalImportConfig,
 ): OperationalImportResult {
   const $ = cheerio(source);
+  const warnings: OperationalImportWarning[] = [];
   const airspaceTable = findSectionTables($, `${config.sourceAerodrome} AD 2.17`)[0];
+  const features: AeronauticalAreaFeature[] = [];
+  const detailsWithoutServices: AirspaceDetails[] = [];
+  let unitCallsign: string | undefined;
+
   if (airspaceTable === undefined) {
-    throw new AvinorEaipImportError('missing-section', 'Missing AD 2.17 table', 'AD 2.17');
-  }
-  const rows = expandTable($, airspaceTable);
-  const valueFor = (label: string) =>
-    rows.find((row) => row.some((cell) => cell.toLowerCase().includes(label)))?.at(-1);
-  const designation = valueFor('designation and lateral limits');
-  const vertical = valueFor('vertical limits');
-  const publishedClass = valueFor('airspace classification');
-  const unitCallsign = valueFor('ats unit call sign');
-  const remarks = valueFor('rmk');
-  if (designation === undefined || vertical === undefined || publishedClass === undefined) {
-    throw new AvinorEaipImportError(
-      'malformed-required-airspace-data',
-      'AD 2.17 is missing designation, vertical limits, or class',
-      'AD 2.17',
-    );
-  }
-
-  const { type, featureKind } = airspaceType(designation);
-  const nameMatch = new RegExp(`^(.+?\\b${type.toUpperCase()}\\b)`).exec(designation);
-  const publishedName = normalizeText(nameMatch?.[1] ?? '');
-  if (publishedName === '') {
-    throw new AvinorEaipImportError('malformed-airspace-name', 'Missing airspace name', 'AD 2.17');
-  }
-  const { lower, upper } = parseVerticalLimitRange(vertical, 'AD 2.17');
-  if (!/^[A-G]$/.test(publishedClass.trim())) {
-    throw new AvinorEaipImportError('malformed-airspace-class', `Invalid airspace class: ${publishedClass}`, 'AD 2.17');
-  }
-  const { positions, ring } = semanticRing(allPositions(designation, 'AD 2.17'));
-  const featureId = `airspace:ad2:${config.sourceAerodrome.toLowerCase()}:${type}`;
-  const featureRef = {
-    dataset: config.dataset,
-    featureId,
-    featureVersionId: config.effectiveDate,
-    featureKind,
-  } as const;
-  const serviceRows = findSectionTables($, `${config.sourceAerodrome} AD 2.18`)[0];
-  if (serviceRows === undefined) {
-    throw new AvinorEaipImportError('missing-section', 'Missing AD 2.18 table', 'AD 2.18');
-  }
-
-  const services: CommunicationService[] = [];
-  let current: CommunicationService | null = null;
-  for (const row of expandTable($, serviceRows).slice(2)) {
-    const [publishedService = '', callsign = '', frequency = '', hours = '', rowRemarks = ''] = row;
-    if (publishedService !== '') {
-      current = {
-        id: `communication:ad2:${config.sourceAerodrome.toLowerCase()}:${slug(publishedService)}`,
-        serviceType: serviceType(publishedService),
-        publishedServiceType: publishedService,
-        ...(callsign === '' ? {} : { callsign }),
-        frequencies: [],
-        associations: [
-          {
-            featureId: config.aerodromeFeatureId,
-            featureKind: 'aerodrome',
-            basis: 'explicit',
-          },
-          ...((publishedService === 'TWR' || publishedService === 'AFIS') &&
-          callsign !== '' && unitCallsign?.toLowerCase().startsWith(callsign.toLowerCase())
-            ? [{ featureId, featureKind: 'airspace' as const, basis: 'unique-source-callsign-match' as const }]
-            : []),
-        ],
-        sourceReferences: [sourceReference(config, 'AD 2.18')],
-      };
-      services.push(current);
-    }
-    if (current === null) continue;
-    const match = /^(\d{3}\.\d{3})\s*MHZ$/i.exec(frequency);
-    if (match === null) {
-      throw new AvinorEaipImportError('malformed-frequency', `Malformed frequency: ${frequency}`, 'AD 2.18');
-    }
-    (current.frequencies as Array<{ valueMHz: string; hours?: string; remarks?: string }>).push({
-      valueMHz: match[1] as string,
-      ...(hours === '' ? {} : { hours }),
-      ...(rowRemarks === '' || rowRemarks === 'NIL' ? {} : { remarks: rowRemarks }),
+    warnings.push({
+      code: 'missing-section',
+      message: 'Missing AD 2.17 table',
+      aipSection: 'AD 2.17',
     });
+  } else {
+    const valuesFor = (label: string): readonly string[] | undefined => {
+      const row = airspaceTable.find('tr').toArray().find((candidate) =>
+        $(candidate).children('th, td').toArray().some((cell) =>
+          visibleText($(cell)).toLowerCase().includes(label),
+        ),
+      );
+      if (row === undefined) return undefined;
+      const valueCell = $(row).children('th, td').last();
+      const paragraphs = valueCell.children('p').toArray()
+        .map((paragraph) => visibleText($(paragraph)))
+        .filter((value) => value !== '');
+      return paragraphs.length > 0 ? paragraphs : [visibleText(valueCell)];
+    };
+
+    const designationValues = valuesFor('designation and lateral limits');
+    const verticalValues = valuesFor('vertical limits');
+    const classValues = valuesFor('airspace classification');
+    unitCallsign = valuesFor('ats unit call sign')?.join(' ');
+    const remarks = valuesFor('rmk')?.join(' ');
+    if (
+      designationValues === undefined ||
+      verticalValues === undefined ||
+      classValues === undefined
+    ) {
+      throw new AvinorEaipImportError(
+        'malformed-required-airspace-data',
+        'AD 2.17 is missing designation, vertical limits, or class',
+        'AD 2.17',
+      );
+    }
+
+    const designation = designationValues.join(' ');
+    if (designation.toUpperCase() !== 'NIL') {
+      const { type, featureKind } = airspaceType(designation);
+      const nameMatch = new RegExp(`^(.+?\\b${type.toUpperCase()}\\b)`, 'i').exec(designation);
+      const publishedName = normalizeText(nameMatch?.[1] ?? '');
+      if (publishedName === '') {
+        throw new AvinorEaipImportError('malformed-airspace-name', 'Missing airspace name', 'AD 2.17');
+      }
+      const geometryValues = designationValues.filter(
+        (value) => (value.match(/\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g) ?? []).length >= 3,
+      );
+      if (geometryValues.length === 0) {
+        throw new AvinorEaipImportError(
+          'insufficient-airspace-coordinates',
+          `No published geometry volumes found for ${publishedName}`,
+          'AD 2.17',
+        );
+      }
+      if (verticalValues.length !== 1 && verticalValues.length !== geometryValues.length) {
+        throw new AvinorEaipImportError(
+          'ambiguous-airspace-volumes',
+          `${publishedName} has ${geometryValues.length} geometries but ${verticalValues.length} vertical-limit ranges`,
+          'AD 2.17',
+        );
+      }
+      if (classValues.length !== 1 && classValues.length !== geometryValues.length) {
+        throw new AvinorEaipImportError(
+          'ambiguous-airspace-classes',
+          `${publishedName} has ${geometryValues.length} geometries but ${classValues.length} classes`,
+          'AD 2.17',
+        );
+      }
+
+      geometryValues.forEach((geometry, index) => {
+        const vertical = verticalValues.length === 1
+          ? verticalValues[0]
+          : verticalValues[index];
+        const publishedClass = classValues.length === 1
+          ? classValues[0]
+          : classValues[index];
+        if (vertical === undefined || publishedClass === undefined) {
+          throw new AvinorEaipImportError(
+            'ambiguous-airspace-volumes',
+            `Unable to pair published values for ${publishedName}`,
+            'AD 2.17',
+          );
+        }
+        const { lower, upper } = parseVerticalLimitRange(vertical, 'AD 2.17');
+        if (!/^[A-G]$/.test(publishedClass.trim())) {
+          throw new AvinorEaipImportError(
+            'malformed-airspace-class',
+            `Invalid airspace class: ${publishedClass}`,
+            'AD 2.17',
+          );
+        }
+        const { positions, ring } = semanticRing(allPositions(geometry, 'AD 2.17'));
+        const firstCoordinate = geometry.match(
+          /\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/,
+        )?.[0];
+        const featureId = geometryValues.length === 1
+          ? `airspace:ad2:${config.sourceAerodrome.toLowerCase()}:${type}`
+          : [
+              `airspace:ad2:${config.sourceAerodrome.toLowerCase()}:${type}`,
+              `${slug(vertical)}:${slug(firstCoordinate ?? String(index + 1))}`,
+            ].join(':');
+        const featureRef = {
+          dataset: config.dataset,
+          featureId,
+          featureVersionId: config.effectiveDate,
+          featureKind,
+        } as const;
+        features.push({
+          geometryType: 'area',
+          areaKind: featureKind,
+          ref: featureRef,
+          identifier: publishedName,
+          name: geometryValues.length === 1
+            ? publishedName
+            : `${publishedName} (${lower.publishedText}–${upper.publishedText})`,
+          polygons: [{ outerRing: positions, holes: [] }],
+        });
+        detailsWithoutServices.push({
+          detailKind: 'airspace',
+          ref: featureRef,
+          identifier: publishedName,
+          publishedName,
+          airspaceType: type,
+          publishedType: type.toUpperCase(),
+          airspaceClass: publishedClass.trim() as AirspaceClass,
+          lowerLimit: lower,
+          upperLimit: upper,
+          sourceGeometry: { kind: 'polygon', rings: [ring] },
+          communicationServiceIds: [],
+          ...(remarks === undefined || remarks === 'NIL' ? {} : { remarks }),
+          sourceReferences: [sourceReference(config, 'AD 2.17')],
+        });
+      });
+    }
   }
 
-  const feature: AeronauticalAreaFeature = {
-    geometryType: 'area',
-    areaKind: featureKind,
-    ref: featureRef,
-    identifier: publishedName,
-    name: publishedName,
-    polygons: [{ outerRing: positions, holes: [] }],
-  };
-  const details: AirspaceDetails = {
-    detailKind: 'airspace',
-    ref: featureRef,
-    identifier: publishedName,
-    publishedName,
-    airspaceType: type,
-    publishedType: type.toUpperCase(),
-    airspaceClass: publishedClass.trim() as AirspaceClass,
-    lowerLimit: lower,
-    upperLimit: upper,
-    sourceGeometry: { kind: 'polygon', rings: [ring] },
+  const serviceRows = findSectionTables($, `${config.sourceAerodrome} AD 2.18`)[0];
+  const serviceDrafts: Array<{
+    publishedServiceType: string;
+    callsign?: string;
+    frequencies: CommunicationFrequencyAssignment[];
+  }> = [];
+  if (serviceRows === undefined) {
+    warnings.push({
+      code: 'missing-section',
+      message: 'Missing AD 2.18 table',
+      aipSection: 'AD 2.18',
+    });
+  } else {
+    let current: (typeof serviceDrafts)[number] | null = null;
+    for (const row of expandTable($, serviceRows).slice(2)) {
+      const [publishedService = '', callsign = '', frequency = '', hours = '', rowRemarks = ''] = row;
+      if (publishedService !== '') {
+        if (publishedService === 'NIL') {
+          current = null;
+          continue;
+        }
+        current = {
+          publishedServiceType: publishedService,
+          ...(callsign === '' ? {} : { callsign }),
+          frequencies: [],
+        };
+        serviceDrafts.push(current);
+      }
+      if (current === null || frequency === '') continue;
+      const match = /^(\d{3}\.\d{3})\s*MHZ$/i.exec(frequency);
+      if (match?.[1] === undefined) {
+        throw new AvinorEaipImportError('malformed-frequency', `Malformed frequency: ${frequency}`, 'AD 2.18');
+      }
+      current.frequencies.push({
+        valueMHz: match[1],
+        ...(hours === '' ? {} : { hours }),
+        ...(rowRemarks === '' || rowRemarks === 'NIL' ? {} : { remarks: rowRemarks }),
+      });
+    }
+  }
+
+  const duplicateServiceTypes = new Set(
+    serviceDrafts
+      .map(({ publishedServiceType }) => publishedServiceType)
+      .filter((value, index, all) => all.indexOf(value) !== index),
+  );
+  const services: CommunicationService[] = serviceDrafts.map((draft) => {
+    const isAirspaceService =
+      (draft.publishedServiceType === 'TWR' || draft.publishedServiceType === 'AFIS') &&
+      draft.callsign !== undefined &&
+      unitCallsign?.toLowerCase().startsWith(draft.callsign.toLowerCase());
+    const serviceIdSuffix = duplicateServiceTypes.has(draft.publishedServiceType)
+      ? `:${slug(draft.frequencies[0]?.valueMHz ?? draft.callsign ?? 'unknown')}`
+      : '';
+    return {
+      id: `communication:ad2:${config.sourceAerodrome.toLowerCase()}:${slug(draft.publishedServiceType)}${serviceIdSuffix}`,
+      serviceType: serviceType(draft.publishedServiceType),
+      publishedServiceType: draft.publishedServiceType,
+      ...(draft.callsign === undefined ? {} : { callsign: draft.callsign }),
+      frequencies: draft.frequencies,
+      associations: [
+        {
+          featureId: config.aerodromeFeatureId,
+          featureKind: 'aerodrome' as const,
+          basis: 'explicit' as const,
+        },
+        ...(isAirspaceService
+          ? features.map((feature) => ({
+              featureId: feature.ref.featureId,
+              featureKind: 'airspace' as const,
+              basis: 'unique-source-callsign-match' as const,
+            }))
+          : []),
+      ],
+      sourceReferences: [sourceReference(config, 'AD 2.18')],
+    };
+  });
+
+  const featureDetails = detailsWithoutServices.map((details) => ({
+    ...details,
     communicationServiceIds: services
-      .filter((service) => service.associations.some((association) => association.featureId === featureId))
+      .filter((service) => service.associations.some(
+        (association) => association.featureId === details.ref.featureId,
+      ))
       .map((service) => service.id),
-    ...(remarks === undefined || remarks === 'NIL' ? {} : { remarks }),
-    sourceReferences: [sourceReference(config, 'AD 2.17')],
+  }));
+  return {
+    features,
+    featureDetails,
+    atsUnits: [],
+    communicationServices: services,
+    warnings,
   };
-  return { features: [feature], featureDetails: [details], atsUnits: [], communicationServices: services };
 }
 
 export interface EnrAirspaceImportConfig extends Omit<OperationalImportConfig, 'sourceAerodrome'> {
@@ -232,77 +376,323 @@ export interface EnrAirspaceImportConfig extends Omit<OperationalImportConfig, '
   readonly associatedAerodromeFeatureIds: readonly string[];
 }
 
+export interface Enr21AirspacesImportConfig {
+  readonly dataset: AeronauticalDatasetRef;
+  readonly effectiveDate: string;
+  readonly sourceUrl: string;
+  readonly includedTypes?: readonly Extract<AirspaceType, 'tma' | 'cta'>[];
+  readonly includedPublishedNames?: readonly string[];
+  readonly associatedAerodromeFeatureIdsByName?: Readonly<
+    Record<string, readonly string[]>
+  >;
+}
+
+interface Enr21Group {
+  readonly publishedName: string;
+  readonly type: Extract<AirspaceType, 'tma' | 'cta'>;
+  readonly definitions: string[];
+  unitName: string;
+  callsignHours: string;
+  readonly frequencies: CommunicationFrequencyAssignment[];
+}
+
+function enr21SourceReference(
+  config: Enr21AirspacesImportConfig,
+  publishedName: string,
+) {
+  return {
+    sourceType: 'eAIP-html' as const,
+    sourceDocument: 'ENR 2.1',
+    aipSection: 'ENR 2.1',
+    publishedIdentifier: publishedName,
+    sourceReference: config.sourceUrl,
+  };
+}
+
+function enr21DefinitionParts(definition: string): {
+  readonly upperText: string;
+  readonly lowerText: string;
+  readonly airspaceClass: AirspaceClass;
+} {
+  const upperText = /Upper limit:\s*(.+?)\s+Lower limit:/i.exec(definition)?.[1];
+  const lowerMatch = /Lower limit:\s*(.+?)\s+Class\s+([A-G])\b/i.exec(definition);
+  if (
+    upperText === undefined ||
+    lowerMatch?.[1] === undefined ||
+    lowerMatch[2] === undefined
+  ) {
+    throw new AvinorEaipImportError(
+      'malformed-vertical-limit-range',
+      `Missing ENR limits: ${definition}`,
+      'ENR 2.1',
+    );
+  }
+  return {
+    upperText: normalizeText(upperText),
+    lowerText: normalizeText(lowerMatch[1]),
+    airspaceClass: lowerMatch[2] as AirspaceClass,
+  };
+}
+
+function hasUnsupportedEnr21Geometry(definition: string): boolean {
+  return /\b(?:arc|circle|radius|border|boundary|coast(?:line)?)\b/i.test(
+    definition,
+  );
+}
+
+function addUniqueFrequency(
+  target: CommunicationFrequencyAssignment[],
+  frequencyText: string,
+  remarks: string,
+): void {
+  if (frequencyText === '') return;
+  const match = /^(\d{3}\.\d{3})\s*MHZ$/i.exec(frequencyText);
+  if (match?.[1] === undefined) {
+    throw new AvinorEaipImportError(
+      'malformed-frequency',
+      `Malformed frequency: ${frequencyText}`,
+      'ENR 2.1',
+    );
+  }
+  if (target.some(({ valueMHz }) => valueMHz === match[1])) return;
+  target.push({
+    valueMHz: match[1],
+    ...(remarks === '' ? {} : { remarks }),
+  });
+}
+
+/**
+ * Imports selected ENR 2.1 TMA/CTA rows. Avinor publishes additional vertical
+ * volumes as unnamed rows immediately after the named row; these are retained
+ * as separate normalized areas rather than being flattened into one polygon.
+ */
+export function importEnr21Airspaces(
+  source: string | Buffer,
+  config: Enr21AirspacesImportConfig,
+): OperationalImportResult {
+  const $ = cheerio(source);
+  const includedTypes = new Set(config.includedTypes ?? ['tma']);
+  const includedNames =
+    config.includedPublishedNames === undefined
+      ? null
+      : new Set(config.includedPublishedNames.map((name) => name.toLowerCase()));
+  const groups = new Map<string, Enr21Group>();
+  let currentGroup: Enr21Group | null = null;
+
+  for (const table of $('table').toArray()) {
+    currentGroup = null;
+    for (const row of expandTable($, $(table))) {
+      const [definition = '', unitName = '', callsignHours = '', frequency = '', remarks = ''] = row;
+      const named = /^(.+?\b(TMA|CTA)\b)(?=\s+\d{6}(?:\.\d+)?[NS]\b)/i.exec(
+        definition,
+      );
+      if (named?.[1] !== undefined && named[2] !== undefined) {
+        const publishedName = normalizeText(named[1]);
+        const type = named[2].toLowerCase() as Extract<AirspaceType, 'tma' | 'cta'>;
+        if (
+          !includedTypes.has(type) ||
+          (includedNames !== null && !includedNames.has(publishedName.toLowerCase()))
+        ) {
+          currentGroup = null;
+          continue;
+        }
+        const key = publishedName.toLowerCase();
+        currentGroup = groups.get(key) ?? {
+          publishedName,
+          type,
+          definitions: [],
+          unitName: '',
+          callsignHours: '',
+          frequencies: [],
+        };
+        groups.set(key, currentGroup);
+        if (!currentGroup.definitions.includes(definition)) {
+          currentGroup.definitions.push(definition);
+        }
+      } else if (
+        currentGroup !== null &&
+        /Upper limit:/i.test(definition) &&
+        /Lower limit:/i.test(definition) &&
+        !currentGroup.definitions.includes(definition)
+      ) {
+        currentGroup.definitions.push(definition);
+      } else if (definition !== '') {
+        currentGroup = null;
+      }
+
+      if (currentGroup === null) continue;
+      if (unitName !== '') currentGroup.unitName = unitName;
+      if (callsignHours !== '') currentGroup.callsignHours = callsignHours;
+      addUniqueFrequency(currentGroup.frequencies, frequency, remarks);
+    }
+  }
+
+  const features: AeronauticalAreaFeature[] = [];
+  const featureDetails: AeronauticalFeatureDetails[] = [];
+  const atsUnits = new Map<string, AtsUnit>();
+  const communicationServices: CommunicationService[] = [];
+  const warnings: OperationalImportWarning[] = [];
+
+  for (const group of groups.values()) {
+    const sourceRef = enr21SourceReference(config, group.publishedName);
+    const groupFeatures: AeronauticalAreaFeature[] = [];
+    const groupDetails: AirspaceDetails[] = [];
+
+    for (const definition of group.definitions) {
+      try {
+        if (hasUnsupportedEnr21Geometry(definition)) {
+          throw new AvinorEaipImportError(
+            'unsupported-airspace-geometry',
+            `Airspace uses a non-coordinate-list boundary that is not yet normalized: ${group.publishedName}`,
+            'ENR 2.1',
+          );
+        }
+        const { upperText, lowerText, airspaceClass } = enr21DefinitionParts(definition);
+        const coordinateMatches =
+          definition.match(/\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g) ?? [];
+        const firstCoordinate = coordinateMatches[0];
+        if (firstCoordinate === undefined) {
+          throw new AvinorEaipImportError(
+            'insufficient-airspace-coordinates',
+            `Missing published coordinates for ${group.publishedName}`,
+            'ENR 2.1',
+          );
+        }
+        const positionsAndRing = semanticRing(allPositions(definition, 'ENR 2.1'));
+        const featureId = [
+          'airspace:enr21',
+          slug(group.publishedName),
+          `${slug(lowerText)}-to-${slug(upperText)}`,
+          slug(firstCoordinate),
+        ].join(':');
+        if (features.some((feature) => feature.ref.featureId === featureId)) {
+          throw new AvinorEaipImportError(
+            'duplicate-semantic-airspace-id',
+            `Two ENR 2.1 volumes resolve to ${featureId}`,
+            'ENR 2.1',
+          );
+        }
+        const featureRef = {
+          dataset: config.dataset,
+          featureId,
+          featureVersionId: config.effectiveDate,
+          featureKind: group.type,
+        } as const;
+        const displayName = `${group.publishedName} (${lowerText}–${upperText})`;
+        groupFeatures.push({
+          geometryType: 'area',
+          ref: featureRef,
+          areaKind: group.type,
+          identifier: group.publishedName,
+          name: displayName,
+          polygons: [{ outerRing: positionsAndRing.positions, holes: [] }],
+        });
+        groupDetails.push({
+          detailKind: 'airspace',
+          ref: featureRef,
+          identifier: group.publishedName,
+          publishedName: group.publishedName,
+          airspaceType: group.type,
+          publishedType: group.type.toUpperCase(),
+          airspaceClass,
+          lowerLimit: parseVerticalLimit(lowerText, 'ENR 2.1'),
+          upperLimit: parseVerticalLimit(upperText, 'ENR 2.1'),
+          sourceGeometry: { kind: 'polygon', rings: [positionsAndRing.ring] },
+          communicationServiceIds: [],
+          sourceReferences: [sourceRef],
+        });
+      } catch (error: unknown) {
+        const importError =
+          error instanceof AvinorEaipImportError
+            ? error
+            : new AvinorEaipImportError(
+                'unexpected-airspace-import-error',
+                error instanceof Error ? error.message : String(error),
+                'ENR 2.1',
+              );
+        warnings.push({
+          code: importError.code,
+          message: importError.message,
+          aipSection: 'ENR 2.1',
+          publishedName: group.publishedName,
+        });
+      }
+    }
+
+    if (groupFeatures.length === 0) continue;
+    let serviceId: string | null = null;
+    if (group.frequencies.length > 0) {
+      serviceId = `communication:enr21:${slug(group.publishedName)}:${group.type === 'tma' ? 'approach' : 'area-control'}`;
+      const unitId = group.unitName === '' ? undefined : `ats-unit:${slug(group.unitName)}`;
+      if (unitId !== undefined && !atsUnits.has(unitId)) {
+        atsUnits.set(unitId, {
+          id: unitId,
+          publishedName: group.unitName,
+          sourceReferences: [sourceRef],
+        });
+      }
+      const callsign = group.callsignHours.replace(/\s+English\b.*$/i, '').trim();
+      const associatedAerodromes =
+        config.associatedAerodromeFeatureIdsByName?.[group.publishedName] ?? [];
+      communicationServices.push({
+        id: serviceId,
+        serviceType: group.type === 'tma' ? 'approach' : 'area-control',
+        publishedServiceType: group.type === 'tma' ? 'APP' : 'ACC',
+        ...(unitId === undefined ? {} : { unitId }),
+        ...(callsign === '' ? {} : { callsign }),
+        frequencies: group.frequencies,
+        associations: [
+          ...groupFeatures.map((feature) => ({
+            featureId: feature.ref.featureId,
+            featureKind: 'airspace' as const,
+            basis: 'explicit' as const,
+          })),
+          ...associatedAerodromes.map((featureId) => ({
+            featureId,
+            featureKind: 'aerodrome' as const,
+            basis: 'explicit' as const,
+          })),
+        ],
+        sourceReferences: [sourceRef],
+      });
+    }
+
+    features.push(...groupFeatures);
+    featureDetails.push(
+      ...groupDetails.map((details) => ({
+        ...details,
+        communicationServiceIds:
+          serviceId === null ? [] : [serviceId],
+      })),
+    );
+  }
+
+  return {
+    features,
+    featureDetails,
+    atsUnits: [...atsUnits.values()],
+    communicationServices,
+    warnings,
+  };
+}
+
 export function importEnr21Airspace(
   source: string | Buffer,
   config: EnrAirspaceImportConfig,
 ): OperationalImportResult {
-  const $ = cheerio(source);
-  const row = $('tr').toArray().find((candidate) =>
-    normalizeText($(candidate).text()).startsWith(config.publishedName),
-  );
-  if (row === undefined) {
+  const result = importEnr21Airspaces(source, {
+    dataset: config.dataset,
+    effectiveDate: config.effectiveDate,
+    sourceUrl: config.sourceUrl,
+    includedPublishedNames: [config.publishedName],
+    associatedAerodromeFeatureIdsByName: {
+      [config.publishedName]: config.associatedAerodromeFeatureIds,
+    },
+  });
+  if (result.features.length === 0) {
     throw new AvinorEaipImportError('missing-airspace', `Missing ${config.publishedName}`, 'ENR 2.1');
   }
-  const cells = $(row).children('th, td').toArray().map((cell) => normalizeText($(cell).text()));
-  const [definition = '', unitName = '', callsignHours = '', frequency = '', remarks = ''] = cells;
-  const { type, featureKind } = airspaceType(definition);
-  const positionsAndRing = semanticRing(allPositions(definition, 'ENR 2.1'));
-  const upperText = /Upper limit:\s*(.+?)\s+Lower limit:/i.exec(definition)?.[1];
-  const lowerText = /Lower limit:\s*(.+?)\s+Class\s+([A-G])/i.exec(definition);
-  if (upperText === undefined || lowerText?.[1] === undefined || lowerText[2] === undefined) {
-    throw new AvinorEaipImportError('malformed-vertical-limit-range', `Missing ENR limits: ${definition}`, 'ENR 2.1');
-  }
-  const featureId = `airspace:enr21:${slug(config.publishedName)}`;
-  const featureRef = { dataset: config.dataset, featureId, featureVersionId: config.effectiveDate, featureKind } as const;
-  const unitId = `ats-unit:${slug(unitName)}`;
-  const serviceId = `communication:enr21:${slug(config.publishedName)}:approach`;
-  const frequencyMatch = /^(\d{3}\.\d{3})\s*MHZ$/i.exec(frequency);
-  if (frequencyMatch === null) {
-    throw new AvinorEaipImportError('malformed-frequency', `Malformed frequency: ${frequency}`, 'ENR 2.1');
-  }
-  const sourceRef = {
-    sourceType: 'eAIP-html' as const,
-    sourceDocument: 'ENR 2.1',
-    aipSection: 'ENR 2.1',
-    publishedIdentifier: config.publishedName,
-    sourceReference: config.sourceUrl,
-  };
-  const service: CommunicationService = {
-    id: serviceId,
-    serviceType: 'approach',
-    publishedServiceType: 'APP',
-    unitId,
-    callsign: callsignHours.replace(/\s+English\b.*$/i, ''),
-    frequencies: [{ valueMHz: frequencyMatch[1] as string, ...(remarks === '' ? {} : { remarks }) }],
-    associations: [
-      { featureId, featureKind: 'airspace', basis: 'explicit' },
-      ...config.associatedAerodromeFeatureIds.map((associatedFeatureId) => ({
-        featureId: associatedFeatureId,
-        featureKind: 'aerodrome' as const,
-        basis: 'explicit' as const,
-      })),
-    ],
-    sourceReferences: [sourceRef],
-  };
-  const feature: AeronauticalAreaFeature = {
-    geometryType: 'area', ref: featureRef, areaKind: featureKind,
-    identifier: config.publishedName, name: config.publishedName,
-    polygons: [{ outerRing: positionsAndRing.positions, holes: [] }],
-  };
-  const details: AirspaceDetails = {
-    detailKind: 'airspace', ref: featureRef, identifier: config.publishedName,
-    publishedName: config.publishedName, airspaceType: type, publishedType: type.toUpperCase(),
-    airspaceClass: lowerText[2] as AirspaceClass,
-    lowerLimit: parseVerticalLimit(lowerText[1], 'ENR 2.1'),
-    upperLimit: parseVerticalLimit(upperText, 'ENR 2.1'),
-    sourceGeometry: { kind: 'polygon', rings: [positionsAndRing.ring] },
-    communicationServiceIds: [serviceId], sourceReferences: [sourceRef],
-  };
-  return {
-    features: [feature], featureDetails: [details],
-    atsUnits: [{ id: unitId, publishedName: unitName, sourceReferences: [sourceRef] }],
-    communicationServices: [service],
-  };
+  return result;
 }
 
 export interface VacReportingPointConfig {

@@ -53,6 +53,25 @@ const document: FlightPlanningDocument = {
           {
             id: 'G1',
             position: { latitude: 69.2, longitude: 18.4 },
+            anchor: {
+              kind: 'aeronautical-reporting-point',
+              feature: {
+                dataset: {
+                  datasetId: 'airac-2608-r1',
+                  providerId: 'test-provider',
+                  sourceName: 'Test source',
+                  airacCycle: '2608',
+                  effectiveFromUtc: '2026-08-06T00:00:00Z',
+                  effectiveToUtc: '2026-09-03T00:00:00Z',
+                  revisionId: 'r1',
+                },
+                featureId: 'vrp-a',
+                featureVersionId: 'vrp-a-v1',
+                featureKind: 'reporting-point',
+              },
+              publishedIdentifier: 'VRP-A',
+              publishedName: 'Test reporting point',
+            },
           },
         ],
       },
@@ -591,5 +610,30 @@ describe('flight-planning document persistence', () => {
         },
       }),
     ).toThrow('does not match an adjacent waypoint leg');
+  });
+
+  it('rejects a shaping-point anchor that does not reference a reporting point', () => {
+    const invalid = {
+      ...document,
+      flightPlan: {
+        ...document.flightPlan,
+        legShapes: [{
+          ...document.flightPlan.legShapes[0]!,
+          points: [{
+            ...document.flightPlan.legShapes[0]!.points[0]!,
+            anchor: {
+              ...document.flightPlan.legShapes[0]!.points[0]!.anchor!,
+              feature: {
+                ...document.flightPlan.legShapes[0]!.points[0]!.anchor!.feature,
+                featureKind: 'aerodrome',
+              },
+            },
+          }],
+        }],
+      },
+    };
+
+    expect(() => parseFlightPlanningDocument(invalid))
+      .toThrow('must be reporting-point');
   });
 });

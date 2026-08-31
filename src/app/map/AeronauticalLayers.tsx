@@ -5,7 +5,6 @@ import {
   Marker,
   Pane,
   Polygon,
-  Popup,
   Tooltip,
   useMapEvents,
 } from 'react-leaflet';
@@ -25,6 +24,7 @@ import {
 } from './aeronauticalLayerConfig';
 import type { AeronauticalLayerVisibility } from './aeronauticalLayerConfig';
 import { AirspacePopupContent } from './AirspacePopupContent';
+import { BoundedLayerPopup } from './BoundedLayerPopup';
 
 const pointIconByKind: Readonly<Record<AeronauticalPointKind, ReturnType<typeof divIcon>>> =
   {
@@ -222,9 +222,9 @@ export function AeronauticalLayers({
             }}
           >
             <Tooltip pane="tooltipPane" sticky>{feature.name}</Tooltip>
-            <Popup pane="popupPane">
+            <BoundedLayerPopup pane="popupPane">
               <AirspacePopupContent feature={feature} repository={repository} />
-            </Popup>
+            </BoundedLayerPopup>
           </Polygon>
         ))}
       </Pane>
@@ -262,14 +262,14 @@ export function AeronauticalLayers({
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
             {feature.pointKind === 'aerodrome' || anchoringEnabled ? null : (
-              <Popup pane="popupPane">
+              <BoundedLayerPopup pane="popupPane">
                 <strong>{feature.identifier}</strong>
                 {feature.name === undefined ? null : <><br />{feature.name}</>}
                 <br />
                 {alternateAerodromeSelectionEnabled
                   ? 'Choose an aerodrome as the alternate in this mode'
                   : 'Switch to Add waypoint mode to use this feature'}
-              </Popup>
+              </BoundedLayerPopup>
             )}
           </Marker>
         ))}

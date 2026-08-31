@@ -37,3 +37,21 @@ export function findAeronauticalWaypointAttachmentTarget(
 
   return nearestFeature;
 }
+
+/**
+ * Shaping points may use published reporting points as geometry anchors, but
+ * must not silently attach to aerodromes, navaids, or designated points.
+ */
+export function findReportingPointShapingAttachmentTarget(
+  dropPosition: Position,
+  features: readonly AeronauticalPointFeature[],
+  toContainerPoint: (position: Position) => ContainerPoint,
+  radiusPixels = AERONAUTICAL_WAYPOINT_ATTACH_RADIUS_PIXELS,
+): AeronauticalPointFeature | null {
+  return findAeronauticalWaypointAttachmentTarget(
+    dropPosition,
+    features.filter((feature) => feature.pointKind === 'reporting-point'),
+    toContainerPoint,
+    radiusPixels,
+  );
+}

@@ -60,12 +60,60 @@ describe('calculateMapPopupAutoPanPadding', () => {
     ).toEqual({ x: 62, y: 0 });
   });
 
+  it.each([
+    [
+      'left',
+      { top: 250, left: -30, right: 270, bottom: 550 },
+      { x: -42, y: 0 },
+    ],
+    [
+      'right',
+      { top: 250, left: 780, right: 1080, bottom: 550 },
+      { x: 92, y: 0 },
+    ],
+    [
+      'top',
+      { top: -40, left: 350, right: 650, bottom: 260 },
+      { x: 0, y: -52 },
+    ],
+    [
+      'bottom',
+      { top: 480, left: 350, right: 650, bottom: 780 },
+      { x: 0, y: 92 },
+    ],
+  ])('moves a popup inside the %s map edge', (_edge, popup, expected) => {
+    expect(calculatePopupCollisionPan(map, popup, [])).toEqual(expected);
+  });
+
+  it('chooses one position that clears all controls and map edges', () => {
+    expect(
+      calculatePopupCollisionPan(
+        map,
+        { top: -20, left: 760, right: 980, bottom: 280 },
+        [
+          { top: 12, left: 700, right: 988, bottom: 190 },
+          { top: 200, left: 820, right: 988, bottom: 300 },
+        ],
+      ),
+    ).toEqual({ x: 292, y: -32 });
+  });
+
   it('declines an impossible correction instead of fighting Leaflet auto-pan', () => {
     expect(
       calculatePopupCollisionPan(
         map,
         { top: 221, left: 93, right: 552, bottom: 634 },
         [{ top: 12, left: 200, right: 550, bottom: 296 }],
+      ),
+    ).toBeNull();
+  });
+
+  it('declines placement when the popup is larger than the usable map', () => {
+    expect(
+      calculatePopupCollisionPan(
+        map,
+        { top: 0, left: 0, right: 1100, bottom: 680 },
+        [],
       ),
     ).toBeNull();
   });

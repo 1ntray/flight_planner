@@ -69,6 +69,7 @@ import { ShapingPointMapPopup } from './ShapingPointMapPopup';
 import { LegMapPopup } from './LegMapPopup';
 import { AerodromeInfoPopup } from './AerodromeInfoPopup';
 import { MsaCorridor } from './MsaCorridor';
+import { findReportingPointShapingAttachmentTarget } from './aeronauticalWaypointAttachment';
 import { VacChartLayers } from './VacChartLayers';
 import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
 import {
@@ -315,6 +316,7 @@ interface RouteLineInteractionHandlerProps {
   onCommitShapingPoint: (
     pendingPoint: PendingRouteShapingPoint,
     position: Position,
+    toContainerPoint: (position: Position) => { x: number; y: number },
   ) => void;
 }
 
@@ -399,7 +401,11 @@ function RouteLineInteractionHandler({
 
         onInteractionChange(null);
       } else if (interaction?.mode === 'shaping') {
-        onCommitShapingPoint(interaction.pendingPoint, toPosition(event));
+        onCommitShapingPoint(
+          interaction.pendingPoint,
+          toPosition(event),
+          (position) => map.latLngToContainerPoint([position.latitude, position.longitude]),
+        );
         onInteractionChange(null);
       }
     },
@@ -433,6 +439,7 @@ export interface FlightMapProps {
   msaFocusRequest: number;
   waypointNameFocusRequest: number;
   batchEntryActive?: boolean;
+  autoShowMsaCorridor?: boolean;
   suppressSelectionPopups?: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -448,8 +455,11 @@ export interface FlightMapProps {
     toWaypointId: string,
     insertionIndex: number,
     point: RouteShapingPoint,
+    anchorFeature?: AeronauticalPointFeature,
   ) => void;
   onMoveShapingPoint: (id: string, position: Position) => void;
+  onAttachShapingPoint: (id: string, feature: AeronauticalPointFeature) => void;
+  onDetachShapingPoint: (id: string) => void;
   onInsertWaypoint: (candidate: RouteWaypointInsertionCandidate) => void;
   onSelectionChange: (selection: MapSelection | null) => void;
   onToolChange: (tool: MapTool) => void;
@@ -498,6 +508,7 @@ export function FlightMap({
   msaFocusRequest,
   waypointNameFocusRequest,
   batchEntryActive = false,
+  autoShowMsaCorridor = false,
   suppressSelectionPopups = false,
   canUndo,
   canRedo,
@@ -510,6 +521,8 @@ export function FlightMap({
   onMoveWaypoint,
   onAddShapingPoint,
   onMoveShapingPoint,
+  onAttachShapingPoint,
+  onDetachShapingPoint,
   onInsertWaypoint,
   onSelectionChange,
   onToolChange,
@@ -547,6 +560,15 @@ export function FlightMap({
   const [vacChartsVisible, setVacChartsVisible] = useState(false);
   const [vacChartOpacity, setVacChartOpacity] = useState(0.75);
   const [msaCorridorVisible, setMsaCorridorVisible] = useState(false);
+
+  // Sequential MSA entry is the one workflow where the corridor is needed for
+  // every leg. Keep it enabled after the mode ends so the pilot retains control
+  // over the visual aid rather than having it disappear mid-review.
+  useEffect(() => {
+    if (autoShowMsaCorridor) {
+      setMsaCorridorVisible(true);
+    }
+  }, [autoShowMsaCorridor]);
   const [visibleAeronauticalPointFeatures, setVisibleAeronauticalPointFeatures] =
     useState<readonly AeronauticalPointFeature[]>([]);
   const [selectedAerodromeInformation, setSelectedAerodromeInformation] =
@@ -654,18 +676,31 @@ export function FlightMap({
       ? flightPlan.waypoints.find(({ id }) => id === tool.toWaypointId)
       : undefined;
   const commitPendingPoint = useCallback(
-    (pendingPoint: PendingRouteShapingPoint, position: Position) => {
-      const point = { ...pendingPoint.point, position };
+    (
+      pendingPoint: PendingRouteShapingPoint,
+      position: Position,
+      toContainerPoint: (position: Position) => { x: number; y: number },
+    ) => {
+      const attachmentTarget = findReportingPointShapingAttachmentTarget(
+        position,
+        visibleAeronauticalPointFeatures,
+        toContainerPoint,
+      );
+      const point = {
+        ...pendingPoint.point,
+        position: attachmentTarget?.position ?? position,
+      };
 
       onAddShapingPoint(
         pendingPoint.fromWaypointId,
         pendingPoint.toWaypointId,
         pendingPoint.insertionIndex,
         point,
+        attachmentTarget ?? undefined,
       );
       onSelectionChange(null);
     },
-    [onAddShapingPoint, onSelectionChange],
+    [onAddShapingPoint, onSelectionChange, visibleAeronauticalPointFeatures],
   );
   const updateAeronauticalLayerVisibility = useCallback(
     (layerId: AeronauticalLayerId, visible: boolean) => {
@@ -902,6 +937,7 @@ export function FlightMap({
           aeronauticalPointFeatures={visibleAeronauticalPointFeatures}
           onAttachWaypoint={onAttachWaypoint}
           onMoveShapingPoint={onMoveShapingPoint}
+          onAttachShapingPoint={onAttachShapingPoint}
           onSelectRoutePoint={(selected) => {
             setSelectedAerodromeInformation(null);
             onSelectionChange(selected);
@@ -959,8 +995,12 @@ export function FlightMap({
         selectedShapingPoint === undefined ||
         selectedShapingPointDisplayPosition === undefined ? null : (
           <ShapingPointMapPopup
-            position={selectedShapingPointDisplayPosition}
+            point={{
+              ...selectedShapingPoint,
+              position: selectedShapingPointDisplayPosition,
+            }}
             onDelete={onDeleteSelection}
+            onDetach={() => onDetachShapingPoint(selectedShapingPoint.id)}
             onClose={() => onSelectionChange(null)}
           />
         )}

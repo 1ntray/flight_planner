@@ -13,6 +13,7 @@ import type {
   OperationalPlanningInputs,
   Position,
   RoutePlanningInputs,
+  ReportingPointShapingAnchor,
   RouteShapingPoint,
   Waypoint,
 } from '../domain';
@@ -238,10 +239,53 @@ function requireShapingPoint(
   path: string,
 ): RouteShapingPoint {
   const record = requireRecord(value, path);
+  const anchor = record.anchor === undefined
+    ? undefined
+    : requireReportingPointShapingAnchor(record.anchor, `${path}.anchor`);
 
   return {
     id: requireString(record.id, `${path}.id`),
     position: requirePosition(record.position, `${path}.position`),
+    ...(anchor === undefined ? {} : { anchor }),
+  };
+}
+
+function requireReportingPointShapingAnchor(
+  value: unknown,
+  path: string,
+): ReportingPointShapingAnchor {
+  const record = requireRecord(value, path);
+
+  if (record.kind !== 'aeronautical-reporting-point') {
+    throw new RangeError(`${path}.kind must be aeronautical-reporting-point`);
+  }
+
+  const featureRecord = requireRecord(record.feature, `${path}.feature`);
+  const featureKind = requireFeatureKind(
+    featureRecord.featureKind,
+    `${path}.feature.featureKind`,
+  );
+
+  if (featureKind !== 'reporting-point') {
+    throw new RangeError(`${path}.feature.featureKind must be reporting-point`);
+  }
+
+  const featureVersionId = optionalString(
+    featureRecord.featureVersionId,
+    `${path}.feature.featureVersionId`,
+  );
+  const publishedName = optionalString(record.publishedName, `${path}.publishedName`);
+
+  return {
+    kind: 'aeronautical-reporting-point',
+    feature: {
+      dataset: requireDatasetRef(featureRecord.dataset, `${path}.feature.dataset`),
+      featureId: requireString(featureRecord.featureId, `${path}.feature.featureId`),
+      featureKind,
+      ...(featureVersionId === undefined ? {} : { featureVersionId }),
+    },
+    publishedIdentifier: requireString(record.publishedIdentifier, `${path}.publishedIdentifier`),
+    ...(publishedName === undefined ? {} : { publishedName }),
   };
 }
 

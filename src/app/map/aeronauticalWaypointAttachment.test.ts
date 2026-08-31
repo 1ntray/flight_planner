@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   AERONAUTICAL_WAYPOINT_ATTACH_RADIUS_PIXELS,
+  findReportingPointShapingAttachmentTarget,
   findAeronauticalWaypointAttachmentTarget,
 } from './aeronauticalWaypointAttachment';
 
@@ -79,5 +80,29 @@ describe('aeronautical waypoint attachment targeting', () => {
     );
 
     expect(target?.identifier).toBe('ENDU');
+  });
+
+  it('limits shaping-point snapping to reporting points', () => {
+    const reportingPoint = {
+      ...features[0]!,
+      pointKind: 'reporting-point' as const,
+      ref: { ...features[0]!.ref, featureKind: 'reporting-point' as const },
+      identifier: 'VRP01',
+    };
+
+    expect(
+      findReportingPointShapingAttachmentTarget(
+        reportingPoint.position,
+        [features[1]!, reportingPoint],
+        screenPointByPosition,
+      )?.identifier,
+    ).toBe('VRP01');
+    expect(
+      findReportingPointShapingAttachmentTarget(
+        features[1]!.position,
+        [features[1]!],
+        screenPointByPosition,
+      ),
+    ).toBeNull();
   });
 });
