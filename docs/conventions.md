@@ -89,8 +89,13 @@ identifier remains available in the separate anchor snapshot.
   without reopening it. Selected waypoint and shaping-point popups use the same
   temporary drag position as their markers, while canonical coordinates still
   commit only on `dragend`.
-- The base-map source is isolated in `src/app/map/tileSource.ts` so it can be
-  replaced without changing map interaction code.
+- Base-map sources are isolated in `src/app/map/baseMapSource.ts`. Base-map
+  selection is local presentation state in `FlightMap`; it is not part of the
+  flight plan or calculation inputs.
+- The Avinor ICAO chart is rendered by its ArcGIS MapServer as stable,
+  edition-keyed EPSG:3857 export tiles. A bounded browser cache may retain only
+  those presentation tiles. Its native Lambert projection is never introduced
+  into waypoint, route, magnetic, wind, or performance calculations.
 - Aeronautical overlay components consume normalized domain features through
   an `AeronauticalDataRepository`. They do not consume AIXM, provider JSON,
   database rows, or Leaflet geometry as domain data.

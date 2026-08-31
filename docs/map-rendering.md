@@ -1,5 +1,50 @@
 # Map rendering notes
 
+## Base maps
+
+The Leaflet map remains in its default EPSG:3857 Web Mercator CRS. Users may
+choose between two mutually exclusive presentation-only base maps:
+
+- Kartverket Norgeskart topo, served as cached 256 px Web Mercator tiles.
+- Avinor Norway VFR Aeronautical Chart ICAO 1:500 000, served by the public
+  `ICAO_500000_ExB/MapServer` as dynamically rendered Web Mercator tiles.
+
+The Avinor source raster is published in a custom WGS 84 Lambert Conformal
+Conic CRS. The ArcGIS export request specifies `bboxSR=3857` and
+`imageSR=3857`, so ArcGIS performs the raster reprojection on the server. The
+browser does not manually warp the chart and the application does not change
+the Leaflet CRS.
+
+The Avinor service currently allows the ArcGIS Experience origin, but not
+localhost, to read cross-origin JSON. The layer therefore uses direct ArcGIS
+`f=image` responses without attempting to read the PNG through JavaScript or a
+canvas. Its attribution and usage warning are configured locally because the
+public MapServer's copyright metadata is empty.
+
+The application divides the Web Mercator map into stable 256 px XYZ cells and
+requests each corresponding ArcGIS export at 1024 × 1024 px and 384 DPI. The
+browser displays each response at 256 × 256 CSS px, providing 4× raster density.
+Tiles load independently and in parallel; panning keeps nearby tiles and only
+requests newly exposed cells instead of redrawing the complete viewport.
+
+A narrowly scoped service worker caches successful Avinor tile responses in the
+browser's Cache Storage. Cache keys include the published effective date, old
+edition caches are removed when a new edition is first requested, and the
+current cache is bounded to 160 tiles. The worker does not cache application
+files, route data, or any non-Avinor requests. Because Avinor does not grant
+localhost CORS access, the cross-origin PNG responses are opaque to application
+JavaScript but can still be safely stored and returned to their original image
+requests.
+
+Selecting the Avinor chart requires a one-session acknowledgement of its
+published terms. The acknowledgement and selected base map are not persisted.
+The chart remains an aid to planning only; current AIP and NOTAM must still be
+consulted and it must not be used as the sole navigation tool.
+
+Base-map selection changes only the imagery below the existing layers. Route,
+waypoint, aeronautical overlay, magnetic, wind, and performance values remain
+WGS84 domain data and calculations.
+
 ## Raster tile seam investigation
 
 The Kartverket topo layer uses Leaflet's standard raster `TileLayer` with 256 px

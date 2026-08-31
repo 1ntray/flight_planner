@@ -30,6 +30,9 @@ import type {
 } from '../../domain';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import { AeronauticalLayerControl } from './AeronauticalLayerControl';
+import { ArcGisExportTileLayer } from './ArcGisExportTileLayer';
+import type { BaseMapLoadStatus } from './ArcGisExportTileLayer';
+import { BaseMapControl } from './BaseMapControl';
 import {
   AeronauticalLayers,
 } from './AeronauticalLayers';
@@ -65,7 +68,11 @@ import { ShapingPointMapPopup } from './ShapingPointMapPopup';
 import { LegMapPopup } from './LegMapPopup';
 import { AerodromeInfoPopup } from './AerodromeInfoPopup';
 import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
-import { KARTVERKET_TOPO_TILE_SOURCE } from './tileSource';
+import {
+  DEFAULT_BASE_MAP_ID,
+  getBaseMapSource,
+} from './baseMapSource';
+import type { BaseMapId } from './baseMapSource';
 import './rasterTileSeamWorkaround.css';
 
 const INITIAL_CENTER: LatLngTuple = [69.35, 18.75];
@@ -485,6 +492,13 @@ export function FlightMap({
 }: FlightMapProps) {
   const [draggedPoint, setDraggedPoint] =
     useState<DraggedRoutePointPosition | null>(null);
+  const [baseMapId, setBaseMapId] = useState<BaseMapId>(
+    DEFAULT_BASE_MAP_ID,
+  );
+  const [baseMapStatus, setBaseMapStatus] =
+    useState<BaseMapLoadStatus>('ready');
+  const [icaoTermsAccepted, setIcaoTermsAccepted] = useState(false);
+  const [icaoTermsPromptOpen, setIcaoTermsPromptOpen] = useState(false);
   const [routeLineInteraction, setRouteLineInteraction] =
     useState<RouteLineInteraction | null>(null);
   const suppressNextMapClick = useRef(false);
@@ -499,6 +513,7 @@ export function FlightMap({
     useState<readonly AeronauticalPointFeature[]>([]);
   const [selectedAerodromeInformation, setSelectedAerodromeInformation] =
     useState<AeronauticalPointFeature | null>(null);
+  const baseMapSource = getBaseMapSource(baseMapId);
   const pendingShapingPoint =
     routeLineInteraction?.mode === 'shaping'
       ? routeLineInteraction.pendingPoint
@@ -597,6 +612,25 @@ export function FlightMap({
     },
     [],
   );
+  const selectBaseMap = useCallback(
+    (nextId: BaseMapId) => {
+      if (nextId === 'avinor-icao' && !icaoTermsAccepted) {
+        setIcaoTermsPromptOpen(true);
+        return;
+      }
+
+      setIcaoTermsPromptOpen(false);
+      setBaseMapStatus(nextId === 'avinor-icao' ? 'loading' : 'ready');
+      setBaseMapId(nextId);
+    },
+    [icaoTermsAccepted],
+  );
+  const acceptIcaoTerms = useCallback(() => {
+    setIcaoTermsAccepted(true);
+    setIcaoTermsPromptOpen(false);
+    setBaseMapStatus('loading');
+    setBaseMapId('avinor-icao');
+  }, []);
   const showAerodromeInformation = useCallback(
     (feature: AeronauticalPointFeature) => {
       setSelectedAerodromeInformation(feature);
@@ -688,12 +722,19 @@ export function FlightMap({
         className={`flight-map flight-map--tool-${tool.kind}${routeLineInteraction?.mode === 'shaping' ? ' flight-map--shaping-route' : ''}`}
         zoomControl
       >
-        <TileLayer
-          url={KARTVERKET_TOPO_TILE_SOURCE.url}
-          attribution={KARTVERKET_TOPO_TILE_SOURCE.attribution}
-          maxZoom={KARTVERKET_TOPO_TILE_SOURCE.maxZoom}
-          className={getChromiumRasterSeamClassName(navigator.userAgent)}
-        />
+        {baseMapSource.kind === 'xyz' ? (
+          <TileLayer
+            url={baseMapSource.url}
+            attribution={baseMapSource.attribution}
+            maxZoom={baseMapSource.maxZoom}
+            className={getChromiumRasterSeamClassName(navigator.userAgent)}
+          />
+        ) : (
+          <ArcGisExportTileLayer
+            source={baseMapSource}
+            onStatusChange={setBaseMapStatus}
+          />
+        )}
 
         <MapClickHandler
           tool={tool}
@@ -925,12 +966,22 @@ export function FlightMap({
         onRedo={onRedo}
       />
 
-      <AeronauticalLayerControl
-        dataset={aeronauticalDataset}
-        status={aeronauticalStatus}
-        visibility={aeronauticalLayerVisibility}
-        onVisibilityChange={updateAeronauticalLayerVisibility}
-      />
+      <div className="map-layer-controls">
+        <BaseMapControl
+          selectedId={baseMapId}
+          status={baseMapStatus}
+          termsPromptOpen={icaoTermsPromptOpen}
+          onSelect={selectBaseMap}
+          onAcceptTerms={acceptIcaoTerms}
+          onCancelTerms={() => setIcaoTermsPromptOpen(false)}
+        />
+        <AeronauticalLayerControl
+          dataset={aeronauticalDataset}
+          status={aeronauticalStatus}
+          visibility={aeronauticalLayerVisibility}
+          onVisibilityChange={updateAeronauticalLayerVisibility}
+        />
+      </div>
     </>
   );
 }
