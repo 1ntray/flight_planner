@@ -78,6 +78,8 @@ export type AltitudeTargetPlacement =
 export interface LegAltitudePlan {
   readonly fromWaypointId: string;
   readonly toWaypointId: string;
+  /** User-assessed minimum safe altitude for the shaped route corridor, ft MSL. */
+  readonly minimumSafeAltitudeFtMsl?: number;
   /** Overrides the route-wide altitude for this real-waypoint leg. */
   readonly altitudeFtMsl?: number;
   /** Where the requested altitude must have been attained. */

@@ -32,6 +32,7 @@ function updateLegPlan(
     existing ?? { fromWaypointId, toWaypointId },
   );
   const keepUpdated =
+    updated.minimumSafeAltitudeFtMsl !== undefined ||
     updated.altitudeFtMsl !== undefined ||
     updated.targetPlacement !== undefined ||
     updated.endAltitudeFtMsl !== undefined ||
@@ -64,6 +65,22 @@ export function setLegAltitudeOverride(
       return { ...plan, altitudeFtMsl };
     },
   );
+}
+
+export function setLegMinimumSafeAltitude(
+  plans: readonly LegAltitudePlan[],
+  fromWaypointId: string,
+  toWaypointId: string,
+  minimumSafeAltitudeFtMsl: number | null,
+): LegAltitudePlan[] {
+  return updateLegPlan(plans, fromWaypointId, toWaypointId, (plan) => {
+    if (minimumSafeAltitudeFtMsl === null) {
+      const { minimumSafeAltitudeFtMsl: _removed, ...withoutMsa } = plan;
+      return withoutMsa;
+    }
+
+    return { ...plan, minimumSafeAltitudeFtMsl };
+  });
 }
 
 export function setLegEndAltitudeOverride(
@@ -119,10 +136,14 @@ export function splitLegAltitudePlanForWaypointInsertion(
     sourceLeg.geometry,
     candidate.position,
   ).distanceFromStartNm;
-  const base =
-    sourcePlan.altitudeFtMsl === undefined
+  const base = {
+    ...(sourcePlan.minimumSafeAltitudeFtMsl === undefined
       ? {}
-      : { altitudeFtMsl: sourcePlan.altitudeFtMsl };
+      : { minimumSafeAltitudeFtMsl: sourcePlan.minimumSafeAltitudeFtMsl }),
+    ...(sourcePlan.altitudeFtMsl === undefined
+      ? {}
+      : { altitudeFtMsl: sourcePlan.altitudeFtMsl }),
+  };
   let leftPlacement: LegAltitudePlan['targetPlacement'];
   let rightPlacement: LegAltitudePlan['targetPlacement'];
 

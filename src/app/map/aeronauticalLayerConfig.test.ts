@@ -15,6 +15,9 @@ describe('aeronautical layer visibility', () => {
     ).toEqual([
       'ctr',
       'tma',
+      'cta',
+      'tia',
+      'tiz',
       'restricted-area',
       'danger-area',
       'prohibited-area',
@@ -36,4 +39,3 @@ describe('aeronautical layer visibility', () => {
     ).not.toContain('navaid');
   });
 });
-

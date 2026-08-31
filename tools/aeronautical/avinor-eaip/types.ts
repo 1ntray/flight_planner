@@ -60,12 +60,17 @@ export interface AvinorEaipBatchImportResult {
 }
 
 export class AvinorEaipImportError extends Error {
+  readonly code: string;
+  readonly aipSection: string | null;
+
   constructor(
-    readonly code: string,
+    code: string,
     message: string,
-    readonly aipSection: string | null,
+    aipSection: string | null,
   ) {
     super(message);
     this.name = 'AvinorEaipImportError';
+    this.code = code;
+    this.aipSection = aipSection;
   }
 }

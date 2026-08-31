@@ -24,7 +24,9 @@ interface FlightPlanningDocumentV9 {
 sector boundaries. Performance inputs store mass, endpoint weather/elevations, the
 global altitude, and sparse per-adjacent-leg altitude/target overrides in their
 documented internal units. A leg may optionally have a second altitude and
-reach-by target after its primary target.
+reach-by target after its primary target. It may also store a pilot-entered
+minimum safe altitude in ft MSL; this is an optional manual value, not derived
+route output.
 
 Each sector boundary with active performance inputs has one intermediate-airport
 snapshot containing elevation, QNH, ISA deviation, and a non-negative stop
@@ -84,6 +86,7 @@ The document does not store:
 - forecast wind responses or retrieval state,
 - Leaflet layer visibility or viewport,
 - selected points, popup state, or drag state.
+- map corridor visibility or other map presentation preferences.
 
 These values are recalculated or recreated after import. The forecast-source
 preference may be restored, but the application never fetches weather merely

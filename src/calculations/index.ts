@@ -2,11 +2,17 @@ export {
   calculateGeodesicMidpoint,
   calculateInverseGeodesic,
   calculateNearestPointOnGeodesicSegment,
+  calculatePositionAtDistanceAndTrack,
   calculatePositionAlongGeodesic,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
   normalizeTrackDeg,
 } from './geodesy';
+export {
+  buildMsaCorridorGeometry,
+  MSA_CORRIDOR_RADIUS_NM,
+} from './msaCorridor';
+export type { MsaCorridorGeometry } from './msaCorridor';
 export type {
   InverseGeodesicResult,
   NearestPointOnGeodesicSegmentResult,

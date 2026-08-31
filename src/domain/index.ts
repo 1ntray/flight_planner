@@ -14,12 +14,36 @@ export type {
   Wgs84Bounds,
 } from './aeronautical';
 export type {
+  AirspaceBoundaryRing,
+  AirspaceBoundarySegment,
+  AirspaceClass,
+  AirspaceDetails,
+  AirspaceGeometryDefinition,
+  AirspaceType,
+  VerticalLimit,
+} from './airspace';
+export type {
   AerodromeDetails,
   AerodromeRunway,
   AeronauticalFeatureDetails,
   RunwayDeclaredDistances,
   RunwayDirection,
 } from './aerodrome';
+export type {
+  AtsUnit,
+  CommunicationAssociation,
+  CommunicationFrequencyAssignment,
+  CommunicationService,
+  CommunicationServiceType,
+} from './communication';
+export type {
+  ReportingPointCoordinateMethod,
+  ReportingPointDetails,
+} from './reportingPoint';
+export type {
+  VacChartGroundControlPoint,
+  VacChartManifest,
+} from './vacChart';
 export type { FlightPlan } from './flightPlan';
 export type {
   AerodromePlanningWeather,

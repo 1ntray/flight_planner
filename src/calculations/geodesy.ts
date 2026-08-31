@@ -100,6 +100,41 @@ export function calculateGeodesicMidpoint(
   return { latitude, longitude };
 }
 
+/**
+ * Returns the WGS84 destination reached by flying a true track for a
+ * distance in nautical miles. This deliberately operates on geographic
+ * coordinates, never a map projection.
+ */
+export function calculatePositionAtDistanceAndTrack(
+  from: Position,
+  trueTrackDeg: number,
+  distanceNm: number,
+): Position {
+  if (!Number.isFinite(distanceNm) || distanceNm < 0) {
+    throw new RangeError('Geodesic distance must be a non-negative finite number');
+  }
+
+  const result = Geodesic.WGS84.Direct(
+    from.latitude,
+    from.longitude,
+    normalizeTrackDeg(trueTrackDeg),
+    distanceNm * METERS_PER_NAUTICAL_MILE,
+  );
+  const latitude = result.lat2;
+  const longitude = result.lon2;
+
+  if (
+    latitude === undefined ||
+    longitude === undefined ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    throw new RangeError('Geodesic calculation did not return a finite position');
+  }
+
+  return { latitude, longitude };
+}
+
 export function calculatePositionAlongGeodesic(
   from: Position,
   to: Position,

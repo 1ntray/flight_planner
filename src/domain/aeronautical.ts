@@ -9,6 +9,9 @@ export type AeronauticalPointKind =
 export type AeronauticalAreaKind =
   | 'ctr'
   | 'tma'
+  | 'cta'
+  | 'tia'
+  | 'tiz'
   | 'restricted-area'
   | 'danger-area'
   | 'prohibited-area'
@@ -36,11 +39,19 @@ export interface AeronauticalDatasetMetadata extends AeronauticalDatasetRef {
   readonly retrievedAtUtc: string;
   readonly importedAtUtc: string;
   readonly sourceReference: string;
+  readonly importer?: {
+    readonly name: string;
+    readonly version: string;
+  };
 }
 
 export interface AeronauticalSourceReference {
-  readonly sourceAerodrome: string;
+  readonly sourceType?: 'eAIP-html' | 'vac-pdf' | 'prepared-vac';
+  readonly sourceAerodrome?: string;
+  readonly sourceDocument?: string;
   readonly aipSection: string;
+  readonly sourcePage?: string;
+  readonly publishedIdentifier?: string;
   readonly sourceReference: string;
 }
 

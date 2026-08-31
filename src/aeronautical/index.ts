@@ -12,5 +12,8 @@ export type {
   AeronauticalDataRepository,
   AeronauticalFeatureQuery,
   AeronauticalQueryOptions,
+  CommunicationServiceQuery,
+  VacChartQuery,
 } from './repository';
+export { validateVacChartManifest } from './vacManifest';
 export type { NormalizedAeronauticalDataset } from './normalizedDataset';

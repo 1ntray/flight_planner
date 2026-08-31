@@ -620,6 +620,9 @@ export function importAerodromeEaip(
           sourceReferences,
         },
       ],
+      atsUnits: [],
+      communicationServices: [],
+      vacCharts: [],
     },
     warnings,
   };

@@ -161,6 +161,15 @@ function validateLegAltitudePlans(
     keys.add(key);
 
     if (
+      plan.minimumSafeAltitudeFtMsl !== undefined &&
+      (!Number.isFinite(plan.minimumSafeAltitudeFtMsl) ||
+        plan.minimumSafeAltitudeFtMsl < 0 ||
+        plan.minimumSafeAltitudeFtMsl > MAX_SUPPORTED_PLANNING_ALTITUDE_FT)
+    ) {
+      return `Leg MSA must be between 0 and ${MAX_SUPPORTED_PLANNING_ALTITUDE_FT}`;
+    }
+
+    if (
       plan.altitudeFtMsl !== undefined &&
       (!Number.isFinite(plan.altitudeFtMsl) ||
         plan.altitudeFtMsl < 0 ||

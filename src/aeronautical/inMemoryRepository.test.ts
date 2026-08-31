@@ -4,6 +4,8 @@ import type {
   AerodromeDetails,
   AeronauticalDatasetMetadata,
   AeronauticalFeature,
+  CommunicationService,
+  VacChartManifest,
 } from '../domain';
 import { InMemoryAeronauticalRepository } from './inMemoryRepository';
 
@@ -91,10 +93,37 @@ const aerodromeDetails: AerodromeDetails = {
   sourceReferences: [],
 };
 
+const communicationService: CommunicationService = {
+  id: 'test-tower',
+  serviceType: 'tower',
+  publishedServiceType: 'TWR',
+  callsign: 'Test Tower',
+  frequencies: [{ valueMHz: '118.100' }],
+  associations: [
+    { featureId: 'test-aerodrome', featureKind: 'aerodrome', basis: 'explicit' },
+  ],
+  sourceReferences: [],
+};
+
+const vacChart: VacChartManifest = {
+  id: 'test-vac',
+  aerodromeFeatureId: 'test-aerodrome',
+  title: 'Test VAC',
+  chartDate: '2026-08-06',
+  tileUrlTemplate: '/aeronautical/test-vac/{z}/{x}/{y}.png',
+  targetCrs: 'EPSG:3857',
+  bounds: { south: 69, west: 18, north: 70, east: 19 },
+  minimumZoom: 9,
+  maximumZoom: 14,
+  defaultOpacity: 0.75,
+  groundControlPoints: [],
+  sourceReferences: [],
+};
+
 describe('InMemoryAeronauticalRepository', () => {
   const repository = new InMemoryAeronauticalRepository(dataset, features, [
     aerodromeDetails,
-  ]);
+  ], [], [communicationService], [vacChart]);
   const bounds = { south: 69.2, west: 18.5, north: 69.6, east: 19.1 };
 
   it('returns exact dataset provenance', async () => {
@@ -142,6 +171,20 @@ describe('InMemoryAeronauticalRepository', () => {
     await expect(repository.findAerodromeByIdentifier(' test ')).resolves
       .toMatchObject({ identifier: 'TEST', pointKind: 'aerodrome' });
     await expect(repository.findAerodromeByIdentifier('MISSING')).resolves.toBeNull();
+  });
+
+  it('queries communication services by their normalized feature associations', async () => {
+    await expect(repository.queryCommunicationServices({ featureIds: ['test-aerodrome'] }))
+      .resolves.toEqual([communicationService]);
+    await expect(repository.queryCommunicationServices({ featureIds: ['inside-point'] }))
+      .resolves.toEqual([]);
+  });
+
+  it('queries prepared VAC manifests by aerodrome and WGS84 viewport', async () => {
+    await expect(repository.queryVacCharts({ aerodromeFeatureIds: ['test-aerodrome'], bounds }))
+      .resolves.toEqual([vacChart]);
+    await expect(repository.queryVacCharts({ bounds: { south: 60, west: 10, north: 61, east: 11 } }))
+      .resolves.toEqual([]);
   });
 
   it('honours an aborted query without returning stale features', async () => {

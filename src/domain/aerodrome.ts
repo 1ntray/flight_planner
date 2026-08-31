@@ -3,6 +3,8 @@ import type {
   AeronauticalSourceReference,
 } from './aeronautical';
 import type { Position } from './position';
+import type { AirspaceDetails } from './airspace';
+import type { ReportingPointDetails } from './reportingPoint';
 
 export interface RunwayDeclaredDistances {
   readonly toraM: number | null;
@@ -36,4 +38,7 @@ export interface AerodromeDetails {
 }
 
 /** Extend this union with airspace details without changing map features. */
-export type AeronauticalFeatureDetails = AerodromeDetails;
+export type AeronauticalFeatureDetails =
+  | AerodromeDetails
+  | AirspaceDetails
+  | ReportingPointDetails;

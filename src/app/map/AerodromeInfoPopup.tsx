@@ -6,6 +6,7 @@ import type {
   AeronauticalPointFeature,
 } from '../../domain';
 import { StableMapPopup } from './StableMapPopup';
+import { CommunicationServiceList } from './CommunicationServiceList';
 
 type DetailStatus =
   | { readonly kind: 'loading' }
@@ -136,6 +137,8 @@ export function AerodromeInfoPopup({
           </table>
         </section>
       )}
+
+      <CommunicationServiceList repository={repository} featureId={feature.ref.featureId} />
 
       <div className="map-popup-actions map-popup-actions--two">
         <button type="button" className="button" onClick={onClose}>

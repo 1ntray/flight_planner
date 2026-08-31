@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { FlightPlan } from '../../domain';
 import {
   buildRouteDisplayLegs,
+  getRouteDisplayLegMidpoint,
   getRouteSectorColor,
   getRoutePointDisplayPosition,
 } from './routeDisplay';
@@ -114,6 +115,18 @@ describe('route display geometry', () => {
       latitude: 69.1,
       longitude: 18.15,
     });
+  });
+
+  it('finds a WGS84 midpoint along displayed shaping geometry', () => {
+    const display = buildRouteDisplayLegs(flightPlan, null, null);
+    const midpoint = getRouteDisplayLegMidpoint(display[0]!);
+
+    // The first shaped segment is shorter than the second, so the halfway
+    // position lies on the second segment rather than at the shape handle.
+    expect(midpoint.latitude).toBeGreaterThan(69.1);
+    expect(midpoint.latitude).toBeLessThan(69.2);
+    expect(midpoint.longitude).toBeGreaterThan(18.15);
+    expect(midpoint.longitude).toBeLessThan(18.5);
   });
 
   it('inserts a pending shaping point at the selected segment index', () => {

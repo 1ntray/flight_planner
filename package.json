@@ -6,6 +6,7 @@
   "scripts": {
     "aero:import": "tsx tools/aeronautical/avinor-eaip/cli.ts",
     "aero:import:endu": "tsx tools/aeronautical/avinor-eaip/cli.ts --aerodrome ENDU",
+    "aero:build:operational-slice": "node --experimental-strip-types tools/aeronautical/avinor-eaip/buildOperationalSlice.ts",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",

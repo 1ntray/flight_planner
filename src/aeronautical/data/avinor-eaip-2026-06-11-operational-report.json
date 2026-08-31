@@ -1,0 +1,35 @@
+{
+  "datasetId": "avinor-eaip-2026-06-11",
+  "editionLabel": "2026-06-11-AIRAC",
+  "effectiveFromUtc": "2026-06-11T00:00:00Z",
+  "revisionId": "AIP AMDT 04/2026",
+  "importer": {
+    "name": "avinor-eaip-normalizer",
+    "version": "2"
+  },
+  "counts": {
+    "aerodromes": 53,
+    "airspaces": 3,
+    "atsUnits": 1,
+    "communicationServices": 7,
+    "frequencyAssignments": 18,
+    "reportingPoints": 20,
+    "vacChartsPrepared": 0
+  },
+  "verticalSlice": {
+    "primary": "ENDU",
+    "contrast": "ENHF",
+    "airspaces": [
+      "Bardufoss CTR",
+      "Bardufoss TMA",
+      "Hammerfest TIZ"
+    ]
+  },
+  "warnings": [],
+  "errors": [],
+  "limitations": [
+    "Only the reviewed ENDU/ENHF operational vertical slice is included; this is not nationwide airspace coverage.",
+    "The ENDU VAC raster is not enabled because its public PDF has no embedded georeferencing and no offline warp has yet passed control-point validation.",
+    "ENHF reporting points remain unavailable because the reviewed VAC does not publish a coordinate table; no coordinates were inferred visually."
+  ]
+}

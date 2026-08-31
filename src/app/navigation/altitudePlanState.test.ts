@@ -5,6 +5,7 @@ import type { FlightPlan, LegAltitudePlan } from '../../domain';
 import type { RouteWaypointInsertionCandidate } from '../route/routeInsertion';
 import {
   setLegAltitudeOverride,
+  setLegMinimumSafeAltitude,
   setLegAltitudeTargetDistance,
   setLegEndAltitudeOverride,
   setLegEndAltitudeTargetDistance,
@@ -66,6 +67,18 @@ describe('leg altitude-plan state', () => {
     plans = setLegEndAltitudeOverride(plans, 'A', 'B', null);
     expect(plans[0]).not.toHaveProperty('endAltitudeFtMsl');
     expect(plans[0]).not.toHaveProperty('endTargetPlacement');
+  });
+
+  it('stores a manual MSA independently of altitude and removes it when blanked', () => {
+    let plans = setLegMinimumSafeAltitude([], 'A', 'B', 3200);
+    expect(plans).toEqual([{
+      fromWaypointId: 'A',
+      toWaypointId: 'B',
+      minimumSafeAltitudeFtMsl: 3200,
+    }]);
+
+    plans = setLegMinimumSafeAltitude(plans, 'A', 'B', null);
+    expect(plans).toEqual([]);
   });
 
   it('keeps an altitude target on the first split leg when it precedes the inserted waypoint', () => {
@@ -190,5 +203,23 @@ describe('leg altitude-plan state', () => {
         distanceFromStartNm: 2,
       },
     });
+  });
+
+  it('retains a manual MSA on both pieces when a leg is split', () => {
+    const result = splitLegAltitudePlanForWaypointInsertion(
+      [{
+        fromWaypointId: 'A',
+        toWaypointId: 'B',
+        minimumSafeAltitudeFtMsl: 3200,
+      }],
+      flightPlan,
+      candidate,
+      'W',
+    );
+
+    expect(result).toEqual([
+      { fromWaypointId: 'A', toWaypointId: 'W', minimumSafeAltitudeFtMsl: 3200 },
+      { fromWaypointId: 'W', toWaypointId: 'B', minimumSafeAltitudeFtMsl: 3200 },
+    ]);
   });
 });

@@ -106,6 +106,7 @@ export function PerformancePhaseMarkers({
             bubblingMouseEvents={false}
           >
             <Tooltip
+              pane="tooltipPane"
               className={`performance-boundary-label performance-boundary-label--${boundary.phase}`}
               direction="top"
               offset={[0, -8]}

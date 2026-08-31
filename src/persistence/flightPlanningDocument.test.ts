@@ -77,6 +77,7 @@ const document: FlightPlanningDocument = {
     legAltitudePlans: [{
       fromWaypointId: 'A',
       toWaypointId: 'B',
+      minimumSafeAltitudeFtMsl: 4300,
       altitudeFtMsl: 5500,
       targetPlacement: {
         mode: 'distance-along-leg',

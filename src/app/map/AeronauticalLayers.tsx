@@ -24,6 +24,7 @@ import {
   getVisibleAeronauticalFeatureKinds,
 } from './aeronauticalLayerConfig';
 import type { AeronauticalLayerVisibility } from './aeronauticalLayerConfig';
+import { AirspacePopupContent } from './AirspacePopupContent';
 
 const pointIconByKind: Readonly<Record<AeronauticalPointKind, ReturnType<typeof divIcon>>> =
   {
@@ -206,6 +207,7 @@ export function AeronauticalLayers({
             positions={areaPositions(feature)}
             bubblingMouseEvents={false}
             pathOptions={{
+              className: 'aeronautical-airspace-path',
               color: '#8a4f9f',
               fillColor: '#b783c7',
               fillOpacity: 0.09,
@@ -219,13 +221,9 @@ export function AeronauticalLayers({
               },
             }}
           >
-            <Tooltip sticky>{feature.name}</Tooltip>
-            <Popup>
-              <strong>{feature.name}</strong>
-              <br />
-              {feature.identifier ?? feature.areaKind}
-              <br />
-              Information only — not a waypoint anchor
+            <Tooltip pane="tooltipPane" sticky>{feature.name}</Tooltip>
+            <Popup pane="popupPane">
+              <AirspacePopupContent feature={feature} repository={repository} />
             </Popup>
           </Polygon>
         ))}
@@ -259,12 +257,12 @@ export function AeronauticalLayers({
               },
             }}
           >
-            <Tooltip direction="top" offset={[0, -10]}>
+            <Tooltip pane="tooltipPane" direction="top" offset={[0, -10]}>
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
             {feature.pointKind === 'aerodrome' || anchoringEnabled ? null : (
-              <Popup>
+              <Popup pane="popupPane">
                 <strong>{feature.identifier}</strong>
                 {feature.name === undefined ? null : <><br />{feature.name}</>}
                 <br />

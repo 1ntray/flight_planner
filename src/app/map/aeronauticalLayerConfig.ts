@@ -44,6 +44,9 @@ export const AERONAUTICAL_LAYER_DEFINITIONS: readonly AeronauticalLayerDefinitio
       featureKinds: [
         'ctr',
         'tma',
+        'cta',
+        'tia',
+        'tiz',
         'restricted-area',
         'danger-area',
         'prohibited-area',
@@ -70,4 +73,3 @@ export function getVisibleAeronauticalFeatureKinds(
       : [],
   );
 }
-

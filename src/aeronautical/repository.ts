@@ -6,6 +6,9 @@ import type {
   AeronauticalFeatureKind,
   AeronauticalFeatureRef,
   AeronauticalPointFeature,
+  AtsUnit,
+  CommunicationService,
+  VacChartManifest,
   Wgs84Bounds,
 } from '../domain';
 
@@ -16,6 +19,15 @@ export interface AeronauticalFeatureQuery {
 
 export interface AeronauticalQueryOptions {
   readonly signal?: AbortSignal;
+}
+
+export interface CommunicationServiceQuery {
+  readonly featureIds: readonly string[];
+}
+
+export interface VacChartQuery {
+  readonly bounds?: Wgs84Bounds;
+  readonly aerodromeFeatureIds?: readonly string[];
 }
 
 export interface AeronauticalDataRepository {
@@ -43,4 +55,19 @@ export interface AeronauticalDataRepository {
     identifier: string,
     options?: AeronauticalQueryOptions,
   ): Promise<AeronauticalPointFeature | null>;
+
+  queryCommunicationServices(
+    query: CommunicationServiceQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly CommunicationService[]>;
+
+  getAtsUnit(
+    id: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AtsUnit | null>;
+
+  queryVacCharts(
+    query: VacChartQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly VacChartManifest[]>;
 }

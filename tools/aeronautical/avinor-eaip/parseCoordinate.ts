@@ -1,5 +1,5 @@
 import type { Position } from '../../../src/domain';
-import { AvinorEaipImportError } from './types';
+import { AvinorEaipImportError } from './types.ts';
 
 function coordinateComponent(
   value: string,

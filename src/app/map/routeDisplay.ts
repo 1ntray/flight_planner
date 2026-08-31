@@ -1,5 +1,9 @@
 import type { LatLngTuple } from 'leaflet';
 
+import {
+  calculateInverseGeodesic,
+  calculatePositionAlongGeometry,
+} from '../../calculations';
 import type { FlightPlan, Position, RouteShapingPoint } from '../../domain';
 import type { RouteGeometryPointRef } from '../route/routeInsertion';
 import type { RouteWaypointInsertionCandidate } from '../route/routeInsertion';
@@ -79,6 +83,26 @@ export function getRoutePointDisplayPosition(
   return draggedPoint?.pointId === pointId
     ? draggedPoint.position
     : position;
+}
+
+/**
+ * Returns the WGS84 halfway position along the displayed, possibly shaped leg.
+ * This is presentation-only map focus; route truth remains the FlightPlan.
+ */
+export function getRouteDisplayLegMidpoint(
+  leg: RouteDisplayLeg,
+): Position {
+  const geometry = [
+    leg.segments[0]!.startPosition,
+    ...leg.segments.map((segment) => segment.endPosition),
+  ];
+  const totalDistanceNm = geometry.slice(1).reduce(
+    (total, position, index) =>
+      total + calculateInverseGeodesic(geometry[index]!, position).distanceNm,
+    0,
+  );
+
+  return calculatePositionAlongGeometry(geometry, totalDistanceNm / 2).position;
 }
 
 function toLatLngTuple(position: Position): LatLngTuple {

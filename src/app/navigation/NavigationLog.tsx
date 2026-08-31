@@ -457,6 +457,7 @@ export function NavigationLog({
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }
+        legAltitudePlans={performanceDraft.legAltitudePlans}
       />
         </>
       ) : null}

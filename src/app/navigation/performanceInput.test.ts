@@ -166,6 +166,17 @@ describe('performance input parsing', () => {
       status: 'invalid',
       message: expect.stringContaining('between 0 and 60000'),
     });
+    expect(parsePerformanceInputDraft({
+      ...createPerformanceInputDraft(inputs),
+      legAltitudePlans: [{
+        fromWaypointId: 'A',
+        toWaypointId: 'B',
+        minimumSafeAltitudeFtMsl: 60001,
+      }],
+    })).toMatchObject({
+      status: 'invalid',
+      message: expect.stringContaining('MSA must be between 0 and 60000'),
+    });
   });
 
   it('parses intermediate-airport data and requires every marked stop', () => {

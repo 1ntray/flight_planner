@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "metadata": {
     "datasetId": "avinor-eaip-2026-06-11",
     "providerId": "avinor",
@@ -11,7 +11,11 @@
     "editionLabel": "2026-06-11-AIRAC",
     "retrievedAtUtc": "2026-08-29T19:24:50.164Z",
     "importedAtUtc": "2026-08-29T19:24:56.416Z",
-    "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html"
+    "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html",
+    "importer": {
+      "name": "avinor-eaip-normalizer",
+      "version": "2"
+    }
   },
   "features": [
     {
@@ -1337,6 +1341,663 @@
       "position": {
         "latitude": 62.5625,
         "longitude": 6.119722222222221
+      }
+    },
+    {
+      "geometryType": "area",
+      "areaKind": "ctr",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:ad2:endu:ctr",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "ctr"
+      },
+      "identifier": "Bardufoss CTR",
+      "name": "Bardufoss CTR",
+      "polygons": [
+        {
+          "outerRing": [
+            {
+              "latitude": 69.25,
+              "longitude": 17.883333333333333
+            },
+            {
+              "latitude": 69.08333333333333,
+              "longitude": 19.25
+            },
+            {
+              "latitude": 68.91666666666667,
+              "longitude": 19.083333333333332
+            },
+            {
+              "latitude": 69.08333333333333,
+              "longitude": 17.666666666666668
+            },
+            {
+              "latitude": 69.25,
+              "longitude": 17.883333333333333
+            }
+          ],
+          "holes": []
+        }
+      ]
+    },
+    {
+      "geometryType": "area",
+      "areaKind": "tiz",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:ad2:enhf:tiz",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "tiz"
+      },
+      "identifier": "Hammerfest TIZ",
+      "name": "Hammerfest TIZ",
+      "polygons": [
+        {
+          "outerRing": [
+            {
+              "latitude": 70.51638888888888,
+              "longitude": 23.38722222222222
+            },
+            {
+              "latitude": 70.6525,
+              "longitude": 23.107222222222223
+            },
+            {
+              "latitude": 70.73611111111111,
+              "longitude": 23.448611111111113
+            },
+            {
+              "latitude": 70.91361111111112,
+              "longitude": 23.343055555555555
+            },
+            {
+              "latitude": 70.96583333333334,
+              "longitude": 23.75777777777778
+            },
+            {
+              "latitude": 70.85472222222222,
+              "longitude": 24.006944444444443
+            },
+            {
+              "latitude": 70.71805555555555,
+              "longitude": 24.292222222222225
+            },
+            {
+              "latitude": 70.51638888888888,
+              "longitude": 23.38722222222222
+            }
+          ],
+          "holes": []
+        }
+      ]
+    },
+    {
+      "geometryType": "area",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:enr21:bardufoss-tma",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "tma"
+      },
+      "areaKind": "tma",
+      "identifier": "Bardufoss TMA",
+      "name": "Bardufoss TMA",
+      "polygons": [
+        {
+          "outerRing": [
+            {
+              "latitude": 68.86666666666666,
+              "longitude": 18.283333333333335
+            },
+            {
+              "latitude": 68.91666666666667,
+              "longitude": 19.083333333333332
+            },
+            {
+              "latitude": 68.83333333333333,
+              "longitude": 20
+            },
+            {
+              "latitude": 68.7,
+              "longitude": 19.25
+            },
+            {
+              "latitude": 68.68333333333334,
+              "longitude": 18.15
+            },
+            {
+              "latitude": 68.86666666666666,
+              "longitude": 18.283333333333335
+            }
+          ],
+          "holes": []
+        }
+      ]
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:ella",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "ELLA",
+      "name": "ELLA",
+      "suggestedWaypointName": "ELLA",
+      "position": {
+        "latitude": 69.03333333333333,
+        "longitude": 18.63888888888889
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:espenes",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "ESPENES",
+      "name": "ESPENES",
+      "suggestedWaypointName": "ESPENES",
+      "position": {
+        "latitude": 69.11999999999999,
+        "longitude": 17.71361111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:finnfjord",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "FINNFJORD",
+      "name": "FINNFJORD",
+      "suggestedWaypointName": "FINNFJORD",
+      "position": {
+        "latitude": 69.22555555555556,
+        "longitude": 18.083333333333332
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:finnsnes",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "FINNSNES",
+      "name": "FINNSNES",
+      "suggestedWaypointName": "FINNSNES",
+      "position": {
+        "latitude": 69.24027777777778,
+        "longitude": 17.965
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:gompen",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "GOMPEN",
+      "name": "GOMPEN",
+      "suggestedWaypointName": "GOMPEN",
+      "position": {
+        "latitude": 69.05194444444444,
+        "longitude": 17.941666666666666
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:nora",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "NORA",
+      "name": "NORA",
+      "suggestedWaypointName": "NORA",
+      "position": {
+        "latitude": 69.10055555555554,
+        "longitude": 18.611666666666668
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:reinelv",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "REINELV",
+      "name": "REINELV",
+      "suggestedWaypointName": "REINELV",
+      "position": {
+        "latitude": 69.2075,
+        "longitude": 18.24361111111111
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rognmo",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "ROGNMO",
+      "name": "ROGNMO",
+      "suggestedWaypointName": "ROGNMO",
+      "position": {
+        "latitude": 69.09666666666666,
+        "longitude": 18.722499999999997
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rossvoll",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "ROSSVOLL",
+      "name": "ROSSVOLL",
+      "suggestedWaypointName": "ROSSVOLL",
+      "position": {
+        "latitude": 69.17833333333334,
+        "longitude": 18.5
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rundhaug",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "RUNDHAUG",
+      "name": "RUNDHAUG",
+      "suggestedWaypointName": "RUNDHAUG",
+      "position": {
+        "latitude": 69.01944444444445,
+        "longitude": 18.898611111111112
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:saft",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "SAFT",
+      "name": "SAFT",
+      "suggestedWaypointName": "SAFT",
+      "position": {
+        "latitude": 68.96416666666667,
+        "longitude": 18.68
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:sara",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "SARA",
+      "name": "SARA",
+      "suggestedWaypointName": "SARA",
+      "position": {
+        "latitude": 69.00694444444444,
+        "longitude": 18.518055555555556
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:soda",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "SODA",
+      "name": "SODA",
+      "suggestedWaypointName": "SODA",
+      "position": {
+        "latitude": 68.9325,
+        "longitude": 18.95
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:steinvann",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "STEINVANN",
+      "name": "STEINVANN",
+      "suggestedWaypointName": "STEINVANN",
+      "position": {
+        "latitude": 69.11666666666666,
+        "longitude": 18.416666666666668
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:s-rreisa",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "SØRREISA",
+      "name": "SØRREISA",
+      "suggestedWaypointName": "SØRREISA",
+      "position": {
+        "latitude": 69.12638888888888,
+        "longitude": 18.195833333333333
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:takvatn",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "TAKVATN",
+      "name": "TAKVATN",
+      "suggestedWaypointName": "TAKVATN",
+      "position": {
+        "latitude": 69.10972222222222,
+        "longitude": 19.03888888888889
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:tillermo",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "TILLERMO",
+      "name": "TILLERMO",
+      "suggestedWaypointName": "TILLERMO",
+      "position": {
+        "latitude": 68.99555555555555,
+        "longitude": 19.161944444444444
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:tune",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "TUNE",
+      "name": "TUNE",
+      "suggestedWaypointName": "TUNE",
+      "position": {
+        "latitude": 68.93,
+        "longitude": 18.47833333333333
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:wera",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "WERA",
+      "name": "WERA",
+      "suggestedWaypointName": "WERA",
+      "position": {
+        "latitude": 69.0625,
+        "longitude": 18.402777777777775
+      }
+    },
+    {
+      "geometryType": "point",
+      "pointKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:a-sen",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "identifier": "ÅSEN",
+      "name": "ÅSEN",
+      "suggestedWaypointName": "ÅSEN",
+      "position": {
+        "latitude": 69.03305555555555,
+        "longitude": 18.53666666666667
       }
     }
   ],
@@ -5366,6 +6027,1227 @@
           "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
         }
       ]
+    },
+    {
+      "detailKind": "airspace",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:ad2:endu:ctr",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "ctr"
+      },
+      "identifier": "Bardufoss CTR",
+      "publishedName": "Bardufoss CTR",
+      "airspaceType": "ctr",
+      "publishedType": "CTR",
+      "airspaceClass": "D",
+      "lowerLimit": {
+        "kind": "surface",
+        "value": "GND",
+        "publishedText": "GND"
+      },
+      "upperLimit": {
+        "kind": "distance",
+        "value": 4500,
+        "unit": "FT",
+        "reference": "AMSL",
+        "publishedText": "4500 FT AMSL"
+      },
+      "sourceGeometry": {
+        "kind": "polygon",
+        "rings": [
+          {
+            "segments": [
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 69.25,
+                  "longitude": 17.883333333333333
+                },
+                "to": {
+                  "latitude": 69.08333333333333,
+                  "longitude": 19.25
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 69.08333333333333,
+                  "longitude": 19.25
+                },
+                "to": {
+                  "latitude": 68.91666666666667,
+                  "longitude": 19.083333333333332
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.91666666666667,
+                  "longitude": 19.083333333333332
+                },
+                "to": {
+                  "latitude": 69.08333333333333,
+                  "longitude": 17.666666666666668
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 69.08333333333333,
+                  "longitude": 17.666666666666668
+                },
+                "to": {
+                  "latitude": 69.25,
+                  "longitude": 17.883333333333333
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "communicationServiceIds": [
+        "communication:ad2:endu:twr"
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.17",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "airspace",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:ad2:enhf:tiz",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "tiz"
+      },
+      "identifier": "Hammerfest TIZ",
+      "publishedName": "Hammerfest TIZ",
+      "airspaceType": "tiz",
+      "publishedType": "TIZ",
+      "airspaceClass": "G",
+      "lowerLimit": {
+        "kind": "surface",
+        "value": "GND",
+        "publishedText": "GND"
+      },
+      "upperLimit": {
+        "kind": "distance",
+        "value": 2500,
+        "unit": "FT",
+        "reference": "AMSL",
+        "publishedText": "2500 FT AMSL"
+      },
+      "sourceGeometry": {
+        "kind": "polygon",
+        "rings": [
+          {
+            "segments": [
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.51638888888888,
+                  "longitude": 23.38722222222222
+                },
+                "to": {
+                  "latitude": 70.6525,
+                  "longitude": 23.107222222222223
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.6525,
+                  "longitude": 23.107222222222223
+                },
+                "to": {
+                  "latitude": 70.73611111111111,
+                  "longitude": 23.448611111111113
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.73611111111111,
+                  "longitude": 23.448611111111113
+                },
+                "to": {
+                  "latitude": 70.91361111111112,
+                  "longitude": 23.343055555555555
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.91361111111112,
+                  "longitude": 23.343055555555555
+                },
+                "to": {
+                  "latitude": 70.96583333333334,
+                  "longitude": 23.75777777777778
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.96583333333334,
+                  "longitude": 23.75777777777778
+                },
+                "to": {
+                  "latitude": 70.85472222222222,
+                  "longitude": 24.006944444444443
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.85472222222222,
+                  "longitude": 24.006944444444443
+                },
+                "to": {
+                  "latitude": 70.71805555555555,
+                  "longitude": 24.292222222222225
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 70.71805555555555,
+                  "longitude": 24.292222222222225
+                },
+                "to": {
+                  "latitude": 70.51638888888888,
+                  "longitude": 23.38722222222222
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "communicationServiceIds": [
+        "communication:ad2:enhf:afis"
+      ],
+      "remarks": "Two-way radio communication required within HR of operation",
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.17",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "airspace",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "airspace:enr21:bardufoss-tma",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "tma"
+      },
+      "identifier": "Bardufoss TMA",
+      "publishedName": "Bardufoss TMA",
+      "airspaceType": "tma",
+      "publishedType": "TMA",
+      "airspaceClass": "C",
+      "lowerLimit": {
+        "kind": "distance",
+        "value": 5500,
+        "unit": "FT",
+        "reference": "AMSL",
+        "publishedText": "5500 FT AMSL"
+      },
+      "upperLimit": {
+        "kind": "flight-level",
+        "level": 105,
+        "publishedText": "FL 105"
+      },
+      "sourceGeometry": {
+        "kind": "polygon",
+        "rings": [
+          {
+            "segments": [
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.86666666666666,
+                  "longitude": 18.283333333333335
+                },
+                "to": {
+                  "latitude": 68.91666666666667,
+                  "longitude": 19.083333333333332
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.91666666666667,
+                  "longitude": 19.083333333333332
+                },
+                "to": {
+                  "latitude": 68.83333333333333,
+                  "longitude": 20
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.83333333333333,
+                  "longitude": 20
+                },
+                "to": {
+                  "latitude": 68.7,
+                  "longitude": 19.25
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.7,
+                  "longitude": 19.25
+                },
+                "to": {
+                  "latitude": 68.68333333333334,
+                  "longitude": 18.15
+                }
+              },
+              {
+                "kind": "geodesic",
+                "from": {
+                  "latitude": 68.68333333333334,
+                  "longitude": 18.15
+                },
+                "to": {
+                  "latitude": 68.86666666666666,
+                  "longitude": 18.283333333333335
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "communicationServiceIds": [
+        "communication:ad2:endu:app"
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Bardufoss TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:ella",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "ELLA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:espenes",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "ESPENES",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:finnfjord",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "FINNFJORD",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:finnsnes",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "FINNSNES",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:gompen",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "GOMPEN",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:nora",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "NORA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:reinelv",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "REINELV",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rognmo",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "ROGNMO",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rossvoll",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "ROSSVOLL",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:rundhaug",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "RUNDHAUG",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:saft",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "SAFT",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:sara",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "SARA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:soda",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "SODA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:steinvann",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "STEINVANN",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:s-rreisa",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "SØRREISA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:takvatn",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "TAKVATN",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:tillermo",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "TILLERMO",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:tune",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "TUNE",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:wera",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "WERA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
+    },
+    {
+      "detailKind": "reporting-point",
+      "ref": {
+        "dataset": {
+          "datasetId": "avinor-eaip-2026-06-11",
+          "providerId": "avinor",
+          "sourceName": "eAIP",
+          "airacCycle": null,
+          "effectiveFromUtc": "2026-06-11T00:00:00Z",
+          "effectiveToUtc": null,
+          "revisionId": "AIP AMDT 04/2026"
+        },
+        "featureId": "reporting-point:endu:a-sen",
+        "featureVersionId": "2026-06-11",
+        "featureKind": "reporting-point"
+      },
+      "associatedAerodromeFeatureId": "aerodrome:ENDU",
+      "coordinateMethod": "published-coordinate",
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart",
+          "aipSection": "AD 2.24",
+          "sourcePage": "1",
+          "publishedIdentifier": "ÅSEN",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf"
+        }
+      ]
     }
-  ]
+  ],
+  "atsUnits": [
+    {
+      "id": "ats-unit:bardufoss-twr",
+      "publishedName": "Bardufoss TWR",
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Bardufoss TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    }
+  ],
+  "communicationServices": [
+    {
+      "id": "communication:ad2:endu:atis",
+      "serviceType": "atis",
+      "publishedServiceType": "ATIS",
+      "callsign": "Bardufoss Information",
+      "frequencies": [
+        {
+          "valueMHz": "129.730",
+          "hours": "HO"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENDU",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:ad2:endu:clr",
+      "serviceType": "clearance-delivery",
+      "publishedServiceType": "CLR",
+      "callsign": "Bardufoss Delivery",
+      "frequencies": [
+        {
+          "valueMHz": "122.100",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "257.800",
+          "hours": "HO",
+          "remarks": "MIL"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENDU",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:ad2:endu:twr",
+      "serviceType": "tower",
+      "publishedServiceType": "TWR",
+      "callsign": "Bardufoss Tower",
+      "frequencies": [
+        {
+          "valueMHz": "118.105",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "121.500",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "243.000",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "280.700",
+          "hours": "HO",
+          "remarks": "MIL"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENDU",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:ad2:endu:ctr",
+          "featureKind": "airspace",
+          "basis": "unique-source-callsign-match"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:ad2:endu:app",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "callsign": "Bardufoss Approach/ Radar",
+      "frequencies": [
+        {
+          "valueMHz": "118.805",
+          "hours": "HO",
+          "remarks": "Contact Polaris ACC outside opening hours."
+        },
+        {
+          "valueMHz": "125.855",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "121.500",
+          "hours": "HO"
+        },
+        {
+          "valueMHz": "275.300",
+          "hours": "HO",
+          "remarks": "MIL"
+        },
+        {
+          "valueMHz": "397.375",
+          "hours": "HO",
+          "remarks": "MIL"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENDU",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:bardufoss-tma",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        },
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Bardufoss TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ],
+      "unitId": "ats-unit:bardufoss-twr"
+    },
+    {
+      "id": "communication:ad2:enhf:atis",
+      "serviceType": "atis",
+      "publishedServiceType": "ATIS",
+      "callsign": "Hammerfest Information",
+      "frequencies": [
+        {
+          "valueMHz": "136.105",
+          "hours": "HO"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENHF",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:ad2:enhf:afis",
+      "serviceType": "afis",
+      "publishedServiceType": "AFIS",
+      "callsign": "Hammerfest Information",
+      "frequencies": [
+        {
+          "valueMHz": "121.005",
+          "hours": "HO",
+          "remarks": "NIL VDF: VDF AVBL"
+        },
+        {
+          "valueMHz": "121.500",
+          "hours": "HO"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENHF",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:ad2:enhf:tiz",
+          "featureKind": "airspace",
+          "basis": "unique-source-callsign-match"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:ad2:enhf:app",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "callsign": "Polaris Control",
+      "frequencies": [
+        {
+          "valueMHz": "126.705",
+          "hours": "HO",
+          "remarks": "Sector 26"
+        },
+        {
+          "valueMHz": "121.500",
+          "hours": "H24"
+        },
+        {
+          "valueMHz": "243.000",
+          "hours": "H24"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "aerodrome:ENHF",
+          "featureKind": "aerodrome",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENHF",
+          "aipSection": "AD 2.18",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-2.ENHF-en-GB.html"
+        }
+      ]
+    }
+  ],
+  "vacCharts": []
 }

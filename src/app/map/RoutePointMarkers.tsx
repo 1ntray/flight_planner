@@ -166,6 +166,7 @@ export function RoutePointMarkers({
             }}
           >
             <Tooltip
+              pane="tooltipPane"
               className="waypoint-label"
               direction="top"
               offset={[0, -14]}

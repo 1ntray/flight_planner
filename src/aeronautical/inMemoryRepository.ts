@@ -5,13 +5,18 @@ import type {
   AeronauticalFeatureDetails,
   AeronauticalFeatureRef,
   AeronauticalPointFeature,
+  AtsUnit,
+  CommunicationService,
   Position,
+  VacChartManifest,
   Wgs84Bounds,
 } from '../domain';
 import type {
   AeronauticalDataRepository,
   AeronauticalFeatureQuery,
   AeronauticalQueryOptions,
+  CommunicationServiceQuery,
+  VacChartQuery,
 } from './repository';
 
 function longitudeIntervals(bounds: Wgs84Bounds): readonly [number, number][] {
@@ -108,6 +113,9 @@ export class InMemoryAeronauticalRepository
     private readonly dataset: AeronauticalDatasetMetadata | null,
     private readonly features: readonly AeronauticalFeature[],
     private readonly featureDetails: readonly AeronauticalFeatureDetails[] = [],
+    private readonly atsUnits: readonly AtsUnit[] = [],
+    private readonly communicationServices: readonly CommunicationService[] = [],
+    private readonly vacCharts: readonly VacChartManifest[] = [],
   ) {}
 
   async getDatasetMetadata(
@@ -169,6 +177,43 @@ export class InMemoryAeronauticalRepository
         feature.pointKind === 'aerodrome' &&
         feature.identifier.trim().toUpperCase() === normalizedIdentifier,
     ) ?? null;
+  }
+
+  async queryCommunicationServices(
+    query: CommunicationServiceQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly CommunicationService[]> {
+    options?.signal?.throwIfAborted();
+    const featureIds = new Set(query.featureIds);
+    return this.communicationServices.filter((service) =>
+      service.associations.some(({ featureId }) => featureIds.has(featureId)),
+    );
+  }
+
+  async getAtsUnit(
+    id: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<AtsUnit | null> {
+    options?.signal?.throwIfAborted();
+    return this.atsUnits.find((unit) => unit.id === id) ?? null;
+  }
+
+  async queryVacCharts(
+    query: VacChartQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly VacChartManifest[]> {
+    options?.signal?.throwIfAborted();
+    const aerodromeFeatureIds =
+      query.aerodromeFeatureIds === undefined
+        ? null
+        : new Set(query.aerodromeFeatureIds);
+
+    return this.vacCharts.filter(
+      (chart) =>
+        (aerodromeFeatureIds === null ||
+          aerodromeFeatureIds.has(chart.aerodromeFeatureId)) &&
+        (query.bounds === undefined || boundsIntersect(chart.bounds, query.bounds)),
+    );
   }
 }
 

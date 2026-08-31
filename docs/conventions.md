@@ -76,6 +76,11 @@ identifier remains available in the separate anchor snapshot.
   Leg altitude commits on blur or Enter, preventing partial numeric input from
   repeatedly updating planning calculations.
 - Planning altitudes above 60,000 ft are rejected before route integration.
+- MSA is an optional, manual ft-MSL value attached to an adjacent real-waypoint
+  leg. The selected-leg 1 NM corridor is a WGS84 visual aid around shaped
+  geometry only; it neither derives terrain/obstacle elevation nor changes
+  navigation or performance calculations. Missing MSA and MSA above planned
+  altitude are warnings rather than input errors.
   Development builds warn in the browser console when a synchronous planning
   calculation stage takes at least 100 ms; production builds do not emit these
   measurements.
@@ -101,6 +106,13 @@ identifier remains available in the separate anchor snapshot.
   database rows, or Leaflet geometry as domain data.
 - Aeronautical point features are overlay data until explicitly anchored.
   Aeronautical area features are information-only and never create waypoints.
+- Communication services relate frequencies to aerodromes and/or airspaces;
+  frequencies are not owned by generic map features or persisted FlightPlans.
+- Airspace vertical limits retain published semantics such as GND, altitude,
+  flight level, and UNL. Map render polygons may be derived, while detailed
+  source geometry and provenance remain available for verification.
+- VAC rasters are offline-prepared, AIRAC-versioned presentation layers in
+  EPSG:3857. Reporting points remain independent WGS84 repository features.
 - A free waypoint may be dropped onto a visible aeronautical point to anchor it.
   The screen-space hit radius is only a map interaction aid: the commit stores
   the feature's published WGS84 coordinate and compact source provenance in the

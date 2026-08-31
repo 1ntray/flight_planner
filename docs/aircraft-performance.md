@@ -67,6 +67,25 @@ is rounded to the nearest 100 ft after elevation and pattern height are added.
 This supports any sequence of climb, cruise, and descent across successive legs
 rather than assuming one climb and one descent.
 
+## Minimum safe altitude (MSA)
+
+MSA is a manual planning input in feet MSL for each adjacent real-waypoint leg.
+It is not a performance-calculation input and does not alter climb, descent,
+TAS, wind, track, or route geometry. The planner displays it in the OFP-style
+navlog MSA column only.
+
+For this project, the pilot assesses the highest terrain or obstacle within
+**1 NM on either side** of the actual intended route and adds 500 ft. The map
+can display a toggleable semi-transparent corridor around the selected leg as
+a visual aid. It follows the leg's shaped WGS84 geometry and uses WGS84
+geodesic one-NM offsets; it does not inspect map pixels, Web Mercator values,
+terrain tiles, or obstacle data, and it does not calculate an MSA automatically.
+
+A blank MSA is intentionally allowed but shown as a warning. A value higher
+than that leg's effective planned altitude is also a warning, not a route
+calculation failure. On waypoint insertion, the manual MSA is retained on both
+resulting leg plans so that each can be reviewed after the route is split.
+
 The route may also contain explicit intermediate landing boundaries. Each
 boundary closes one flight sector at the airport's pattern altitude. The next
 sector is calculated independently from that airport's field elevation, using

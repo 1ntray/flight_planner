@@ -6,6 +6,7 @@ export type PlannerShortcutAction =
   | 'insert-waypoint'
   | 'edit-waypoint-name'
   | 'edit-altitude'
+  | 'edit-msa'
   | 'place-altitude-target'
   | 'place-end-altitude-target'
   | 'reset-altitude-target'
@@ -18,6 +19,7 @@ export type PlannerShortcutAction =
   | 'next-selection'
   | 'start-naming-mode'
   | 'start-altitude-mode'
+  | 'start-msa-mode'
   | 'undo'
   | 'redo'
   | 'show-command-palette'
@@ -51,6 +53,7 @@ export const PLANNER_SHORTCUTS: readonly PlannerShortcutDefinition[] = [
   { keys: 'I', action: 'Insert a real waypoint at the selected route location', availability: 'Leg selected' },
   { keys: 'N', action: 'Edit the selected waypoint name', availability: 'Waypoint selected' },
   { keys: 'A', action: 'Edit the selected leg altitude', availability: 'Leg selected' },
+  { keys: 'M', action: 'Edit the selected leg MSA', availability: 'Leg selected' },
   { keys: 'P', action: 'Place the selected leg altitude target on the map', availability: 'Leg selected' },
   { keys: 'Shift+P', action: 'Place the selected leg end-altitude target on the map', availability: 'Leg selected' },
   { keys: 'T', action: 'Return selected altitude target to automatic', availability: 'Leg selected' },
@@ -58,6 +61,7 @@ export const PLANNER_SHORTCUTS: readonly PlannerShortcutDefinition[] = [
   { keys: 'L', action: 'Mark or remove an intermediate landing', availability: 'Intermediate waypoint selected' },
   { keys: 'Shift+N', action: 'Start sequential waypoint naming', availability: 'Route available' },
   { keys: 'Shift+A', action: 'Start sequential altitude entry', availability: 'Leg available' },
+  { keys: 'Shift+M', action: 'Start sequential MSA entry', availability: 'Leg available' },
   { keys: 'Ctrl/Cmd+Z', action: 'Undo route or planning edit', availability: 'When available' },
   { keys: 'Ctrl/Cmd+Shift+Z', action: 'Redo route or planning edit', availability: 'When available' },
   { keys: 'Ctrl/Cmd+K', action: 'Open the command palette', availability: 'Always' },
@@ -109,6 +113,9 @@ export function resolvePlannerShortcut(
   if (key === 'a' && context.shiftKey === true) {
     return 'start-altitude-mode';
   }
+  if (key === 'm' && context.shiftKey === true) {
+    return 'start-msa-mode';
+  }
   if (
     context.key === 'Delete' &&
     (context.selection?.kind === 'waypoint' ||
@@ -126,6 +133,9 @@ export function resolvePlannerShortcut(
   }
   if (key === 'a' && context.selection?.kind === 'leg') {
     return 'edit-altitude';
+  }
+  if (key === 'm' && context.selection?.kind === 'leg') {
+    return 'edit-msa';
   }
   if (key === 'p' && context.selection?.kind === 'leg') {
     return context.shiftKey === true

@@ -12,6 +12,7 @@ $serverUrl = $null
 $processRecordPath = Join-Path ([System.IO.Path]::GetTempPath()) "flight-planner-vite.pid"
 $serverProcess = $null
 $viteProcessId = $null
+$viteInputPath = $null
 
 function Test-TcpPortAvailable {
     param(
@@ -66,8 +67,12 @@ try {
     $serverUrl = "http://127.0.0.1:$serverPort"
 
     Write-Host "Starting Flight Planner..." -ForegroundColor Cyan
+    Write-Host "Browser and Vite diagnostics will appear in this window."
 
     $quotedViteEntryPoint = '"' + $viteEntryPoint + '"'
+    # Keep Vite's diagnostics attached to this console, but prevent its own
+    # interactive prompt from consuming the Enter used to stop the launcher.
+    $viteInputPath = [System.IO.Path]::GetTempFileName()
     $serverProcess = Start-Process `
         -FilePath $nodeCommand.Source `
         -ArgumentList @(
@@ -77,7 +82,8 @@ try {
             "--strictPort"
         ) `
         -WorkingDirectory $projectRoot `
-        -WindowStyle Hidden `
+        -NoNewWindow `
+        -RedirectStandardInput $viteInputPath `
         -PassThru
 
     $startupDeadline = (Get-Date).AddSeconds(20)
@@ -151,5 +157,9 @@ finally {
 
     if (Test-Path -LiteralPath $processRecordPath) {
         Remove-Item -LiteralPath $processRecordPath -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($null -ne $viteInputPath -and (Test-Path -LiteralPath $viteInputPath)) {
+        Remove-Item -LiteralPath $viteInputPath -Force -ErrorAction SilentlyContinue
     }
 }

@@ -12,7 +12,7 @@ The normalized feature union distinguishes point features from area features:
 
 - aerodromes, reporting points, navaids, and designated points are point
   features and may be waypoint anchors;
-- CTR, TMA, restricted, danger, prohibited, and other airspace features are
+- CTR, TMA, CTA, TIA, TIZ, restricted, danger, prohibited, and other airspace features are
   areas and provide map information only.
 
 Source-specific identifiers remain opaque. Render geometry contains WGS84
@@ -49,9 +49,25 @@ aerodrome data is stored separately as `AerodromeDetails` and is resolved with
 - standard TORA, TODA, ASDA, and LDA per runway direction; and
 - traceable source aerodrome, AIP sections, and source reference.
 
-Frequencies are deliberately excluded. A later communication-service model
-will be able to relate a service to an aerodrome, airspace, or both without
-making frequencies an aerodrome-owned property.
+Communication data is modeled separately. A `CommunicationService` contains
+one or more exact published MHz strings and associations to aerodromes and/or
+airspaces. ATIS is aerodrome-associated. TWR/AFIS may additionally be linked to
+the matching CTR/TIZ when the source callsign makes that relationship unique.
+An `AtsUnit` may be shared by services. Frequencies are therefore not flattened
+into aerodrome or airspace metadata.
+
+## Airspace and vertical limits
+
+`AirspaceDetails` retains published name/type, class, lower and upper limits,
+semantic source geometry, communications, remarks, and source references.
+Vertical limits are a tagged union for SFC/GND, altitude with unit and datum,
+flight level, MSL, UNL, and explicitly unresolved values. They are never
+silently converted into a single feet number.
+
+The lightweight area feature contains WGS84 render polygons for viewport
+queries and Leaflet. Detailed geometry separately retains geodesic segments,
+arcs, circles, sectors, or published references so future importers need not
+discard source semantics merely to render a layer.
 
 ## Anchored waypoint contract
 
@@ -89,6 +105,9 @@ route handle visually sits above the aerodrome marker. The popup uses the
 waypoint's saved coordinate snapshot while its published details are looked up
 by its saved source reference.
 
+Published communication services appear on aerodrome and airspace information
+popups but do not currently populate the OFP automatically.
+
 Live operational data such as METAR, TAF, NOTAMs, or weather products is not
 part of `AeronauticalDataRepository` or the persisted `FlightPlan`. A future
 popup section may compose one or more dedicated, time-aware operational-data
@@ -110,7 +129,11 @@ The default repository loads a local normalized Avinor eAIP dataset for the AD
 2 aerodromes in the selected edition, effective 11 June 2026. The browser
 never parses eAIP HTML and never contacts Avinor when the planner starts. Each
 aerodrome is exposed as a normal aerodrome point, so the existing overlay and
-waypoint-anchor behavior is unchanged.
+waypoint-anchor behavior is unchanged. The first operational vertical slice
+adds ENDU CTR, Bardufoss TMA, ENHF TIZ, their published AD/ENR communication
+services, and 20 ENDU reporting points whose coordinates are printed on the
+VAC. The reporting points are normal point features and remain usable with any
+chart layer hidden.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
@@ -149,3 +172,31 @@ pnpm aero:import:endu
 The importer can also run without a network connection by providing a saved AD
 1.3 index, a directory of `<ICAO>.html` AD 2 pages, and an explicit retrieval
 timestamp: `--input-index`, `--input-directory`, and `--retrieved-at`.
+
+The reviewed operational slice is rebuilt from local semantic fixtures with:
+
+```sh
+pnpm aero:build:operational-slice
+```
+
+This parser reads AD 2.17, AD 2.18, the selected ENR 2.1 row, and the published
+VAC coordinate table. It does not scrape Avinor in the browser. Missing values
+remain unavailable; malformed required coordinates, limits, classes, or
+frequencies are explicit import errors.
+
+## VAC preparation boundary
+
+VAC PDFs remain presentation sources, not structured aeronautical geometry.
+`VacChartManifest` defines an AIRAC-versioned, pre-warped EPSG:3857 XYZ tile
+set, WGS84 bounds, zoom range, opacity, retained ground-control points, optional
+residual validation, and source provenance. Manifest validation requires at
+least four retained control points and a valid XYZ template.
+
+No VAC raster is enabled in the current dataset yet. The ENDU PDF contains no
+GeoPDF georeferencing, so publishing a visually guessed overlay would violate
+the data-validation rules. The preparation step must render the PDF, establish
+verified graticule control points, warp once offline (for example with GDAL),
+validate residual/alignment error, and emit local Web Mercator tiles plus a
+manifest. Runtime support can then query only nearby manifests above their
+minimum zoom and expose visibility/opacity controls without changing the map
+CRS or any navigation calculation.

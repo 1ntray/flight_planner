@@ -17,8 +17,10 @@ export interface LegMapPopupProps {
   defaultAltitudeFtMsl: string;
   isArrivalLeg: boolean;
   altitudeFocusRequest: number;
+  msaFocusRequest: number;
   onInsertWaypoint: () => void;
   onSetAltitude: (altitudeFtMsl: number | null) => void;
+  onSetMinimumSafeAltitude: (minimumSafeAltitudeFtMsl: number | null) => void;
   onSetEndAltitude: (altitudeFtMsl: number | null) => void;
   onPlaceAltitudeTarget: () => void;
   onPlaceEndAltitudeTarget: () => void;
@@ -35,8 +37,10 @@ export function LegMapPopup({
   defaultAltitudeFtMsl,
   isArrivalLeg,
   altitudeFocusRequest,
+  msaFocusRequest,
   onInsertWaypoint,
   onSetAltitude,
+  onSetMinimumSafeAltitude,
   onSetEndAltitude,
   onPlaceAltitudeTarget,
   onPlaceEndAltitudeTarget,
@@ -45,7 +49,9 @@ export function LegMapPopup({
   onClose,
 }: LegMapPopupProps) {
   const altitudeInputRef = useRef<HTMLInputElement>(null);
+  const msaInputRef = useRef<HTMLInputElement>(null);
   const handledAltitudeFocusRequestRef = useRef(altitudeFocusRequest);
+  const handledMsaFocusRequestRef = useRef(msaFocusRequest);
   const currentAltitudeFtMsl = plan?.altitudeFtMsl;
   const currentEndAltitudeFtMsl = plan?.endAltitudeFtMsl;
   const [altitudeDraft, setAltitudeDraft] = useState(() =>
@@ -54,10 +60,26 @@ export function LegMapPopup({
   const [endAltitudeDraft, setEndAltitudeDraft] = useState(() =>
     formatLegAltitudeDraft(currentEndAltitudeFtMsl),
   );
+  const [msaDraft, setMsaDraft] = useState(
+    plan?.minimumSafeAltitudeFtMsl === undefined
+      ? ''
+      : String(plan.minimumSafeAltitudeFtMsl),
+  );
   useEffect(() => {
     setAltitudeDraft(formatLegAltitudeDraft(currentAltitudeFtMsl));
   }, [
     currentAltitudeFtMsl,
+    selection.candidate.fromWaypointId,
+    selection.candidate.toWaypointId,
+  ]);
+  useEffect(() => {
+    setMsaDraft(
+      plan?.minimumSafeAltitudeFtMsl === undefined
+        ? ''
+        : String(plan.minimumSafeAltitudeFtMsl),
+    );
+  }, [
+    plan?.minimumSafeAltitudeFtMsl,
     selection.candidate.fromWaypointId,
     selection.candidate.toWaypointId,
   ]);
@@ -85,6 +107,13 @@ export function LegMapPopup({
       altitudeInput.blur();
     }
   }, [altitudeFocusRequest]);
+
+  useEffect(() => {
+    if (msaFocusRequest <= handledMsaFocusRequestRef.current) return;
+    handledMsaFocusRequestRef.current = msaFocusRequest;
+    msaInputRef.current?.focus();
+    msaInputRef.current?.select();
+  }, [msaFocusRequest]);
 
   const targetDistance =
     plan?.targetPlacement?.mode === 'distance-along-leg'
@@ -116,6 +145,22 @@ export function LegMapPopup({
       onSetEndAltitude(parsedEndAltitudeDraft.value);
     }
   };
+  const commitMsaDraft = () => {
+    if (msaDraft.trim() === '') {
+      onSetMinimumSafeAltitude(null);
+      return;
+    }
+    const value = Number(msaDraft);
+    if (!Number.isFinite(value) || value < 0) {
+      setMsaDraft(
+        plan?.minimumSafeAltitudeFtMsl === undefined
+          ? ''
+          : String(plan.minimumSafeAltitudeFtMsl),
+      );
+      return;
+    }
+    onSetMinimumSafeAltitude(value);
+  };
 
   return (
     <StableMapPopup
@@ -136,6 +181,28 @@ export function LegMapPopup({
           the rounded pattern altitude is calculated automatically.
         </p>
       ) : null}
+      <label>
+        <span>MSA</span>
+        <span className="navigation-inputs__control">
+          <input
+            ref={msaInputRef}
+            type="number"
+            min="0"
+            step="100"
+            value={msaDraft}
+            placeholder="not entered"
+            onChange={(event) => setMsaDraft(event.currentTarget.value)}
+            onBlur={commitMsaDraft}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
+            }}
+          />
+          <span>ft MSL</span>
+        </span>
+      </label>
       <label>
         <span>Planned altitude</span>
         <span className="navigation-inputs__control">

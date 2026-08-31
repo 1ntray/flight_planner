@@ -63,6 +63,7 @@ import type { OperationalInputDraft } from './navigation/operationalInput';
 import {
   removeAltitudePlansTouchingWaypoint,
   setLegAltitudeOverride,
+  setLegMinimumSafeAltitude as setLegMinimumSafeAltitudeInPlans,
   setLegAltitudeTargetDistance,
   setLegEndAltitudeOverride,
   setLegEndAltitudeTargetDistance,
@@ -131,7 +132,8 @@ const EMPTY_ENDPOINT_AERODROME_ELEVATIONS: EndpointAerodromeElevations = {
 
 type BatchEntryMode =
   | { readonly kind: 'naming'; readonly index: number }
-  | { readonly kind: 'altitude'; readonly index: number };
+  | { readonly kind: 'altitude'; readonly index: number }
+  | { readonly kind: 'msa'; readonly index: number };
 
 function getEndpointAerodromeReference(
   waypoint: Waypoint | undefined,
@@ -282,6 +284,7 @@ export function App() {
   const [activeSidebarTab, setActiveSidebarTab] =
     useState<'planning' | 'shortcuts'>('planning');
   const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
+  const [msaFocusRequest, setMsaFocusRequest] = useState(0);
   const [waypointNameFocusRequest, setWaypointNameFocusRequest] = useState(0);
   const [batchEntryMode, setBatchEntryMode] = useState<BatchEntryMode | null>(
     null,
@@ -1028,6 +1031,24 @@ export function App() {
     },
     [],
   );
+  const setLegMinimumSafeAltitude = useCallback(
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      minimumSafeAltitudeFtMsl: number | null,
+    ) => {
+      setPerformanceInputDraft((currentDraft) => ({
+        ...currentDraft,
+        legAltitudePlans: setLegMinimumSafeAltitudeInPlans(
+          currentDraft.legAltitudePlans,
+          fromWaypointId,
+          toWaypointId,
+          minimumSafeAltitudeFtMsl,
+        ),
+      }));
+    },
+    [],
+  );
   const resetAltitudeTarget = useCallback(
     (
       fromWaypointId: string,
@@ -1110,6 +1131,21 @@ export function App() {
     setMapTool({ kind: 'select' });
     setBatchEntryMode({ kind: 'altitude', index });
   }, [flightPlan, mapSelection]);
+  const startBatchMsa = useCallback(() => {
+    const legCount = flightPlan.waypoints.length - 1;
+    if (legCount <= 0) return;
+    const selectedIndex = mapSelection?.kind === 'leg'
+      ? flightPlan.waypoints.findIndex(
+          (waypoint) => waypoint.id === mapSelection.candidate.fromWaypointId,
+        )
+      : -1;
+    const index = selectedIndex < 0 ? 0 : selectedIndex;
+    const legSelection = selectRouteLegAt(flightPlan, index);
+    if (legSelection === null) return;
+    setMapSelection(legSelection);
+    setMapTool({ kind: 'select' });
+    setBatchEntryMode({ kind: 'msa', index });
+  }, [flightPlan, mapSelection]);
   const moveBatchEntry = useCallback(
     (direction: -1 | 1) => {
       setBatchEntryMode((current) => {
@@ -1174,6 +1210,15 @@ export function App() {
             setMapTool({ kind: 'select' });
             setAltitudeFocusRequest((current) => current + 1);
           }
+          break;
+        case 'edit-msa':
+          if (mapSelection?.kind === 'leg') {
+            setMapTool({ kind: 'select' });
+            setMsaFocusRequest((current) => current + 1);
+          }
+          break;
+        case 'start-msa-mode':
+          startBatchMsa();
           break;
         case 'place-altitude-target':
           if (mapSelection?.kind === 'leg') {
@@ -1276,6 +1321,7 @@ export function App() {
       flightPlan,
       resetAltitudeTarget,
       selectedWaypoint,
+      startBatchMsa,
       selectedWaypointCanBeSectorBoundary,
       toggleWaypointSectorBoundary,
       startBatchAltitude,
@@ -1335,7 +1381,9 @@ export function App() {
             altitudePlans={performanceInputDraft.legAltitudePlans}
             defaultAltitudeFtMsl={performanceInputDraft.defaultAltitudeFtMsl}
             altitudeFocusRequest={altitudeFocusRequest}
+            msaFocusRequest={msaFocusRequest}
             waypointNameFocusRequest={waypointNameFocusRequest}
+            batchEntryActive={batchEntryMode !== null}
             suppressSelectionPopups={batchEntryMode !== null}
             canUndo={planningHistory.canUndo}
             canRedo={planningHistory.canRedo}
@@ -1362,6 +1410,7 @@ export function App() {
             onDetachWaypoint={detachWaypoint}
             onToggleWaypointSectorBoundary={toggleWaypointSectorBoundary}
             onSetLegAltitude={setLegAltitude}
+            onSetLegMinimumSafeAltitude={setLegMinimumSafeAltitude}
             onSetLegEndAltitude={setLegEndAltitude}
             onResetAltitudeTarget={resetAltitudeTarget}
             onSetAltitudeTarget={setAltitudeTarget}
@@ -1425,6 +1474,40 @@ export function App() {
                     return 'Enter a non-negative altitude or leave it blank for the global preset.';
                   }
                   setLegAltitude(from.id, to.id, altitudeFtMsl);
+                  return null;
+                }}
+                onMove={moveBatchEntry}
+                onClose={() => setBatchEntryMode(null)}
+              />
+            );
+          })() : null}
+          {batchEntryMode?.kind === 'msa' ? (() => {
+            const from = flightPlan.waypoints[batchEntryMode.index];
+            const to = flightPlan.waypoints[batchEntryMode.index + 1];
+            if (from === undefined || to === undefined) return null;
+            const plan = performanceInputDraft.legAltitudePlans.find(
+              (candidate) =>
+                candidate.fromWaypointId === from.id &&
+                candidate.toWaypointId === to.id,
+            );
+            return (
+              <BatchEntryBar
+                title="Sequential MSA entry"
+                itemLabel={`${batchEntryMode.index + 1} of ${flightPlan.waypoints.length - 1} · ${from.name} → ${to.name}`}
+                initialValue={plan?.minimumSafeAltitudeFtMsl === undefined ? '' : String(plan.minimumSafeAltitudeFtMsl)}
+                placeholder="MSA not entered"
+                inputMode="numeric"
+                unit="ft MSL"
+                onCommit={(value) => {
+                  if (value.trim() === '') {
+                    setLegMinimumSafeAltitude(from.id, to.id, null);
+                    return null;
+                  }
+                  const minimumSafeAltitudeFtMsl = Number(value);
+                  if (!Number.isFinite(minimumSafeAltitudeFtMsl) || minimumSafeAltitudeFtMsl < 0) {
+                    return 'Enter a non-negative MSA or leave it blank.';
+                  }
+                  setLegMinimumSafeAltitude(from.id, to.id, minimumSafeAltitudeFtMsl);
                   return null;
                 }}
                 onMove={moveBatchEntry}

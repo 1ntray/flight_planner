@@ -16,6 +16,10 @@ export interface AeronauticalLayerControlProps {
     layerId: AeronauticalLayerId,
     visible: boolean,
   ) => void;
+  vacVisible: boolean;
+  vacOpacity: number;
+  onVacVisibilityChange: (visible: boolean) => void;
+  onVacOpacityChange: (opacity: number) => void;
 }
 
 function datasetLabel(dataset: AeronauticalDatasetRef | null): string {
@@ -33,6 +37,10 @@ export function AeronauticalLayerControl({
   status,
   visibility,
   onVisibilityChange,
+  vacVisible,
+  vacOpacity,
+  onVacVisibilityChange,
+  onVacOpacityChange,
 }: AeronauticalLayerControlProps) {
   return (
     <fieldset className="aeronautical-layer-control">
@@ -53,6 +61,25 @@ export function AeronauticalLayerControl({
           <small>z{definition.minimumZoom}+</small>
         </label>
       ))}
+      <label>
+        <input type="checkbox" checked={vacVisible} onChange={(event) => onVacVisibilityChange(event.currentTarget.checked)} />
+        <span>VAC charts</span>
+        <small>prepared tiles</small>
+      </label>
+      <label>
+        <span>VAC opacity</span>
+        <input
+          type="range"
+          min="0.2"
+          max="1"
+          step="0.05"
+          value={vacOpacity}
+          disabled={!vacVisible}
+          aria-label="VAC chart opacity"
+          onChange={(event) => onVacOpacityChange(Number(event.currentTarget.value))}
+        />
+        <small>{Math.round(vacOpacity * 100)}%</small>
+      </label>
       <p
         className={status === 'error' ? 'aeronautical-layer-control__error' : ''}
         role="status"
@@ -64,4 +91,3 @@ export function AeronauticalLayerControl({
     </fieldset>
   );
 }
-

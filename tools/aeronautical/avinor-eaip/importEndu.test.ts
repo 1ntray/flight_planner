@@ -171,7 +171,11 @@ describe('Avinor ENDU eAIP importer', () => {
     const result = importEnduEaip(source, config);
     const details = result.dataset.featureDetails[0];
 
-    expect(details?.runways[0]?.directions[1]?.trueBearingDeg).toBeNull();
+    if (details === undefined || details.detailKind !== 'aerodrome') {
+      throw new Error('Fixture did not produce aerodrome details');
+    }
+
+    expect(details.runways[0]?.directions[1]?.trueBearingDeg).toBeNull();
     expect(result.warnings).toContainEqual({
       code: 'missing-runway-bearing',
       message: 'True bearing is unavailable for runway 28',

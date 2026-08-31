@@ -134,7 +134,7 @@ export function AltitudeTargetMarkers({
                 },
               }}
             >
-              <Tooltip direction="top" offset={[0, -15]} opacity={0.95}>
+              <Tooltip pane="tooltipPane" direction="top" offset={[0, -15]} opacity={0.95}>
                 {targetLabel} · {targetKind === 'primary' ? 'planned' : 'end'} altitude at{' '}
                 {target.distanceFromStartNm.toFixed(1)} NM
               </Tooltip>

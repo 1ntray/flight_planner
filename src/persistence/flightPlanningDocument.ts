@@ -843,6 +843,13 @@ function requirePerformanceInputs(
             legRecord.altitudeFtMsl,
             `${legPath}.altitudeFtMsl`,
           );
+    const minimumSafeAltitudeFtMsl =
+      legRecord.minimumSafeAltitudeFtMsl === undefined
+        ? undefined
+        : requireNonNegativeNumber(
+            legRecord.minimumSafeAltitudeFtMsl,
+            `${legPath}.minimumSafeAltitudeFtMsl`,
+          );
     const endAltitudeFtMsl =
       legRecord.endAltitudeFtMsl === undefined
         ? undefined
@@ -907,6 +914,9 @@ function requirePerformanceInputs(
     return {
       fromWaypointId,
       toWaypointId,
+      ...(minimumSafeAltitudeFtMsl === undefined
+        ? {}
+        : { minimumSafeAltitudeFtMsl }),
       ...(altitudeFtMsl === undefined ? {} : { altitudeFtMsl }),
       ...(targetPlacement === undefined ? {} : { targetPlacement }),
       ...(endAltitudeFtMsl === undefined ? {} : { endAltitudeFtMsl }),

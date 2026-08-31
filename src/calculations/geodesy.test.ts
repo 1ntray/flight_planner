@@ -4,6 +4,7 @@ import {
   calculateGeodesicMidpoint,
   calculateInverseGeodesic,
   calculateNearestPointOnGeodesicSegment,
+  calculatePositionAtDistanceAndTrack,
   EFFECTIVELY_IDENTICAL_DISTANCE_METERS,
   METERS_PER_NAUTICAL_MILE,
   normalizeTrackDeg,
@@ -94,6 +95,16 @@ describe('calculateInverseGeodesic', () => {
     );
 
     expect(result).toEqual({ distanceNm: 0, trueTrackDeg: null });
+  });
+});
+
+describe('calculatePositionAtDistanceAndTrack', () => {
+  it('returns a WGS84 destination for a true track and NM distance', () => {
+    const start = { latitude: 69, longitude: 18 };
+    const destination = calculatePositionAtDistanceAndTrack(start, 90, 1);
+
+    expect(calculateInverseGeodesic(start, destination).distanceNm).toBeCloseTo(1, 10);
+    expect(calculateInverseGeodesic(start, destination).trueTrackDeg).toBeCloseTo(90, 8);
   });
 });
 

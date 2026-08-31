@@ -25,6 +25,8 @@ describe('planner keyboard shortcuts', () => {
       .toBeNull();
     expect(resolvePlannerShortcut({ key: 'a', editing: false, selection: legSelection, tool: selectTool }))
       .toBe('edit-altitude');
+    expect(resolvePlannerShortcut({ key: 'm', editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('edit-msa');
     expect(resolvePlannerShortcut({ key: 'Delete', editing: false, selection: legSelection, tool: selectTool }))
       .toBeNull();
     expect(resolvePlannerShortcut({
@@ -72,6 +74,8 @@ describe('planner keyboard shortcuts', () => {
       .toBe('start-naming-mode');
     expect(resolvePlannerShortcut({ key: 'a', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
       .toBe('start-altitude-mode');
+    expect(resolvePlannerShortcut({ key: 'm', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('start-msa-mode');
     expect(resolvePlannerShortcut({ key: 'p', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
       .toBe('place-end-altitude-target');
     expect(resolvePlannerShortcut({ key: 't', editing: false, selection: legSelection, tool: selectTool }))

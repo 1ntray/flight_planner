@@ -44,6 +44,7 @@ import type { AeronauticalLayerId } from './aeronauticalLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
+  getRouteDisplayLegMidpoint,
   getRouteSectorColor,
   getRoutePointDisplayPosition,
 } from './routeDisplay';
@@ -67,6 +68,8 @@ import { WaypointMapPopup } from './WaypointMapPopup';
 import { ShapingPointMapPopup } from './ShapingPointMapPopup';
 import { LegMapPopup } from './LegMapPopup';
 import { AerodromeInfoPopup } from './AerodromeInfoPopup';
+import { MsaCorridor } from './MsaCorridor';
+import { VacChartLayers } from './VacChartLayers';
 import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
 import {
   DEFAULT_BASE_MAP_ID,
@@ -112,6 +115,28 @@ function MapClickHandler({
       }
     },
   });
+
+  return null;
+}
+
+interface BatchEntryMapCenterProps {
+  focus: { readonly key: string; readonly position: Position } | null;
+}
+
+/** Keeps the item under sequential keyboard entry in the centre of the map. */
+function BatchEntryMapCenter({ focus }: BatchEntryMapCenterProps) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (focus === null) {
+      return;
+    }
+
+    map.panTo(
+      [focus.position.latitude, focus.position.longitude],
+      { animate: true, duration: 0.25 },
+    );
+  }, [focus?.key, map]);
 
   return null;
 }
@@ -405,7 +430,9 @@ export interface FlightMapProps {
   altitudePlans: readonly LegAltitudePlan[];
   defaultAltitudeFtMsl: string;
   altitudeFocusRequest: number;
+  msaFocusRequest: number;
   waypointNameFocusRequest: number;
+  batchEntryActive?: boolean;
   suppressSelectionPopups?: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -435,6 +462,11 @@ export interface FlightMapProps {
     toWaypointId: string,
     altitudeFtMsl: number | null,
   ) => void;
+  onSetLegMinimumSafeAltitude: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    minimumSafeAltitudeFtMsl: number | null,
+  ) => void;
   onSetLegEndAltitude: (
     fromWaypointId: string,
     toWaypointId: string,
@@ -463,7 +495,9 @@ export function FlightMap({
   altitudePlans,
   defaultAltitudeFtMsl,
   altitudeFocusRequest,
+  msaFocusRequest,
   waypointNameFocusRequest,
+  batchEntryActive = false,
   suppressSelectionPopups = false,
   canUndo,
   canRedo,
@@ -484,6 +518,7 @@ export function FlightMap({
   onDetachWaypoint,
   onToggleWaypointSectorBoundary,
   onSetLegAltitude,
+  onSetLegMinimumSafeAltitude,
   onSetLegEndAltitude,
   onResetAltitudeTarget,
   onSetAltitudeTarget,
@@ -509,6 +544,9 @@ export function FlightMap({
     useState<AeronauticalLoadStatus>('idle');
   const [aeronauticalLayerVisibility, setAeronauticalLayerVisibility] =
     useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
+  const [vacChartsVisible, setVacChartsVisible] = useState(false);
+  const [vacChartOpacity, setVacChartOpacity] = useState(0.75);
+  const [msaCorridorVisible, setMsaCorridorVisible] = useState(false);
   const [visibleAeronauticalPointFeatures, setVisibleAeronauticalPointFeatures] =
     useState<readonly AeronauticalPointFeature[]>([]);
   const [selectedAerodromeInformation, setSelectedAerodromeInformation] =
@@ -569,6 +607,32 @@ export function FlightMap({
           plan.fromWaypointId === selectedLeg.candidate.fromWaypointId &&
           plan.toWaypointId === selectedLeg.candidate.toWaypointId,
       );
+  const selectedDisplayLeg = selectedLeg === null
+    ? undefined
+    : routeLegs.find(
+        (leg) =>
+          leg.fromWaypointId === selectedLeg.candidate.fromWaypointId &&
+          leg.toWaypointId === selectedLeg.candidate.toWaypointId,
+      );
+  const selectedLegGeometry = selectedDisplayLeg === undefined
+    ? null
+    : [
+        selectedDisplayLeg.segments[0]?.startPosition,
+        ...selectedDisplayLeg.segments.map((segment) => segment.endPosition),
+      ].filter((position): position is Position => position !== undefined);
+  const batchEntryMapFocus = !batchEntryActive
+    ? null
+    : selectedWaypoint === undefined
+      ? selectedDisplayLeg === undefined
+        ? null
+        : {
+            key: `leg:${selectedDisplayLeg.fromWaypointId}:${selectedDisplayLeg.toWaypointId}`,
+            position: getRouteDisplayLegMidpoint(selectedDisplayLeg),
+          }
+      : {
+          key: `waypoint:${selectedWaypoint.id}`,
+          position: selectedWaypointDisplayPosition ?? selectedWaypoint.position,
+        };
   const selectedLegIsArrivalLeg =
     selectedLeg !== null &&
     deriveFlightPlanSectors(flightPlan).some((sector) => {
@@ -745,6 +809,7 @@ export function FlightMap({
           }}
           consumeSuppressedClick={consumeSuppressedMapClick}
         />
+        <BatchEntryMapCenter focus={batchEntryMapFocus} />
         <RouteLineInteractionHandler
           interaction={routeLineInteraction}
           onInteractionChange={setRouteLineInteraction}
@@ -768,6 +833,14 @@ export function FlightMap({
           onDatasetChange={setAeronauticalDataset}
           onStatusChange={setAeronauticalStatus}
         />
+        <VacChartLayers
+          repository={aeronauticalRepository}
+          visible={vacChartsVisible}
+          opacity={vacChartOpacity}
+        />
+        {msaCorridorVisible && selectedLegGeometry !== null ? (
+          <MsaCorridor geometry={selectedLegGeometry} />
+        ) : null}
 
         <Pane name="route-lines" style={{ zIndex: 500 }}>
           <RouteLines
@@ -811,7 +884,7 @@ export function FlightMap({
               pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#704887', fillOpacity: 1 }}
               interactive={false}
             >
-              <Tooltip permanent direction="top" className="waypoint-label">
+              <Tooltip pane="tooltipPane" permanent direction="top" className="waypoint-label">
                 ALT {alternateWaypoint.name}
               </Tooltip>
             </CircleMarker>
@@ -905,12 +978,20 @@ export function FlightMap({
             defaultAltitudeFtMsl={defaultAltitudeFtMsl}
             isArrivalLeg={selectedLegIsArrivalLeg}
             altitudeFocusRequest={altitudeFocusRequest}
+            msaFocusRequest={msaFocusRequest}
             onInsertWaypoint={() => onInsertWaypoint(selectedLeg.candidate)}
             onSetAltitude={(altitudeFtMsl) =>
               onSetLegAltitude(
                 selectedLeg.candidate.fromWaypointId,
                 selectedLeg.candidate.toWaypointId,
                 altitudeFtMsl,
+              )
+            }
+            onSetMinimumSafeAltitude={(minimumSafeAltitudeFtMsl) =>
+              onSetLegMinimumSafeAltitude(
+                selectedLeg.candidate.fromWaypointId,
+                selectedLeg.candidate.toWaypointId,
+                minimumSafeAltitudeFtMsl,
               )
             }
             onSetEndAltitude={(altitudeFtMsl) =>
@@ -980,7 +1061,28 @@ export function FlightMap({
           status={aeronauticalStatus}
           visibility={aeronauticalLayerVisibility}
           onVisibilityChange={updateAeronauticalLayerVisibility}
+          vacVisible={vacChartsVisible}
+          vacOpacity={vacChartOpacity}
+          onVacVisibilityChange={setVacChartsVisible}
+          onVacOpacityChange={setVacChartOpacity}
         />
+        <label className="msa-corridor-control">
+          <span>
+            <input
+              type="checkbox"
+              checked={msaCorridorVisible}
+              disabled={selectedLegGeometry === null}
+              onChange={(event) =>
+                setMsaCorridorVisible(event.currentTarget.checked)}
+            />
+            1 NM MSA corridor
+          </span>
+          <small>
+            {selectedLegGeometry === null
+              ? 'Select a leg to display its shaped-route corridor.'
+              : 'Visual aid only; assess terrain and obstacles manually.'}
+          </small>
+        </label>
       </div>
     </>
   );

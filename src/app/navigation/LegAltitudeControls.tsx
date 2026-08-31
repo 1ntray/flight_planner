@@ -4,10 +4,12 @@ import { calculateRoute, deriveFlightPlanSectors } from '../../calculations';
 import type { FlightPlan } from '../../domain';
 import {
   setLegAltitudeOverride,
+  setLegMinimumSafeAltitude,
   setLegAltitudeTargetDistance,
   setLegEndAltitudeOverride,
   setLegEndAltitudeTargetDistance,
 } from './altitudePlanState';
+import { evaluateMinimumSafeAltitude } from './minimumSafeAltitude';
 import type { AltitudePlacementLeg } from './altitudePlanState';
 import type { PerformanceInputDraft } from './performanceInput';
 
@@ -68,12 +70,13 @@ export function LegAltitudeControls({
   }
 
   return (
-    <section className="leg-altitude-controls" aria-label="Leg altitude plan">
+    <section className="leg-altitude-controls" aria-label="Leg altitude and MSA plan">
       <div>
-        <p className="eyebrow">Altitude schedule</p>
+        <p className="eyebrow">Altitude & MSA schedule</p>
         <p className="plan-file-controls__description">
           Blank altitude uses the global value. Target distance is measured
-          along shaped WGS84 geometry from FROM.
+          along shaped WGS84 geometry from FROM. MSA is entered manually in ft
+          MSL after assessing the 1 NM route corridor.
         </p>
       </div>
 
@@ -113,6 +116,13 @@ export function LegAltitudeControls({
           placementLeg?.fromWaypointId === leg.fromId &&
           placementLeg.toWaypointId === leg.toId &&
           placementLeg.target === 'end';
+        const defaultAltitude = Number(draft.defaultAltitudeFtMsl);
+        const plannedAltitude = plan?.altitudeFtMsl ??
+          (Number.isFinite(defaultAltitude) ? defaultAltitude : null);
+        const msaWarning = evaluateMinimumSafeAltitude(
+          plan?.minimumSafeAltitudeFtMsl,
+          plannedAltitude,
+        );
 
         return (
           <article className="leg-altitude-controls__leg" key={legKey(leg.fromId, leg.toId)}>
@@ -126,7 +136,43 @@ export function LegAltitudeControls({
                 descent to the rounded pattern altitude is added automatically.
               </p>
             ) : null}
+            {msaWarning === 'missing' ? (
+              <p className="leg-altitude-controls__msa-warning">
+                MSA not entered — assess the highest terrain or obstacle within
+                1 NM of this route and add 500 ft.
+              </p>
+            ) : null}
+            {msaWarning === 'above-planned-altitude' ? (
+              <p className="leg-altitude-controls__msa-warning">
+                MSA is higher than the planned altitude for this leg.
+              </p>
+            ) : null}
             <div className="leg-altitude-controls__row">
+            <label>
+              <span>MSA</span>
+              <span className="navigation-inputs__control">
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={plan?.minimumSafeAltitudeFtMsl ?? ''}
+                  placeholder="not entered"
+                  onChange={(event) => {
+                    const value = event.currentTarget.value;
+                    onDraftChange({
+                      ...draft,
+                      legAltitudePlans: setLegMinimumSafeAltitude(
+                        draft.legAltitudePlans,
+                        leg.fromId,
+                        leg.toId,
+                        value === '' ? null : Number(value),
+                      ),
+                    });
+                  }}
+                />
+                <span>ft MSL</span>
+              </span>
+            </label>
             <label>
               <span>Planned altitude</span>
               <span className="navigation-inputs__control">

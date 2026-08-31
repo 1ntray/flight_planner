@@ -8,7 +8,11 @@ import type {
   WindAdjustedLegResult,
 } from '../../calculations';
 import { calculateMagneticDirectionDeg, normalizeTrackDeg } from '../../calculations';
-import type { AlternatePlanningInputs, Waypoint, Wind } from '../../domain';
+import type {
+  AlternatePlanningInputs,
+  LegAltitudePlan,
+  Waypoint,
+} from '../../domain';
 import type { ForecastLegWind } from '../../weather';
 import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
 import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
@@ -41,6 +45,7 @@ export interface RouteTableProps {
     readonly estimatedFuelRemainingLitres: number | null;
   } | null;
   forecastWinds?: readonly ForecastLegWind[];
+  legAltitudePlans?: readonly LegAltitudePlan[];
 }
 
 function legKey(fromId: string, toId: string): string {
@@ -185,6 +190,7 @@ export function RouteTable({
   alternateWaypoints = [],
   alternateProgress = null,
   forecastWinds = [],
+  legAltitudePlans = [],
 }: RouteTableProps) {
   const waypointNames = useMemo(
     () =>
@@ -226,6 +232,16 @@ export function RouteTable({
       ),
     [operationalSector],
   );
+  const altitudePlanByLeg = useMemo(
+    () =>
+      new Map(
+        legAltitudePlans.map((plan) => [
+          legKey(plan.fromWaypointId, plan.toWaypointId),
+          plan,
+        ]),
+      ),
+    [legAltitudePlans],
+  );
   let localDistanceNm = 0;
   let localTimeSeconds = 0;
   let localFuelLitres = 0;
@@ -266,6 +282,9 @@ export function RouteTable({
                   ? null
                   : getNoSolutionMessage(leg.navigation);
               const operationalRow = operationalByLeg.get(
+                legKey(leg.fromId, leg.toId),
+              );
+              const altitudePlan = altitudePlanByLeg.get(
                 legKey(leg.fromId, leg.toId),
               );
               const eetSeconds = performanceLeg?.eetSeconds ?? leg.eetSeconds;
@@ -318,7 +337,9 @@ export function RouteTable({
                   <td>{performanceLeg === undefined ? '—' : formatFuel(performanceLeg.fuelLitres)}</td>
                   <td>{operationalRow === undefined ? '—' : formatFuel(accumulated.airborneFuelLitres)}</td>
                   <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
-                  <td>—</td>
+                  <td>{altitudePlan?.minimumSafeAltitudeFtMsl === undefined
+                    ? '—'
+                    : Math.round(altitudePlan.minimumSafeAltitudeFtMsl)}</td>
                   <td>{performanceLeg === undefined ? '—' : Math.round(performanceLeg.targetAltitudeFtMsl)}</td>
                   <td>{formatMagneticHeadingDeg(magneticHeadingDeg)}</td>
                   <td>{performanceLeg?.effectiveGroundSpeedKt !== undefined
