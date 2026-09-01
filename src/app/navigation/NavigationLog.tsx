@@ -13,6 +13,7 @@ import type {
 import type { OperationalInputDraft } from './operationalInput';
 import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
+import type { CommunicationChange } from '../../calculations';
 import { formatPerformanceRouteFailureLeg } from './performanceRouteFormatting';
 import {
   FORECAST_SOURCE_LABEL,
@@ -62,6 +63,7 @@ export interface NavigationLogProps {
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
   calculations: PlanningCalculations;
+  communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
 }
 
 export function NavigationLog({
@@ -83,6 +85,7 @@ export function NavigationLog({
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
   calculations,
+  communicationChangesByLeg = new Map(),
 }: NavigationLogProps) {
   const {
     parsedInputs,
@@ -459,6 +462,7 @@ export function NavigationLog({
           forecast.status.status === 'success' ? forecast.status.winds : []
         }
         legAltitudePlans={performanceDraft.legAltitudePlans}
+        communicationChangesByLeg={communicationChangesByLeg}
       />
         </>
       ) : null}

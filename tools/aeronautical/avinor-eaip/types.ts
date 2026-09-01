@@ -51,6 +51,7 @@ export interface AvinorEaipEnrSource {
 export interface AvinorEaipBatchWarning extends AvinorEaipImportWarning {
   readonly sourceAerodrome: string;
   readonly sourceUrl: string;
+  readonly publishedName?: string;
 }
 
 export interface AvinorEaipBatchFailure {

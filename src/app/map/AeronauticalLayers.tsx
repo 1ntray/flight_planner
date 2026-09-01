@@ -349,6 +349,7 @@ export function AeronauticalLayers({
                 key={feature.ref.featureId}
                 feature={feature}
                 repository={repository}
+                position={selectedAirspaces.position}
               />
             ))}
           </div>

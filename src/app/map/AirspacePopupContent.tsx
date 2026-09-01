@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AeronauticalDataRepository } from '../../aeronautical';
-import type { AeronauticalAreaFeature, AirspaceDetails, VerticalLimit } from '../../domain';
+import type { AeronauticalAreaFeature, AirspaceDetails, Position, VerticalLimit } from '../../domain';
 import { CommunicationServiceList } from './CommunicationServiceList';
 
 function formatLimit(limit: VerticalLimit | null): string {
@@ -10,9 +10,10 @@ function formatLimit(limit: VerticalLimit | null): string {
 export interface AirspacePopupContentProps {
   feature: AeronauticalAreaFeature;
   repository: AeronauticalDataRepository;
+  position: Position;
 }
 
-export function AirspacePopupContent({ feature, repository }: AirspacePopupContentProps) {
+export function AirspacePopupContent({ feature, repository, position }: AirspacePopupContentProps) {
   const [details, setDetails] = useState<AirspaceDetails | null | undefined>(undefined);
   useEffect(() => {
     const controller = new AbortController();
@@ -37,7 +38,12 @@ export function AirspacePopupContent({ feature, repository }: AirspacePopupConte
           {details.publishedType}{details.airspaceClass === null ? '' : ` · Class ${details.airspaceClass}`}<br />
           {formatLimit(details.lowerLimit)} – {formatLimit(details.upperLimit)}<br />
           Information only — not a waypoint anchor
-          <CommunicationServiceList repository={repository} featureId={feature.ref.featureId} />
+          <CommunicationServiceList
+            repository={repository}
+            {...(feature.areaKind === 'cta'
+              ? { serviceAreaPosition: position }
+              : { featureId: feature.ref.featureId })}
+          />
         </>
       )}
     </div>

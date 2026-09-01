@@ -144,6 +144,10 @@ the clicked waypoint is anchored.
   point therefore remains explicit ordered `waypoints` data rather than a
   graphical alias. Route markers at a shared coordinate use the participating
   sector colours as a display-only split fill.
+- Selecting a waypoint at a shared exact coordinate exposes a transient popup
+  pager for the other route occurrences. The popup's sector routes and
+  departure/arrival/enroute roles are derived from `deriveFlightPlanSectors`;
+  they are not persisted selection or FlightPlan state.
 - Map route lines with identical displayed geometry use alternating sector
   colour stripes. Matching is direction-independent because a drawn line has
   no directional visual form; different shaping geometry remains separate.

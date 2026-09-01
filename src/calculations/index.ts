@@ -85,6 +85,26 @@ export {
   calculateNearestPointOnGeometry,
   calculatePositionAlongGeometry,
 } from './routeProgress';
+export {
+  polygonContainsPosition,
+  polygonsContainPosition,
+  ringContainsPosition,
+} from './airspaceContainment';
+export {
+  allocateCommunicationChangesToLegs,
+  calculateCommunicationRoutePlan,
+  createCommunicationResolver,
+  MAX_COMMUNICATION_ROUTE_SAMPLES,
+  selectCommunicationAtPosition,
+} from './communicationPlanning';
+export type {
+  CommunicationChange,
+  CommunicationPlanningData,
+  CommunicationRoutePlan,
+  CommunicationSelection,
+  CommunicationSelectionBasis,
+  SelectedCommunicationService,
+} from './communicationPlanning';
 export { deriveFlightPlanSectors } from './flightSectors';
 export type { FlightPlanSector } from './flightSectors';
 export type {

@@ -1534,6 +1534,30 @@ kbd {
   margin: 0;
 }
 
+.waypoint-map-popup__use-pager {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.65rem 0;
+  color: #4a5970;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.waypoint-map-popup__use-pager .button {
+  min-width: 2rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.waypoint-map-popup__sector-contexts {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .aerodrome-info-popup__heading {
   display: grid;
   gap: 0.12rem;

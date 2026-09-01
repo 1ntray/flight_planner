@@ -6,6 +6,7 @@ import type {
   CalculatedOperationalFlightPlan,
   CalculatedPerformanceRoute,
   CalculatedPerformanceRouteSuccess,
+  CommunicationChange,
 } from '../../calculations';
 import type {
   AircraftDefinition,
@@ -29,6 +30,7 @@ export interface SectorRouteTablesProps {
   alternateTrueAirspeedKt?: number | null;
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
+  communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
 }
 
 function sectorNavigationRoute(
@@ -92,6 +94,7 @@ export function SectorRouteTables({
   alternateTrueAirspeedKt = null,
   forecastWinds = [],
   legAltitudePlans = [],
+  communicationChangesByLeg = new Map(),
 }: SectorRouteTablesProps) {
   const sectors = useMemo(
     () => deriveFlightPlanSectors(flightPlan),
@@ -172,6 +175,7 @@ export function SectorRouteTables({
           alternateProgress={alternateProgress}
           forecastWinds={forecastWinds}
           legAltitudePlans={legAltitudePlans}
+          communicationChangesByLeg={communicationChangesByLeg}
           {...(operationalSector === undefined ? {} : { operationalSector })}
         />
         {operationalSector === undefined || operationalInputs === null ? null : (
@@ -243,6 +247,7 @@ export function SectorRouteTables({
               alternateProgress={isFinalSector ? alternateProgress : null}
               forecastWinds={forecastWinds}
               legAltitudePlans={legAltitudePlans}
+              communicationChangesByLeg={communicationChangesByLeg}
               {...(operationalSector === undefined ? {} : { operationalSector })}
             />
             {operationalSector === undefined || operationalInputs === null ? null : (

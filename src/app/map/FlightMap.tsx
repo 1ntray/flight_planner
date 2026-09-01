@@ -77,6 +77,10 @@ import { findReportingPointShapingAttachmentTarget } from './aeronauticalWaypoin
 import { VacChartLayers } from './VacChartLayers';
 import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
 import {
+  getSharedPositionWaypointUses,
+  getWaypointSectorContexts,
+} from './waypointSelection';
+import {
   DEFAULT_BASE_MAP_ID,
   getBaseMapSource,
 } from './baseMapSource';
@@ -617,6 +621,17 @@ export function FlightMap({
   const selectedWaypointIndex = selectedWaypoint === undefined
     ? -1
     : flightPlan.waypoints.findIndex(({ id }) => id === selectedWaypoint.id);
+  const selectedWaypointSharedPositionUses = selectedWaypoint === undefined
+    ? []
+    : getSharedPositionWaypointUses(flightPlan, selectedWaypoint);
+  const selectedWaypointSharedPositionUseIndex = selectedWaypoint === undefined
+    ? -1
+    : selectedWaypointSharedPositionUses.findIndex(
+        (use) => use.id === selectedWaypoint.id,
+      );
+  const selectedWaypointSectorContexts = selectedWaypoint === undefined
+    ? []
+    : getWaypointSectorContexts(flightPlan, selectedWaypoint.id);
   const selectedWaypointDisplayPosition = selectedWaypoint === undefined
     ? undefined
     : getRoutePointDisplayPosition(
@@ -1022,10 +1037,17 @@ export function FlightMap({
                 selectedWaypoint.id,
               ) ?? false
             }
+            sharedPositionUses={selectedWaypointSharedPositionUses}
+            sharedPositionUseIndex={selectedWaypointSharedPositionUseIndex}
+            sectorContexts={selectedWaypointSectorContexts}
             onRename={onRenameWaypoint}
             onDetach={onDetachWaypoint}
             onShowSourceAerodrome={showWaypointSourceAerodrome}
             onToggleSectorBoundary={onToggleWaypointSectorBoundary}
+            onSelectSharedPositionUse={(id) => {
+              setSelectedAerodromeInformation(null);
+              onSelectionChange({ kind: 'waypoint', id });
+            }}
             onDelete={onDeleteSelection}
             onClose={() => onSelectionChange(null)}
           />

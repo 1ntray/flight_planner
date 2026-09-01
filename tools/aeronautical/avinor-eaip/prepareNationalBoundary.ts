@@ -1,49 +1,67 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-import { parseKartverketNationalBoundaryWfs } from './nationalBoundary';
+import {
+  parseKartverketNationalBoundaryWfs,
+  simplifyNationalBoundaryLine,
+  validatePreparedNationalBoundaryDataset,
+  type PreparedNationalBoundaryDataset,
+} from './nationalBoundary.ts';
 
 const OUTPUT_PATH = 'tools/aeronautical/avinor-eaip/prepared/norway-national-boundary-2026.json';
-const WFS_URL = 'https://wfs.geonorge.no/skwms1/wfs.administrative_enheter';
-const FILTER = `
-  <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0"
-    xmlns:app="https://skjema.geonorge.no/SOSI/produktspesifikasjon/AdmEnheter/20240101">
-    <fes:PropertyIsEqualTo>
-      <fes:ValueReference>app:avgrensningstype</fes:ValueReference>
-      <fes:Literal>Riksgrense</fes:Literal>
-    </fes:PropertyIsEqualTo>
-  </fes:Filter>
-`.trim();
+const WFS_URL = 'https://wfs.geonorge.no/skwms1/wfs.norgesmaritimegrenser';
 
 async function main(): Promise<void> {
-  const requestUrl = new URL(WFS_URL);
-  requestUrl.search = new URLSearchParams({
-    service: 'WFS',
-    version: '2.0.0',
-    request: 'GetFeature',
-    typeNames: 'app:Grense',
-    srsName: 'EPSG:4326',
-    FILTER,
-  }).toString();
-  const response = await fetch(requestUrl, {
-    headers: {
-      accept: 'application/gml+xml,application/xml,text/xml',
-      'user-agent': 'FlightPlanner-AeronauticalDataPreparer/0.1',
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Kartverket WFS returned ${response.status} ${response.statusText}`);
-  }
   const retrievedAtUtc = new Date().toISOString();
-  const dataset = parseKartverketNationalBoundaryWfs(
-    await response.text(),
-    retrievedAtUtc,
-    requestUrl.toString(),
-  );
+  const pageSize = 250;
+  const lines: (readonly (readonly [number, number])[])[] = [];
+  let firstPage: PreparedNationalBoundaryDataset | null = null;
+  for (const typeName of ['app:Riksgrense', 'app:AvtaltAvgrensningslinje']) {
+    for (let startIndex = 0; ; startIndex += pageSize) {
+      const requestUrl = new URL(WFS_URL);
+      requestUrl.search = new URLSearchParams({
+        service: 'WFS',
+        version: '2.0.0',
+        request: 'GetFeature',
+        typeNames: typeName,
+        srsName: 'EPSG:4326',
+        count: String(pageSize),
+        startIndex: String(startIndex),
+      }).toString();
+      const response = await fetch(requestUrl, {
+        headers: {
+          accept: 'application/gml+xml,application/xml,text/xml',
+          'user-agent': 'FlightPlanner-AeronauticalDataPreparer/0.1',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Kartverket WFS returned ${response.status} ${response.statusText}`);
+      }
+      const source = await response.text();
+      const page = parseKartverketNationalBoundaryWfs(
+        source,
+        retrievedAtUtc,
+        requestUrl.toString(),
+      );
+      firstPage ??= page;
+      lines.push(...page.lines);
+      const numberReturned = Number(/\bnumberReturned="(\d+)"/.exec(source)?.[1]);
+      if (!Number.isFinite(numberReturned) || numberReturned < pageSize) break;
+    }
+  }
+  if (firstPage === null) throw new Error('Kartverket WFS returned no national-boundary data');
+  const combinedDataset = validatePreparedNationalBoundaryDataset({
+    ...firstPage,
+    source: {
+      ...firstPage.source,
+      sourceUrl: `${WFS_URL}?service=WFS&request=GetCapabilities`,
+    },
+    lines: lines.map((line) => simplifyNationalBoundaryLine(line)),
+  });
   const outputPath = resolve(OUTPUT_PATH);
   await mkdir(dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, `${JSON.stringify(dataset)}\n`, 'utf8');
-  console.log(`Wrote ${OUTPUT_PATH} (${dataset.lines.length} boundary lines)`);
+  await writeFile(outputPath, `${JSON.stringify(combinedDataset)}\n`, 'utf8');
+  console.log(`Wrote ${OUTPUT_PATH} (${combinedDataset.lines.length} boundary lines)`);
 }
 
 void main().catch((error: unknown) => {

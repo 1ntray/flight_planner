@@ -89,10 +89,10 @@ describe('aeronautical repository configuration', () => {
     });
     expect(airspaces.filter(
       (feature) => feature.geometryType === 'area' && feature.areaKind === 'tia',
-    )).toHaveLength(19);
+    )).toHaveLength(20);
     expect(airspaces.filter(
       (feature) => feature.geometryType === 'area' && feature.areaKind === 'cta',
-    )).toHaveLength(24);
+    )).toHaveLength(38);
 
     const serviceAreas = await repository.queryAtsServiceAreas({
       bounds: { south: 55, west: -10, north: 82, east: 35 },
@@ -100,6 +100,8 @@ describe('aeronautical repository configuration', () => {
     const sector10 = serviceAreas.find(
       ({ publishedName }) => publishedName === 'Polaris ACC Sector 10',
     );
+    expect(serviceAreas).toHaveLength(38);
+    expect(serviceAreas.every(({ geometryStatus }) => geometryStatus === 'resolved')).toBe(true);
     expect(sector10).toMatchObject({
       geometryStatus: 'resolved',
       sectorIdentifier: '10',

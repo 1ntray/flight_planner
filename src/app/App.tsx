@@ -71,6 +71,7 @@ import {
 } from './navigation/altitudePlanState';
 import type { AltitudePlacementLeg } from './navigation/altitudePlanState';
 import { usePlanningCalculations } from './navigation/usePlanningCalculations';
+import { useCommunicationPlan } from './navigation/useCommunicationPlan';
 import type { LocalDraftStatus } from './persistence/FlightPlanFileControls';
 import { usePlannerShortcuts } from './interaction/usePlannerShortcuts';
 import type { PlannerShortcutAction } from './interaction/plannerShortcuts';
@@ -500,6 +501,10 @@ export function App() {
     useForecastWinds,
     forecastRequestKey,
   });
+  const communicationPlan = useCommunicationPlan(
+    aeronauticalRepository,
+    calculations.performanceRoute,
+  );
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
       parsedPlanningInputs.status === 'valid' &&
@@ -1397,6 +1402,7 @@ export function App() {
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
     calculations,
+    communicationChangesByLeg: communicationPlan.changesByLeg,
   } satisfies Omit<NavigationLogProps, 'section'>;
 
   return (

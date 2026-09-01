@@ -28,6 +28,7 @@ import type {
   AvinorEaipImportConfig,
 } from './types';
 import { AvinorEaipImportError } from './types';
+import type { PreparedNationalBoundaryDataset } from './nationalBoundary';
 
 export interface DiscoveredAvinorEaipAerodrome {
   readonly sourceAerodrome: string;
@@ -215,6 +216,7 @@ export function importAvinorEaipAerodromes(
   timestamps: { readonly retrievedAtUtc: string; readonly importedAtUtc: string },
   enr21Source?: AvinorEaipEnrSource,
   enr22Source?: AvinorEaipEnrSource,
+  nationalBoundary?: PreparedNationalBoundaryDataset,
 ): AvinorEaipBatchImportResult {
   const features: AeronauticalFeature[] = [];
   const featureDetails: AeronauticalFeatureDetails[] = [];
@@ -273,6 +275,7 @@ export function importAvinorEaipAerodromes(
           sourceUrl: source.sourceUrl,
           sourceAerodrome: source.sourceAerodrome,
           aerodromeFeatureId: `aerodrome:${source.sourceAerodrome}`,
+          ...(nationalBoundary === undefined ? {} : { nationalBoundary }),
         });
         features.push(...operational.features);
         featureDetails.push(...operational.featureDetails);
@@ -304,6 +307,7 @@ export function importAvinorEaipAerodromes(
       effectiveDate: edition.effectiveFromUtc.slice(0, 10),
       sourceUrl: enr21Source.sourceUrl,
       includedTypes: ['tma', 'cta'],
+      ...(nationalBoundary === undefined ? {} : { nationalBoundary }),
     });
     features.push(...enr.features);
     featureDetails.push(...enr.featureDetails);
@@ -314,6 +318,7 @@ export function importAvinorEaipAerodromes(
         code: warning.code,
         message: warning.message,
         aipSection: warning.aipSection,
+        ...(warning.publishedName === undefined ? {} : { publishedName: warning.publishedName }),
         sourceAerodrome: 'ENR 2.1',
         sourceUrl: enr21Source.sourceUrl,
       })),
@@ -325,6 +330,7 @@ export function importAvinorEaipAerodromes(
       dataset: normalizedDatasetRef,
       effectiveDate: edition.effectiveFromUtc.slice(0, 10),
       sourceUrl: enr22Source.sourceUrl,
+      ...(nationalBoundary === undefined ? {} : { nationalBoundary }),
     });
     features.push(...enr.features);
     featureDetails.push(...enr.featureDetails);
@@ -336,6 +342,7 @@ export function importAvinorEaipAerodromes(
         code: warning.code,
         message: warning.message,
         aipSection: warning.aipSection,
+        ...(warning.publishedName === undefined ? {} : { publishedName: warning.publishedName }),
         sourceAerodrome: 'ENR 2.2',
         sourceUrl: enr22Source.sourceUrl,
       })),

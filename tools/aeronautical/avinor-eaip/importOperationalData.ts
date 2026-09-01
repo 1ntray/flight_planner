@@ -164,7 +164,6 @@ function semanticGeometry(
         kind: 'published-reference',
         referenceType: 'national-boundary',
         publishedText: connector,
-        resolvedGeometry: resolved.positions,
       });
       usedNationalBoundary = true;
     } else {

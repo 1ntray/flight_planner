@@ -4,6 +4,7 @@ import type {
   CalculatedNavigationRoute,
   CalculatedPerformanceLeg,
   CalculatedPerformanceRoute,
+  CommunicationChange,
   CalculatedSectorOperationalFlightPlan,
   WindAdjustedLegResult,
 } from '../../calculations';
@@ -46,6 +47,7 @@ export interface RouteTableProps {
   } | null;
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
+  communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
 }
 
 function legKey(fromId: string, toId: string): string {
@@ -136,6 +138,22 @@ function formatFuel(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : value.toFixed(1);
 }
 
+function communicationCell(changes: readonly CommunicationChange[]): {
+  readonly text: string;
+  readonly title: string;
+} {
+  const values = changes.flatMap(({ selection }) =>
+    selection.services.flatMap((service) => service.frequencies.map((frequency) => ({
+      text: frequency.valueMHz,
+      title: `${service.callsign ?? service.publishedServiceType} ${frequency.valueMHz} MHz`,
+    }))),
+  );
+  return {
+    text: values.map(({ text }) => text).join(' / '),
+    title: values.map(({ title }) => title).join('; '),
+  };
+}
+
 function AlternateRow({
   alternateNavigationRoute,
   alternate,
@@ -219,6 +237,7 @@ export function RouteTable({
   alternateProgress = null,
   forecastWinds = [],
   legAltitudePlans = [],
+  communicationChangesByLeg = new Map(),
 }: RouteTableProps) {
   const waypointNames = useMemo(
     () =>
@@ -349,6 +368,9 @@ export function RouteTable({
                 leg.magneticVariationSource,
                 leg.magneticVariationUnavailableReason,
               );
+              const communication = communicationCell(
+                communicationChangesByLeg.get(legKey(leg.fromId, leg.toId)) ?? [],
+              );
 
               return (
                 <tr key={legKey(leg.fromId, leg.toId)}>
@@ -382,7 +404,10 @@ export function RouteTable({
                   <td title={endTimeUtcMs === null ? undefined : formatUtcDateTime(endTimeUtcMs)}>{endTimeUtcMs === null || route.departureTimeUtcMs === null ? '—' : formatUtcRouteTime(endTimeUtcMs, route.departureTimeUtcMs)}</td>
                   <td>—</td><td>—</td>
                   <td>{operationalRow === undefined ? '—' : formatFuel(operationalRow.estimatedFuelRemainingLitres)}</td>
-                  <td>—</td><td>—</td>
+                  <td>—</td>
+                  <td title={communication.title || undefined}>
+                    {communication.text || '—'}
+                  </td>
                 </tr>
               );
             })}

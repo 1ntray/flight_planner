@@ -1,10 +1,11 @@
 import { load } from 'cheerio';
 
 import type { Position } from '../../../src/domain';
-import { AvinorEaipImportError } from './types';
+import { AvinorEaipImportError } from './types.ts';
 
 export const NATIONAL_BOUNDARY_SCHEMA_VERSION = 1;
 export const NATIONAL_BOUNDARY_MAX_SNAP_NM = 0.5;
+export const NATIONAL_BOUNDARY_SIMPLIFICATION_TOLERANCE_NM = 0.02;
 
 export interface PreparedNationalBoundaryDataset {
   readonly schemaVersion: typeof NATIONAL_BOUNDARY_SCHEMA_VERSION;
@@ -109,10 +110,10 @@ export function parseKartverketNationalBoundaryWfs(
     schemaVersion: NATIONAL_BOUNDARY_SCHEMA_VERSION,
     source: {
       provider: 'Kartverket',
-      datasetName: 'Administrative enheter kommuner – Riksgrense',
-      metadataUuid: '041f1e6e-bdbc-4091-b48f-8a5990f3cc5b',
+      datasetName: 'Norges maritime grenser – Riksgrense / avtalt avgrensningslinje',
+      metadataUuid: 'e106adf4-c9d8-4fce-a9b5-7886a4126d23',
       sourceUrl,
-      referenceDate: '2026-01-01',
+      referenceDate: '2025-04-11',
       retrievedAtUtc,
       coordinateReferenceSystem: 'EPSG:4326',
     },
@@ -122,7 +123,19 @@ export function parseKartverketNationalBoundaryWfs(
 
 interface BoundaryGraph {
   readonly positions: readonly Position[];
-  readonly neighbours: readonly (readonly number[])[];
+  readonly neighbours: readonly (readonly BoundaryEdge[])[];
+  readonly segments: readonly BoundarySegment[];
+}
+
+interface BoundaryEdge {
+  readonly to: number;
+  readonly distanceNm: number;
+}
+
+interface BoundarySegment {
+  readonly from: number;
+  readonly to: number;
+  readonly distanceNm: number;
 }
 
 const graphCache = new WeakMap<PreparedNationalBoundaryDataset, BoundaryGraph>();
@@ -136,7 +149,8 @@ function boundaryGraph(dataset: PreparedNationalBoundaryDataset): BoundaryGraph 
   if (cached !== undefined) return cached;
 
   const positions: Position[] = [];
-  const neighbours: number[][] = [];
+  const neighbours: BoundaryEdge[][] = [];
+  const segments: BoundarySegment[] = [];
   const indexByCoordinate = new Map<string, number>();
   const indexFor = ([longitude, latitude]: readonly [number, number]): number => {
     const key = coordinateKey(longitude, latitude);
@@ -156,12 +170,16 @@ function boundaryGraph(dataset: PreparedNationalBoundaryDataset): BoundaryGraph 
       if (fromCoordinate === undefined || toCoordinate === undefined) continue;
       const from = indexFor(fromCoordinate);
       const to = indexFor(toCoordinate);
-      if (!neighbours[from]?.includes(to)) neighbours[from]?.push(to);
-      if (!neighbours[to]?.includes(from)) neighbours[to]?.push(from);
+      const distanceNm = approximateDistanceNm(positions[from]!, positions[to]!);
+      if (!neighbours[from]?.some((edge) => edge.to === to)) {
+        neighbours[from]?.push({ to, distanceNm });
+        neighbours[to]?.push({ to: from, distanceNm });
+        segments.push({ from, to, distanceNm });
+      }
     }
   }
 
-  const graph = { positions, neighbours };
+  const graph = { positions, neighbours, segments };
   graphCache.set(dataset, graph);
   return graph;
 }
@@ -173,48 +191,192 @@ function approximateDistanceNm(from: Position, to: Position): number {
   return Math.hypot(northNm, eastNm);
 }
 
-function nearestVertex(positions: readonly Position[], query: Position): {
-  readonly index: number;
+function distanceFromSegmentNm(
+  point: readonly [number, number],
+  from: readonly [number, number],
+  to: readonly [number, number],
+): number {
+  const referenceLatitude = point[1] * Math.PI / 180;
+  const longitudeScale = 60 * Math.cos(referenceLatitude);
+  const latitudeScale = 60;
+  const fromX = (from[0] - point[0]) * longitudeScale;
+  const fromY = (from[1] - point[1]) * latitudeScale;
+  const toX = (to[0] - point[0]) * longitudeScale;
+  const toY = (to[1] - point[1]) * latitudeScale;
+  const deltaX = toX - fromX;
+  const deltaY = toY - fromY;
+  const lengthSquared = deltaX * deltaX + deltaY * deltaY;
+  const fraction = lengthSquared === 0
+    ? 0
+    : Math.max(0, Math.min(1, -(fromX * deltaX + fromY * deltaY) / lengthSquared));
+  return Math.hypot(fromX + deltaX * fraction, fromY + deltaY * fraction);
+}
+
+export function simplifyNationalBoundaryLine(
+  line: readonly (readonly [number, number])[],
+  toleranceNm = NATIONAL_BOUNDARY_SIMPLIFICATION_TOLERANCE_NM,
+): readonly (readonly [number, number])[] {
+  if (line.length <= 2) return line;
+  const retained = new Uint8Array(line.length);
+  retained[0] = 1;
+  retained[line.length - 1] = 1;
+  const stack: [number, number][] = [[0, line.length - 1]];
+  while (stack.length > 0) {
+    const [start, end] = stack.pop()!;
+    let maximumDistance = toleranceNm;
+    let maximumIndex = -1;
+    for (let index = start + 1; index < end; index += 1) {
+      const distance = distanceFromSegmentNm(line[index]!, line[start]!, line[end]!);
+      if (distance > maximumDistance) {
+        maximumDistance = distance;
+        maximumIndex = index;
+      }
+    }
+    if (maximumIndex >= 0) {
+      retained[maximumIndex] = 1;
+      stack.push([start, maximumIndex], [maximumIndex, end]);
+    }
+  }
+  return line.filter((_, index) => retained[index] === 1);
+}
+
+interface BoundarySnap {
+  readonly segment: BoundarySegment;
+  readonly position: Position;
+  readonly fraction: number;
   readonly distanceNm: number;
-} {
-  let bestIndex = -1;
+}
+
+function nearestSegment(graph: BoundaryGraph, query: Position): BoundarySnap | null {
+  let best: BoundarySnap | null = null;
   let bestDistanceNm = Number.POSITIVE_INFINITY;
-  positions.forEach((position, index) => {
+  const latitudeScale = 60;
+  const longitudeScale = 60 * Math.cos(query.latitude * Math.PI / 180);
+  for (const segment of graph.segments) {
+    const from = graph.positions[segment.from]!;
+    const to = graph.positions[segment.to]!;
+    const fromX = (from.longitude - query.longitude) * longitudeScale;
+    const fromY = (from.latitude - query.latitude) * latitudeScale;
+    const toX = (to.longitude - query.longitude) * longitudeScale;
+    const toY = (to.latitude - query.latitude) * latitudeScale;
+    const deltaX = toX - fromX;
+    const deltaY = toY - fromY;
+    const lengthSquared = deltaX * deltaX + deltaY * deltaY;
+    const fraction = lengthSquared === 0
+      ? 0
+      : Math.max(0, Math.min(1, -(fromX * deltaX + fromY * deltaY) / lengthSquared));
+    const position = {
+      latitude: from.latitude + (to.latitude - from.latitude) * fraction,
+      longitude: from.longitude + (to.longitude - from.longitude) * fraction,
+    };
     const distanceNm = approximateDistanceNm(position, query);
     if (distanceNm < bestDistanceNm) {
       bestDistanceNm = distanceNm;
-      bestIndex = index;
+      best = { segment, position, fraction, distanceNm };
     }
-  });
-  return { index: bestIndex, distanceNm: bestDistanceNm };
+  }
+  return best;
+}
+
+interface QueueItem {
+  readonly index: number;
+  readonly distanceNm: number;
+}
+
+class MinimumQueue {
+  private readonly values: QueueItem[] = [];
+
+  push(value: QueueItem): void {
+    this.values.push(value);
+    let index = this.values.length - 1;
+    while (index > 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (this.values[parent]!.distanceNm <= value.distanceNm) break;
+      this.values[index] = this.values[parent]!;
+      index = parent;
+    }
+    this.values[index] = value;
+  }
+
+  pop(): QueueItem | undefined {
+    const first = this.values[0];
+    const last = this.values.pop();
+    if (first === undefined || last === undefined || this.values.length === 0) return first;
+    let index = 0;
+    while (true) {
+      const left = index * 2 + 1;
+      const right = left + 1;
+      if (left >= this.values.length) break;
+      const child = right < this.values.length &&
+        this.values[right]!.distanceNm < this.values[left]!.distanceNm
+        ? right
+        : left;
+      if (this.values[child]!.distanceNm >= last.distanceNm) break;
+      this.values[index] = this.values[child]!;
+      index = child;
+    }
+    this.values[index] = last;
+    return first;
+  }
 }
 
 function shortestBoundaryPath(
   graph: BoundaryGraph,
-  startIndex: number,
-  endIndex: number,
+  start: BoundarySnap,
+  end: BoundarySnap,
 ): readonly number[] | null {
-  const queue = [startIndex];
+  const distances = new Float64Array(graph.positions.length);
+  distances.fill(Number.POSITIVE_INFINITY);
   const previous = new Int32Array(graph.positions.length);
   previous.fill(-1);
-  previous[startIndex] = startIndex;
-  for (let cursor = 0; cursor < queue.length; cursor += 1) {
-    const current = queue[cursor];
-    if (current === undefined) break;
-    if (current === endIndex) break;
-    for (const neighbour of graph.neighbours[current] ?? []) {
-      if (previous[neighbour] !== -1) continue;
-      previous[neighbour] = current;
-      queue.push(neighbour);
+  const queue = new MinimumQueue();
+  const startOptions = [
+    { index: start.segment.from, distanceNm: start.segment.distanceNm * start.fraction },
+    { index: start.segment.to, distanceNm: start.segment.distanceNm * (1 - start.fraction) },
+  ];
+  for (const option of startOptions) {
+    if (option.distanceNm >= distances[option.index]!) continue;
+    distances[option.index] = option.distanceNm;
+    previous[option.index] = -2;
+    queue.push(option);
+  }
+  while (true) {
+    const item = queue.pop();
+    if (item === undefined) break;
+    if (item.distanceNm !== distances[item.index]) continue;
+    for (const edge of graph.neighbours[item.index] ?? []) {
+      const nextDistance = item.distanceNm + edge.distanceNm;
+      if (nextDistance >= distances[edge.to]!) continue;
+      distances[edge.to] = nextDistance;
+      previous[edge.to] = item.index;
+      queue.push({ index: edge.to, distanceNm: nextDistance });
     }
   }
-  if (previous[endIndex] === -1) return null;
+  const endOptions = [
+    { index: end.segment.from, distanceNm: end.segment.distanceNm * end.fraction },
+    { index: end.segment.to, distanceNm: end.segment.distanceNm * (1 - end.fraction) },
+  ];
+  const selected = endOptions
+    .map((option) => ({ ...option, total: distances[option.index]! + option.distanceNm }))
+    .sort((first, second) => first.total - second.total)[0];
+  if (selected === undefined || !Number.isFinite(selected.total)) return null;
   const reversed: number[] = [];
-  for (let current = endIndex; ; current = previous[current] as number) {
+  for (let current = selected.index; current >= 0; current = previous[current] as number) {
     reversed.push(current);
-    if (current === startIndex) break;
+    if (previous[current] === -2) break;
   }
   return reversed.reverse();
+}
+
+function appendDistinct(target: Position[], position: Position): void {
+  const last = target.at(-1);
+  if (
+    last === undefined ||
+    last.latitude !== position.latitude ||
+    last.longitude !== position.longitude
+  ) {
+    target.push(position);
+  }
 }
 
 export function resolveNationalBoundary(
@@ -224,31 +386,47 @@ export function resolveNationalBoundary(
   section: string,
 ): ResolvedNationalBoundary {
   const graph = boundaryGraph(dataset);
-  const start = nearestVertex(graph.positions, from);
-  const end = nearestVertex(graph.positions, to);
+  const start = nearestSegment(graph, from);
+  const end = nearestSegment(graph, to);
   if (
-    start.index < 0 ||
-    end.index < 0 ||
+    start === null ||
+    end === null ||
     start.distanceNm > NATIONAL_BOUNDARY_MAX_SNAP_NM ||
     end.distanceNm > NATIONAL_BOUNDARY_MAX_SNAP_NM
   ) {
     throw new AvinorEaipImportError(
       'national-boundary-snap-failed',
-      `Published boundary endpoints are not within ${NATIONAL_BOUNDARY_MAX_SNAP_NM.toFixed(1)} NM of the authoritative national boundary`,
+      `Published boundary endpoints are not within ${NATIONAL_BOUNDARY_MAX_SNAP_NM.toFixed(1)} NM of the authoritative national boundary (start ${start?.distanceNm.toFixed(3) ?? 'unavailable'} NM, end ${end?.distanceNm.toFixed(3) ?? 'unavailable'} NM)`,
       section,
     );
   }
-  const indices = shortestBoundaryPath(graph, start.index, end.index);
-  if (indices === null) {
-    throw new AvinorEaipImportError(
-      'national-boundary-path-failed',
-      'Published boundary endpoints do not resolve to one connected authoritative boundary path',
-      section,
-    );
+  let pathPositions: readonly Position[];
+  if (
+    start.segment.from === end.segment.from &&
+    start.segment.to === end.segment.to
+  ) {
+    pathPositions = [start.position, end.position];
+  } else {
+    const indices = shortestBoundaryPath(graph, start, end);
+    if (indices === null) {
+      throw new AvinorEaipImportError(
+        'national-boundary-path-failed',
+        'Published boundary endpoints do not resolve to one connected authoritative boundary path',
+        section,
+      );
+    }
+    pathPositions = [
+      start.position,
+      ...indices.map((index) => graph.positions[index] as Position),
+      end.position,
+    ];
   }
-  const intermediate = indices.map((index) => graph.positions[index] as Position);
+  const positions: Position[] = [];
+  appendDistinct(positions, from);
+  pathPositions.forEach((position) => appendDistinct(positions, position));
+  appendDistinct(positions, to);
   return {
-    positions: [from, ...intermediate, to],
+    positions,
     startSnapDistanceNm: start.distanceNm,
     endSnapDistanceNm: end.distanceNm,
   };

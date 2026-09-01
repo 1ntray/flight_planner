@@ -197,23 +197,33 @@ edition's ENR 2.1 and ENR 2.2 once and keeps each published TMA, CTA, TIA, and
 Polaris service-sector vertical volume separate.
 The generated report records every warning and failure.
 
-ENR boundaries expressed entirely as published coordinate lists are
-normalized. Twenty-six current ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA
-volume use semantic references such as "along the border between Norway and
-Sweden". Those map volumes are deliberately reported as unsupported instead of
-replacing the referenced border with a guessed straight segment. The same rule
-marks nine affected Polaris service-area volumes as unresolved while retaining
-their published definitions. A future importer can resolve these references
-from an authoritative national-boundary dataset while retaining the ENR source
-semantics.
+Coordinate-list ENR boundaries are normalized directly. Published references
+such as "along the border between Norway and Sweden" are resolved offline from
+an edition-pinned prepared snapshot of Kartverket's official *Norges maritime
+grenser* Riksgrense and agreed maritime-delimitation WFS features. The normalized
+source geometry retains the original AIP reference, while the area feature stores
+the resolved WGS84 render path; feature provenance records both Avinor and
+Kartverket. A strict 0.5 NM
+endpoint tolerance prevents a nearby but unrelated boundary from being guessed.
+The checked-in preparation step simplifies survey-level line detail to a maximum
+0.02 NM presentation tolerance so repeated vertical volumes do not bloat the
+browser bundle; published AIP endpoints are always retained exactly.
+Arcs and coast references remain explicit importer errors until an authoritative
+resolver exists for them.
 
-The configured edition produces 179 rendered airspace volumes: 84 TMA, 24 CTA,
-19 TIA, and 52 AD 2 CTR/TIZ volumes. It also retains 38 Polaris ACC service-area
-volumes and their sector frequencies. Twenty-nine have coordinate-only geometry
-and are spatially queryable. Nine volumes across Sectors 1, 2, 3, 4, 19, 25,
-26, and 27 use published national-border references; those records and their
-frequencies remain traceable but have `geometryStatus: unresolved` and no query
-polygon until an authoritative boundary resolver is added.
+The configured edition produces 206 rendered airspace volumes: 96 TMA, 38 CTA,
+20 TIA, and 52 AD 2 CTR/TIZ volumes. All 38 Polaris ACC service-area volumes
+and their sector frequencies have resolved WGS84 query geometry. This includes
+the complete border-referenced northern CTA, all three Kirkenes TMA volumes,
+and the border-referenced southern service sectors.
+
+The ENR 2.1 Polaris CTA frequency aggregate is retained for source traceability
+but is not associated with every CTA polygon. Runtime selection uses the ENR
+2.2 service-area polygons: the containing CTR/TIZ/TIA/TMA service wins, then
+the closest overlying TMA/TIA, then the geographically and vertically relevant
+Polaris sector. Only 118.000–137.000 MHz is displayed and 121.500 MHz is omitted.
+Navlog frequency changes are derived from the WGS84 route and calculated
+altitude profile; multiple changes on one leg overflow into following FREQ cells.
 
 Parser tests use checked-in fixtures and do not require Avinor to be online. To
 explicitly retrieve the configured edition and regenerate the local JSON dataset
@@ -221,6 +231,13 @@ and import report for every AD 2 aerodrome, run:
 
 ```sh
 pnpm aero:import
+```
+
+The authoritative boundary snapshot is prepared separately and is never
+downloaded by the browser runtime:
+
+```sh
+pnpm aero:prepare:boundaries
 ```
 
 To import only ENDU while developing the parser, run:

@@ -9,16 +9,16 @@
   },
   "counts": {
     "aerodromes": 53,
-    "airspaces": 179,
-    "tmaVolumes": 84,
-    "tiaVolumes": 19,
-    "ctaVolumes": 24,
+    "airspaces": 206,
+    "tmaVolumes": 96,
+    "tiaVolumes": 20,
+    "ctaVolumes": 38,
     "atsServiceAreas": 38,
-    "resolvedAtsServiceAreas": 29,
-    "unresolvedAtsServiceAreas": 9,
-    "atsUnits": 18,
-    "communicationServices": 215,
-    "frequencyAssignments": 481,
+    "resolvedAtsServiceAreas": 38,
+    "unresolvedAtsServiceAreas": 0,
+    "atsUnits": 19,
+    "communicationServices": 218,
+    "frequencyAssignments": 487,
     "reportingPoints": 218,
     "aerodromesWithPublishedReportingPointCoordinates": 23,
     "vacChartsPrepared": 0
@@ -35,16 +35,6 @@
   },
   "warnings": [
     {
-      "code": "unsupported-airspace-geometry",
-      "count": 27,
-      "summary": "TMA, CTA, or TIA volumes containing published national-border references are not rendered until an authoritative boundary resolver is available."
-    },
-    {
-      "code": "unsupported-service-area-geometry",
-      "count": 9,
-      "summary": "Polaris service-area definitions and frequencies are retained, but border-defined polygons are unavailable for spatial frequency selection until an authoritative boundary resolver is available."
-    },
-    {
       "code": "vac-has-no-published-coordinate-table",
       "count": 23,
       "summary": "VAC is published, but no reporting-point coordinate table is available for machine-readable import."
@@ -57,8 +47,7 @@
   ],
   "errors": [],
   "limitations": [
-    "Twenty-six ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA volume with national-border references are explicitly omitted rather than approximated with straight segments.",
-    "Nine Polaris ACC service-area volumes retain their published definitions and frequencies but have unresolved geometry, so they cannot yet be selected by route position.",
+    "National-border references are resolved from the prepared Kartverket boundary snapshot with a strict endpoint tolerance; unsupported arc or coastline semantics remain explicit importer errors.",
     "Graphical-only VAC reporting points remain unavailable until an independently validated georeferencing workflow is implemented.",
     "The ENDU VAC raster is not enabled because its public PDF has no embedded georeferencing and no offline warp has yet passed control-point validation.",
     "ENHF reporting points remain unavailable because the reviewed VAC does not publish a coordinate table; no coordinates were inferred visually."

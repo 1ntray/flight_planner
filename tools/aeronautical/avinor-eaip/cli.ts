@@ -15,6 +15,9 @@ import type {
   AvinorEaipBatchFailure,
   AvinorEaipEnrSource,
 } from './types';
+import {
+  validatePreparedNationalBoundaryDataset,
+} from './nationalBoundary';
 
 interface CliOptions {
   readonly inputIndexPath: string | null;
@@ -259,12 +262,19 @@ async function main(): Promise<void> {
   const options = parseOptions(process.argv.slice(2));
   const acquired = options.inputIndexPath === null ? await acquireOnlineSources(options) : await acquireOfflineSources(options);
   const importedAtUtc = new Date().toISOString();
+  const nationalBoundary = validatePreparedNationalBoundaryDataset(JSON.parse(
+    await readFile(
+      new URL('./prepared/norway-national-boundary-2026.json', import.meta.url),
+      'utf8',
+    ),
+  ));
   const result = importAvinorEaipAerodromes(
     acquired.sources,
     NORWAY_EAIP_EDITION,
     { retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc },
     acquired.enr21Source ?? undefined,
     acquired.enr22Source ?? undefined,
+    nationalBoundary,
   );
   const failures = [...acquired.retrievalFailures, ...result.failures];
   if (result.importedAerodromes.length === 0) {
