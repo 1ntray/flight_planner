@@ -1,6 +1,6 @@
 import { divIcon, DomEvent } from 'leaflet';
 import type { LatLngTuple, LeafletMouseEvent } from 'leaflet';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Marker,
   Pane,
@@ -110,6 +110,7 @@ function sameFeatureIds(
 }
 
 interface SelectedAirspaceStack {
+  readonly selectionId: number;
   readonly position: Position;
   readonly features: readonly AeronauticalAreaFeature[];
 }
@@ -132,11 +133,15 @@ export function AeronauticalLayers({
   >([]);
   const [selectedAirspaces, setSelectedAirspaces] =
     useState<SelectedAirspaceStack | null>(null);
+  const nextAirspaceSelectionId = useRef(0);
   const [viewport, setViewport] = useState(() => ({
     zoom: 0,
     bounds: { south: -90, west: -180, north: 90, east: 180 },
   }));
   const map = useMapEvents({
+    click() {
+      setSelectedAirspaces(null);
+    },
     moveend() {
       setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
     },
@@ -144,6 +149,32 @@ export function AeronauticalLayers({
       setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
     },
   });
+
+  useEffect(() => {
+    if (selectedAirspaces === null) {
+      return;
+    }
+
+    const closeAirspacePopupOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      // The global planner shortcut intentionally ignores keys from form
+      // fields. Consume Escape here so a previously focused planning input
+      // cannot prevent an open airspace popup from closing.
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedAirspaces(null);
+    };
+
+    window.addEventListener('keydown', closeAirspacePopupOnEscape, true);
+    return () => window.removeEventListener(
+      'keydown',
+      closeAirspacePopupOnEscape,
+      true,
+    );
+  }, [selectedAirspaces]);
 
   useEffect(() => {
     setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
@@ -252,7 +283,9 @@ export function AeronauticalLayers({
                 stopMapClick(event);
                 const position = pointerPosition(event);
                 const stack = airspacesAtPosition(areaFeatures, position);
+                nextAirspaceSelectionId.current += 1;
                 setSelectedAirspaces({
+                  selectionId: nextAirspaceSelectionId.current,
                   position,
                   features: stack.length === 0 ? [feature] : stack,
                 });
@@ -275,8 +308,20 @@ export function AeronauticalLayers({
 
       {selectedAirspaces === null ? null : (
         <StableMapPopup
+          key={selectedAirspaces.selectionId}
           position={selectedAirspaces.position}
-          eventHandlers={{ remove: () => setSelectedAirspaces(null) }}
+          eventHandlers={{
+            remove: () => {
+              // Replacing one airspace popup removes the previous Leaflet
+              // instance. Ignore that stale event if a newer selection has
+              // already been committed.
+              setSelectedAirspaces((current) =>
+                current?.selectionId === selectedAirspaces.selectionId
+                  ? null
+                  : current,
+              );
+            },
+          }}
         >
           <div className="airspace-stack-popup">
             {selectedAirspaces.features.map((feature) => (
