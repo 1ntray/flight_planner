@@ -5,8 +5,9 @@
   "effectiveFromUtc": "2026-06-11T00:00:00Z",
   "sourceIndexUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html",
   "sourceEnr21Url": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html",
-  "retrievedAtUtc": "2026-08-31T23:54:32.303Z",
-  "importedAtUtc": "2026-08-31T23:54:40.925Z",
+  "sourceEnr22Url": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html",
+  "retrievedAtUtc": "2026-09-01T07:37:11.747Z",
+  "importedAtUtc": "2026-09-01T07:37:23.481Z",
   "discoveredAerodromeCount": 53,
   "importedAerodromes": [
     "ENAT",
@@ -65,14 +66,117 @@
   ],
   "featureCounts": {
     "aerodromes": 53,
-    "airspaces": 136,
+    "airspaces": 179,
     "tmas": 84,
-    "communicationServices": 172,
-    "frequencies": 408,
+    "tias": 19,
+    "ctas": 24,
+    "atsServiceAreas": 38,
+    "resolvedAtsServiceAreas": 29,
+    "unresolvedAtsServiceAreas": 9,
+    "communicationServices": 215,
+    "frequencies": 481,
     "reportingPoints": 218,
     "aerodromesWithPublishedReportingPointCoordinates": 23
   },
   "warnings": [
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Polaris CTA",
+      "aipSection": "ENR 2.1",
+      "sourceAerodrome": "ENR 2.1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
     {
       "code": "unsupported-airspace-geometry",
       "message": "Airspace uses a non-coordinate-list boundary that is not yet normalized: Bodø TMA",
@@ -156,6 +260,76 @@
       "aipSection": "ENR 2.1",
       "sourceAerodrome": "ENR 2.1",
       "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    },
+    {
+      "code": "unsupported-airspace-geometry",
+      "message": "TIA uses a non-coordinate-list boundary that is not yet normalized: Røros TIA",
+      "aipSection": "ENR 2.2 section 1",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 1",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 2",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 3",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 4",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 19",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 24",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 25",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 26",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "message": "Polaris sector uses a published boundary reference that is retained but not spatially resolved: Polaris ACC Sector 27",
+      "aipSection": "ENR 2.2 section 6",
+      "sourceAerodrome": "ENR 2.2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html"
     }
   ],
   "vacReportingPointWarnings": [

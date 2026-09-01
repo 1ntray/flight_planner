@@ -22,7 +22,10 @@ import type {
 import {
   getVisibleAeronauticalFeatureKinds,
 } from './aeronauticalLayerConfig';
-import type { AeronauticalLayerVisibility } from './aeronauticalLayerConfig';
+import type {
+  AeronauticalLayerVisibility,
+  AirspaceCategoryVisibility,
+} from './aeronauticalLayerConfig';
 import { AirspacePopupContent } from './AirspacePopupContent';
 import { BoundedLayerPopup } from './BoundedLayerPopup';
 import { StableMapPopup } from './StableMapPopup';
@@ -59,7 +62,9 @@ export type AeronauticalLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 export interface AeronauticalLayersProps {
   repository: AeronauticalDataRepository;
   visibility: AeronauticalLayerVisibility;
+  airspaceCategoryVisibility: AirspaceCategoryVisibility;
   anchoringEnabled: boolean;
+  onAddFreeWaypoint: (position: Position) => void;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
   onSelectAerodromeInformation: (feature: AeronauticalPointFeature) => void;
   alternateAerodromeSelectionEnabled: boolean;
@@ -118,7 +123,9 @@ interface SelectedAirspaceStack {
 export function AeronauticalLayers({
   repository,
   visibility,
+  airspaceCategoryVisibility,
   anchoringEnabled,
+  onAddFreeWaypoint,
   onAnchorPoint,
   onSelectAerodromeInformation,
   alternateAerodromeSelectionEnabled,
@@ -197,8 +204,12 @@ export function AeronauticalLayers({
   }, [onDatasetChange, onStatusChange, repository]);
 
   const featureKinds = useMemo(
-    () => getVisibleAeronauticalFeatureKinds(visibility, viewport.zoom),
-    [visibility, viewport.zoom],
+    () => getVisibleAeronauticalFeatureKinds(
+      visibility,
+      airspaceCategoryVisibility,
+      viewport.zoom,
+    ),
+    [airspaceCategoryVisibility, visibility, viewport.zoom],
   );
   const featureKindKey = featureKinds.join('\u0000');
 
@@ -282,6 +293,15 @@ export function AeronauticalLayers({
               click: (event) => {
                 stopMapClick(event);
                 const position = pointerPosition(event);
+                if (anchoringEnabled) {
+                  // Area overlays are information-only. In Add waypoint mode,
+                  // their polygon must not intercept an otherwise ordinary map
+                  // click; it creates one free waypoint at the clicked WGS84
+                  // position rather than opening an airspace popup.
+                  setSelectedAirspaces(null);
+                  onAddFreeWaypoint(position);
+                  return;
+                }
                 const stack = airspacesAtPosition(areaFeatures, position);
                 nextAirspaceSelectionId.current += 1;
                 setSelectedAirspaces({
@@ -335,7 +355,10 @@ export function AeronauticalLayers({
         </StableMapPopup>
       )}
 
-      <Pane name="aeronautical-points" style={{ zIndex: 450 }}>
+      <Pane
+        name="aeronautical-points"
+        style={{ zIndex: anchoringEnabled ? 700 : 450 }}
+      >
         {pointFeatures.map((feature) => (
           <Marker
             key={`${feature.ref.dataset.datasetId}:${feature.ref.featureId}`}
@@ -367,7 +390,9 @@ export function AeronauticalLayers({
               {feature.identifier}
               {feature.name === undefined ? '' : ` — ${feature.name}`}
             </Tooltip>
-            {feature.pointKind === 'aerodrome' || anchoringEnabled ? null : (
+            {feature.pointKind === 'aerodrome' ||
+            feature.pointKind === 'reporting-point' ||
+            anchoringEnabled ? null : (
               <BoundedLayerPopup pane="popupPane">
                 <strong>{feature.identifier}</strong>
                 {feature.name === undefined ? null : <><br />{feature.name}</>}

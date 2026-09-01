@@ -4,6 +4,7 @@ import {
   AERONAUTICAL_WAYPOINT_ATTACH_RADIUS_PIXELS,
   findReportingPointShapingAttachmentTarget,
   findAeronauticalWaypointAttachmentTarget,
+  findRouteWaypointSnapTarget,
 } from './aeronauticalWaypointAttachment';
 
 const dataset = {
@@ -101,6 +102,49 @@ describe('aeronautical waypoint attachment targeting', () => {
       findReportingPointShapingAttachmentTarget(
         features[1]!.position,
         [features[1]!],
+        screenPointByPosition,
+      ),
+    ).toBeNull();
+  });
+
+  it('snaps a free waypoint to the nearest other route waypoint', () => {
+    const routeWaypoints = [
+      {
+        id: 'from',
+        name: 'FROM',
+        position: { latitude: 69.055, longitude: 18.54 },
+      },
+      {
+        id: 'target',
+        name: 'TARGET',
+        position: { latitude: 69.06, longitude: 18.55 },
+      },
+    ];
+
+    expect(
+      findRouteWaypointSnapTarget(
+        { latitude: 69.06, longitude: 18.551 },
+        routeWaypoints,
+        'from',
+        screenPointByPosition,
+      )?.id,
+    ).toBe('target');
+  });
+
+  it('does not select the dragged waypoint as its own snap target', () => {
+    const routeWaypoints = [
+      {
+        id: 'dragged',
+        name: 'DRAGGED',
+        position: { latitude: 69.055, longitude: 18.54 },
+      },
+    ];
+
+    expect(
+      findRouteWaypointSnapTarget(
+        routeWaypoints[0]!.position,
+        routeWaypoints,
+        'dragged',
         screenPointByPosition,
       ),
     ).toBeNull();

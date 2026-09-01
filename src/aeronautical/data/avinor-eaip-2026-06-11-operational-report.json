@@ -5,15 +5,20 @@
   "revisionId": "AIP AMDT 04/2026",
   "importer": {
     "name": "avinor-eaip-normalizer",
-    "version": "3"
+    "version": "4"
   },
   "counts": {
     "aerodromes": 53,
-    "airspaces": 136,
+    "airspaces": 179,
     "tmaVolumes": 84,
-    "atsUnits": 15,
-    "communicationServices": 172,
-    "frequencyAssignments": 408,
+    "tiaVolumes": 19,
+    "ctaVolumes": 24,
+    "atsServiceAreas": 38,
+    "resolvedAtsServiceAreas": 29,
+    "unresolvedAtsServiceAreas": 9,
+    "atsUnits": 18,
+    "communicationServices": 215,
+    "frequencyAssignments": 481,
     "reportingPoints": 218,
     "aerodromesWithPublishedReportingPointCoordinates": 23,
     "vacChartsPrepared": 0
@@ -25,14 +30,19 @@
   ],
   "frequencyDisplay": {
     "minimumMHz": "118.000",
-    "maximumMHz": "136.000",
+    "maximumMHz": "137.000",
     "sourceAssignmentsOutsideRangeRetained": true
   },
   "warnings": [
     {
       "code": "unsupported-airspace-geometry",
-      "count": 12,
-      "summary": "TMA volumes containing published national-border references are not rendered until an authoritative boundary resolver is available."
+      "count": 27,
+      "summary": "TMA, CTA, or TIA volumes containing published national-border references are not rendered until an authoritative boundary resolver is available."
+    },
+    {
+      "code": "unsupported-service-area-geometry",
+      "count": 9,
+      "summary": "Polaris service-area definitions and frequencies are retained, but border-defined polygons are unavailable for spatial frequency selection until an authoritative boundary resolver is available."
     },
     {
       "code": "vac-has-no-published-coordinate-table",
@@ -47,7 +57,8 @@
   ],
   "errors": [],
   "limitations": [
-    "Twelve ENR 2.1 TMA volumes with national-border references are explicitly omitted rather than approximated with straight segments.",
+    "Twenty-six ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA volume with national-border references are explicitly omitted rather than approximated with straight segments.",
+    "Nine Polaris ACC service-area volumes retain their published definitions and frequencies but have unresolved geometry, so they cannot yet be selected by route position.",
     "Graphical-only VAC reporting points remain unavailable until an independently validated georeferencing workflow is implemented.",
     "The ENDU VAC raster is not enabled because its public PDF has no embedded georeferencing and no offline warp has yet passed control-point validation.",
     "ENHF reporting points remain unavailable because the reviewed VAC does not publish a coordinate table; no coordinates were inferred visually."

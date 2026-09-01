@@ -15,6 +15,7 @@ export interface OperationalPlanningInputsProps {
 type ScalarField = Exclude<
   keyof OperationalInputDraft,
   | 'sectorOperations'
+  | 'patternPlans'
   | 'alternateEnabled'
   | 'alternateWaypoint'
 >;

@@ -6,7 +6,9 @@ import type {
   AeronauticalPointFeature,
   AirspaceClass,
   AirspaceDetails,
+  AirspaceBoundarySegment,
   AirspaceType,
+  AtsServiceArea,
   AtsUnit,
   CommunicationFrequencyAssignment,
   CommunicationService,
@@ -22,6 +24,10 @@ import {
 } from './htmlTable.ts';
 import { parseCompactDmsPosition } from './parseCoordinate.ts';
 import { parseVerticalLimit, parseVerticalLimitRange } from './parseVerticalLimit.ts';
+import {
+  resolveNationalBoundary,
+  type PreparedNationalBoundaryDataset,
+} from './nationalBoundary.ts';
 import { AvinorEaipImportError } from './types.ts';
 
 export interface OperationalImportConfig {
@@ -30,11 +36,13 @@ export interface OperationalImportConfig {
   readonly sourceUrl: string;
   readonly sourceAerodrome: string;
   readonly aerodromeFeatureId: string;
+  readonly nationalBoundary?: PreparedNationalBoundaryDataset;
 }
 
 export interface OperationalImportResult {
   readonly features: readonly AeronauticalAreaFeature[];
   readonly featureDetails: readonly AeronauticalFeatureDetails[];
+  readonly atsServiceAreas: readonly AtsServiceArea[];
   readonly atsUnits: readonly AtsUnit[];
   readonly communicationServices: readonly CommunicationService[];
   readonly warnings: readonly OperationalImportWarning[];
@@ -89,6 +97,91 @@ function semanticRing(positions: readonly Position[]) {
   };
 }
 
+const PUBLISHED_COORDINATE_PATTERN = /\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g;
+
+interface SemanticGeometryResult {
+  readonly positions: readonly Position[];
+  readonly ring: { readonly segments: readonly AirspaceBoundarySegment[] };
+  readonly usedNationalBoundary: boolean;
+}
+
+/**
+ * Resolves only semantics that have an authoritative offline source. In
+ * particular, an AIP national-border reference is expanded from Kartverket's
+ * prepared WGS84 boundary snapshot; arcs/coastlines remain explicit errors.
+ */
+function semanticGeometry(
+  definition: string,
+  section: string,
+  nationalBoundary?: PreparedNationalBoundaryDataset,
+): SemanticGeometryResult {
+  if (/\b(?:arc|circle|radius|coast(?:line)?)\b/i.test(definition)) {
+    throw new AvinorEaipImportError(
+      'unsupported-airspace-geometry',
+      'Airspace uses a boundary semantic that is not yet normalized',
+      section,
+    );
+  }
+  const matches = [...definition.matchAll(PUBLISHED_COORDINATE_PATTERN)];
+  if (matches.length < 3) {
+    throw new AvinorEaipImportError(
+      'insufficient-airspace-coordinates',
+      `Expected at least three published coordinates in ${section}`,
+      section,
+    );
+  }
+  const published = matches.map((match) => ({
+    text: match[0],
+    index: match.index,
+    position: parseCompactDmsPosition(match[0], section),
+  }));
+  const positions: Position[] = [published[0]!.position];
+  const segments: AirspaceBoundarySegment[] = [];
+  let usedNationalBoundary = false;
+
+  for (let index = 0; index < published.length - 1; index += 1) {
+    const from = published[index]!;
+    const to = published[index + 1]!;
+    const connector = normalizeText(
+      definition.slice(from.index + from.text.length, to.index),
+    );
+    if (/\b(?:border|boundary)\b/i.test(connector)) {
+      if (nationalBoundary === undefined) {
+        throw new AvinorEaipImportError(
+          'unsupported-airspace-geometry',
+          'Airspace uses a national-boundary reference but no prepared authoritative boundary was supplied',
+          section,
+        );
+      }
+      const resolved = resolveNationalBoundary(
+        nationalBoundary,
+        from.position,
+        to.position,
+        section,
+      );
+      positions.push(...resolved.positions.slice(1));
+      segments.push({
+        kind: 'published-reference',
+        referenceType: 'national-boundary',
+        publishedText: connector,
+        resolvedGeometry: resolved.positions,
+      });
+      usedNationalBoundary = true;
+    } else {
+      positions.push(to.position);
+      segments.push({ kind: 'geodesic', from: from.position, to: to.position });
+    }
+  }
+
+  const first = positions[0]!;
+  const last = positions.at(-1)!;
+  if (first.latitude !== last.latitude || first.longitude !== last.longitude) {
+    positions.push(first);
+    segments.push({ kind: 'geodesic', from: last, to: first });
+  }
+  return { positions, ring: { segments }, usedNationalBoundary };
+}
+
 function airspaceType(value: string): {
   readonly type: AirspaceType;
   readonly featureKind: AeronauticalAreaFeature['areaKind'];
@@ -124,6 +217,18 @@ function sourceReference(config: OperationalImportConfig, section: string) {
     sourceAerodrome: config.sourceAerodrome,
     aipSection: section,
     sourceReference: config.sourceUrl,
+  };
+}
+
+function nationalBoundarySourceReference(
+  dataset: PreparedNationalBoundaryDataset,
+) {
+  return {
+    sourceType: 'authoritative-boundary' as const,
+    sourceDocument: dataset.source.datasetName,
+    aipSection: 'National boundary resolution',
+    publishedIdentifier: dataset.source.metadataUuid,
+    sourceReference: dataset.source.sourceUrl,
   };
 }
 
@@ -231,7 +336,12 @@ export function importAd2OperationalData(
             'AD 2.17',
           );
         }
-        const { positions, ring } = semanticRing(allPositions(geometry, 'AD 2.17'));
+        const normalizedGeometry = semanticGeometry(
+          geometry,
+          'AD 2.17',
+          config.nationalBoundary,
+        );
+        const { positions, ring } = normalizedGeometry;
         const firstCoordinate = geometry.match(
           /\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/,
         )?.[0];
@@ -270,7 +380,12 @@ export function importAd2OperationalData(
           sourceGeometry: { kind: 'polygon', rings: [ring] },
           communicationServiceIds: [],
           ...(remarks === undefined || remarks === 'NIL' ? {} : { remarks }),
-          sourceReferences: [sourceReference(config, 'AD 2.17')],
+          sourceReferences: [
+            sourceReference(config, 'AD 2.17'),
+            ...(normalizedGeometry.usedNationalBoundary && config.nationalBoundary !== undefined
+              ? [nationalBoundarySourceReference(config.nationalBoundary)]
+              : []),
+          ],
         });
       });
     }
@@ -365,6 +480,7 @@ export function importAd2OperationalData(
   return {
     features,
     featureDetails,
+    atsServiceAreas: [],
     atsUnits: [],
     communicationServices: services,
     warnings,
@@ -385,6 +501,7 @@ export interface Enr21AirspacesImportConfig {
   readonly associatedAerodromeFeatureIdsByName?: Readonly<
     Record<string, readonly string[]>
   >;
+  readonly nationalBoundary?: PreparedNationalBoundaryDataset;
 }
 
 interface Enr21Group {
@@ -432,12 +549,6 @@ function enr21DefinitionParts(definition: string): {
     lowerText: normalizeText(lowerMatch[1]),
     airspaceClass: lowerMatch[2] as AirspaceClass,
   };
-}
-
-function hasUnsupportedEnr21Geometry(definition: string): boolean {
-  return /\b(?:arc|circle|radius|border|boundary|coast(?:line)?)\b/i.test(
-    definition,
-  );
 }
 
 function addUniqueFrequency(
@@ -540,13 +651,6 @@ export function importEnr21Airspaces(
 
     for (const definition of group.definitions) {
       try {
-        if (hasUnsupportedEnr21Geometry(definition)) {
-          throw new AvinorEaipImportError(
-            'unsupported-airspace-geometry',
-            `Airspace uses a non-coordinate-list boundary that is not yet normalized: ${group.publishedName}`,
-            'ENR 2.1',
-          );
-        }
         const { upperText, lowerText, airspaceClass } = enr21DefinitionParts(definition);
         const coordinateMatches =
           definition.match(/\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g) ?? [];
@@ -558,7 +662,11 @@ export function importEnr21Airspaces(
             'ENR 2.1',
           );
         }
-        const positionsAndRing = semanticRing(allPositions(definition, 'ENR 2.1'));
+        const positionsAndRing = semanticGeometry(
+          definition,
+          'ENR 2.1',
+          config.nationalBoundary,
+        );
         const featureId = [
           'airspace:enr21',
           slug(group.publishedName),
@@ -599,7 +707,12 @@ export function importEnr21Airspaces(
           upperLimit: parseVerticalLimit(upperText, 'ENR 2.1'),
           sourceGeometry: { kind: 'polygon', rings: [positionsAndRing.ring] },
           communicationServiceIds: [],
-          sourceReferences: [sourceRef],
+          sourceReferences: [
+            sourceRef,
+            ...(positionsAndRing.usedNationalBoundary && config.nationalBoundary !== undefined
+              ? [nationalBoundarySourceReference(config.nationalBoundary)]
+              : []),
+          ],
         });
       } catch (error: unknown) {
         const importError =
@@ -642,11 +755,11 @@ export function importEnr21Airspaces(
         ...(callsign === '' ? {} : { callsign }),
         frequencies: group.frequencies,
         associations: [
-          ...groupFeatures.map((feature) => ({
+          ...(group.type === 'cta' ? [] : groupFeatures.map((feature) => ({
             featureId: feature.ref.featureId,
             featureKind: 'airspace' as const,
             basis: 'explicit' as const,
-          })),
+          }))),
           ...associatedAerodromes.map((featureId) => ({
             featureId,
             featureKind: 'aerodrome' as const,
@@ -662,7 +775,7 @@ export function importEnr21Airspaces(
       ...groupDetails.map((details) => ({
         ...details,
         communicationServiceIds:
-          serviceId === null ? [] : [serviceId],
+          serviceId === null || group.type === 'cta' ? [] : [serviceId],
       })),
     );
   }
@@ -670,6 +783,7 @@ export function importEnr21Airspaces(
   return {
     features,
     featureDetails,
+    atsServiceAreas: [],
     atsUnits: [...atsUnits.values()],
     communicationServices,
     warnings,
@@ -693,6 +807,606 @@ export function importEnr21Airspace(
     throw new AvinorEaipImportError('missing-airspace', `Missing ${config.publishedName}`, 'ENR 2.1');
   }
   return result;
+}
+
+export interface Enr22OperationalImportConfig {
+  readonly dataset: AeronauticalDatasetRef;
+  readonly effectiveDate: string;
+  readonly sourceUrl: string;
+  readonly nationalBoundary?: PreparedNationalBoundaryDataset;
+}
+
+interface Enr22TiaGroup {
+  readonly publishedName: string;
+  readonly definitions: string[];
+  unitName: string;
+  callsignHours: string;
+  remarks: string;
+  readonly frequencies: CommunicationFrequencyAssignment[];
+}
+
+const VERTICAL_LIMIT_PATTERN =
+  '(?:UNL(?:IMITED)?|GND|SFC|MSL|FL\\s*\\d+|\\d+(?:\\.\\d+)?\\s*(?:FT|M)(?:\\s+(?:AMSL|AGL))?)';
+
+function tableAfterHeading(
+  $: ReturnType<typeof cheerio>,
+  headingPrefix: string,
+) {
+  const ordered = $('h3, h4, h5, h6, table').toArray();
+  const headingIndex = ordered.findIndex((node) =>
+    node.type === 'tag' &&
+    /^h[3-6]$/.test(node.tagName) &&
+    visibleText($(node)).startsWith(headingPrefix),
+  );
+  if (headingIndex < 0) return undefined;
+
+  for (let index = headingIndex + 1; index < ordered.length; index += 1) {
+    const node = ordered[index];
+    if (node === undefined || node.type !== 'tag') continue;
+    if (/^h[3-6]$/.test(node.tagName)) return undefined;
+    if (node.tagName === 'table') return $(node);
+  }
+  return undefined;
+}
+
+function publishedVolumeDefinitions(
+  value: string,
+  aipSection: string,
+): readonly {
+  readonly definition: string;
+  readonly lowerText: string;
+  readonly upperText: string;
+  readonly airspaceClass: AirspaceClass | null;
+}[] {
+  const rangePattern = new RegExp(
+    `Upper limit:\\s*(${VERTICAL_LIMIT_PATTERN})\\s+` +
+      `Lower limit:\\s*(${VERTICAL_LIMIT_PATTERN})` +
+      '(?:\\s+Class:\\s*([A-G]))?',
+    'gi',
+  );
+  const matches = [...value.matchAll(rangePattern)];
+  if (matches.length === 0) {
+    throw new AvinorEaipImportError(
+      'malformed-vertical-limit-range',
+      `Missing published upper/lower limits: ${value}`,
+      aipSection,
+    );
+  }
+
+  let definitionStart = 0;
+  return matches.map((match) => {
+    if (
+      match.index === undefined ||
+      match[0] === undefined ||
+      match[1] === undefined ||
+      match[2] === undefined
+    ) {
+      throw new AvinorEaipImportError(
+        'malformed-vertical-limit-range',
+        `Unable to split published volume: ${value}`,
+        aipSection,
+      );
+    }
+    const definitionEnd = match.index + match[0].length;
+    const definition = normalizeText(value.slice(definitionStart, definitionEnd));
+    definitionStart = definitionEnd;
+    return {
+      definition,
+      upperText: normalizeText(match[1]),
+      lowerText: normalizeText(match[2]),
+      airspaceClass: match[3] === undefined
+        ? null
+        : match[3].toUpperCase() as AirspaceClass,
+    };
+  });
+}
+
+function addEnr22Frequency(
+  target: CommunicationFrequencyAssignment[],
+  frequencyText: string,
+  aipSection: string,
+): void {
+  if (frequencyText === '') return;
+  const match = /^(\d{3}\.\d{3})\s*MHZ(?:\s+(.*))?$/i.exec(frequencyText);
+  if (match?.[1] === undefined) {
+    throw new AvinorEaipImportError(
+      'malformed-frequency',
+      `Malformed frequency: ${frequencyText}`,
+      aipSection,
+    );
+  }
+  if (target.some(({ valueMHz, remarks }) =>
+    valueMHz === match[1] && remarks === match[2],
+  )) return;
+  target.push({
+    valueMHz: match[1],
+    ...(match[2] === undefined || match[2] === ''
+      ? {}
+      : { remarks: normalizeText(match[2]) }),
+  });
+}
+
+function addRowFrequencies(
+  target: CommunicationFrequencyAssignment[],
+  row: readonly string[],
+  aipSection: string,
+): void {
+  for (const value of row) {
+    if (/^\d{3}\.\d{3}\s*MHZ\b/i.test(value)) {
+      addEnr22Frequency(target, value, aipSection);
+    }
+  }
+}
+
+function enr22SourceReference(
+  config: Enr22OperationalImportConfig,
+  aipSection: string,
+  publishedIdentifier: string,
+) {
+  return {
+    sourceType: 'eAIP-html' as const,
+    sourceDocument: 'ENR 2.2',
+    aipSection,
+    publishedIdentifier,
+    sourceReference: config.sourceUrl,
+  };
+}
+
+function importEnr22Tia(
+  $: ReturnType<typeof cheerio>,
+  config: Enr22OperationalImportConfig,
+): OperationalImportResult {
+  const aipSection = 'ENR 2.2 section 1';
+  const table = tableAfterHeading($, '1 Traffic Information Areas (TIA)');
+  if (table === undefined) {
+    throw new AvinorEaipImportError(
+      'missing-section',
+      'Missing ENR 2.2 Traffic Information Areas table',
+      aipSection,
+    );
+  }
+
+  const groups = new Map<string, Enr22TiaGroup>();
+  let currentGroup: Enr22TiaGroup | null = null;
+  for (const row of expandTable($, table).slice(2)) {
+    const definition = row[0] ?? '';
+    const named = /^(.+?\bTIA\b)(?=\s+\d{6}(?:\.\d+)?[NS]\b)/i.exec(
+      definition,
+    );
+    if (named?.[1] !== undefined) {
+      const publishedName = normalizeText(named[1]);
+      const key = publishedName.toLowerCase();
+      currentGroup = groups.get(key) ?? {
+        publishedName,
+        definitions: [],
+        unitName: '',
+        callsignHours: '',
+        remarks: '',
+        frequencies: [],
+      };
+      groups.set(key, currentGroup);
+    }
+    if (currentGroup === null) continue;
+
+    if (/Upper limit:/i.test(definition) && /Lower limit:/i.test(definition)) {
+      if (!currentGroup.definitions.includes(definition)) {
+        currentGroup.definitions.push(definition);
+      }
+    }
+    if ((row[1] ?? '') !== '') currentGroup.unitName = row[1] as string;
+    if ((row[2] ?? '') !== '') currentGroup.callsignHours = row[2] as string;
+    if ((row[4] ?? '') !== '') currentGroup.remarks = row[4] as string;
+    addRowFrequencies(currentGroup.frequencies, row, aipSection);
+  }
+
+  const features: AeronauticalAreaFeature[] = [];
+  const featureDetails: AirspaceDetails[] = [];
+  const atsUnits = new Map<string, AtsUnit>();
+  const communicationServices: CommunicationService[] = [];
+  const warnings: OperationalImportWarning[] = [];
+
+  for (const group of groups.values()) {
+    const sourceRef = enr22SourceReference(config, aipSection, group.publishedName);
+    const groupFeatures: AeronauticalAreaFeature[] = [];
+    const groupDetails: AirspaceDetails[] = [];
+    for (const sourceDefinition of group.definitions) {
+      let volumes: ReturnType<typeof publishedVolumeDefinitions>;
+      try {
+        volumes = publishedVolumeDefinitions(sourceDefinition, aipSection);
+      } catch (error: unknown) {
+        const importError = error instanceof AvinorEaipImportError
+          ? error
+          : new AvinorEaipImportError(
+              'unexpected-airspace-import-error',
+              error instanceof Error ? error.message : String(error),
+              aipSection,
+            );
+        warnings.push({
+          code: importError.code,
+          message: importError.message,
+          aipSection,
+          publishedName: group.publishedName,
+        });
+        continue;
+      }
+
+      for (const volume of volumes) {
+        try {
+          if (volume.airspaceClass === null) {
+            throw new AvinorEaipImportError(
+              'missing-airspace-class',
+              `Missing TIA class for ${group.publishedName}`,
+              aipSection,
+            );
+          }
+          const coordinateMatches = volume.definition.match(
+            /\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g,
+          ) ?? [];
+          const firstCoordinate = coordinateMatches[0];
+          if (firstCoordinate === undefined) {
+            throw new AvinorEaipImportError(
+              'insufficient-airspace-coordinates',
+              `Missing published coordinates for ${group.publishedName}`,
+              aipSection,
+            );
+          }
+          const geometry = semanticGeometry(
+            volume.definition,
+            aipSection,
+            config.nationalBoundary,
+          );
+          const featureId = [
+            'airspace:enr22',
+            slug(group.publishedName),
+            `${slug(volume.lowerText)}-to-${slug(volume.upperText)}`,
+            slug(coordinateMatches.slice(0, 2).join('-')),
+          ].join(':');
+          const ref = {
+            dataset: config.dataset,
+            featureId,
+            featureVersionId: config.effectiveDate,
+            featureKind: 'tia' as const,
+          };
+          groupFeatures.push({
+            geometryType: 'area',
+            areaKind: 'tia',
+            ref,
+            identifier: group.publishedName,
+            name: `${group.publishedName} (${volume.lowerText}–${volume.upperText})`,
+            polygons: [{ outerRing: geometry.positions, holes: [] }],
+          });
+          groupDetails.push({
+            detailKind: 'airspace',
+            ref,
+            identifier: group.publishedName,
+            publishedName: group.publishedName,
+            airspaceType: 'tia',
+            publishedType: 'TIA',
+            airspaceClass: volume.airspaceClass,
+            lowerLimit: parseVerticalLimit(volume.lowerText, aipSection),
+            upperLimit: parseVerticalLimit(volume.upperText, aipSection),
+            sourceGeometry: { kind: 'polygon', rings: [geometry.ring] },
+            communicationServiceIds: [],
+            ...(group.remarks === '' ? {} : { remarks: group.remarks }),
+            sourceReferences: [
+              sourceRef,
+              ...(geometry.usedNationalBoundary && config.nationalBoundary !== undefined
+                ? [nationalBoundarySourceReference(config.nationalBoundary)]
+                : []),
+            ],
+          });
+        } catch (error: unknown) {
+          const importError = error instanceof AvinorEaipImportError
+            ? error
+            : new AvinorEaipImportError(
+                'unexpected-airspace-import-error',
+                error instanceof Error ? error.message : String(error),
+                aipSection,
+              );
+          warnings.push({
+            code: importError.code,
+            message: importError.message,
+            aipSection,
+            publishedName: group.publishedName,
+          });
+        }
+      }
+    }
+
+    const serviceTypeValue: CommunicationServiceType =
+      /\bAFIS\b/i.test(group.unitName) ? 'afis' : 'area-control';
+    const serviceId = `communication:enr22:${slug(group.publishedName)}:${serviceTypeValue}`;
+    const unitId = group.unitName === ''
+      ? undefined
+      : `ats-unit:${slug(group.unitName)}`;
+    if (unitId !== undefined) {
+      atsUnits.set(unitId, {
+        id: unitId,
+        publishedName: group.unitName,
+        sourceReferences: [sourceRef],
+      });
+    }
+    if (group.frequencies.length > 0) {
+      communicationServices.push({
+        id: serviceId,
+        serviceType: serviceTypeValue,
+        publishedServiceType: serviceTypeValue === 'afis' ? 'AFIS' : 'ACC',
+        ...(unitId === undefined ? {} : { unitId }),
+        ...(group.callsignHours === ''
+          ? {}
+          : {
+              callsign: group.callsignHours
+                .replace(/\s+English\b.*$/i, '')
+                .trim(),
+            }),
+        frequencies: group.frequencies,
+        associations: groupFeatures.map((feature) => ({
+          featureId: feature.ref.featureId,
+          featureKind: 'airspace' as const,
+          basis: 'explicit' as const,
+        })),
+        sourceReferences: [sourceRef],
+      });
+    }
+    features.push(...groupFeatures);
+    featureDetails.push(...groupDetails.map((details) => ({
+      ...details,
+      communicationServiceIds:
+        group.frequencies.length === 0 ? [] : [serviceId],
+    })));
+  }
+
+  return {
+    features,
+    featureDetails,
+    atsServiceAreas: [],
+    atsUnits: [...atsUnits.values()],
+    communicationServices,
+    warnings,
+  };
+}
+
+function importPolarisServiceAreas(
+  $: ReturnType<typeof cheerio>,
+  config: Enr22OperationalImportConfig,
+): OperationalImportResult {
+  const aipSection = 'ENR 2.2 section 6';
+  const table = tableAfterHeading($, '6 Polaris ACC sectorization');
+  if (table === undefined) {
+    throw new AvinorEaipImportError(
+      'missing-section',
+      'Missing ENR 2.2 Polaris ACC sectorization table',
+      aipSection,
+    );
+  }
+
+  const atsServiceAreas: AtsServiceArea[] = [];
+  const atsUnits = new Map<string, AtsUnit>();
+  const communicationServices: CommunicationService[] = [];
+  const warnings: OperationalImportWarning[] = [];
+
+  for (const row of expandTable($, table).slice(2)) {
+    const [unitName = '', definitions = '', callsignHours = '', frequency = '', publishedName = ''] = row;
+    if (!/^Polaris ACC\b/i.test(unitName) || !/^Polaris ACC\s+/i.test(publishedName)) {
+      continue;
+    }
+    const sourceRef = enr22SourceReference(config, aipSection, publishedName);
+    const unitId = `ats-unit:${slug(unitName)}`;
+    atsUnits.set(unitId, {
+      id: unitId,
+      publishedName: unitName,
+      sourceReferences: [sourceRef],
+    });
+    const serviceId = `communication:enr22:${slug(publishedName)}:area-control`;
+    const frequencies: CommunicationFrequencyAssignment[] = [];
+    try {
+      addEnr22Frequency(frequencies, frequency, aipSection);
+    } catch (error: unknown) {
+      const importError = error instanceof AvinorEaipImportError
+        ? error
+        : new AvinorEaipImportError(
+            'unexpected-frequency-import-error',
+            error instanceof Error ? error.message : String(error),
+            aipSection,
+          );
+      warnings.push({
+        code: importError.code,
+        message: importError.message,
+        aipSection,
+        publishedName,
+      });
+      continue;
+    }
+    communicationServices.push({
+      id: serviceId,
+      serviceType: 'area-control',
+      publishedServiceType: 'ACC',
+      unitId,
+      ...(callsignHours === ''
+        ? {}
+        : {
+            callsign: callsignHours.replace(/\s+English\b.*$/i, '').trim(),
+          }),
+      frequencies,
+      associations: [],
+      sourceReferences: [sourceRef],
+    });
+
+    let volumes: ReturnType<typeof publishedVolumeDefinitions>;
+    try {
+      volumes = publishedVolumeDefinitions(definitions, aipSection);
+    } catch (error: unknown) {
+      const importError = error instanceof AvinorEaipImportError
+        ? error
+        : new AvinorEaipImportError(
+            'unexpected-service-area-import-error',
+            error instanceof Error ? error.message : String(error),
+            aipSection,
+          );
+      warnings.push({
+        code: importError.code,
+        message: importError.message,
+        aipSection,
+        publishedName,
+      });
+      continue;
+    }
+
+    for (const volume of volumes) {
+      try {
+        const coordinateMatches = volume.definition.match(
+          /\b\d{6}(?:\.\d+)?[NS]\s+\d{7}(?:\.\d+)?[EW]\b/g,
+        ) ?? [];
+        const firstCoordinate = coordinateMatches[0];
+        if (firstCoordinate === undefined) {
+          throw new AvinorEaipImportError(
+            'insufficient-service-area-coordinates',
+            `Missing published coordinates for ${publishedName}`,
+            aipSection,
+          );
+        }
+        const serviceAreaId = [
+          'ats-service-area:enr22',
+          slug(publishedName),
+          `${slug(volume.lowerText)}-to-${slug(volume.upperText)}`,
+          slug(coordinateMatches.slice(0, 2).join('-')),
+        ].join(':');
+        const lowerLimit = parseVerticalLimit(volume.lowerText, aipSection);
+        const upperLimit = parseVerticalLimit(volume.upperText, aipSection);
+        if (
+          /\b(?:border|boundary)\b/i.test(volume.definition) &&
+          config.nationalBoundary === undefined
+        ) {
+          atsServiceAreas.push({
+            ref: {
+              dataset: config.dataset,
+              serviceAreaId,
+              serviceAreaVersionId: config.effectiveDate,
+            },
+            publishedName,
+            sectorIdentifier:
+              /^Polaris ACC Sector\s+(.+)$/i.exec(publishedName)?.[1] ?? null,
+            unitId,
+            communicationServiceId: serviceId,
+            geometryStatus: 'unresolved',
+            lowerLimit,
+            upperLimit,
+            polygons: [],
+            sourceGeometry: {
+              kind: 'polygon',
+              rings: [{
+                segments: [{
+                  kind: 'published-reference',
+                  referenceType: 'national-boundary',
+                  publishedText: volume.definition,
+                }],
+              }],
+            },
+            sourceReferences: [sourceRef],
+          });
+          warnings.push({
+            code: 'unsupported-service-area-geometry',
+            message: `Polaris sector uses a published boundary reference that is retained but not spatially resolved: ${publishedName}`,
+            aipSection,
+            publishedName,
+          });
+          continue;
+        }
+        const geometry = semanticGeometry(
+          volume.definition,
+          aipSection,
+          config.nationalBoundary,
+        );
+        atsServiceAreas.push({
+          ref: {
+            dataset: config.dataset,
+            serviceAreaId,
+            serviceAreaVersionId: config.effectiveDate,
+          },
+          publishedName,
+          sectorIdentifier:
+            /^Polaris ACC Sector\s+(.+)$/i.exec(publishedName)?.[1] ?? null,
+          unitId,
+          communicationServiceId: serviceId,
+          geometryStatus: 'resolved',
+          lowerLimit,
+          upperLimit,
+          polygons: [{ outerRing: geometry.positions, holes: [] }],
+          sourceGeometry: { kind: 'polygon', rings: [geometry.ring] },
+          sourceReferences: [
+            sourceRef,
+            ...(geometry.usedNationalBoundary && config.nationalBoundary !== undefined
+              ? [nationalBoundarySourceReference(config.nationalBoundary)]
+              : []),
+          ],
+        });
+      } catch (error: unknown) {
+        const importError = error instanceof AvinorEaipImportError
+          ? error
+          : new AvinorEaipImportError(
+              'unexpected-service-area-import-error',
+              error instanceof Error ? error.message : String(error),
+              aipSection,
+            );
+        warnings.push({
+          code: importError.code,
+          message: importError.message,
+          aipSection,
+          publishedName,
+        });
+      }
+    }
+  }
+
+  return {
+    features: [],
+    featureDetails: [],
+    atsServiceAreas,
+    atsUnits: [...atsUnits.values()],
+    communicationServices,
+    warnings,
+  };
+}
+
+function mergeAtsUnits(units: readonly AtsUnit[]): readonly AtsUnit[] {
+  const result = new Map<string, AtsUnit>();
+  for (const unit of units) {
+    const existing = result.get(unit.id);
+    result.set(unit.id, existing === undefined ? unit : {
+      ...existing,
+      sourceReferences: [
+        ...existing.sourceReferences,
+        ...unit.sourceReferences.filter((reference) =>
+          !existing.sourceReferences.some((candidate) =>
+            candidate.aipSection === reference.aipSection &&
+            candidate.sourceReference === reference.sourceReference,
+          ),
+        ),
+      ],
+    });
+  }
+  return [...result.values()];
+}
+
+/** Imports TIA map airspace and data-only Polaris ACC service coverage. */
+export function importEnr22OperationalData(
+  source: string | Buffer,
+  config: Enr22OperationalImportConfig,
+): OperationalImportResult {
+  const $ = cheerio(source);
+  const tia = importEnr22Tia($, config);
+  const polaris = importPolarisServiceAreas($, config);
+  return {
+    features: tia.features,
+    featureDetails: tia.featureDetails,
+    atsServiceAreas: polaris.atsServiceAreas,
+    atsUnits: mergeAtsUnits([...tia.atsUnits, ...polaris.atsUnits]),
+    communicationServices: [
+      ...tia.communicationServices,
+      ...polaris.communicationServices,
+    ],
+    warnings: [...tia.warnings, ...polaris.warnings],
+  };
 }
 
 export interface VacReportingPointConfig {

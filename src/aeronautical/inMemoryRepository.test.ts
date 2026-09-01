@@ -4,6 +4,7 @@ import type {
   AerodromeDetails,
   AeronauticalDatasetMetadata,
   AeronauticalFeature,
+  AtsServiceArea,
   CommunicationService,
   VacChartManifest,
 } from '../domain';
@@ -105,6 +106,27 @@ const communicationService: CommunicationService = {
   sourceReferences: [],
 };
 
+const atsServiceArea: AtsServiceArea = {
+  ref: { dataset, serviceAreaId: 'test-sector' },
+  publishedName: 'Test ACC Sector 1',
+  sectorIdentifier: '1',
+  communicationServiceId: communicationService.id,
+  geometryStatus: 'resolved',
+  lowerLimit: { kind: 'surface', value: 'GND', publishedText: 'GND' },
+  upperLimit: { kind: 'unlimited', publishedText: 'UNL' },
+  polygons: [{
+    outerRing: [
+      { latitude: 69, longitude: 18 },
+      { latitude: 69, longitude: 19 },
+      { latitude: 70, longitude: 19 },
+      { latitude: 70, longitude: 18 },
+    ],
+    holes: [],
+  }],
+  sourceGeometry: { kind: 'polygon', rings: [{ segments: [] }] },
+  sourceReferences: [],
+};
+
 const vacChart: VacChartManifest = {
   id: 'test-vac',
   aerodromeFeatureId: 'test-aerodrome',
@@ -123,7 +145,7 @@ const vacChart: VacChartManifest = {
 describe('InMemoryAeronauticalRepository', () => {
   const repository = new InMemoryAeronauticalRepository(dataset, features, [
     aerodromeDetails,
-  ], [], [communicationService], [vacChart]);
+  ], [atsServiceArea], [], [communicationService], [vacChart]);
   const bounds = { south: 69.2, west: 18.5, north: 69.6, east: 19.1 };
 
   it('returns exact dataset provenance', async () => {
@@ -178,6 +200,16 @@ describe('InMemoryAeronauticalRepository', () => {
       .resolves.toEqual([communicationService]);
     await expect(repository.queryCommunicationServices({ featureIds: ['inside-point'] }))
       .resolves.toEqual([]);
+    await expect(repository.getCommunicationService(communicationService.id))
+      .resolves.toBe(communicationService);
+  });
+
+  it('queries data-only ATS service coverage independently of map features', async () => {
+    await expect(repository.queryAtsServiceAreas({ bounds }))
+      .resolves.toEqual([atsServiceArea]);
+    await expect(repository.queryAtsServiceAreas({
+      bounds: { south: 60, west: 10, north: 61, east: 11 },
+    })).resolves.toEqual([]);
   });
 
   it('queries prepared VAC manifests by aerodrome and WGS84 viewport', async () => {

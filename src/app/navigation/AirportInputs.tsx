@@ -4,11 +4,13 @@ import {
   calculateAerodromePatternAltitudeFtMsl,
   DEFAULT_PATTERN_HEIGHT_AGL_FT,
 } from '../../calculations';
-import type { FlightPlan } from '../../domain';
+import type { AircraftDefinition, FlightPlan } from '../../domain';
 import {
+  createEmptyAerodromePatternInputDraft,
   createEmptySectorOperationInputDraft,
 } from './operationalInput';
 import type {
+  AerodromePatternInputDraft,
   OperationalInputDraft,
   SectorOperationInputDraft,
 } from './operationalInput';
@@ -30,6 +32,7 @@ type AirportTab =
 
 export interface AirportInputsProps {
   flightPlan: FlightPlan;
+  aircraft: AircraftDefinition;
   draft: PerformanceInputDraft;
   operationalDraft: OperationalInputDraft;
   defaults: PerformanceInputDefaults;
@@ -92,6 +95,7 @@ function patternAltitude(
 
 export function AirportInputs({
   flightPlan,
+  aircraft,
   draft,
   operationalDraft,
   defaults,
@@ -139,6 +143,11 @@ export function AirportInputs({
         (candidate) => candidate.waypointId === active.waypointId,
       ) ?? createEmptySectorOperationInputDraft(active.waypointId)
     : null;
+  const pattern = active.key === 'departure'
+    ? null
+    : operationalDraft.patternPlans.find(
+        (candidate) => candidate.waypointId === active.waypointId,
+      ) ?? createEmptyAerodromePatternInputDraft(active.waypointId);
   const defaultElevation = active.key === 'departure'
     ? defaults.departureElevationFtMsl
     : active.key === 'destination'
@@ -218,6 +227,23 @@ export function AirportInputs({
     });
   };
 
+  const updatePattern = (value: string) => {
+    const updated: AerodromePatternInputDraft = {
+      ...pattern!,
+      patternCount: value,
+    };
+    onOperationalDraftChange({
+      ...operationalDraft,
+      patternPlans: operationalDraft.patternPlans.some(
+        (candidate) => candidate.waypointId === active.waypointId,
+      )
+        ? operationalDraft.patternPlans.map((candidate) =>
+            candidate.waypointId === active.waypointId ? updated : candidate,
+          )
+        : [...operationalDraft.patternPlans, updated],
+    });
+  };
+
   return (
     <section className="airport-inputs" aria-label="Airport planning inputs">
       <div className="airport-inputs__tabs" role="tablist" aria-label="Route airports">
@@ -264,6 +290,21 @@ export function AirportInputs({
           step="0.1"
           onChange={(value) => updateAirport('isa', value)}
         />
+        {pattern === null ? null : <NumberField
+          label="Patterns"
+          value={pattern.patternCount}
+          unit="rounds"
+          min="0"
+          step="1"
+          onChange={updatePattern}
+        />}
+        {pattern === null || Number(pattern.patternCount) <= 0 ? null : (
+          <p className="navigation-inputs__scope">
+            {Number(pattern.patternCount) * 5} min and {(
+              Number(pattern.patternCount) * 5 / 60 * aircraft.performance.cruise.fuelFlowLph
+            ).toFixed(1)} L at the current cruise fuel flow.
+          </p>
+        )}
         {isStop ? <>
           <label>
             <span>Operation</span>

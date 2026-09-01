@@ -24,6 +24,16 @@ const MASS_CONVERGENCE_TOLERANCE_KG = 1e-7;
 const MAX_MASS_CONVERGENCE_ITERATIONS = 12;
 const FUEL_TOLERANCE_LITRES = 1e-9;
 
+function patternArrivalDelaySeconds(
+  operational: OperationalPlanningInputs,
+): Readonly<Record<string, number>> {
+  return Object.fromEntries(
+    (operational.patternPlans ?? [])
+      .filter((plan) => plan.patternCount > 0)
+      .map((plan) => [plan.waypointId, plan.patternCount * 5 * SECONDS_PER_MINUTE]),
+  );
+}
+
 export interface CalculatedTankFuel {
   readonly mainLitres: number;
   readonly auxiliaryLitres: number;
@@ -47,6 +57,20 @@ export interface CalculatedOfpProgressValue {
 
 export interface CalculatedOfpLegRow {
   readonly leg: CalculatedPerformanceLeg;
+  readonly intermediate: CalculatedOfpProgressValue;
+  readonly accumulated: CalculatedOfpProgressValue;
+  readonly estimatedFuelRemainingLitres: number;
+}
+
+/**
+ * Derived OFP-only row for planned visual circuits after a sector arrival.
+ * It deliberately does not create a real route leg or waypoint.
+ */
+export interface CalculatedOfpPatternRow {
+  readonly airportWaypointId: string;
+  readonly patternCount: number;
+  readonly patternAltitudeFtMsl: number;
+  readonly fuelFlowLph: number;
   readonly intermediate: CalculatedOfpProgressValue;
   readonly accumulated: CalculatedOfpProgressValue;
   readonly estimatedFuelRemainingLitres: number;
@@ -92,6 +116,7 @@ export interface CalculatedSectorOperationalFlightPlan {
   readonly fromWaypointId: string;
   readonly toWaypointId: string;
   readonly rows: readonly CalculatedOfpLegRow[];
+  readonly patternRow: CalculatedOfpPatternRow | null;
   readonly intermediateTotal: CalculatedOfpProgressValue;
   readonly accumulatedTotal: CalculatedOfpProgressValue;
   readonly fuelOnboardBeforeDepartureLitres: number;
@@ -275,6 +300,7 @@ function calculateMinimumFlight(
   sector: CalculatedPerformanceSector,
   system: AircraftFuelSystemDefinition,
   loading: AircraftWeightBalanceDefinition,
+  patternRow: Pick<CalculatedOfpPatternRow, 'intermediate'> | null,
 ): CalculatedMinimumFlight {
   if (takeoffLoading.totalMassKg <= loading.maximumLandingMassKg) {
     return {
@@ -320,6 +346,23 @@ function calculateMinimumFlight(
       consumedLitres += step.fuelLitres;
       elapsedSeconds += step.durationSeconds;
     }
+  }
+
+  if (
+    patternRow !== null &&
+    patternRow.intermediate.airborneFuelLitres > 0 &&
+    consumedLitres + patternRow.intermediate.airborneFuelLitres >= fuelToBurnLitres
+  ) {
+    const fraction =
+      (fuelToBurnLitres - consumedLitres) /
+      patternRow.intermediate.airborneFuelLitres;
+    return {
+      status: 'reachable',
+      timeMinutes:
+        (elapsedSeconds + fraction * patternRow.intermediate.airborneSeconds) /
+        SECONDS_PER_MINUTE,
+      requiredFuelRemainingLitres,
+    };
   }
 
   return {
@@ -385,6 +428,26 @@ function validateOperationalInputs(
     }
   }
 
+  const landingWaypointIds = new Set([
+    ...boundaryIds,
+    ...(flightPlan.waypoints.at(-1) === undefined
+      ? []
+      : [flightPlan.waypoints.at(-1)!.id]),
+  ]);
+  const seenPatternWaypointIds = new Set<string>();
+  for (const plan of operational.patternPlans ?? []) {
+    if (!landingWaypointIds.has(plan.waypointId)) {
+      return `Pattern plan ${plan.waypointId} is not a route landing airport`;
+    }
+    if (seenPatternWaypointIds.has(plan.waypointId)) {
+      return `Pattern plan ${plan.waypointId} is duplicated`;
+    }
+    seenPatternWaypointIds.add(plan.waypointId);
+    if (!Number.isInteger(plan.patternCount) || plan.patternCount < 0) {
+      return `Pattern count at ${plan.waypointId} must be a non-negative whole number`;
+    }
+  }
+
   if (operational.alternate !== null && (
     !Number.isFinite(operational.alternate.distanceNm) ||
     operational.alternate.distanceNm < 0 ||
@@ -429,6 +492,20 @@ function projectOperationalPlan(
       operation,
     ]),
   );
+  const patternCountsByWaypointId = new Map(
+    (operational.patternPlans ?? []).map((plan) => [
+      plan.waypointId,
+      plan.patternCount,
+    ]),
+  );
+  const patternFuelFlowLph = aircraft.performance.cruise.fuelFlowLph;
+  const patternFuelBySector = performanceRoute.sectors.map((sector) => {
+    const patternCount = patternCountsByWaypointId.get(sector.toWaypointId) ?? 0;
+    return patternCount * 5 / MINUTES_PER_HOUR * patternFuelFlowLph;
+  });
+  const patternSecondsBySector = performanceRoute.sectors.map((sector) =>
+    (patternCountsByWaypointId.get(sector.toWaypointId) ?? 0) * 5 * SECONDS_PER_MINUTE,
+  );
   const groundAllowanceBySector = performanceRoute.sectors.map((sector) =>
     groundAllowanceApplies(
       sector.sectorIndex,
@@ -443,8 +520,18 @@ function projectOperationalPlan(
 
   for (let index = performanceRoute.sectors.length - 1; index >= 0; index -= 1) {
     const sector = performanceRoute.sectors[index]!;
-    futureFuel += sector.totalFuelLitres;
-    futureSeconds += sector.totalEetSeconds;
+    const arrivalOperation = operationsByWaypointId.get(sector.toWaypointId);
+    if (
+      arrivalOperation?.kind === 'full-stop' &&
+      arrivalOperation.departureFuelOnboardLitres !== undefined
+    ) {
+      // This sector terminates at the refuelling airport. The fuel requirement
+      // before it must therefore exclude all later sectors.
+      futureFuel = 0;
+      futureSeconds = 0;
+    }
+    futureFuel += sector.totalFuelLitres + patternFuelBySector[index]!;
+    futureSeconds += sector.totalEetSeconds + patternSecondsBySector[index]!;
     remainingAirborneFuel[index] = futureFuel;
     remainingAirborneSeconds[index] = futureSeconds;
   }
@@ -534,6 +621,41 @@ function projectOperationalPlan(
       });
     }
 
+    const patternCount = patternCountsByWaypointId.get(sector.toWaypointId) ?? 0;
+    const patternSeconds = patternSecondsBySector[sector.sectorIndex]!;
+    const patternFuelLitres = patternFuelBySector[sector.sectorIndex]!;
+    let patternRow: CalculatedOfpPatternRow | null = null;
+    if (patternCount > 0) {
+      const afterPattern = consumeFuelFromTanks(currentFuel, patternFuelLitres);
+      if (afterPattern === null) {
+        return {
+          status: 'no-solution',
+          reason: 'insufficient-fuel',
+          message: `Fuel is exhausted during the ${sector.toWaypointId} pattern`,
+        };
+      }
+      currentFuel = afterPattern;
+      accumulatedAirborneSeconds += patternSeconds;
+      accumulatedAirborneFuelLitres += patternFuelLitres;
+      patternRow = {
+        airportWaypointId: sector.toWaypointId,
+        patternCount,
+        patternAltitudeFtMsl: sector.arrivalTargetAltitudeFtMsl,
+        fuelFlowLph: patternFuelFlowLph,
+        intermediate: {
+          distanceNm: 0,
+          airborneSeconds: patternSeconds,
+          airborneFuelLitres: patternFuelLitres,
+        },
+        accumulated: {
+          distanceNm: accumulatedDistanceNm,
+          airborneSeconds: accumulatedAirborneSeconds,
+          airborneFuelLitres: accumulatedAirborneFuelLitres,
+        },
+        estimatedFuelRemainingLitres: currentFuel.totalLitres,
+      };
+    }
+
     const landingLoading = calculateLoadingState(
       currentFuel,
       operational,
@@ -561,6 +683,7 @@ function projectOperationalPlan(
       sector,
       system,
       loading,
+      patternRow,
     );
     if (minimumFlight.status === 'not-reached') {
       sectorWarnings.push({
@@ -570,9 +693,22 @@ function projectOperationalPlan(
       });
     }
 
-    const remainingGroundCount = groundAllowanceBySector
-      .slice(sector.sectorIndex)
-      .filter(Boolean).length;
+    let remainingGroundCount = 0;
+    for (let index = sector.sectorIndex; index < performanceRoute.sectors.length; index += 1) {
+      if (groundAllowanceBySector[index]) {
+        remainingGroundCount += 1;
+      }
+      const horizonSector = performanceRoute.sectors[index]!;
+      const horizonArrivalOperation = operationsByWaypointId.get(
+        horizonSector.toWaypointId,
+      );
+      if (
+        horizonArrivalOperation?.kind === 'full-stop' &&
+        horizonArrivalOperation.departureFuelOnboardLitres !== undefined
+      ) {
+        break;
+      }
+    }
     const tripFuelLitres =
       remainingAirborneFuel[sector.sectorIndex]! +
       remainingGroundCount * system.groundDepartureAllowance.fuelLitres;
@@ -620,10 +756,10 @@ function projectOperationalPlan(
     }
     const intermediateTotal = {
       distanceNm: sector.totalDistanceNm,
-      airborneSeconds: sector.totalEetSeconds,
-      airborneFuelLitres: sector.totalFuelLitres,
+      airborneSeconds: sector.totalEetSeconds + patternSeconds,
+      airborneFuelLitres: sector.totalFuelLitres + patternFuelLitres,
     };
-    const accumulatedTotal = rows.at(-1)?.accumulated ?? {
+    const accumulatedTotal = patternRow?.accumulated ?? rows.at(-1)?.accumulated ?? {
       distanceNm: accumulatedDistanceNm,
       airborneSeconds: accumulatedAirborneSeconds,
       airborneFuelLitres: accumulatedAirborneFuelLitres,
@@ -634,6 +770,7 @@ function projectOperationalPlan(
       fromWaypointId: routeSector.fromWaypointId,
       toWaypointId: routeSector.toWaypointId,
       rows,
+      patternRow,
       intermediateTotal,
       accumulatedTotal,
       fuelOnboardBeforeDepartureLitres,
@@ -750,6 +887,7 @@ export function calculateOperationalFlightPlan(
       },
       profile: input.aircraft.performance,
       sectorMassesKg,
+      arrivalDelaySecondsByWaypointId: patternArrivalDelaySeconds(input.operational),
       ...(input.resolveWind === undefined ? {} : { resolveWind: input.resolveWind }),
     });
     if (result.status === 'no-solution') {

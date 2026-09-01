@@ -46,7 +46,11 @@ export interface AeronauticalDatasetMetadata extends AeronauticalDatasetRef {
 }
 
 export interface AeronauticalSourceReference {
-  readonly sourceType?: 'eAIP-html' | 'vac-pdf' | 'prepared-vac';
+  readonly sourceType?:
+    | 'eAIP-html'
+    | 'vac-pdf'
+    | 'prepared-vac'
+    | 'authoritative-boundary';
   readonly sourceAerodrome?: string;
   readonly sourceDocument?: string;
   readonly aipSection: string;

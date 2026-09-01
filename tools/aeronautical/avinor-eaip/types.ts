@@ -33,6 +33,8 @@ export interface AvinorEaipBatchEditionConfig {
   readonly indexUrl: string;
   /** ENR 2.1 for the same configured eAIP edition. */
   readonly enr21Url: string;
+  /** ENR 2.2 for TIA and published Polaris ACC sectorization. */
+  readonly enr22Url: string;
 }
 
 export interface AvinorEaipAerodromeSource {

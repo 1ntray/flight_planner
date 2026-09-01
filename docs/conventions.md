@@ -66,6 +66,13 @@ an ordered route. Renaming changes neither the stable waypoint ID nor geometry.
 An anchored waypoint may be renamed without detachment; its published
 identifier remains available in the separate anchor snapshot.
 
+In Add waypoint mode, visible aeronautical source markers are intentionally
+above existing route markers. This allows the same aerodrome or reporting point
+to be selected repeatedly for separate anchored waypoints at its published
+WGS84 coordinate. Clicking an existing real route waypoint also creates a new
+waypoint at that exact stored coordinate; it preserves the source anchor when
+the clicked waypoint is anchored.
+
 ## Map
 
 - Select/Edit is the default map tool. Empty-map clicks do not mutate the route
@@ -111,8 +118,15 @@ identifier remains available in the separate anchor snapshot.
   database rows, or Leaflet geometry as domain data.
 - Aeronautical point features are overlay data until explicitly anchored.
   Aeronautical area features are information-only and never create waypoints.
+- In Add waypoint mode, clicking an airspace area creates one normal free
+  waypoint at the clicked WGS84 coordinate. The area does not open its
+  information popup or block the deliberate map-add action.
 - Communication services relate frequencies to aerodromes and/or airspaces;
   frequencies are not owned by generic map features or persisted FlightPlans.
+- ATS service areas are separate, data-only coverage volumes. They associate a
+  published unit/service/frequency with WGS84 lateral geometry and semantic
+  vertical limits for future frequency selection, but are not regulatory
+  airspace, map features, or waypoint anchors.
 - Airspace vertical limits retain published semantics such as GND, altitude,
   flight level, and UNL. Map render polygons may be derived, while detailed
   source geometry and provenance remain available for verification.
@@ -123,6 +137,16 @@ identifier remains available in the separate anchor snapshot.
   the feature's published WGS84 coordinate and compact source provenance in the
   canonical waypoint. It never derives route geometry or navigation values from
   pixels.
+- A free waypoint may also be dropped onto another real route waypoint. This
+  screen-space snap commits the target's exact stored WGS84 coordinate. When
+  the target is anchored, the dropped waypoint copies that anchor snapshot;
+  otherwise it remains a free waypoint at the shared coordinate. Reusing a
+  point therefore remains explicit ordered `waypoints` data rather than a
+  graphical alias. Route markers at a shared coordinate use the participating
+  sector colours as a display-only split fill.
+- Map route lines with identical displayed geometry use alternating sector
+  colour stripes. Matching is direction-independent because a drawn line has
+  no directional visual form; different shaping geometry remains separate.
 - Leaflet latitude/longitude from click and drag events may update waypoint
   positions, and waypoint positions may be projected for marker/polyline display.
 - Navigation distance and track must never be calculated with Leaflet geometry,

@@ -179,6 +179,34 @@ function AlternateRow({
   );
 }
 
+function PatternRow({
+  row,
+  waypointNames,
+}: {
+  row: NonNullable<CalculatedSectorOperationalFlightPlan['patternRow']>;
+  waypointNames: ReadonlyMap<string, string>;
+}) {
+  const airportName = waypointNames.get(row.airportWaypointId) ?? row.airportWaypointId;
+  return (
+    <tr className="route-table__pattern-row">
+      <td>{airportName}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+      <td>—</td>
+      <td>{formatEetMinutesValue(row.accumulated.airborneSeconds)}</td>
+      <td>{formatFuel(row.fuelFlowLph)}</td>
+      <td>{formatFuel(row.intermediate.airborneFuelLitres)}</td>
+      <td>{formatFuel(row.accumulated.airborneFuelLitres)}</td>
+      <td>{airportName}</td>
+      <td>—</td><td>{Math.round(row.patternAltitudeFtMsl)}</td><td>—</td>
+      <td>—</td><td>—</td>
+      <td>{formatEetMinutesValue(row.intermediate.airborneSeconds)}</td>
+      <td>—</td><td>—</td><td>—</td>
+      <td>{formatFuel(row.estimatedFuelRemainingLitres)}</td>
+      <td>—</td><td>—</td>
+    </tr>
+  );
+}
+
 export function RouteTable({
   waypoints,
   route,
@@ -358,6 +386,13 @@ export function RouteTable({
                 </tr>
               );
             })}
+            {operationalSector?.patternRow === null ||
+            operationalSector?.patternRow === undefined ? null : (
+              <PatternRow
+                row={operationalSector.patternRow}
+                waypointNames={waypointNames}
+              />
+            )}
             {alternateInputs === null ? null : (
               <AlternateRow
                 alternateNavigationRoute={alternateNavigationRoute}

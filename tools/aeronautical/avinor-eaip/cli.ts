@@ -28,6 +28,7 @@ interface CliOptions {
 interface AcquiredSources {
   readonly sources: readonly AvinorEaipAerodromeSource[];
   readonly enr21Source: AvinorEaipEnrSource | null;
+  readonly enr22Source: AvinorEaipEnrSource | null;
   readonly retrievalFailures: readonly AvinorEaipBatchFailure[];
   readonly discoveredAerodromeCount: number;
   readonly retrievedAtUtc: string;
@@ -97,13 +98,17 @@ function combineAcquisitionResults(
   results: readonly { readonly source: AvinorEaipAerodromeSource | null; readonly failure: AvinorEaipBatchFailure | null }[],
   enr21Source: AvinorEaipEnrSource | null,
   enr21Failure: AvinorEaipBatchFailure | null,
+  enr22Source: AvinorEaipEnrSource | null,
+  enr22Failure: AvinorEaipBatchFailure | null,
 ): AcquiredSources {
   return {
     sources: results.flatMap(({ source }) => source === null ? [] : [source]),
     enr21Source,
+    enr22Source,
     retrievalFailures: [
       ...results.flatMap(({ failure }) => failure === null ? [] : [failure]),
       ...(enr21Failure === null ? [] : [enr21Failure]),
+      ...(enr22Failure === null ? [] : [enr22Failure]),
     ],
     discoveredAerodromeCount,
     retrievedAtUtc,
@@ -132,6 +137,8 @@ async function acquireOnlineSources(options: CliOptions): Promise<AcquiredSource
   }));
   let enr21Source: AvinorEaipEnrSource | null = null;
   let enr21Failure: AvinorEaipBatchFailure | null = null;
+  let enr22Source: AvinorEaipEnrSource | null = null;
+  let enr22Failure: AvinorEaipBatchFailure | null = null;
   if (options.aerodromes === null) {
     try {
       enr21Source = {
@@ -147,6 +154,20 @@ async function acquireOnlineSources(options: CliOptions): Promise<AcquiredSource
         aipSection: 'ENR 2.1',
       };
     }
+    try {
+      enr22Source = {
+        sourceUrl: NORWAY_EAIP_EDITION.enr22Url,
+        html: await fetchPage(NORWAY_EAIP_EDITION.enr22Url),
+      };
+    } catch (error: unknown) {
+      enr22Failure = {
+        sourceAerodrome: 'ENR 2.2',
+        sourceUrl: NORWAY_EAIP_EDITION.enr22Url,
+        code: 'source-retrieval-failed',
+        message: error instanceof Error ? error.message : String(error),
+        aipSection: 'ENR 2.2',
+      };
+    }
   }
   return combineAcquisitionResults(
     discovered.length,
@@ -154,6 +175,8 @@ async function acquireOnlineSources(options: CliOptions): Promise<AcquiredSource
     results,
     enr21Source,
     enr21Failure,
+    enr22Source,
+    enr22Failure,
   );
 }
 
@@ -183,6 +206,8 @@ async function acquireOfflineSources(options: CliOptions): Promise<AcquiredSourc
   }));
   let enr21Source: AvinorEaipEnrSource | null = null;
   let enr21Failure: AvinorEaipBatchFailure | null = null;
+  let enr22Source: AvinorEaipEnrSource | null = null;
+  let enr22Failure: AvinorEaipBatchFailure | null = null;
   if (options.aerodromes === null) {
     try {
       enr21Source = {
@@ -198,6 +223,20 @@ async function acquireOfflineSources(options: CliOptions): Promise<AcquiredSourc
         aipSection: 'ENR 2.1',
       };
     }
+    try {
+      enr22Source = {
+        sourceUrl: NORWAY_EAIP_EDITION.enr22Url,
+        html: await readFile(resolve(inputDirectory, 'ENR-2.2.html')),
+      };
+    } catch (error: unknown) {
+      enr22Failure = {
+        sourceAerodrome: 'ENR 2.2',
+        sourceUrl: NORWAY_EAIP_EDITION.enr22Url,
+        code: 'source-read-failed',
+        message: error instanceof Error ? error.message : String(error),
+        aipSection: 'ENR 2.2',
+      };
+    }
   }
   return combineAcquisitionResults(
     discovered.length,
@@ -205,6 +244,8 @@ async function acquireOfflineSources(options: CliOptions): Promise<AcquiredSourc
     results,
     enr21Source,
     enr21Failure,
+    enr22Source,
+    enr22Failure,
   );
 }
 
@@ -223,6 +264,7 @@ async function main(): Promise<void> {
     NORWAY_EAIP_EDITION,
     { retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc },
     acquired.enr21Source ?? undefined,
+    acquired.enr22Source ?? undefined,
   );
   const failures = [...acquired.retrievalFailures, ...result.failures];
   if (result.importedAerodromes.length === 0) {
@@ -259,6 +301,7 @@ async function main(): Promise<void> {
     provider: 'Avinor', source: 'eAIP', editionLabel: NORWAY_EAIP_EDITION.editionLabel,
     effectiveFromUtc: NORWAY_EAIP_EDITION.effectiveFromUtc, sourceIndexUrl: NORWAY_EAIP_EDITION.indexUrl,
     sourceEnr21Url: NORWAY_EAIP_EDITION.enr21Url,
+    sourceEnr22Url: NORWAY_EAIP_EDITION.enr22Url,
     retrievedAtUtc: acquired.retrievedAtUtc, importedAtUtc,
     discoveredAerodromeCount: acquired.discoveredAerodromeCount,
     importedAerodromes: result.importedAerodromes,
@@ -266,6 +309,15 @@ async function main(): Promise<void> {
       aerodromes: dataset.features.filter((feature) => feature.geometryType === 'point' && feature.pointKind === 'aerodrome').length,
       airspaces: dataset.features.filter((feature) => feature.geometryType === 'area').length,
       tmas: dataset.features.filter((feature) => feature.geometryType === 'area' && feature.areaKind === 'tma').length,
+      tias: dataset.features.filter((feature) => feature.geometryType === 'area' && feature.areaKind === 'tia').length,
+      ctas: dataset.features.filter((feature) => feature.geometryType === 'area' && feature.areaKind === 'cta').length,
+      atsServiceAreas: dataset.atsServiceAreas.length,
+      resolvedAtsServiceAreas: dataset.atsServiceAreas.filter(
+        ({ geometryStatus }) => geometryStatus === 'resolved',
+      ).length,
+      unresolvedAtsServiceAreas: dataset.atsServiceAreas.filter(
+        ({ geometryStatus }) => geometryStatus === 'unresolved',
+      ).length,
       communicationServices: dataset.communicationServices.length,
       frequencies: dataset.communicationServices.reduce((sum, service) => sum + service.frequencies.length, 0),
       reportingPoints: dataset.features.filter((feature) => feature.geometryType === 'point' && feature.pointKind === 'reporting-point').length,

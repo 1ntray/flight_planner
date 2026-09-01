@@ -25,11 +25,11 @@ export function MsaCorridor({ geometry }: MsaCorridorProps) {
             ({ latitude, longitude }) => [latitude, longitude] as [number, number],
           )}
           pathOptions={{
-            color: '#9b6618',
-            weight: 1,
-            opacity: 0.65,
-            fillColor: '#e8b14c',
-            fillOpacity: 0.16,
+            color: '#b72c35',
+            weight: 3,
+            opacity: 0.9,
+            fillColor: '#df5a61',
+            fillOpacity: 0.2,
           }}
           interactive={false}
         />

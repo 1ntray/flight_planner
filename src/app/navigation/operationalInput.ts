@@ -11,6 +11,11 @@ export interface SectorOperationInputDraft {
   departureFuelOnboardLitres: string;
 }
 
+export interface AerodromePatternInputDraft {
+  waypointId: string;
+  patternCount: string;
+}
+
 export interface OperationalInputDraft {
   fuelOnboardLitres: string;
   leftSeatMassKg: string;
@@ -19,6 +24,7 @@ export interface OperationalInputDraft {
   extraFuelLitres: string;
   finalReserveLitres: string;
   sectorOperations: readonly SectorOperationInputDraft[];
+  patternPlans: readonly AerodromePatternInputDraft[];
   alternateEnabled: boolean;
   /** Snapshot chosen from an aerodrome feature; never a primary route waypoint. */
   alternateWaypoint: Waypoint | null;
@@ -42,6 +48,7 @@ export function createEmptyOperationalInputDraft(): OperationalInputDraft {
     extraFuelLitres: '18',
     finalReserveLitres: '36',
     sectorOperations: [],
+    patternPlans: [],
     alternateEnabled: false,
     alternateWaypoint: null,
     alternatePlannedAltitudeFtMsl: '2500',
@@ -59,6 +66,12 @@ export function createEmptySectorOperationInputDraft(
     kind: 'touch-and-go',
     departureFuelOnboardLitres: '',
   };
+}
+
+export function createEmptyAerodromePatternInputDraft(
+  waypointId: string,
+): AerodromePatternInputDraft {
+  return { waypointId, patternCount: '0' };
 }
 
 export function createOperationalInputDraft(
@@ -79,6 +92,10 @@ export function createOperationalInputDraft(
         operation.departureFuelOnboardLitres === undefined
           ? ''
           : String(operation.departureFuelOnboardLitres),
+    })),
+    patternPlans: (inputs.patternPlans ?? []).map((plan) => ({
+      waypointId: plan.waypointId,
+      patternCount: String(plan.patternCount),
     })),
     alternateEnabled: alternate !== null,
     alternateWaypoint: alternate?.waypoint ?? null,
@@ -112,6 +129,7 @@ export function parseOperationalInputDraft(
   draft: OperationalInputDraft,
   aircraft: AircraftDefinition,
   sectorBoundaryWaypointIds: readonly string[] = [],
+  landingWaypointIds: readonly string[] = sectorBoundaryWaypointIds,
 ): OperationalInputParseResult {
   const operationalStarted =
     [
@@ -236,6 +254,35 @@ export function parseOperationalInputDraft(
     });
   }
 
+  const allowedPatternWaypointIds = new Set(landingWaypointIds);
+  const seenPatternWaypointIds = new Set<string>();
+  const patternPlans = [];
+  for (const plan of draft.patternPlans) {
+    if (!allowedPatternWaypointIds.has(plan.waypointId)) {
+      return {
+        status: 'invalid',
+        message: `Pattern plan ${plan.waypointId} is not a route landing airport`,
+      };
+    }
+    if (seenPatternWaypointIds.has(plan.waypointId)) {
+      return {
+        status: 'invalid',
+        message: `Pattern plan ${plan.waypointId} is duplicated`,
+      };
+    }
+    seenPatternWaypointIds.add(plan.waypointId);
+    const patternCount = parseNumber(plan.patternCount, 'Pattern count');
+    if (typeof patternCount === 'string') {
+      return { status: 'invalid', message: patternCount };
+    }
+    if (!Number.isInteger(patternCount)) {
+      return { status: 'invalid', message: 'Pattern count must be a whole number' };
+    }
+    if (patternCount > 0) {
+      patternPlans.push({ waypointId: plan.waypointId, patternCount });
+    }
+  }
+
   let alternate: OperationalPlanningInputs['alternate'] = null;
   if (draft.alternateEnabled) {
     const alternateFields = [
@@ -289,6 +336,7 @@ export function parseOperationalInputDraft(
       extraFuelLitres,
       finalReserveLitres,
       sectorOperations,
+      patternPlans,
       alternate,
     },
   };

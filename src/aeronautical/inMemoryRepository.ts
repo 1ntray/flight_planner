@@ -5,6 +5,7 @@ import type {
   AeronauticalFeatureDetails,
   AeronauticalFeatureRef,
   AeronauticalPointFeature,
+  AtsServiceArea,
   AtsUnit,
   CommunicationService,
   Position,
@@ -15,6 +16,7 @@ import type {
   AeronauticalDataRepository,
   AeronauticalFeatureQuery,
   AeronauticalQueryOptions,
+  AtsServiceAreaQuery,
   CommunicationServiceQuery,
   VacChartQuery,
 } from './repository';
@@ -113,6 +115,7 @@ export class InMemoryAeronauticalRepository
     private readonly dataset: AeronauticalDatasetMetadata | null,
     private readonly features: readonly AeronauticalFeature[],
     private readonly featureDetails: readonly AeronauticalFeatureDetails[] = [],
+    private readonly atsServiceAreas: readonly AtsServiceArea[] = [],
     private readonly atsUnits: readonly AtsUnit[] = [],
     private readonly communicationServices: readonly CommunicationService[] = [],
     private readonly vacCharts: readonly VacChartManifest[] = [],
@@ -188,6 +191,43 @@ export class InMemoryAeronauticalRepository
     return this.communicationServices.filter((service) =>
       service.associations.some(({ featureId }) => featureIds.has(featureId)),
     );
+  }
+
+  async getCommunicationService(
+    id: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<CommunicationService | null> {
+    options?.signal?.throwIfAborted();
+    return this.communicationServices.find((service) => service.id === id) ?? null;
+  }
+
+  async queryAtsServiceAreas(
+    query: AtsServiceAreaQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly AtsServiceArea[]> {
+    options?.signal?.throwIfAborted();
+    return this.atsServiceAreas.filter((area) => {
+      const positions = area.polygons.flatMap((polygon) => [
+        ...polygon.outerRing,
+        ...polygon.holes.flat(),
+      ]);
+      if (positions.length === 0) return false;
+      const bounds = positions.reduce<Wgs84Bounds>(
+        (current, position) => ({
+          south: Math.min(current.south, position.latitude),
+          west: Math.min(current.west, position.longitude),
+          north: Math.max(current.north, position.latitude),
+          east: Math.max(current.east, position.longitude),
+        }),
+        {
+          south: Number.POSITIVE_INFINITY,
+          west: Number.POSITIVE_INFINITY,
+          north: Number.NEGATIVE_INFINITY,
+          east: Number.NEGATIVE_INFINITY,
+        },
+      );
+      return boundsIntersect(bounds, query.bounds);
+    });
   }
 
   async getAtsUnit(

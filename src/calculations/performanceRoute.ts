@@ -148,6 +148,12 @@ export interface PerformanceRouteCalculationInput {
   readonly profile: AircraftPerformanceProfile;
   readonly resolveWind?: WindResolver;
   /**
+   * Non-navigation airborne time that occurs after arriving at an airport and
+   * before the next sector starts (for example planned visual circuits).
+   * The performance engine treats this as a schedule delay only.
+   */
+  readonly arrivalDelaySecondsByWaypointId?: Readonly<Record<string, number>>;
+  /**
    * Derived takeoff masses for sequential sectors. This is calculation input,
    * never persisted editable plan state. Each sector still uses one constant
    * mass throughout its climb calculation.
@@ -973,8 +979,10 @@ function calculatePerformanceRouteWithBudget(
         ? input.navigation.departureTimeUtcMs
         : departureStop!.stopDurationMinutes !== undefined
           ? previousArrivalTimeUtcMs! +
-            departureStop!.stopDurationMinutes * 60_000
-          : departureStop!.onwardDepartureTimeUtcMs ?? previousArrivalTimeUtcMs!;
+            departureStop!.stopDurationMinutes * 60_000 +
+            (input.arrivalDelaySecondsByWaypointId?.[sector.fromWaypointId] ?? 0) * 1000
+          : (departureStop!.onwardDepartureTimeUtcMs ?? previousArrivalTimeUtcMs!) +
+            (input.arrivalDelaySecondsByWaypointId?.[sector.fromWaypointId] ?? 0) * 1000;
 
     if (
       previousArrivalTimeUtcMs !== null &&

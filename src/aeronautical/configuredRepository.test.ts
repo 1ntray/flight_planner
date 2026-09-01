@@ -80,4 +80,34 @@ describe('aeronautical repository configuration', () => {
       identifier: 'ENTC',
     });
   });
+
+  it('provides ENR 2.2 TIA and resolved Polaris service coverage locally', async () => {
+    const repository = getConfiguredAeronauticalRepository('');
+    const airspaces = await repository.queryFeatures({
+      bounds: { south: 55, west: -10, north: 82, east: 35 },
+      featureKinds: ['tia', 'cta'],
+    });
+    expect(airspaces.filter(
+      (feature) => feature.geometryType === 'area' && feature.areaKind === 'tia',
+    )).toHaveLength(19);
+    expect(airspaces.filter(
+      (feature) => feature.geometryType === 'area' && feature.areaKind === 'cta',
+    )).toHaveLength(24);
+
+    const serviceAreas = await repository.queryAtsServiceAreas({
+      bounds: { south: 55, west: -10, north: 82, east: 35 },
+    });
+    const sector10 = serviceAreas.find(
+      ({ publishedName }) => publishedName === 'Polaris ACC Sector 10',
+    );
+    expect(sector10).toMatchObject({
+      geometryStatus: 'resolved',
+      sectorIdentifier: '10',
+    });
+    await expect(
+      repository.getCommunicationService(sector10?.communicationServiceId ?? ''),
+    ).resolves.toMatchObject({
+      frequencies: [{ valueMHz: '136.280', remarks: 'Sector 10/11' }],
+    });
+  });
 });

@@ -33,6 +33,7 @@ describe('operational input parsing', () => {
         kind: 'full-stop' as const,
         departureFuelOnboardLitres: 180,
       }],
+      patternPlans: [],
       alternate: {
         waypoint: {
           id: 'ALT',
@@ -73,5 +74,27 @@ describe('operational input parsing', () => {
       status: 'invalid',
       message: expect.stringContaining('20'),
     });
+  });
+
+  it('accepts whole-number patterns only at landing airports', () => {
+    const draft = {
+      ...createEmptyOperationalInputDraft(),
+      patternPlans: [{ waypointId: 'DEST', patternCount: '2' }],
+    };
+    expect(parseOperationalInputDraft(
+      draft,
+      PROJECT_AIRCRAFT_DEFINITION,
+      [],
+      ['DEST'],
+    )).toMatchObject({
+      status: 'valid',
+      value: { patternPlans: [{ waypointId: 'DEST', patternCount: 2 }] },
+    });
+    expect(parseOperationalInputDraft(
+      { ...draft, patternPlans: [{ waypointId: 'DEST', patternCount: '1.5' }] },
+      PROJECT_AIRCRAFT_DEFINITION,
+      [],
+      ['DEST'],
+    )).toMatchObject({ status: 'invalid', message: expect.stringContaining('whole') });
   });
 });

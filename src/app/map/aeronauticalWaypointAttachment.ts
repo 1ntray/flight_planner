@@ -1,4 +1,4 @@
-import type { AeronauticalPointFeature, Position } from '../../domain';
+import type { AeronauticalPointFeature, Position, Waypoint } from '../../domain';
 
 /**
  * Display-only hit radius for dropping a free waypoint onto a visible
@@ -36,6 +36,40 @@ export function findAeronauticalWaypointAttachmentTarget(
   }
 
   return nearestFeature;
+}
+
+/**
+ * Finds the nearest other real route waypoint within the same display-only
+ * attachment radius. The caller commits the target's stored WGS84 coordinate;
+ * the screen-space distance never becomes route data.
+ */
+export function findRouteWaypointSnapTarget(
+  dropPosition: Position,
+  waypoints: readonly Waypoint[],
+  excludedWaypointId: string,
+  toContainerPoint: (position: Position) => ContainerPoint,
+  radiusPixels = AERONAUTICAL_WAYPOINT_ATTACH_RADIUS_PIXELS,
+): Waypoint | null {
+  const dropPoint = toContainerPoint(dropPosition);
+  const maximumDistanceSquared = radiusPixels ** 2;
+  let nearestWaypoint: Waypoint | null = null;
+  let nearestDistanceSquared = maximumDistanceSquared;
+
+  for (const waypoint of waypoints) {
+    if (waypoint.id === excludedWaypointId) continue;
+
+    const waypointPoint = toContainerPoint(waypoint.position);
+    const distanceSquared =
+      (waypointPoint.x - dropPoint.x) ** 2 +
+      (waypointPoint.y - dropPoint.y) ** 2;
+
+    if (distanceSquared <= nearestDistanceSquared) {
+      nearestWaypoint = waypoint;
+      nearestDistanceSquared = distanceSquared;
+    }
+  }
+
+  return nearestWaypoint;
 }
 
 /**

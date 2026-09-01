@@ -5,6 +5,7 @@ import type { AeronauticalDatasetRef } from '../../../src/domain';
 import {
   importAd2OperationalData,
   importEnr21Airspace,
+  importEnr22OperationalData,
   importVacReportingPoints,
 } from './importOperationalData';
 import { parseVerticalLimit } from './parseVerticalLimit';
@@ -174,6 +175,74 @@ describe('Avinor operational-data importers', () => {
       { featureId: 'aerodrome:ENDU', featureKind: 'aerodrome', basis: 'explicit' },
     ]);
     expect(result.warnings).toEqual([]);
+  });
+
+  it('imports ENR 2.2 TIA and data-only Polaris service coverage', () => {
+    const result = importEnr22OperationalData(
+      fixture('enr22-tia-polaris.html'),
+      {
+        dataset,
+        effectiveDate: '2026-06-11',
+        sourceUrl: 'https://aim-prod.avinor.no/example/ENR-2.2.html',
+      },
+    );
+
+    const namsos = result.features.find(({ identifier }) => identifier === 'Namsos TIA');
+    expect(namsos).toMatchObject({ areaKind: 'tia' });
+    expect(result.featureDetails.find(
+      (details) => details.ref.featureId === namsos?.ref.featureId,
+    )).toMatchObject({
+      airspaceType: 'tia',
+      airspaceClass: 'G',
+      lowerLimit: { kind: 'distance', value: 3500, reference: 'AMSL' },
+      upperLimit: { kind: 'distance', value: 6500, reference: 'AMSL' },
+      sourceReferences: [{ aipSection: 'ENR 2.2 section 1' }],
+    });
+    expect(result.communicationServices.find(
+      ({ id }) => id === 'communication:enr22:namsos-tia:area-control',
+    )).toMatchObject({
+      callsign: 'Polaris Control',
+      frequencies: [{ valueMHz: '118.555', remarks: 'Sector 24' }],
+      associations: [{ featureId: namsos?.ref.featureId, featureKind: 'airspace' }],
+    });
+
+    expect(result.features.filter(({ identifier }) => identifier === 'Røros TIA')).toHaveLength(1);
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'unsupported-airspace-geometry',
+      publishedName: 'Røros TIA',
+    }));
+
+    expect(result.atsServiceAreas.filter(
+      ({ publishedName }) => publishedName === 'Polaris ACC Sector 10',
+    )).toHaveLength(2);
+    expect(result.atsServiceAreas.find(
+      ({ publishedName }) => publishedName === 'Polaris ACC Sector 24',
+    )).toMatchObject({
+      sectorIdentifier: '24',
+      geometryStatus: 'resolved',
+      lowerLimit: { kind: 'surface', value: 'GND' },
+      upperLimit: { kind: 'unlimited' },
+      sourceReferences: [{ aipSection: 'ENR 2.2 section 6' }],
+    });
+    expect(result.communicationServices.find(
+      ({ id }) => id === 'communication:enr22:polaris-acc-sector-10:area-control',
+    )?.frequencies).toEqual([
+      { valueMHz: '136.280', remarks: 'Sector 10/11' },
+    ]);
+    expect(result.atsServiceAreas.find(
+      ({ publishedName }) => publishedName === 'Polaris ACC Sector 25',
+    )).toMatchObject({
+      geometryStatus: 'unresolved',
+      polygons: [],
+      sourceGeometry: {
+        kind: 'polygon',
+        rings: [{ segments: [{ kind: 'published-reference' }] }],
+      },
+    });
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'unsupported-service-area-geometry',
+      publishedName: 'Polaris ACC Sector 25',
+    }));
   });
 
   it('imports only explicitly published VAC reporting-point coordinates with traceable provenance', () => {

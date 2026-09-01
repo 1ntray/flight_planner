@@ -56,6 +56,13 @@ the matching CTR/TIZ when the source callsign makes that relationship unique.
 An `AtsUnit` may be shared by services. Frequencies are therefore not flattened
 into aerodrome or airspace metadata.
 
+Published ACC sector coverage is represented separately as `AtsServiceArea`.
+Each volume references its ATS unit and communication service, retains WGS84
+lateral geometry plus semantic vertical limits, and is queryable without being
+rendered as regulatory airspace. This allows future route-frequency selection
+to distinguish Polaris sectors instead of treating the broad CTA as if it had
+one frequency.
+
 ## Airspace and vertical limits
 
 `AirspaceDetails` retains published name/type, class, lower and upper limits,
@@ -125,7 +132,7 @@ by its saved source reference.
 
 Published communication services appear on aerodrome and airspace information
 popups but do not currently populate the OFP automatically. The planner UI
-shows only frequency assignments from 118.000 through 136.000 MHz, inclusive.
+shows only frequency assignments from 118.000 through 137.000 MHz, inclusive.
 Assignments outside that range remain in the normalized dataset and import
 report for source traceability, but are not presented to the user. The
 international emergency frequency 121.500 MHz is also retained but omitted
@@ -142,9 +149,11 @@ waypoint in any mode.
 
 Layer visibility is presentation state, independent of the `FlightPlan`.
 Aerodromes, reporting points, navaids/designated points, and airspace have
-independent controls and minimum zoom levels. Viewport queries occur after map
-movement and are cancellable; repository implementations are expected to use
-spatial indexing and appropriate caching for large datasets.
+independent controls and minimum zoom levels. Airspace has subordinate filters
+for CTR/TIZ, TMA/TIA, CTA, and other airspace. CTA is initially hidden because
+its broad volumes can obscure local VFR layers. Viewport queries occur after
+map movement and are cancellable; repository implementations are expected to
+use spatial indexing and appropriate caching for large datasets.
 
 ## Current repository configuration
 
@@ -154,10 +163,12 @@ never parses eAIP HTML and never contacts Avinor when the planner starts. Each
 aerodrome is exposed as a normal aerodrome point, so the existing overlay and
 waypoint-anchor behavior is unchanged. The same import now includes published
 AD 2.17 ATS airspace and AD 2.18 communication facilities for all 53 imported
-AD 2 aerodromes, plus machine-readable TMA volumes from ENR 2.1. Multiple
+AD 2 aerodromes, machine-readable TMA/CTA volumes from ENR 2.1, and TIA plus
+Polaris ACC sectorization from ENR 2.2. Multiple
 published volumes remain separate features with their own vertical limits; for
 example, all three Bardufoss TMA volumes are retained at lower limits of 4500,
-5500, and 6500 FT AMSL. The dataset also contains 218 unique reporting points
+5500, and 6500 FT AMSL. Polaris sectorization is stored as data-only ATS service
+coverage rather than map airspace. The dataset also contains 218 unique reporting points
 whose coordinates are printed in the selected edition's VAC PDFs, covering 23
 aerodromes. They remain usable with any chart layer hidden.
 
@@ -182,16 +193,27 @@ Missing optional values become `null` with an importer warning; malformed
 required values fail that aerodrome's import but do not discard other valid
 aerodromes. A malformed optional operational section is reported without
 discarding valid aerodrome/runway data. The importer also reads the fixed
-edition's ENR 2.1 once and keeps each published TMA vertical volume separate.
+edition's ENR 2.1 and ENR 2.2 once and keeps each published TMA, CTA, TIA, and
+Polaris service-sector vertical volume separate.
 The generated report records every warning and failure.
 
 ENR boundaries expressed entirely as published coordinate lists are
-normalized. Twelve current TMA volumes use semantic references such as
-"along the border between Norway and Sweden". Those volumes are deliberately
-reported as unsupported instead of replacing the referenced border with a
-guessed straight segment. A future importer can resolve those references from
-an authoritative national-boundary dataset while retaining the ENR source
+normalized. Twenty-six current ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA
+volume use semantic references such as "along the border between Norway and
+Sweden". Those map volumes are deliberately reported as unsupported instead of
+replacing the referenced border with a guessed straight segment. The same rule
+marks nine affected Polaris service-area volumes as unresolved while retaining
+their published definitions. A future importer can resolve these references
+from an authoritative national-boundary dataset while retaining the ENR source
 semantics.
+
+The configured edition produces 179 rendered airspace volumes: 84 TMA, 24 CTA,
+19 TIA, and 52 AD 2 CTR/TIZ volumes. It also retains 38 Polaris ACC service-area
+volumes and their sector frequencies. Twenty-nine have coordinate-only geometry
+and are spatially queryable. Nine volumes across Sectors 1, 2, 3, 4, 19, 25,
+26, and 27 use published national-border references; those records and their
+frequencies remain traceable but have `geometryStatus: unresolved` and no query
+polygon until an authoritative boundary resolver is added.
 
 Parser tests use checked-in fixtures and do not require Avinor to be online. To
 explicitly retrieve the configured edition and regenerate the local JSON dataset
@@ -210,7 +232,8 @@ pnpm aero:import:endu
 The importer can also run without a network connection by providing a saved AD
 1.3 index, a directory of `<ICAO>.html` AD 2 pages, and an explicit retrieval
 timestamp: `--input-index`, `--input-directory`, and `--retrieved-at`. A full
-offline import additionally reads `ENR-2.1.html` from that directory.
+offline import additionally reads `ENR-2.1.html` and `ENR-2.2.html` from that
+directory.
 
 The reviewed ENDU reporting-point fixture can be refreshed without replacing
 the nationwide operational dataset with:

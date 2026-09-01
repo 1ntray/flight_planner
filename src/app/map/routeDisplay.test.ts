@@ -155,9 +155,86 @@ describe('route display geometry', () => {
     }, null, null);
 
     expect(display.map(({ sectorIndex }) => sectorIndex)).toEqual([0, 1]);
+    expect(display.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
+      [0],
+      [1],
+    ]);
     expect(getRouteSectorColor(display[0]!.sectorIndex)).not.toBe(
       getRouteSectorColor(display[1]!.sectorIndex),
     );
     expect(getRouteSectorColor(5)).toBe(getRouteSectorColor(0));
+  });
+
+  it('shares map colour stripes between repeated direct geometry in either direction', () => {
+    const display = buildRouteDisplayLegs({
+      waypoints: [
+        {
+          id: 'a-1',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+        {
+          id: 'b-1',
+          name: 'B',
+          position: { latitude: 69.2, longitude: 18.5 },
+        },
+        {
+          id: 'a-2',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+        {
+          id: 'b-2',
+          name: 'B',
+          position: { latitude: 69.2, longitude: 18.5 },
+        },
+      ],
+      legShapes: [],
+      sectorBoundaryWaypointIds: ['b-1', 'a-2'],
+    }, null, null);
+
+    expect(display.map(({ sectorIndex }) => sectorIndex)).toEqual([0, 1, 2]);
+    expect(display.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
+      [0, 1, 2],
+      [0, 1, 2],
+      [0, 1, 2],
+    ]);
+  });
+
+  it('does not share a stripe when otherwise matching legs have different shaping geometry', () => {
+    const display = buildRouteDisplayLegs({
+      waypoints: [
+        {
+          id: 'a-1',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+        {
+          id: 'b-1',
+          name: 'B',
+          position: { latitude: 69.2, longitude: 18.5 },
+        },
+        {
+          id: 'a-2',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+      ],
+      legShapes: [
+        {
+          fromWaypointId: 'b-1',
+          toWaypointId: 'a-2',
+          points: [
+            { id: 'shape', position: { latitude: 69.15, longitude: 18.1 } },
+          ],
+        },
+      ],
+      sectorBoundaryWaypointIds: ['b-1'],
+    }, null, null);
+
+    expect(display.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
+      [0],
+      [1],
+    ]);
   });
 });

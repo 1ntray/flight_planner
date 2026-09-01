@@ -1181,6 +1181,37 @@ function requireOperationalInputs(
     );
   }
 
+  const landingWaypointIds = new Set([
+    ...boundaryIds,
+    ...(flightPlan.waypoints.at(-1) === undefined
+      ? []
+      : [flightPlan.waypoints.at(-1)!.id]),
+  ]);
+  const seenPatternIds = new Set<string>();
+  const patternPlans = (record.patternPlans === undefined
+    ? []
+    : requireArray(record.patternPlans, `${path}.patternPlans`)
+  ).map((value, index) => {
+    const patternPath = `${path}.patternPlans[${index}]`;
+    const plan = requireRecord(value, patternPath);
+    const waypointId = requireString(plan.waypointId, `${patternPath}.waypointId`);
+    if (!landingWaypointIds.has(waypointId)) {
+      throw new RangeError(`${patternPath} is not a route landing airport`);
+    }
+    if (seenPatternIds.has(waypointId)) {
+      throw new RangeError(`${patternPath} duplicates a pattern plan`);
+    }
+    seenPatternIds.add(waypointId);
+    const patternCount = requireNonNegativeNumber(
+      plan.patternCount,
+      `${patternPath}.patternCount`,
+    );
+    if (!Number.isInteger(patternCount)) {
+      throw new RangeError(`${patternPath}.patternCount must be a whole number`);
+    }
+    return { waypointId, patternCount };
+  });
+
   let alternate: OperationalPlanningInputs['alternate'];
   if (record.alternate === null) {
     alternate = null;
@@ -1250,6 +1281,7 @@ function requireOperationalInputs(
           `${path}.finalReserveLitres`,
         ),
     sectorOperations,
+    patternPlans,
     alternate,
   };
 }

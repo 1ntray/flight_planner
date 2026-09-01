@@ -155,10 +155,17 @@ export function usePlanningCalculations({
       operationalDraft,
       aircraftDefinition,
       flightPlan.sectorBoundaryWaypointIds ?? [],
+      [
+        ...(flightPlan.sectorBoundaryWaypointIds ?? []),
+        ...(flightPlan.waypoints.at(-1) === undefined
+          ? []
+          : [flightPlan.waypoints.at(-1)!.id]),
+      ],
     ),
     [
       aircraftDefinition,
       flightPlan.sectorBoundaryWaypointIds,
+      flightPlan.waypoints,
       operationalDraft,
     ],
   );

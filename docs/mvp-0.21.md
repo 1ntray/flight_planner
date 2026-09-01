@@ -73,8 +73,10 @@ contains:
 
 - 53 AD 2 aerodromes with ARP, elevation, runway information, and standard
   declared distances where published;
-- 136 rendered airspace volumes, including 84 TMA volumes;
-- 15 ATS units and 172 communication services containing 408 source frequency
+- 179 rendered airspace volumes, including 84 TMA, 24 CTA, and 19 TIA volumes;
+- 38 data-only Polaris ACC service-area volumes, of which 29 have resolved
+  coordinate-only geometry;
+- 18 ATS units and 215 communication services containing 481 source frequency
   assignments; and
 - 218 reporting points with published WGS84 coordinates, covering 23
   aerodromes.
@@ -91,8 +93,12 @@ areas overlap, the cursor tooltip and information popup list every containing
 airspace in a stable operational order instead of allowing SVG draw order to
 select one arbitrarily.
 
-Normal planning popups show only civil-band assignments from 118.000 through
-136.000 MHz. The emergency monitoring frequency 121.500 MHz and assignments
+The Airspace layer has subordinate CTR/TIZ, TMA/TIA, CTA, and other-airspace
+filters. CTA is available but initially hidden. Polaris ACC sector coverage is
+data-only and is not drawn as another airspace layer.
+
+Normal planning popups show only assignments from 118.000 through 137.000 MHz.
+The emergency monitoring frequency 121.500 MHz and assignments
 outside that range remain in the normalized dataset and import report for
 traceability but are not displayed as routine planning frequencies.
 
@@ -128,10 +134,13 @@ or chart artwork.
 
 ## Known data limitations
 
-The current edition contains twelve ENR 2.1 TMA volumes whose boundaries refer
-semantically to a national border. They are reported but not rendered because
-no authoritative boundary resolver has yet been integrated; the importer does
-not replace the border with a guessed straight segment.
+The current edition contains 26 ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA
+volume whose boundaries refer semantically to a national border. They are
+reported but not rendered because no authoritative boundary resolver has yet
+been integrated; the importer does not replace the border with a guessed
+straight segment. Nine of the 38 Polaris service-area volumes have the same
+limitation. Their published definitions and frequencies are retained with
+unresolved geometry rather than being assigned an approximate query polygon.
 
 Avinor publishes 47 VAC PDFs for 46 of the imported aerodromes. Twenty-three
 aerodromes provide machine-readable reporting-point coordinate tables. Another

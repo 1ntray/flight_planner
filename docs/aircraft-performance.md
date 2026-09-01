@@ -99,6 +99,25 @@ stop, but not after a touch and go. Performance uses one mass throughout each
 individual sector; fuel burn and optional refuelling determine the takeoff mass
 of later sectors.
 
+## Planned visual patterns
+
+Each intermediate or destination airport may have a non-negative whole number
+of planned visual circuits. A pattern is not a route waypoint or a navigation
+leg. Instead, operational planning derives one `airport → airport` OFP row
+after the arriving route leg. It has no track, wind, TAS, groundspeed, or
+distance. Its planned altitude is the already rounded airport pattern altitude.
+
+Each circuit is five airborne minutes. Fuel is calculated from the selected
+aircraft's cruise fuel flow (the Zlin Z242 profile therefore uses 3 L per
+circuit at 36 L/h). Pattern time and fuel update intermediate and accumulated
+OFP values, fuel remaining, landing loading, and the onward sector's UTC
+departure/weather sampling. A full-stop refuel occurs after the pattern row.
+
+Trip fuel includes every route sector and planned pattern through its current
+fuel-planning horizon. A full-stop with an explicit departure fuel-onboard
+target ends that horizon after its arrival pattern: the preceding sector plans
+only to that refuelling airport, while the next sector begins a new requirement.
+
 An optional target distance says where along the shaped WGS84 leg the requested
 altitude must have been reached. A leg can also specify one optional end
 altitude with its own reach-by target. The resulting phase sequence may contain,

@@ -6,6 +6,7 @@ import type {
   AeronauticalFeatureKind,
   AeronauticalFeatureRef,
   AeronauticalPointFeature,
+  AtsServiceArea,
   AtsUnit,
   CommunicationService,
   VacChartManifest,
@@ -23,6 +24,10 @@ export interface AeronauticalQueryOptions {
 
 export interface CommunicationServiceQuery {
   readonly featureIds: readonly string[];
+}
+
+export interface AtsServiceAreaQuery {
+  readonly bounds: Wgs84Bounds;
 }
 
 export interface VacChartQuery {
@@ -60,6 +65,16 @@ export interface AeronauticalDataRepository {
     query: CommunicationServiceQuery,
     options?: AeronauticalQueryOptions,
   ): Promise<readonly CommunicationService[]>;
+
+  getCommunicationService(
+    id: string,
+    options?: AeronauticalQueryOptions,
+  ): Promise<CommunicationService | null>;
+
+  queryAtsServiceAreas(
+    query: AtsServiceAreaQuery,
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly AtsServiceArea[]>;
 
   getAtsUnit(
     id: string,

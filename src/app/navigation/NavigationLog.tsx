@@ -400,6 +400,7 @@ export function NavigationLog({
       >
       <AirportInputs
         flightPlan={flightPlan}
+        aircraft={aircraftDefinition}
         draft={performanceDraft}
         operationalDraft={operationalDraft}
         defaults={performanceInputDefaults}

@@ -47,6 +47,12 @@ export interface RouteDisplayLeg {
   fromWaypointId: string;
   toWaypointId: string;
   sectorIndex: number;
+  /**
+   * Sector colours sharing this exact displayed route geometry. This is map
+   * presentation metadata derived from the ordered waypoint route, never
+   * FlightPlan state.
+   */
+  sharedSectorIndices: readonly number[];
   positions: LatLngTuple[];
   segments: RouteDisplaySegment[];
 }
@@ -109,6 +115,48 @@ function toLatLngTuple(position: Position): LatLngTuple {
   return [position.latitude, position.longitude];
 }
 
+function positionsMatch(
+  first: readonly LatLngTuple[],
+  second: readonly LatLngTuple[],
+): boolean {
+  return (
+    first.length === second.length &&
+    first.every(
+      ([latitude, longitude], index) =>
+        latitude === second[index]?.[0] && longitude === second[index]?.[1],
+    )
+  );
+}
+
+/**
+ * The map has no directional distinction for a painted line, so a route flown
+ * in the opposite direction shares the same visible geometry as well.
+ */
+function hasSameDisplayedGeometry(
+  first: Omit<RouteDisplayLeg, 'sharedSectorIndices'>,
+  second: Omit<RouteDisplayLeg, 'sharedSectorIndices'>,
+): boolean {
+  return (
+    positionsMatch(first.positions, second.positions) ||
+    positionsMatch(first.positions, [...second.positions].reverse())
+  );
+}
+
+function withSharedSectorIndices(
+  legs: readonly Omit<RouteDisplayLeg, 'sharedSectorIndices'>[],
+): RouteDisplayLeg[] {
+  return legs.map((leg) => ({
+    ...leg,
+    sharedSectorIndices: [
+      ...new Set(
+        legs
+          .filter((candidate) => hasSameDisplayedGeometry(leg, candidate))
+          .map((candidate) => candidate.sectorIndex),
+      ),
+    ],
+  }));
+}
+
 export function buildRouteDisplayLegs(
   flightPlan: FlightPlan,
   draggedPoint: DraggedRoutePointPosition | null,
@@ -119,7 +167,7 @@ export function buildRouteDisplayLegs(
   );
   let sectorIndex = 0;
 
-  return flightPlan.waypoints.slice(1).map((to, index) => {
+  const displayLegs = flightPlan.waypoints.slice(1).map((to, index) => {
     const from = flightPlan.waypoints[index];
 
     if (from === undefined) {
@@ -199,4 +247,6 @@ export function buildRouteDisplayLegs(
     }
     return result;
   });
+
+  return withSharedSectorIndices(displayLegs);
 }

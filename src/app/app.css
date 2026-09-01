@@ -1063,6 +1063,11 @@ kbd {
   background: #f4eff8;
 }
 
+.route-table__pattern-row td {
+  background: #f7f3e8;
+  color: #5c4823;
+}
+
 .operational-summary__fuel-used {
   color: #8f2722;
 }
@@ -1204,11 +1209,18 @@ kbd {
 
 .waypoint-marker {
   display: grid;
+  width: 26px;
+  height: 26px;
   border: 3px solid #ffffff;
   border-radius: 50%;
-  background: #176da5;
+  background: var(--waypoint-marker-fill, #176da5);
   box-shadow: 0 1px 5px rgb(0 0 0 / 45%);
   place-items: center;
+}
+
+.waypoint-marker-icon {
+  background: transparent;
+  border: 0;
 }
 
 .waypoint-marker::after {
@@ -1229,9 +1241,8 @@ kbd {
 
 .waypoint-marker--anchored {
   border-color: #d8f0e4;
-  background: #27674e;
   box-shadow:
-    0 0 0 3px rgb(39 103 78 / 35%),
+    0 0 0 3px rgb(30 62 93 / 30%),
     0 1px 5px rgb(0 0 0 / 45%);
 }
 
@@ -1241,6 +1252,23 @@ kbd {
   box-shadow:
     0 0 0 4px #e08b28,
     0 2px 8px rgb(0 0 0 / 45%);
+}
+
+.waypoint-marker--source-aerodrome {
+  border-radius: 3px;
+}
+
+.waypoint-marker--source-reporting-point {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.waypoint-marker--source-reporting-point::after {
+  margin-top: 4px;
+}
+
+.waypoint-marker.waypoint-marker--selected {
+  background: #d5532f;
 }
 
 .map-layer-controls {
@@ -1681,6 +1709,28 @@ kbd {
   grid-template-columns: 1rem minmax(0, 1fr) auto;
   gap: 0.38rem;
   cursor: pointer;
+}
+
+.aeronautical-layer-control__layer {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.aeronautical-layer-control__subfilters {
+  display: grid;
+  gap: 0.22rem;
+  margin-left: 1.38rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid #dbe3eb;
+}
+
+.aeronautical-layer-control__subfilters label {
+  grid-template-columns: 1rem minmax(0, 1fr);
+}
+
+.aeronautical-layer-control__subfilters label:has(input:disabled) {
+  color: #8995a4;
+  cursor: default;
 }
 
 .base-map-control input,

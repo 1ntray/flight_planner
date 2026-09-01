@@ -12,9 +12,11 @@ import { NORWAY_EAIP_EDITION } from './edition';
 const indexPath = fileURLToPath(new URL('./fixtures/ad-1.3.html', import.meta.url));
 const enduPath = fileURLToPath(new URL('./fixtures/endu.html', import.meta.url));
 const bardufossEnr21Path = fileURLToPath(new URL('./fixtures/bardufoss-enr21.html', import.meta.url));
+const enr22Path = fileURLToPath(new URL('./fixtures/enr22-tia-polaris.html', import.meta.url));
 const indexFixture = readFileSync(indexPath, 'utf8');
 const enduFixture = readFileSync(enduPath, 'utf8');
 const bardufossEnr21Fixture = readFileSync(bardufossEnr21Path, 'utf8');
+const enr22Fixture = readFileSync(enr22Path, 'utf8');
 const timestamps = {
   retrievedAtUtc: '2026-08-29T08:00:00.000Z',
   importedAtUtc: '2026-08-29T08:05:00.000Z',
@@ -105,18 +107,35 @@ describe('Avinor eAIP AD 2 batch importer', () => {
         sourceUrl: 'https://example.test/EN-ENR-2.1-en-GB.html',
         html: bardufossEnr21Fixture,
       },
+      {
+        sourceUrl: 'https://example.test/EN-ENR-2.2-en-GB.html',
+        html: enr22Fixture,
+      },
     );
 
     const tmas = result.dataset.features.filter(
       (feature) => feature.geometryType === 'area' && feature.areaKind === 'tma',
     );
     expect(tmas).toHaveLength(3);
+    expect(result.dataset.features.some(
+      (feature) => feature.geometryType === 'area' && feature.areaKind === 'tia',
+    )).toBe(true);
+    expect(result.dataset.atsServiceAreas.length).toBeGreaterThan(0);
     expect(result.dataset.communicationServices.find(
       ({ id }) => id === 'communication:enr21:bardufoss-tma:approach',
     )?.frequencies.map(({ valueMHz }) => valueMHz)).toEqual([
       '118.805', '125.855', '275.300', '397.375',
     ]);
-    expect(result.warnings).toEqual([]);
+    expect(result.warnings).toEqual([
+      expect.objectContaining({
+        code: 'unsupported-airspace-geometry',
+        sourceAerodrome: 'ENR 2.2',
+      }),
+      expect.objectContaining({
+        code: 'unsupported-service-area-geometry',
+        sourceAerodrome: 'ENR 2.2',
+      }),
+    ]);
   });
 
   it('reports a malformed page and continues with the remaining aerodromes', () => {

@@ -92,6 +92,48 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('applies an arrival schedule delay before an onward sector', () => {
+    const sectorRoute: FlightPlan = {
+      waypoints: [
+        { id: 'A', name: 'A', position: { latitude: 0, longitude: 0 } },
+        { id: 'B', name: 'B', position: { latitude: 0, longitude: 1 } },
+        { id: 'C', name: 'C', position: { latitude: 0, longitude: 2 } },
+      ],
+      legShapes: [],
+      sectorBoundaryWaypointIds: ['B'],
+    };
+    const sectorPerformance: AircraftPerformancePlanInputs = {
+      ...performance,
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: 0,
+        weather: { qnhHpa: 1013.25, isaDeviationC: 0 },
+      }],
+    };
+    const baseline = calculatePerformanceRoute({
+      flightPlan: sectorRoute,
+      navigation,
+      performance: sectorPerformance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+    const delayed = calculatePerformanceRoute({
+      flightPlan: sectorRoute,
+      navigation,
+      performance: sectorPerformance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      arrivalDelaySecondsByWaypointId: { B: 600 },
+    });
+
+    expect(baseline.status).toBe('ok');
+    expect(delayed.status).toBe('ok');
+    if (baseline.status === 'ok' && delayed.status === 'ok') {
+      expect(delayed.sectors[1]!.departureTimeUtcMs).toBeCloseTo(
+        baseline.sectors[1]!.departureTimeUtcMs + 600_000,
+        9,
+      );
+    }
+  });
+
   it('keeps a custom final-leg planned altitude independent of the arrival pattern altitude', () => {
     const result = calculatePerformanceRoute({
       flightPlan: longLeg,

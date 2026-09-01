@@ -72,6 +72,7 @@ function operational(
       { waypointId: 'B', kind: 'touch-and-go' },
       { waypointId: 'C', kind: 'touch-and-go' },
     ],
+    patternPlans: [],
     alternate: null,
     ...overrides,
   };
@@ -242,12 +243,76 @@ describe('operational planning', () => {
       expect(result.sectors[1]!.fuelOnboardBeforeDepartureLitres).toBe(150);
       expect(result.sectors[1]!.fuelAtTakeoffLitres).toBe(143);
       expect(result.sectors[0]!.tripFuel.litres).toBeCloseTo(
-        result.performanceRoute.totalFuelLitres + 14,
+        result.performanceRoute.sectors[0]!.totalFuelLitres + 7,
         9,
       );
       expect(result.sectors[1]!.tripFuel.timeMinutes).toBeCloseTo(
         (result.performanceRoute.sectors[1]!.totalEetSeconds +
           result.performanceRoute.sectors[2]!.totalEetSeconds) / 60 + 15,
+        9,
+      );
+    }
+  });
+
+  it('adds a derived arrival pattern row and includes it in fuel, time, and landing mass', () => {
+    const result = calculateOperationalFlightPlan({
+      flightPlan,
+      navigation,
+      performance,
+      aircraft: PROJECT_AIRCRAFT_DEFINITION,
+      operational: operational({
+        patternPlans: [{ waypointId: 'B', patternCount: 2 }],
+      }),
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      const first = result.sectors[0]!;
+      expect(first.patternRow).toMatchObject({
+        airportWaypointId: 'B',
+        patternCount: 2,
+        patternAltitudeFtMsl: 1000,
+        fuelFlowLph: 36,
+        intermediate: { distanceNm: 0, airborneSeconds: 600, airborneFuelLitres: 6 },
+      });
+      expect(first.intermediateTotal.airborneSeconds).toBeCloseTo(
+        result.performanceRoute.sectors[0]!.totalEetSeconds + 600,
+        9,
+      );
+      expect(first.tripFuel.litres).toBeCloseTo(
+        result.performanceRoute.totalFuelLitres + 6 + 7,
+        9,
+      );
+      expect(first.landingLoading.fuel.totalLitres).toBeCloseTo(
+        first.rows[0]!.estimatedFuelRemainingLitres - 6,
+        9,
+      );
+    }
+  });
+
+  it('ends preceding trip fuel at a refuelling airport after its planned pattern', () => {
+    const result = calculateOperationalFlightPlan({
+      flightPlan,
+      navigation,
+      performance,
+      aircraft: PROJECT_AIRCRAFT_DEFINITION,
+      operational: operational({
+        sectorOperations: [
+          { waypointId: 'B', kind: 'full-stop', departureFuelOnboardLitres: 150 },
+          { waypointId: 'C', kind: 'touch-and-go' },
+        ],
+        patternPlans: [{ waypointId: 'B', patternCount: 1 }],
+      }),
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
+      expect(result.sectors[0]!.tripFuel.litres).toBeCloseTo(
+        result.performanceRoute.sectors[0]!.totalFuelLitres + 3 + 7,
+        9,
+      );
+      expect(result.sectors[0]!.tripFuel.timeMinutes).toBeCloseTo(
+        result.performanceRoute.sectors[0]!.totalEetSeconds / 60 + 5 + 15,
         9,
       );
     }

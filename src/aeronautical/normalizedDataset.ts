@@ -2,19 +2,21 @@ import type {
   AeronauticalDatasetMetadata,
   AeronauticalFeature,
   AeronauticalFeatureDetails,
+  AtsServiceArea,
   AtsUnit,
   CommunicationService,
   VacChartManifest,
 } from '../domain';
 import { InMemoryAeronauticalRepository } from './inMemoryRepository';
 
-export const NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION = 2;
+export const NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION = 3;
 
 export interface NormalizedAeronauticalDataset {
   readonly schemaVersion: typeof NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION;
   readonly metadata: AeronauticalDatasetMetadata;
   readonly features: readonly AeronauticalFeature[];
   readonly featureDetails: readonly AeronauticalFeatureDetails[];
+  readonly atsServiceAreas: readonly AtsServiceArea[];
   readonly atsUnits: readonly AtsUnit[];
   readonly communicationServices: readonly CommunicationService[];
   readonly vacCharts: readonly VacChartManifest[];
@@ -33,6 +35,7 @@ export function createNormalizedAeronauticalRepository(
     dataset.metadata,
     dataset.features,
     dataset.featureDetails,
+    dataset.atsServiceAreas,
     dataset.atsUnits,
     dataset.communicationServices,
     dataset.vacCharts,

@@ -371,10 +371,17 @@ export function App() {
       operationalInputDraft,
       aircraftDefinition,
       flightPlan.sectorBoundaryWaypointIds ?? [],
+      [
+        ...(flightPlan.sectorBoundaryWaypointIds ?? []),
+        ...(flightPlan.waypoints.at(-1) === undefined
+          ? []
+          : [flightPlan.waypoints.at(-1)!.id]),
+      ],
     ),
     [
       aircraftDefinition,
       flightPlan.sectorBoundaryWaypointIds,
+      flightPlan.waypoints,
       operationalInputDraft,
     ],
   );
@@ -832,6 +839,9 @@ export function App() {
         sectorOperations: currentDraft.sectorOperations.filter(
           (operation) => operation.waypointId !== selectedRoutePoint.id,
         ),
+        patternPlans: currentDraft.patternPlans.filter(
+          (plan) => plan.waypointId !== selectedRoutePoint.id,
+        ),
       }));
     }
     setMapSelection(null);
@@ -854,6 +864,7 @@ export function App() {
     setOperationalInputDraft((currentDraft) => ({
       ...currentDraft,
       sectorOperations: [],
+      patternPlans: [],
       alternateEnabled: false,
     }));
     setMapSelection(null);
@@ -976,6 +987,11 @@ export function App() {
             ]
         : currentDraft.sectorOperations.filter(
             (operation) => operation.waypointId !== waypointId,
+          ),
+      patternPlans: enabled
+        ? currentDraft.patternPlans
+        : currentDraft.patternPlans.filter(
+            (plan) => plan.waypointId !== waypointId,
           ),
     }));
   }, [flightPlan]);

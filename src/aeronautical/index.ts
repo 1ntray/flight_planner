@@ -12,6 +12,7 @@ export type {
   AeronauticalDataRepository,
   AeronauticalFeatureQuery,
   AeronauticalQueryOptions,
+  AtsServiceAreaQuery,
   CommunicationServiceQuery,
   VacChartQuery,
 } from './repository';

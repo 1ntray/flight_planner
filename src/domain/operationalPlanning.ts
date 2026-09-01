@@ -41,6 +41,13 @@ export interface SectorOperationPlan {
   readonly departureFuelOnboardLitres?: number;
 }
 
+/** Planned visual circuits after arriving at a route airport. */
+export interface AerodromePatternPlan {
+  readonly waypointId: string;
+  /** Whole circuits. Each circuit's time and fuel are derived from the aircraft profile. */
+  readonly patternCount: number;
+}
+
 export interface AlternatePlanningInputs {
   /** The primary destination is derived as FROM; this is the alternate TO snapshot. */
   readonly waypoint: Waypoint;
@@ -64,5 +71,7 @@ export interface OperationalPlanningInputs {
   /** Editable reserve quantity. Its displayed endurance time uses reserveFuelFlowLph. */
   readonly finalReserveLitres: number;
   readonly sectorOperations: readonly SectorOperationPlan[];
+  /** Optional so saved plans from before pattern planning remain readable. */
+  readonly patternPlans?: readonly AerodromePatternPlan[];
   readonly alternate: AlternatePlanningInputs | null;
 }

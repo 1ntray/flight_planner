@@ -39,8 +39,12 @@ import {
 import type { AeronauticalLoadStatus } from './AeronauticalLayers';
 import {
   DEFAULT_AERONAUTICAL_LAYER_VISIBILITY,
+  DEFAULT_AIRSPACE_CATEGORY_VISIBILITY,
 } from './aeronauticalLayerConfig';
-import type { AeronauticalLayerId } from './aeronauticalLayerConfig';
+import type {
+  AeronauticalLayerId,
+  AirspaceCategoryId,
+} from './aeronauticalLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
@@ -82,6 +86,7 @@ import './rasterTileSeamWorkaround.css';
 const INITIAL_CENTER: LatLngTuple = [69.35, 18.75];
 const INITIAL_ZOOM = 8;
 const ROUTE_LINE_DRAG_THRESHOLD_PIXELS = 5;
+const ROUTE_SHARED_COLOUR_STRIPE_PIXELS = 8;
 
 interface MapClickHandlerProps {
   tool: MapTool;
@@ -187,26 +192,46 @@ function RouteLines({
 }: RouteLineProps) {
   const map = useMap();
 
-  return (
-    <>
-      {legs.map((leg) => (
+  const visualRouteLine = (leg: RouteDisplayLeg) => {
+    const isSelected =
+      selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
+      selectedLeg.candidate.toWaypointId === leg.toWaypointId;
+    if (isSelected || leg.sharedSectorIndices.length <= 1) {
+      return (
         <Polyline
           key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}`}
           positions={leg.positions}
           pathOptions={{
-            color:
-              selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
-              selectedLeg.candidate.toWaypointId === leg.toWaypointId
-                ? '#e08b28'
-                : getRouteSectorColor(leg.sectorIndex),
-            weight:
-              selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
-              selectedLeg.candidate.toWaypointId === leg.toWaypointId
-                ? 6
-                : 4,
+            color: isSelected
+              ? '#e08b28'
+              : getRouteSectorColor(leg.sectorIndex),
+            weight: isSelected ? 6 : 4,
           }}
         />
-      ))}
+      );
+    }
+
+    const stripeCount = leg.sharedSectorIndices.length;
+    return leg.sharedSectorIndices.map((sectorIndex, stripeIndex) => (
+      <Polyline
+        key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}:sector:${sectorIndex}`}
+        positions={leg.positions}
+        pathOptions={{
+          color: getRouteSectorColor(sectorIndex),
+          weight: 4,
+          lineCap: 'butt',
+          dashArray: `${ROUTE_SHARED_COLOUR_STRIPE_PIXELS} ${
+            ROUTE_SHARED_COLOUR_STRIPE_PIXELS * (stripeCount - 1)
+          }`,
+          dashOffset: String(-ROUTE_SHARED_COLOUR_STRIPE_PIXELS * stripeIndex),
+        }}
+      />
+    ));
+  };
+
+  return (
+    <>
+      {legs.flatMap(visualRouteLine)}
 
       {interactionEnabled
         ? legs.flatMap((leg) =>
@@ -557,6 +582,8 @@ export function FlightMap({
     useState<AeronauticalLoadStatus>('idle');
   const [aeronauticalLayerVisibility, setAeronauticalLayerVisibility] =
     useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
+  const [airspaceCategoryVisibility, setAirspaceCategoryVisibility] =
+    useState(DEFAULT_AIRSPACE_CATEGORY_VISIBILITY);
   const [vacChartsVisible, setVacChartsVisible] = useState(false);
   const [vacChartOpacity, setVacChartOpacity] = useState(0.75);
   const [msaCorridorVisible, setMsaCorridorVisible] = useState(false);
@@ -711,6 +738,15 @@ export function FlightMap({
     },
     [],
   );
+  const updateAirspaceCategoryVisibility = useCallback(
+    (categoryId: AirspaceCategoryId, visible: boolean) => {
+      setAirspaceCategoryVisibility((current) => ({
+        ...current,
+        [categoryId]: visible,
+      }));
+    },
+    [],
+  );
   const selectBaseMap = useCallback(
     (nextId: BaseMapId) => {
       if (nextId === 'avinor-icao' && !icaoTermsAccepted) {
@@ -859,7 +895,9 @@ export function FlightMap({
         <AeronauticalLayers
           repository={aeronauticalRepository}
           visibility={aeronauticalLayerVisibility}
+          airspaceCategoryVisibility={airspaceCategoryVisibility}
           anchoringEnabled={tool.kind === 'add-waypoint'}
+          onAddFreeWaypoint={onAddWaypoint}
           onAnchorPoint={onAddAnchoredWaypoint}
           onSelectAerodromeInformation={showAerodromeInformation}
           alternateAerodromeSelectionEnabled={tool.kind === 'select-alternate-aerodrome'}
@@ -932,10 +970,13 @@ export function FlightMap({
           draggedPoint={draggedPoint}
           pendingShapingPoint={pendingShapingPoint}
           geometryEditingEnabled={tool.kind === 'edit-route'}
+          addingWaypointMode={tool.kind === 'add-waypoint'}
           onDraggedPointChange={setDraggedPoint}
           onMoveWaypoint={onMoveWaypoint}
+          onAddWaypoint={onAddWaypoint}
           aeronauticalPointFeatures={visibleAeronauticalPointFeatures}
           onAttachWaypoint={onAttachWaypoint}
+          onAddAnchoredWaypoint={onAddAnchoredWaypoint}
           onMoveShapingPoint={onMoveShapingPoint}
           onAttachShapingPoint={onAttachShapingPoint}
           onSelectRoutePoint={(selected) => {
@@ -1101,6 +1142,8 @@ export function FlightMap({
           status={aeronauticalStatus}
           visibility={aeronauticalLayerVisibility}
           onVisibilityChange={updateAeronauticalLayerVisibility}
+          airspaceCategoryVisibility={airspaceCategoryVisibility}
+          onAirspaceCategoryVisibilityChange={updateAirspaceCategoryVisibility}
           vacVisible={vacChartsVisible}
           vacOpacity={vacChartOpacity}
           onVacVisibilityChange={setVacChartsVisible}

@@ -47,6 +47,10 @@ states, OFP rows, warnings, and requirement totals are recalculated. The
 alternate navigation line remains derived; it is not used to overwrite the
 pilot-entered alternate requirement.
 
+Optional per-airport pattern plans contain only a landing waypoint ID and a
+whole-number circuit count. They are input, while their OFP rows, elapsed time,
+fuel, loading effects, and refuelling horizons remain derived.
+
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
 calculation. It may also snapshot the fuel-system and weight-and-balance

@@ -137,6 +137,7 @@ describe('flight-planning document persistence', () => {
         extraFuelLitres: 18,
         finalReserveLitres: 36,
         sectorOperations: [],
+        patternPlans: [{ waypointId: 'B', patternCount: 2 }],
         alternate: {
           waypoint: {
             id: 'ALT',

@@ -37,6 +37,10 @@ export type {
   CommunicationServiceType,
 } from './communication';
 export type {
+  AtsServiceArea,
+  AtsServiceAreaRef,
+} from './atsServiceArea';
+export type {
   ReportingPointCoordinateMethod,
   ReportingPointDetails,
 } from './reportingPoint';
@@ -97,6 +101,7 @@ export type { Position } from './position';
 export type {
   AircraftFuelSystemDefinition,
   AircraftWeightBalanceDefinition,
+  AerodromePatternPlan,
   AlternatePlanningInputs,
   FuelTankDefinition,
   FuelTankKind,

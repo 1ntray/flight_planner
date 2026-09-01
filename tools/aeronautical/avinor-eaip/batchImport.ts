@@ -6,6 +6,7 @@ import type {
   AeronauticalDatasetRef,
   AeronauticalFeature,
   AeronauticalFeatureDetails,
+  AtsServiceArea,
   AtsUnit,
   CommunicationService,
 } from '../../../src/domain';
@@ -15,6 +16,7 @@ import { importAerodromeEaip } from './importEndu';
 import {
   importAd2OperationalData,
   importEnr21Airspaces,
+  importEnr22OperationalData,
 } from './importOperationalData';
 import type {
   AvinorEaipAerodromeSource,
@@ -172,7 +174,7 @@ function batchMetadata(
     sourceReference: edition.indexUrl,
     importer: {
       name: 'avinor-eaip-normalizer',
-      version: '3',
+      version: '4',
     },
   };
 }
@@ -212,9 +214,11 @@ export function importAvinorEaipAerodromes(
   edition: AvinorEaipBatchEditionConfig,
   timestamps: { readonly retrievedAtUtc: string; readonly importedAtUtc: string },
   enr21Source?: AvinorEaipEnrSource,
+  enr22Source?: AvinorEaipEnrSource,
 ): AvinorEaipBatchImportResult {
   const features: AeronauticalFeature[] = [];
   const featureDetails: AeronauticalFeatureDetails[] = [];
+  const atsServiceAreas: AtsServiceArea[] = [];
   const atsUnits: AtsUnit[] = [];
   const communicationServices: CommunicationService[] = [];
   const importedAerodromes: string[] = [];
@@ -299,7 +303,7 @@ export function importAvinorEaipAerodromes(
       dataset: normalizedDatasetRef,
       effectiveDate: edition.effectiveFromUtc.slice(0, 10),
       sourceUrl: enr21Source.sourceUrl,
-      includedTypes: ['tma'],
+      includedTypes: ['tma', 'cta'],
     });
     features.push(...enr.features);
     featureDetails.push(...enr.featureDetails);
@@ -316,13 +320,53 @@ export function importAvinorEaipAerodromes(
     );
   }
 
+  if (enr22Source !== undefined) {
+    const enr = importEnr22OperationalData(enr22Source.html, {
+      dataset: normalizedDatasetRef,
+      effectiveDate: edition.effectiveFromUtc.slice(0, 10),
+      sourceUrl: enr22Source.sourceUrl,
+    });
+    features.push(...enr.features);
+    featureDetails.push(...enr.featureDetails);
+    atsServiceAreas.push(...enr.atsServiceAreas);
+    atsUnits.push(...enr.atsUnits);
+    communicationServices.push(...enr.communicationServices);
+    warnings.push(
+      ...enr.warnings.map((warning) => ({
+        code: warning.code,
+        message: warning.message,
+        aipSection: warning.aipSection,
+        sourceAerodrome: 'ENR 2.2',
+        sourceUrl: enr22Source.sourceUrl,
+      })),
+    );
+  }
+
+  const uniqueAtsUnits = new Map<string, AtsUnit>();
+  for (const unit of atsUnits) {
+    const existing = uniqueAtsUnits.get(unit.id);
+    uniqueAtsUnits.set(unit.id, existing === undefined ? unit : {
+      ...existing,
+      sourceReferences: [
+        ...existing.sourceReferences,
+        ...unit.sourceReferences.filter((reference) =>
+          !existing.sourceReferences.some((candidate) =>
+            candidate.aipSection === reference.aipSection &&
+            candidate.sourceReference === reference.sourceReference,
+          ),
+        ),
+      ],
+    });
+  }
+
   return {
     dataset: {
       schemaVersion: NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION,
       metadata,
       features,
       featureDetails,
-      atsUnits,
+      atsServiceAreas,
+      atsUnits: [...uniqueAtsUnits.values()],
       communicationServices,
       vacCharts: [],
     },
