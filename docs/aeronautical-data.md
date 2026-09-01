@@ -108,6 +108,10 @@ the point free; the selected shaping-point popup also offers explicit detach.
 
 Aeronautical point and area clicks do not bubble to the empty-map waypoint
 handler. In Select/Edit mode, point and area clicks show feature information.
+When areas overlap at the pointer position, one tooltip and popup list every
+rendered area at that WGS84 position in CTR/TIZ/TIA/TMA/CTA order. Leaflet's
+individual SVG stacking order therefore does not decide which airspace the
+user sees.
 
 Selecting an aerodrome in Select mode opens its basic published-aerodrome
 information: identity, ARP, elevation, active dataset/AIRAC provenance, and
@@ -123,7 +127,9 @@ Published communication services appear on aerodrome and airspace information
 popups but do not currently populate the OFP automatically. The planner UI
 shows only frequency assignments from 118.000 through 136.000 MHz, inclusive.
 Assignments outside that range remain in the normalized dataset and import
-report for source traceability, but are not presented to the user.
+report for source traceability, but are not presented to the user. The
+international emergency frequency 121.500 MHz is also retained but omitted
+from normal flight-planning displays.
 
 Live operational data such as METAR, TAF, NOTAMs, or weather products is not
 part of `AeronauticalDataRepository` or the persisted `FlightPlan`. A future
@@ -151,8 +157,9 @@ AD 2.17 ATS airspace and AD 2.18 communication facilities for all 53 imported
 AD 2 aerodromes, plus machine-readable TMA volumes from ENR 2.1. Multiple
 published volumes remain separate features with their own vertical limits; for
 example, all three Bardufoss TMA volumes are retained at lower limits of 4500,
-5500, and 6500 FT AMSL. The existing 20 reviewed ENDU reporting points are
-preserved and remain usable with any chart layer hidden.
+5500, and 6500 FT AMSL. The dataset also contains 218 unique reporting points
+whose coordinates are printed in the selected edition's VAC PDFs, covering 23
+aerodromes. They remain usable with any chart layer hidden.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
@@ -216,6 +223,20 @@ These importers do not scrape Avinor in the browser. Missing values remain
 unavailable; malformed required coordinates, limits, classes, or frequencies
 are explicit import errors or warnings according to whether the affected
 source section is required for the core aerodrome record.
+
+Nationwide reporting-point input is stored in the edition-specific prepared
+file `tools/aeronautical/avinor-eaip/prepared/vac-reporting-points-2026-06-11.json`.
+It records each VAC source URL and only name/coordinate pairs printed as text
+in the source PDF. The importer supports multiple pairs on one extracted text
+line and deduplicates a point printed on more than one VAC page while retaining
+both source references.
+
+The selected edition publishes 47 VAC PDFs for 46 aerodromes. Twenty-three
+aerodromes provide 218 unique machine-readable published coordinates. Another
+23 VACs do not contain a published coordinate table, and seven AD 2 aerodromes
+publish no VAC. These 30 cases are explicit import-report warnings. No
+graphical point is assigned a coordinate until a separately validated,
+georeferenced-VAC workflow can mark it as `derived-from-georeferenced-vac`.
 
 ## VAC preparation boundary
 

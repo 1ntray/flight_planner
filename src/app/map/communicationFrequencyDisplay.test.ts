@@ -8,6 +8,7 @@ describe('isDisplayedCommunicationFrequency', () => {
     ['118.805', true],
     ['125.855', true],
     ['136.000', true],
+    ['121.500', false],
     ['117.995', false],
     ['136.005', false],
     ['275.300', false],

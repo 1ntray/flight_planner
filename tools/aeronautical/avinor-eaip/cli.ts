@@ -6,7 +6,10 @@ import {
   importAvinorEaipAerodromes,
 } from './batchImport';
 import { NORWAY_EAIP_EDITION } from './edition';
-import { importVacReportingPoints } from './importOperationalData';
+import {
+  importPreparedVacReportingPoints,
+  type PreparedVacReportingPointDataset,
+} from './preparedVacReportingPoints';
 import type {
   AvinorEaipAerodromeSource,
   AvinorEaipBatchFailure,
@@ -225,32 +228,27 @@ async function main(): Promise<void> {
   if (result.importedAerodromes.length === 0) {
     throw new Error('No aerodromes were successfully imported; refusing to replace the dataset');
   }
-  const includeEnduReportingPoints =
-    options.aerodromes === null || options.aerodromes.includes('ENDU');
-  const reportingPoints = includeEnduReportingPoints
-    ? importVacReportingPoints(
-        await readFile(new URL('./fixtures/endu-vac.txt', import.meta.url), 'utf8'),
-        {
-          dataset: {
-            datasetId: result.dataset.metadata.datasetId,
-            providerId: result.dataset.metadata.providerId,
-            sourceName: result.dataset.metadata.sourceName,
-            airacCycle: result.dataset.metadata.airacCycle,
-            effectiveFromUtc: result.dataset.metadata.effectiveFromUtc,
-            effectiveToUtc: result.dataset.metadata.effectiveToUtc,
-            ...(result.dataset.metadata.revisionId === undefined
-              ? {}
-              : { revisionId: result.dataset.metadata.revisionId }),
-          },
-          effectiveDate: NORWAY_EAIP_EDITION.effectiveFromUtc.slice(0, 10),
-          aerodromeFeatureId: 'aerodrome:ENDU',
-          aerodromeIdentifier: 'ENDU',
-          sourceUrl:
-            'https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf',
-          sourcePage: '1',
-        },
-      )
-    : { features: [], details: [] };
+  const preparedVacDataset = JSON.parse(
+    await readFile(
+      new URL('./prepared/vac-reporting-points-2026-06-11.json', import.meta.url),
+      'utf8',
+    ),
+  ) as PreparedVacReportingPointDataset;
+  const reportingPoints = importPreparedVacReportingPoints(
+    preparedVacDataset,
+    {
+      datasetId: result.dataset.metadata.datasetId,
+      providerId: result.dataset.metadata.providerId,
+      sourceName: result.dataset.metadata.sourceName,
+      airacCycle: result.dataset.metadata.airacCycle,
+      effectiveFromUtc: result.dataset.metadata.effectiveFromUtc,
+      effectiveToUtc: result.dataset.metadata.effectiveToUtc,
+      ...(result.dataset.metadata.revisionId === undefined
+        ? {}
+        : { revisionId: result.dataset.metadata.revisionId }),
+    },
+    new Set(result.importedAerodromes),
+  );
   const dataset = {
     ...result.dataset,
     features: [...result.dataset.features, ...reportingPoints.features],
@@ -271,8 +269,11 @@ async function main(): Promise<void> {
       communicationServices: dataset.communicationServices.length,
       frequencies: dataset.communicationServices.reduce((sum, service) => sum + service.frequencies.length, 0),
       reportingPoints: dataset.features.filter((feature) => feature.geometryType === 'point' && feature.pointKind === 'reporting-point').length,
+      aerodromesWithPublishedReportingPointCoordinates: reportingPoints.aerodromesWithPublishedCoordinates.length,
     },
-    warnings: result.warnings, failures,
+    warnings: result.warnings,
+    vacReportingPointWarnings: reportingPoints.warnings,
+    failures,
   });
   console.log(`Wrote ${options.outputPath}`);
   console.log(`Wrote ${options.reportPath}`);

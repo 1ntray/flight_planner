@@ -5,8 +5,8 @@
   "effectiveFromUtc": "2026-06-11T00:00:00Z",
   "sourceIndexUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html",
   "sourceEnr21Url": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html",
-  "retrievedAtUtc": "2026-08-31T20:28:30.730Z",
-  "importedAtUtc": "2026-08-31T20:28:40.069Z",
+  "retrievedAtUtc": "2026-08-31T23:54:32.303Z",
+  "importedAtUtc": "2026-08-31T23:54:40.925Z",
   "discoveredAerodromeCount": 53,
   "importedAerodromes": [
     "ENAT",
@@ -69,7 +69,8 @@
     "tmas": 84,
     "communicationServices": 172,
     "frequencies": 408,
-    "reportingPoints": 20
+    "reportingPoints": 218,
+    "aerodromesWithPublishedReportingPointCoordinates": 23
   },
   "warnings": [
     {
@@ -155,6 +156,181 @@
       "aipSection": "ENR 2.1",
       "sourceAerodrome": "ENR 2.1",
       "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+    }
+  ],
+  "vacReportingPointWarnings": [
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENBV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623111.pdf",
+      "message": "ENBV VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENBN",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623099.pdf",
+      "message": "ENBN VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENBS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623109.pdf",
+      "message": "ENBS VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENFL",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623117.pdf",
+      "message": "ENFL VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENBL",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623097.pdf",
+      "message": "ENBL VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENHF",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/638669.pdf",
+      "message": "ENHF VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENHK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623121.pdf",
+      "message": "ENHK VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENHV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623123.pdf",
+      "message": "ENHV VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENLK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623129.pdf",
+      "message": "ENLK VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENMH",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623131.pdf",
+      "message": "ENMH VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENRA",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/638724.pdf",
+      "message": "ENRA VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENML",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623133.pdf",
+      "message": "ENML VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENMS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623135.pdf",
+      "message": "ENMS VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENNM",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623139.pdf",
+      "message": "ENNM VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENRM",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623153.pdf",
+      "message": "ENRM VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENRS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623157.pdf",
+      "message": "ENRS VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENSD",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623159.pdf",
+      "message": "ENSD VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENST",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623171.pdf",
+      "message": "ENST VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENSK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623165.pdf",
+      "message": "ENSK VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENSH",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623163.pdf",
+      "message": "ENSH VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENVA",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623181.pdf",
+      "message": "ENVA VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENVD",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623185.pdf",
+      "message": "ENVD VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "aerodromeIdentifier": "ENSS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623169.pdf",
+      "message": "ENSS VAC has no machine-readable published reporting-point coordinate table"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENEG",
+      "message": "ENEG has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENKJ",
+      "message": "ENKJ has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENAS",
+      "message": "ENAS has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENRY",
+      "message": "ENRY has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENTO",
+      "message": "ENTO has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENSB",
+      "message": "ENSB has no VAC published in the selected AD 2 edition"
+    },
+    {
+      "code": "vac-not-published",
+      "aerodromeIdentifier": "ENOL",
+      "message": "ENOL has no VAC published in the selected AD 2 edition"
     }
   ],
   "failures": []

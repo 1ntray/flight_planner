@@ -14,7 +14,8 @@
     "atsUnits": 15,
     "communicationServices": 172,
     "frequencyAssignments": 408,
-    "reportingPoints": 20,
+    "reportingPoints": 218,
+    "aerodromesWithPublishedReportingPointCoordinates": 23,
     "vacChartsPrepared": 0
   },
   "bardufossTmaLowerLimits": [
@@ -32,11 +33,22 @@
       "code": "unsupported-airspace-geometry",
       "count": 12,
       "summary": "TMA volumes containing published national-border references are not rendered until an authoritative boundary resolver is available."
+    },
+    {
+      "code": "vac-has-no-published-coordinate-table",
+      "count": 23,
+      "summary": "VAC is published, but no reporting-point coordinate table is available for machine-readable import."
+    },
+    {
+      "code": "vac-not-published",
+      "count": 7,
+      "summary": "No VAC is published for the aerodrome in the selected AD 2 edition."
     }
   ],
   "errors": [],
   "limitations": [
     "Twelve ENR 2.1 TMA volumes with national-border references are explicitly omitted rather than approximated with straight segments.",
+    "Graphical-only VAC reporting points remain unavailable until an independently validated georeferencing workflow is implemented.",
     "The ENDU VAC raster is not enabled because its public PDF has no embedded georeferencing and no offline warp has yet passed control-point validation.",
     "ENHF reporting points remain unavailable because the reviewed VAC does not publish a coordinate table; no coordinates were inferred visually."
   ]

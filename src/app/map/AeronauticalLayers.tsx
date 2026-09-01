@@ -25,6 +25,8 @@ import {
 import type { AeronauticalLayerVisibility } from './aeronauticalLayerConfig';
 import { AirspacePopupContent } from './AirspacePopupContent';
 import { BoundedLayerPopup } from './BoundedLayerPopup';
+import { StableMapPopup } from './StableMapPopup';
+import { airspacesAtPosition } from './airspacesAtPosition';
 
 const pointIconByKind: Readonly<Record<AeronauticalPointKind, ReturnType<typeof divIcon>>> =
   {
@@ -94,6 +96,24 @@ function stopMapClick(event: LeafletMouseEvent): void {
   DomEvent.stopPropagation(event.originalEvent);
 }
 
+function pointerPosition(event: LeafletMouseEvent): Position {
+  return { latitude: event.latlng.lat, longitude: event.latlng.lng };
+}
+
+function sameFeatureIds(
+  left: readonly AeronauticalAreaFeature[],
+  right: readonly AeronauticalAreaFeature[],
+): boolean {
+  return left.length === right.length && left.every(
+    (feature, index) => feature.ref.featureId === right[index]?.ref.featureId,
+  );
+}
+
+interface SelectedAirspaceStack {
+  readonly position: Position;
+  readonly features: readonly AeronauticalAreaFeature[];
+}
+
 export function AeronauticalLayers({
   repository,
   visibility,
@@ -107,6 +127,11 @@ export function AeronauticalLayers({
   onStatusChange,
 }: AeronauticalLayersProps) {
   const [features, setFeatures] = useState<readonly AeronauticalFeature[]>([]);
+  const [hoveredAirspaces, setHoveredAirspaces] = useState<
+    readonly AeronauticalAreaFeature[]
+  >([]);
+  const [selectedAirspaces, setSelectedAirspaces] =
+    useState<SelectedAirspaceStack | null>(null);
   const [viewport, setViewport] = useState(() => ({
     zoom: 0,
     bounds: { south: -90, west: -180, north: 90, east: 180 },
@@ -198,6 +223,11 @@ export function AeronauticalLayers({
       feature.geometryType === 'area',
   );
 
+  const updateHoveredAirspaces = (event: LeafletMouseEvent): void => {
+    const next = airspacesAtPosition(areaFeatures, pointerPosition(event));
+    setHoveredAirspaces((current) => sameFeatureIds(current, next) ? current : next);
+  };
+
   return (
     <>
       <Pane name="aeronautical-airspace" style={{ zIndex: 350 }}>
@@ -215,19 +245,50 @@ export function AeronauticalLayers({
               weight: 2,
             }}
             eventHandlers={{
+              mouseover: updateHoveredAirspaces,
+              mousemove: updateHoveredAirspaces,
+              mouseout: () => setHoveredAirspaces([]),
               click: (event) => {
                 stopMapClick(event);
-                event.target.openPopup(event.latlng);
+                const position = pointerPosition(event);
+                const stack = airspacesAtPosition(areaFeatures, position);
+                setSelectedAirspaces({
+                  position,
+                  features: stack.length === 0 ? [feature] : stack,
+                });
               },
             }}
           >
-            <Tooltip pane="tooltipPane" sticky>{feature.name}</Tooltip>
-            <BoundedLayerPopup pane="popupPane">
-              <AirspacePopupContent feature={feature} repository={repository} />
-            </BoundedLayerPopup>
+            <Tooltip pane="tooltipPane" sticky>
+              {(hoveredAirspaces.length === 0 ? [feature] : hoveredAirspaces).map(
+                (hoveredFeature, index, stack) => (
+                  <span key={hoveredFeature.ref.featureId}>
+                    {hoveredFeature.name}
+                    {index === stack.length - 1 ? null : <br />}
+                  </span>
+                ),
+              )}
+            </Tooltip>
           </Polygon>
         ))}
       </Pane>
+
+      {selectedAirspaces === null ? null : (
+        <StableMapPopup
+          position={selectedAirspaces.position}
+          eventHandlers={{ remove: () => setSelectedAirspaces(null) }}
+        >
+          <div className="airspace-stack-popup">
+            {selectedAirspaces.features.map((feature) => (
+              <AirspacePopupContent
+                key={feature.ref.featureId}
+                feature={feature}
+                repository={repository}
+              />
+            ))}
+          </div>
+        </StableMapPopup>
+      )}
 
       <Pane name="aeronautical-points" style={{ zIndex: 450 }}>
         {pointFeatures.map((feature) => (

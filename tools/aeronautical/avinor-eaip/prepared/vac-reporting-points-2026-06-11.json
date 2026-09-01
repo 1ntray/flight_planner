@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "provider": "Avinor",
+  "sourceType": "VAC PDF",
+  "editionLabel": "2026-06-11-AIRAC",
+  "effectiveDate": "2026-06-11",
+  "coordinateMethod": "published-coordinate",
+  "charts": [
+    {
+      "aerodromeIdentifier": "ENAT",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623095.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BIGGAS",
+          "latitudeDms": "700748N",
+          "longitudeDms": "0233646E"
+        },
+        {
+          "name": "KLØFTA",
+          "latitudeDms": "694732N",
+          "longitudeDms": "0231437E"
+        },
+        {
+          "name": "MATTIS",
+          "latitudeDms": "695104N",
+          "longitudeDms": "0225755E"
+        },
+        {
+          "name": "PARILA",
+          "latitudeDms": "694721N",
+          "longitudeDms": "0233943E"
+        },
+        {
+          "name": "SOPAT",
+          "latitudeDms": "695711N",
+          "longitudeDms": "0235050E"
+        },
+        {
+          "name": "TOFTEN",
+          "latitudeDms": "700800N",
+          "longitudeDms": "0230000E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENAN",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623093.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BLEIK",
+          "latitudeDms": "691615N",
+          "longitudeDms": "0155739E"
+        },
+        {
+          "name": "DVERBERG",
+          "latitudeDms": "690700N",
+          "longitudeDms": "0155844E"
+        },
+        {
+          "name": "GRØTAVÆR",
+          "latitudeDms": "685730N",
+          "longitudeDms": "0161604E"
+        },
+        {
+          "name": "MELØYVÆR",
+          "latitudeDms": "690358N",
+          "longitudeDms": "0163334E"
+        },
+        {
+          "name": "NORDMJELE",
+          "latitudeDms": "690800N",
+          "longitudeDms": "0154054E"
+        },
+        {
+          "name": "STORVATNET",
+          "latitudeDms": "691630N",
+          "longitudeDms": "0160319E"
+        },
+        {
+          "name": "VIKAN",
+          "latitudeDms": "691806N",
+          "longitudeDms": "0161000E"
+        },
+        {
+          "name": "ØRJA",
+          "latitudeDms": "691600N",
+          "longitudeDms": "0164754E"
+        },
+        {
+          "name": "ÅSE",
+          "latitudeDms": "690240N",
+          "longitudeDms": "0155021E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENGK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623258.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "EIVINDSTAD",
+          "latitudeDms": "583235N",
+          "longitudeDms": "0084027E"
+        },
+        {
+          "name": "FLOSTA",
+          "latitudeDms": "583143N",
+          "longitudeDms": "0085604E"
+        },
+        {
+          "name": "GALTESUND",
+          "latitudeDms": "582617N",
+          "longitudeDms": "0084707E"
+        },
+        {
+          "name": "JOMÅS",
+          "latitudeDms": "583547N",
+          "longitudeDms": "0083729E"
+        },
+        {
+          "name": "MJÅVATN",
+          "latitudeDms": "583214N",
+          "longitudeDms": "0082947E"
+        },
+        {
+          "name": "NESVERK",
+          "latitudeDms": "583735N",
+          "longitudeDms": "0085057E"
+        },
+        {
+          "name": "RYKENE",
+          "latitudeDms": "582430N",
+          "longitudeDms": "0083823E"
+        },
+        {
+          "name": "UGLEBU",
+          "latitudeDms": "582930N",
+          "longitudeDms": "0084451E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENDU",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623256.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "ELLA",
+          "latitudeDms": "690200N",
+          "longitudeDms": "0183820E"
+        },
+        {
+          "name": "ESPENES",
+          "latitudeDms": "690712N",
+          "longitudeDms": "0174249E"
+        },
+        {
+          "name": "FINNFJORD",
+          "latitudeDms": "691332N",
+          "longitudeDms": "0180500E"
+        },
+        {
+          "name": "FINNSNES",
+          "latitudeDms": "691425N",
+          "longitudeDms": "0175754E"
+        },
+        {
+          "name": "GOMPEN",
+          "latitudeDms": "690307N",
+          "longitudeDms": "0175630E"
+        },
+        {
+          "name": "NORA",
+          "latitudeDms": "690602N",
+          "longitudeDms": "0183642E"
+        },
+        {
+          "name": "REINELV",
+          "latitudeDms": "691227N",
+          "longitudeDms": "0181437E"
+        },
+        {
+          "name": "ROGNMO",
+          "latitudeDms": "690548N",
+          "longitudeDms": "0184321E"
+        },
+        {
+          "name": "ROSSVOLL",
+          "latitudeDms": "691042N",
+          "longitudeDms": "0183000E"
+        },
+        {
+          "name": "RUNDHAUG",
+          "latitudeDms": "690110N",
+          "longitudeDms": "0185355E"
+        },
+        {
+          "name": "SAFT",
+          "latitudeDms": "685751N",
+          "longitudeDms": "0184048E"
+        },
+        {
+          "name": "SARA",
+          "latitudeDms": "690025N",
+          "longitudeDms": "0183105E"
+        },
+        {
+          "name": "SODA",
+          "latitudeDms": "685557N",
+          "longitudeDms": "0185700E"
+        },
+        {
+          "name": "STEINVANN",
+          "latitudeDms": "690700N",
+          "longitudeDms": "0182500E"
+        },
+        {
+          "name": "SØRREISA",
+          "latitudeDms": "690735N",
+          "longitudeDms": "0181145E"
+        },
+        {
+          "name": "TAKVATN",
+          "latitudeDms": "690635N",
+          "longitudeDms": "0190220E"
+        },
+        {
+          "name": "TILLERMO",
+          "latitudeDms": "685944N",
+          "longitudeDms": "0190943E"
+        },
+        {
+          "name": "TUNE",
+          "latitudeDms": "685548N",
+          "longitudeDms": "0182842E"
+        },
+        {
+          "name": "WERA",
+          "latitudeDms": "690345N",
+          "longitudeDms": "0182410E"
+        },
+        {
+          "name": "ÅSEN",
+          "latitudeDms": "690159N",
+          "longitudeDms": "0183212E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENBR",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623103.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "ROBIX",
+          "latitudeDms": "601021N",
+          "longitudeDms": "0050345E"
+        },
+        {
+          "name": "SUNOS",
+          "latitudeDms": "601106N",
+          "longitudeDms": "0052809E"
+        },
+        {
+          "name": "TOBAX",
+          "latitudeDms": "602445N",
+          "longitudeDms": "0052137E"
+        },
+        {
+          "name": "UNLEX",
+          "latitudeDms": "602335N",
+          "longitudeDms": "0051104E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENBR",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623105.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "GANSO",
+          "latitudeDms": "602422N",
+          "longitudeDms": "0050028E"
+        },
+        {
+          "name": "GITRO",
+          "latitudeDms": "601123N",
+          "longitudeDms": "0051510E"
+        },
+        {
+          "name": "SUNOS",
+          "latitudeDms": "601106N",
+          "longitudeDms": "0052809E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENBV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623111.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENBO",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623101.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BJØRNØY LIGHT",
+          "latitudeDms": "672509N",
+          "longitudeDms": "0142540E"
+        },
+        {
+          "name": "CUTTY",
+          "latitudeDms": "671510N",
+          "longitudeDms": "0145555E"
+        },
+        {
+          "name": "HJARTØY",
+          "latitudeDms": "671714N",
+          "longitudeDms": "0141730E"
+        },
+        {
+          "name": "KVALNES",
+          "latitudeDms": "671415N",
+          "longitudeDms": "0144937E"
+        },
+        {
+          "name": "LANDEGO WEST",
+          "latitudeDms": "672321N",
+          "longitudeDms": "0141232E"
+        },
+        {
+          "name": "MÅRNES",
+          "latitudeDms": "670900N",
+          "longitudeDms": "0140500E"
+        },
+        {
+          "name": "SALTSTRAUMEN",
+          "latitudeDms": "671400N",
+          "longitudeDms": "0143810E"
+        },
+        {
+          "name": "SEINES",
+          "latitudeDms": "671257N",
+          "longitudeDms": "0142250E"
+        },
+        {
+          "name": "SKÅNLAND",
+          "latitudeDms": "671022N",
+          "longitudeDms": "0142008E"
+        },
+        {
+          "name": "TWINS",
+          "latitudeDms": "670900N",
+          "longitudeDms": "0135715E"
+        },
+        {
+          "name": "VOKKY",
+          "latitudeDms": "672610N",
+          "longitudeDms": "0135827E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENBN",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623099.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENBS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623109.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENFL",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623117.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENBL",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623097.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENHF",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/638669.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENEV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623113.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BERGET",
+          "latitudeDms": "682358N",
+          "longitudeDms": "0165022E"
+        },
+        {
+          "name": "BREIVIKA",
+          "latitudeDms": "684451N",
+          "longitudeDms": "0163349E"
+        },
+        {
+          "name": "FINNVIK",
+          "latitudeDms": "682256N",
+          "longitudeDms": "0162414E"
+        },
+        {
+          "name": "FJELLDAL",
+          "latitudeDms": "683340N",
+          "longitudeDms": "0163155E"
+        },
+        {
+          "name": "FORRA",
+          "latitudeDms": "682720N",
+          "longitudeDms": "0170045E"
+        },
+        {
+          "name": "KILBOTN",
+          "latitudeDms": "684300N",
+          "longitudeDms": "0163220E"
+        },
+        {
+          "name": "KONGSVIKA",
+          "latitudeDms": "683349N",
+          "longitudeDms": "0161454E"
+        },
+        {
+          "name": "OSVATNET",
+          "latitudeDms": "682950N",
+          "longitudeDms": "0165000E"
+        },
+        {
+          "name": "SKARSTAD",
+          "latitudeDms": "682220N",
+          "longitudeDms": "0161630E"
+        },
+        {
+          "name": "SKOGØY",
+          "latitudeDms": "682942N",
+          "longitudeDms": "0165824E"
+        },
+        {
+          "name": "TOVIK",
+          "latitudeDms": "684050N",
+          "longitudeDms": "0165205E"
+        },
+        {
+          "name": "ØYVATNET",
+          "latitudeDms": "683651N",
+          "longitudeDms": "0164541E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENHK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623121.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENHD",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623089.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BOKN VEST",
+          "latitudeDms": "591000N",
+          "longitudeDms": "0052300E"
+        },
+        {
+          "name": "BOKN ØST",
+          "latitudeDms": "591527N",
+          "longitudeDms": "0052657E"
+        },
+        {
+          "name": "BRIDGE",
+          "latitudeDms": "592228N",
+          "longitudeDms": "0051727E"
+        },
+        {
+          "name": "FLATHOLMEN",
+          "latitudeDms": "585530N",
+          "longitudeDms": "0053300E"
+        },
+        {
+          "name": "GRINDE",
+          "latitudeDms": "592550N",
+          "longitudeDms": "0052734E"
+        },
+        {
+          "name": "HAUGESUND",
+          "latitudeDms": "592414N",
+          "longitudeDms": "0051403E"
+        },
+        {
+          "name": "KVITSØY",
+          "latitudeDms": "590348N",
+          "longitudeDms": "0052400E"
+        },
+        {
+          "name": "RYVARDEN",
+          "latitudeDms": "593138N",
+          "longitudeDms": "0051331E"
+        },
+        {
+          "name": "RØKSUND",
+          "latitudeDms": "591958N",
+          "longitudeDms": "0052142E"
+        },
+        {
+          "name": "SKJOLD",
+          "latitudeDms": "592543N",
+          "longitudeDms": "0053719E"
+        },
+        {
+          "name": "SKUDE",
+          "latitudeDms": "590858N",
+          "longitudeDms": "0051215E"
+        },
+        {
+          "name": "SVEIO",
+          "latitudeDms": "593311N",
+          "longitudeDms": "0052404E"
+        },
+        {
+          "name": "TUNGENES",
+          "latitudeDms": "590210N",
+          "longitudeDms": "0053455E"
+        },
+        {
+          "name": "UTSIRA",
+          "latitudeDms": "591824N",
+          "longitudeDms": "0045317E"
+        },
+        {
+          "name": "VEA",
+          "latitudeDms": "591748N",
+          "longitudeDms": "0051154E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENHV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623123.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENKR",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623127.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BUGØYFJORD",
+          "latitudeDms": "695132N",
+          "longitudeDms": "0292256E"
+        },
+        {
+          "name": "BØKFJORD FYR",
+          "latitudeDms": "695239N",
+          "longitudeDms": "0301034E"
+        },
+        {
+          "name": "JARFJORDBOTN",
+          "latitudeDms": "694007N",
+          "longitudeDms": "0301831E"
+        },
+        {
+          "name": "JERESTAN",
+          "latitudeDms": "694758N",
+          "longitudeDms": "0293158E"
+        },
+        {
+          "name": "KJØFJORDEN",
+          "latitudeDms": "695020N",
+          "longitudeDms": "0294710E"
+        },
+        {
+          "name": "LANGFJORDEN",
+          "latitudeDms": "693725N",
+          "longitudeDms": "0295607E"
+        },
+        {
+          "name": "STEINSKJERET",
+          "latitudeDms": "694505N",
+          "longitudeDms": "0294940E"
+        },
+        {
+          "name": "STRØMMEN",
+          "latitudeDms": "694135N",
+          "longitudeDms": "0295501E"
+        },
+        {
+          "name": "ØVRE NEIDEN",
+          "latitudeDms": "694035N",
+          "longitudeDms": "0290843E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENCN",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623260.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "GREIPSTAD",
+          "latitudeDms": "580846N",
+          "longitudeDms": "0075021E"
+        },
+        {
+          "name": "GRØNNINGEN",
+          "latitudeDms": "580445N",
+          "longitudeDms": "0080520E"
+        },
+        {
+          "name": "HØVÅG",
+          "latitudeDms": "581008N",
+          "longitudeDms": "0081405E"
+        },
+        {
+          "name": "NYLAND",
+          "latitudeDms": "581322N",
+          "longitudeDms": "0081747E"
+        },
+        {
+          "name": "RAMSELIA",
+          "latitudeDms": "582048N",
+          "longitudeDms": "0080735E"
+        },
+        {
+          "name": "RCF E",
+          "latitudeDms": "581140N",
+          "longitudeDms": "0080639E"
+        },
+        {
+          "name": "RCF W",
+          "latitudeDms": "581249N",
+          "longitudeDms": "0080333E"
+        },
+        {
+          "name": "STEMMANE",
+          "latitudeDms": "581026N",
+          "longitudeDms": "0080751E"
+        },
+        {
+          "name": "VENNESLA",
+          "latitudeDms": "581600N",
+          "longitudeDms": "0075800E"
+        },
+        {
+          "name": "ÅLEFJÆR",
+          "latitudeDms": "581358N",
+          "longitudeDms": "0080140E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENKB",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623125.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "EDØY",
+          "latitudeDms": "631709N",
+          "longitudeDms": "0080754E"
+        },
+        {
+          "name": "HALSA",
+          "latitudeDms": "630404N",
+          "longitudeDms": "0081343E"
+        },
+        {
+          "name": "HESTESKJÆR",
+          "latitudeDms": "630505N",
+          "longitudeDms": "0072929E"
+        },
+        {
+          "name": "KVALVÅG",
+          "latitudeDms": "630414N",
+          "longitudeDms": "0075329E"
+        },
+        {
+          "name": "KVERNES",
+          "latitudeDms": "630019N",
+          "longitudeDms": "0074304E"
+        },
+        {
+          "name": "KVITHOLM",
+          "latitudeDms": "630124N",
+          "longitudeDms": "0071404E"
+        },
+        {
+          "name": "MOY",
+          "latitudeDms": "631019N",
+          "longitudeDms": "0075134E"
+        },
+        {
+          "name": "STAVNES",
+          "latitudeDms": "630653N",
+          "longitudeDms": "0073944E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENNA",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623137.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "AKKØY",
+          "latitudeDms": "701410N",
+          "longitudeDms": "0245756E"
+        },
+        {
+          "name": "BILLE",
+          "latitudeDms": "702000N",
+          "longitudeDms": "0250856E"
+        },
+        {
+          "name": "BONKA",
+          "latitudeDms": "701600N",
+          "longitudeDms": "0244000E"
+        },
+        {
+          "name": "HAMBUKT",
+          "latitudeDms": "700400N",
+          "longitudeDms": "0250826E"
+        },
+        {
+          "name": "NATTVANN",
+          "latitudeDms": "693800N",
+          "longitudeDms": "0251656E"
+        },
+        {
+          "name": "PORSANG",
+          "latitudeDms": "695345N",
+          "longitudeDms": "0250029E"
+        },
+        {
+          "name": "RODDE",
+          "latitudeDms": "701200N",
+          "longitudeDms": "0251656E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENRE",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623149.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "DEISJØEN",
+          "latitudeDms": "611359N",
+          "longitudeDms": "0113359E"
+        },
+        {
+          "name": "DESE",
+          "latitudeDms": "611803N",
+          "longitudeDms": "0112728E"
+        },
+        {
+          "name": "KLETTEN",
+          "latitudeDms": "611303N",
+          "longitudeDms": "0111849E"
+        },
+        {
+          "name": "OPPHUS",
+          "latitudeDms": "611950N",
+          "longitudeDms": "0111532E"
+        },
+        {
+          "name": "RYSSJØEN",
+          "latitudeDms": "610446N",
+          "longitudeDms": "0113452E"
+        },
+        {
+          "name": "SKRAMSTADSETRA",
+          "latitudeDms": "610816N",
+          "longitudeDms": "0111133E"
+        },
+        {
+          "name": "STEINVIKA",
+          "latitudeDms": "611533N",
+          "longitudeDms": "0111912E"
+        },
+        {
+          "name": "ØKSNA",
+          "latitudeDms": "605903N",
+          "longitudeDms": "0112730E"
+        },
+        {
+          "name": "ØSTERSJØEN",
+          "latitudeDms": "610653N",
+          "longitudeDms": "0112709E"
+        },
+        {
+          "name": "ÅSTA",
+          "latitudeDms": "610436N",
+          "longitudeDms": "0112047E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENLK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623129.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENMH",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623131.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENRA",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/638724.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENML",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623133.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENMS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623135.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENNM",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623139.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENNO",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623141.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "FOLLSJØ",
+          "latitudeDms": "594200N",
+          "longitudeDms": "0091400E"
+        },
+        {
+          "name": "LIFJELL",
+          "latitudeDms": "593000N",
+          "longitudeDms": "0085500E"
+        },
+        {
+          "name": "MEHEIA",
+          "latitudeDms": "593730N",
+          "longitudeDms": "0092941E"
+        },
+        {
+          "name": "NORDAGUTU",
+          "latitudeDms": "592504N",
+          "longitudeDms": "0091921E"
+        },
+        {
+          "name": "SAULAND",
+          "latitudeDms": "593652N",
+          "longitudeDms": "0085658E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENGM",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623422.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "COZIP",
+          "latitudeDms": "601716N",
+          "longitudeDms": "0111433E"
+        },
+        {
+          "name": "EXLOF",
+          "latitudeDms": "600414N",
+          "longitudeDms": "0110700E"
+        },
+        {
+          "name": "MIDWO",
+          "latitudeDms": "600554N",
+          "longitudeDms": "0105717E"
+        },
+        {
+          "name": "NANNESTAD",
+          "latitudeDms": "601303N",
+          "longitudeDms": "0105815E"
+        },
+        {
+          "name": "NORDKISA",
+          "latitudeDms": "601105N",
+          "longitudeDms": "0111550E"
+        },
+        {
+          "name": "RÅSJØEN",
+          "latitudeDms": "601230N",
+          "longitudeDms": "0104810E"
+        },
+        {
+          "name": "VORMSUND",
+          "latitudeDms": "600918N",
+          "longitudeDms": "0112505E"
+        },
+        {
+          "name": "YOMME",
+          "latitudeDms": "601916N",
+          "longitudeDms": "0110458E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENRO",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623155.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "GLÅMOS",
+          "latitudeDms": "624032N",
+          "longitudeDms": "0112557E"
+        },
+        {
+          "name": "NARBUVOLL",
+          "latitudeDms": "622057N",
+          "longitudeDms": "0112756E"
+        },
+        {
+          "name": "NESVOLL",
+          "latitudeDms": "624535N",
+          "longitudeDms": "0112045E"
+        },
+        {
+          "name": "OS",
+          "latitudeDms": "622955N",
+          "longitudeDms": "0111321E"
+        },
+        {
+          "name": "STORWARTZ",
+          "latitudeDms": "623748N",
+          "longitudeDms": "0113151E"
+        },
+        {
+          "name": "SÆTERSJØEN",
+          "latitudeDms": "623355N",
+          "longitudeDms": "0111120E"
+        },
+        {
+          "name": "TOLGA",
+          "latitudeDms": "622430N",
+          "longitudeDms": "0105934E"
+        },
+        {
+          "name": "ÅLEN",
+          "latitudeDms": "625036N",
+          "longitudeDms": "0111746E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENRM",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623153.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENRS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623157.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENSD",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623159.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENST",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623171.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENSG",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623161.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "FRON",
+          "latitudeDms": "610704N",
+          "longitudeDms": "0070125E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENZV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623189.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BOKN VEST",
+          "latitudeDms": "591000N",
+          "longitudeDms": "0052300E"
+        },
+        {
+          "name": "BOKN ØST",
+          "latitudeDms": "591527N",
+          "longitudeDms": "0052657E"
+        },
+        {
+          "name": "BRYNE",
+          "latitudeDms": "584428N",
+          "longitudeDms": "0054055E"
+        },
+        {
+          "name": "FLATHOLMEN",
+          "latitudeDms": "585530N",
+          "longitudeDms": "0053300E"
+        },
+        {
+          "name": "FORUS",
+          "latitudeDms": "585358N",
+          "longitudeDms": "0054225E"
+        },
+        {
+          "name": "KVITSØY",
+          "latitudeDms": "590348N",
+          "longitudeDms": "0052400E"
+        },
+        {
+          "name": "LUTSIVANN",
+          "latitudeDms": "585212N",
+          "longitudeDms": "0054914E"
+        },
+        {
+          "name": "REVE",
+          "latitudeDms": "584458N",
+          "longitudeDms": "0052855E"
+        },
+        {
+          "name": "SANDNES",
+          "latitudeDms": "585058N",
+          "longitudeDms": "0054425E"
+        },
+        {
+          "name": "SKUDE",
+          "latitudeDms": "590858N",
+          "longitudeDms": "0051215E"
+        },
+        {
+          "name": "STAVANGER",
+          "latitudeDms": "585800N",
+          "longitudeDms": "0054533E"
+        },
+        {
+          "name": "TUNGENES",
+          "latitudeDms": "590210N",
+          "longitudeDms": "0053455E"
+        },
+        {
+          "name": "VARHAUG",
+          "latitudeDms": "583738N",
+          "longitudeDms": "0053742E"
+        },
+        {
+          "name": "VIGDEL",
+          "latitudeDms": "585058N",
+          "longitudeDms": "0053255E"
+        },
+        {
+          "name": "ÅLGÅRD",
+          "latitudeDms": "584558N",
+          "longitudeDms": "0055055E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENSK",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623165.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENSO",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623167.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BUANES",
+          "latitudeDms": "593600N",
+          "longitudeDms": "0051900E"
+        },
+        {
+          "name": "HISKJO",
+          "latitudeDms": "594330N",
+          "longitudeDms": "0050800E"
+        },
+        {
+          "name": "HUGLO",
+          "latitudeDms": "595200N",
+          "longitudeDms": "0053300E"
+        },
+        {
+          "name": "ROMSA",
+          "latitudeDms": "594100N",
+          "longitudeDms": "0054500E"
+        },
+        {
+          "name": "SANDVIKVÅG",
+          "latitudeDms": "595900N",
+          "longitudeDms": "0051900E"
+        },
+        {
+          "name": "SELBJØRN",
+          "latitudeDms": "595800N",
+          "longitudeDms": "0050600E"
+        },
+        {
+          "name": "SVEIO",
+          "latitudeDms": "593311N",
+          "longitudeDms": "0052404E"
+        },
+        {
+          "name": "VIKEBYGD",
+          "latitudeDms": "593530N",
+          "longitudeDms": "0053300E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENSH",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623163.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENSR",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/630759.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "MAURSUNDET",
+          "latitudeDms": "695445N",
+          "longitudeDms": "0205000E"
+        },
+        {
+          "name": "NORDKJOSEN",
+          "latitudeDms": "694739N",
+          "longitudeDms": "0210307E"
+        },
+        {
+          "name": "OKSFJORDHAMN",
+          "latitudeDms": "695445N",
+          "longitudeDms": "0211100E"
+        },
+        {
+          "name": "REISAFJORDEN",
+          "latitudeDms": "695815N",
+          "longitudeDms": "0210800E"
+        },
+        {
+          "name": "ROTSUNDET",
+          "latitudeDms": "694930N",
+          "longitudeDms": "0204600E"
+        },
+        {
+          "name": "STORSLETT",
+          "latitudeDms": "694530N",
+          "longitudeDms": "0210036E"
+        },
+        {
+          "name": "STORTIND",
+          "latitudeDms": "694925N",
+          "longitudeDms": "0205303E"
+        },
+        {
+          "name": "STRAUMFJORDEN",
+          "latitudeDms": "695045N",
+          "longitudeDms": "0211124E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENTC",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623173.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "ANSNES",
+          "latitudeDms": "693006N",
+          "longitudeDms": "0182540E"
+        },
+        {
+          "name": "BERG",
+          "latitudeDms": "693418N",
+          "longitudeDms": "0185633E"
+        },
+        {
+          "name": "BREIVIKA",
+          "latitudeDms": "694030N",
+          "longitudeDms": "0185855E"
+        },
+        {
+          "name": "ERSFJORD",
+          "latitudeDms": "694215N",
+          "longitudeDms": "0182519E"
+        },
+        {
+          "name": "HÅKØYA",
+          "latitudeDms": "694000N",
+          "longitudeDms": "0184925E"
+        },
+        {
+          "name": "MOVIKVANN",
+          "latitudeDms": "694255N",
+          "longitudeDms": "0190909E"
+        },
+        {
+          "name": "MUSVÆR",
+          "latitudeDms": "695306N",
+          "longitudeDms": "0183442E"
+        },
+        {
+          "name": "NIPØYA",
+          "latitudeDms": "694920N",
+          "longitudeDms": "0192903E"
+        },
+        {
+          "name": "RAKNES",
+          "latitudeDms": "694950N",
+          "longitudeDms": "0185744E"
+        },
+        {
+          "name": "REMMAN",
+          "latitudeDms": "694603N",
+          "longitudeDms": "0190302E"
+        },
+        {
+          "name": "RYA",
+          "latitudeDms": "693330N",
+          "longitudeDms": "0184255E"
+        },
+        {
+          "name": "SELNES",
+          "latitudeDms": "692624N",
+          "longitudeDms": "0185955E"
+        },
+        {
+          "name": "TØNSNES",
+          "latitudeDms": "694355N",
+          "longitudeDms": "0190535E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENVA",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623181.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENVD",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623185.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENSS",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623169.pdf",
+      "sourcePage": "1",
+      "points": []
+    },
+    {
+      "aerodromeIdentifier": "ENOV",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/638672.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "BONDALSEIDET",
+          "latitudeDms": "620937N",
+          "longitudeDms": "0061759E"
+        },
+        {
+          "name": "DIMNA",
+          "latitudeDms": "621904N",
+          "longitudeDms": "0054909E"
+        },
+        {
+          "name": "HØYDAL",
+          "latitudeDms": "620421N",
+          "longitudeDms": "0061248E"
+        },
+        {
+          "name": "KILE",
+          "latitudeDms": "620343N",
+          "longitudeDms": "0060354E"
+        },
+        {
+          "name": "LARSNES",
+          "latitudeDms": "621202N",
+          "longitudeDms": "0053525E"
+        },
+        {
+          "name": "LØVIK",
+          "latitudeDms": "620555N",
+          "longitudeDms": "0055653E"
+        },
+        {
+          "name": "RJÅNES",
+          "latitudeDms": "621453N",
+          "longitudeDms": "0055807E"
+        }
+      ]
+    },
+    {
+      "aerodromeIdentifier": "ENAL",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/graphics/623091.pdf",
+      "sourcePage": "1",
+      "points": [
+        {
+          "name": "ASPØY",
+          "latitudeDms": "622833N",
+          "longitudeDms": "0060828E"
+        },
+        {
+          "name": "AUSTNES",
+          "latitudeDms": "623755N",
+          "longitudeDms": "0061544E"
+        },
+        {
+          "name": "BRANDAL",
+          "latitudeDms": "622421N",
+          "longitudeDms": "0060030E"
+        },
+        {
+          "name": "DRYNA",
+          "latitudeDms": "623831N",
+          "longitudeDms": "0063110E"
+        },
+        {
+          "name": "FJØRTOFT",
+          "latitudeDms": "624119N",
+          "longitudeDms": "0062330E"
+        },
+        {
+          "name": "FLØ",
+          "latitudeDms": "622330N",
+          "longitudeDms": "0054920E"
+        },
+        {
+          "name": "GJØSUND",
+          "latitudeDms": "623211N",
+          "longitudeDms": "0060653E"
+        },
+        {
+          "name": "GODØY",
+          "latitudeDms": "622759N",
+          "longitudeDms": "0060152E"
+        },
+        {
+          "name": "GRYTA",
+          "latitudeDms": "623152N",
+          "longitudeDms": "0061951E"
+        },
+        {
+          "name": "INNHOLMEN",
+          "latitudeDms": "623738N",
+          "longitudeDms": "0060705E"
+        },
+        {
+          "name": "KJÆRSTAD",
+          "latitudeDms": "623625N",
+          "longitudeDms": "0061300E"
+        },
+        {
+          "name": "RUNDE",
+          "latitudeDms": "622459N",
+          "longitudeDms": "0053454E"
+        },
+        {
+          "name": "RØRVIK",
+          "latitudeDms": "623411N",
+          "longitudeDms": "0060501E"
+        },
+        {
+          "name": "SYKKYLVEN",
+          "latitudeDms": "622349N",
+          "longitudeDms": "0063524E"
+        }
+      ]
+    }
+  ],
+  "aerodromesWithoutVac": [
+    "ENEG",
+    "ENKJ",
+    "ENAS",
+    "ENRY",
+    "ENTO",
+    "ENSB",
+    "ENOL"
+  ]
+}

@@ -708,12 +708,12 @@ export function importVacReportingPoints(
   extractedText: string,
   config: VacReportingPointConfig,
 ): { readonly features: readonly AeronauticalPointFeature[]; readonly details: readonly ReportingPointDetails[] } {
-  const rows = extractedText.split(/\r?\n/);
   const features: AeronauticalPointFeature[] = [];
   const details: ReportingPointDetails[] = [];
-  for (const row of rows) {
-    const match = /^\s*([A-ZÆØÅ][A-ZÆØÅ -]*?)\s+(\d{6}[NS])\s+(\d{7}[EW])\s*$/u.exec(row);
-    if (match === null) continue;
+  const matches = extractedText.matchAll(
+    /(?<![A-ZÆØÅ])([A-ZÆØÅ][A-ZÆØÅ -]*?)\s+(\d{6}[NS])\s+(\d{7}[EW])/gu,
+  );
+  for (const match of matches) {
     const name = normalizeText(match[1] ?? '');
     const position = parseCompactDmsPosition(`${match[2]} ${match[3]}`, 'AD 2.24 VAC');
     const featureId = `reporting-point:${config.aerodromeIdentifier.toLowerCase()}:${slug(name)}`;

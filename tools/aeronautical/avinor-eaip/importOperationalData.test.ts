@@ -194,4 +194,17 @@ describe('Avinor operational-data importers', () => {
       aerodromeIdentifier: 'ENHF', sourceUrl: 'fixture',
     }).features).toEqual([]);
   });
+
+  it('extracts multiple published reporting points from one PDF text line', () => {
+    const result = importVacReportingPoints(
+      'NESVERK 583735N 0085057E RYKENE 582430N 0083823E UGLEBU 582930N 0084451E',
+      {
+        dataset, effectiveDate: '2026-06-11', aerodromeFeatureId: 'aerodrome:ENGK',
+        aerodromeIdentifier: 'ENGK', sourceUrl: 'https://example.test/ENGK-VAC.pdf',
+      },
+    );
+    expect(result.features.map(({ identifier }) => identifier)).toEqual([
+      'NESVERK', 'RYKENE', 'UGLEBU',
+    ]);
+  });
 });
