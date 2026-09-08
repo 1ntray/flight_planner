@@ -51,6 +51,9 @@ pnpm test
 pnpm build
 ```
 
+GitHub Actions runs these checks automatically for every pull request and every
+push to `main`.
+
 ## Documentation
 
 [`docs/current-state.md`](docs/current-state.md) is the authoritative overview

@@ -93,9 +93,9 @@ export function BatchWindEntryBar({
             if (event.key === 'Escape') {
               event.preventDefault();
               onClose();
-            } else if (event.key === 'Enter' && event.shiftKey) {
+            } else if (event.key === 'Enter') {
               event.preventDefault();
-              commitAndMove(-1);
+              commitAndMove(event.shiftKey ? -1 : 1);
             }
           }}
         />
@@ -119,9 +119,9 @@ export function BatchWindEntryBar({
             if (event.key === 'Escape') {
               event.preventDefault();
               onClose();
-            } else if (event.key === 'Enter' && event.shiftKey) {
+            } else if (event.key === 'Enter') {
               event.preventDefault();
-              commitAndMove(-1);
+              commitAndMove(event.shiftKey ? -1 : 1);
             }
           }}
         />
@@ -131,7 +131,7 @@ export function BatchWindEntryBar({
         Done <kbd>Esc</kbd>
       </button>
       <p className={error === null ? undefined : 'batch-entry-bar__error'}>
-        {error ?? `Blank uses ${defaultWind.source} wind · Enter: save and next · Shift+Enter: previous`}
+        {error ?? `Blank uses ${defaultWind.source} wind · Tab: switch field · Enter: save and next · Shift+Enter: previous`}
       </p>
     </form>
   );
