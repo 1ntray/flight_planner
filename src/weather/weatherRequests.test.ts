@@ -14,6 +14,8 @@ import type { ForecastLegWind } from './types';
 import {
   buildPerformanceWeatherSampleRequests,
   buildWeatherSampleRequests,
+  createEffectiveLegWinds,
+  createEffectiveSampledWindResolver,
   createSampledWindResolver,
   weatherSampleRequestsMatch,
 } from './weatherRequests';
@@ -149,5 +151,31 @@ describe('performance-profile weather samples', () => {
       altitudeFtMsl: 3100,
       timeUtcMs: sample.sampledTimeUtcMs,
     })).toEqual(fallback);
+  });
+
+  it('uses a per-leg manual wind over forecast samples without changing another leg', () => {
+    const sample = {
+      fromId: 'A', toId: 'B', source: 'forecast' as const,
+      wind: { directionFromTrueDeg: 270, speedKt: 22 },
+      sampledPosition: { latitude: 60, longitude: 10.5 },
+      sampledTimeUtcMs: planning.departureTimeUtcMs,
+      altitudeFtMsl: 3000,
+    } as ForecastLegWind;
+    const manual = [{
+      fromWaypointId: 'A', toWaypointId: 'B',
+      wind: { directionFromTrueDeg: 230, speedKt: 18 },
+    }];
+    const resolver = createEffectiveSampledWindResolver(
+      [sample], manual, { directionFromTrueDeg: 0, speedKt: 5 },
+    );
+    const effective = createEffectiveLegWinds([sample], manual);
+
+    expect(resolver({
+      fromWaypointId: 'A', toWaypointId: 'B', position: sample.sampledPosition,
+      altitudeFtMsl: 3000, timeUtcMs: sample.sampledTimeUtcMs,
+    })).toEqual(manual[0]!.wind);
+    expect(effective).toEqual([{
+      fromId: 'A', toId: 'B', wind: manual[0]!.wind, source: 'manual',
+    }]);
   });
 });

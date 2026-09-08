@@ -6,8 +6,8 @@
   "sourceIndexUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html",
   "sourceEnr21Url": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html",
   "sourceEnr22Url": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.2-en-GB.html",
-  "retrievedAtUtc": "2026-09-01T13:15:02.284Z",
-  "importedAtUtc": "2026-09-01T13:15:12.984Z",
+  "retrievedAtUtc": "2026-09-01T21:45:46.227Z",
+  "importedAtUtc": "2026-09-01T21:45:57.387Z",
   "discoveredAerodromeCount": 53,
   "importedAerodromes": [
     "ENAT",
@@ -73,7 +73,7 @@
     "atsServiceAreas": 38,
     "resolvedAtsServiceAreas": 38,
     "unresolvedAtsServiceAreas": 0,
-    "communicationServices": 218,
+    "communicationServices": 223,
     "frequencies": 487,
     "reportingPoints": 218,
     "aerodromesWithPublishedReportingPointCoordinates": 23

@@ -165,15 +165,14 @@ export function LegMapPopup({
   return (
     <StableMapPopup
       position={selection.candidate.position}
-      closeButton={false}
       closeOnClick={false}
       autoClose={false}
       className="leg-map-popup"
+      eventHandlers={{ remove: onClose }}
     >
       <div className="leg-map-popup__heading">
         <p className="eyebrow">Selected leg</p>
         <strong>{fromWaypoint.name} → {toWaypoint.name}</strong>
-        <span>Selected at {selection.distanceFromStartNm.toFixed(1)} NM</span>
       </div>
       {isArrivalLeg ? (
         <p className="leg-map-popup__arrival-note">
@@ -256,42 +255,52 @@ export function LegMapPopup({
       <p className="leg-map-popup__target">
         End-altitude target: {endTargetDistance === null ? 'automatic' : `${endTargetDistance.toFixed(1)} NM`}
       </p>
-      <div className="map-popup-actions">
+      <div className="leg-map-popup__target-actions">
         <button
           type="button"
           className="button"
           disabled={targetDistance === null}
           aria-keyshortcuts="T"
+          aria-label="Set planned-altitude target automatically"
+          title="Set planned-altitude target automatically"
           onClick={onResetAltitudeTarget}
         >
-          Automatic target <kbd>T</kbd>
+          Auto target <kbd>T</kbd>
         </button>
         <button
           type="button"
           className="button"
           aria-keyshortcuts="P"
+          aria-label="Place planned-altitude target"
+          title="Place planned-altitude target"
           onClick={onPlaceAltitudeTarget}
         >
-          Place planned target <kbd>P</kbd>
+          Place target <kbd>P</kbd>
         </button>
         <button
           type="button"
           className="button"
           disabled={endTargetDistance === null}
           aria-keyshortcuts="Shift+T"
+          aria-label="Set end-altitude target automatically"
+          title="Set end-altitude target automatically"
           onClick={onResetEndAltitudeTarget}
         >
-          Automatic end target <kbd>⇧T</kbd>
+          Auto end <kbd>⇧T</kbd>
         </button>
         <button
           type="button"
           className="button"
           disabled={currentEndAltitudeFtMsl === undefined}
           aria-keyshortcuts="Shift+P"
+          aria-label="Place end-altitude target"
+          title="Place end-altitude target"
           onClick={onPlaceEndAltitudeTarget}
         >
-          Place end target <kbd>⇧P</kbd>
+          Place end <kbd>⇧P</kbd>
         </button>
+      </div>
+      <div className="leg-map-popup__insert-action">
         <button
           type="button"
           className="button"
@@ -299,9 +308,6 @@ export function LegMapPopup({
           onClick={onInsertWaypoint}
         >
           Add waypoint <kbd>I</kbd>
-        </button>
-        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
-          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

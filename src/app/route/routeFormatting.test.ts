@@ -32,9 +32,9 @@ describe('formatTrueTrackDeg', () => {
 });
 
 describe('distance formatting', () => {
-  it('formats nautical miles to one decimal place', () => {
-    expect(formatDistanceNm(24.56)).toBe('24.6 NM');
-    expect(formatDistanceNmValue(24.56)).toBe('24.6');
+  it('formats nautical miles to whole values for the navlog', () => {
+    expect(formatDistanceNm(24.56)).toBe('25 NM');
+    expect(formatDistanceNmValue(24.56)).toBe('25');
   });
 
 });
@@ -51,9 +51,9 @@ describe('wind-adjusted navigation formatting', () => {
   });
 
   it.each([
-    { correction: 7.26, expected: '+7.3°' },
-    { correction: -7.26, expected: '-7.3°' },
-    { correction: -0, expected: '0.0°' },
+    { correction: 7.26, expected: '+7°' },
+    { correction: -7.26, expected: '-7°' },
+    { correction: -0, expected: '0°' },
   ])(
     'formats a signed wind correction of $correction degrees',
     ({ correction, expected }) => {
@@ -61,16 +61,16 @@ describe('wind-adjusted navigation formatting', () => {
     },
   );
 
-  it('formats groundspeed and EET without changing internal precision', () => {
-    expect(formatGroundSpeedKt(97.9795897)).toBe('98.0 kt');
-    expect(formatGroundSpeedKtValue(97.9795897)).toBe('98.0');
-    expect(formatEetSeconds(2204.540769)).toBe('36.7 min');
-    expect(formatEetMinutesValue(2204.540769)).toBe('36.7');
+  it('formats groundspeed and EET as whole navlog values without changing internal precision', () => {
+    expect(formatGroundSpeedKt(97.9795897)).toBe('98 kt');
+    expect(formatGroundSpeedKtValue(97.9795897)).toBe('98');
+    expect(formatEetSeconds(2204.540769)).toBe('37 min');
+    expect(formatEetMinutesValue(2204.540769)).toBe('37');
   });
 
   it('formats a compact direction-from and speed wind value', () => {
     expect(
-      formatWindValue({ directionFromTrueDeg: 359.6, speedKt: 12.6 }),
+      formatWindValue({ directionFromTrueDeg: 355, speedKt: 12.6 }),
     ).toBe('000/13');
     expect(formatWindValue(null)).toBe('—');
   });

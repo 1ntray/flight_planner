@@ -1,5 +1,5 @@
 import type { LegWindOverride } from '../calculations';
-import type { Position } from '../domain';
+import type { Position, WindForecastModelId } from '../domain';
 
 export interface WeatherSampleRequest {
   fromId: string;
@@ -12,7 +12,9 @@ export interface WeatherSampleRequest {
 export interface ForecastLegWind extends LegWindOverride {
   source: 'forecast';
   provider: 'open-meteo';
-  model: 'ecmwf_ifs025';
+  model: WindForecastModelId;
+  modelLabel: string;
+  providerLabel: string;
   retrievedAtUtcMs: number;
   sampledPosition: Position;
   sampledTimeUtcMs: number;

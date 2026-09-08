@@ -32,12 +32,11 @@ export function AirspacePopupContent({ feature, repository, position }: Airspace
     <div className="airspace-info-popup">
       <strong>{feature.name}</strong><br />
       {details === undefined ? 'Loading published airspace details…' : details === null ? (
-        <>{feature.identifier ?? feature.areaKind}<br />Information only — not a waypoint anchor</>
+        <>{feature.identifier ?? feature.areaKind}</>
       ) : (
         <>
           {details.publishedType}{details.airspaceClass === null ? '' : ` · Class ${details.airspaceClass}`}<br />
-          {formatLimit(details.lowerLimit)} – {formatLimit(details.upperLimit)}<br />
-          Information only — not a waypoint anchor
+          {formatLimit(details.lowerLimit)} – {formatLimit(details.upperLimit)}
           <CommunicationServiceList
             repository={repository}
             {...(feature.areaKind === 'cta'

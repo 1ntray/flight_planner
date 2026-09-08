@@ -22,6 +22,8 @@ export interface CommunicationFrequencyAssignment {
   readonly valueMHz: string;
   readonly hours?: string;
   readonly remarks?: string;
+  /** Explicitly published planning applicability; absent means unspecified. */
+  readonly planningUse?: 'primary' | 'vfr' | 'ifr-only' | 'contingency';
 }
 
 export interface CommunicationAssociation {

@@ -1,4 +1,19 @@
 export {
+  chooseOperatingFrequency,
+  COMMUNICATION_DISPLAY_MAX_MHZ,
+  COMMUNICATION_DISPLAY_MIN_MHZ,
+  COMMUNICATION_EMERGENCY_FREQUENCY_MHZ,
+  eligibleVfrPlanningFrequencies,
+  EMPTY_COMMUNICATION_PREFERENCES,
+  isDisplayedCommunicationFrequency,
+  isEligibleVfrPlanningFrequency,
+} from './communicationFrequencySelection';
+export type {
+  CommunicationPreferences,
+  OperatingFrequencyCandidate,
+  OperatingFrequencyChoice,
+} from './communicationFrequencySelection';
+export {
   calculateGeodesicMidpoint,
   calculateInverseGeodesic,
   calculateNearestPointOnGeodesicSegment,

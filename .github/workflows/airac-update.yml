@@ -1,0 +1,67 @@
+name: Check Avinor AIRAC update
+
+on:
+  workflow_dispatch:
+  schedule:
+    # A weekly check is conservative relative to the 28-day AIRAC cycle.
+    - cron: '23 6 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: avinor-airac-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - id: airac
+        name: Discover and prepare candidate edition
+        run: pnpm aero:update
+
+      - name: Typecheck candidate
+        if: steps.airac.outputs.update_available == 'true'
+        run: pnpm typecheck
+
+      - name: Test candidate
+        if: steps.airac.outputs.update_available == 'true'
+        run: pnpm test
+
+      - name: Build candidate
+        if: steps.airac.outputs.update_available == 'true'
+        run: pnpm build
+
+      - name: Create or update review pull request
+        if: steps.airac.outputs.update_available == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: codex/avinor-airac-update
+          delete-branch: true
+          commit-message: >-
+            chore(aeronautical): update Avinor eAIP to ${{ steps.airac.outputs.edition_label }}
+          title: >-
+            Avinor AIRAC update: ${{ steps.airac.outputs.approved_edition }} → ${{ steps.airac.outputs.edition_label }}
+          body-path: ${{ steps.airac.outputs.change_report_path }}
+          add-paths: |
+            src/aeronautical/data/${{ steps.airac.outputs.dataset_id }}.json
+            data/aeronautical/import-reports/${{ steps.airac.outputs.dataset_id }}-aerodromes.json
+            data/aeronautical/change-reports/${{ steps.airac.outputs.dataset_id }}.md
+            src/aeronautical/avinorRepository.ts
+            tools/aeronautical/avinor-eaip/edition.ts

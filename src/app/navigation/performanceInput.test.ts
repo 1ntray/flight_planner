@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createEmptyPerformanceInputDraft,
   createPerformanceInputDraft,
+  createPerformanceInputOverrides,
   parsePerformanceInputDraft,
 } from './performanceInput';
 
@@ -26,7 +27,7 @@ const inputs = {
 describe('performance input parsing', () => {
   it('keeps a completely blank performance section optional', () => {
     const draft = createEmptyPerformanceInputDraft();
-    expect(draft.defaultAltitudeFtMsl).toBe('2500');
+    expect(draft.defaultAltitudeFtMsl).toBe('');
     expect(draft.patternHeightAglFt).toBe('');
     expect(parsePerformanceInputDraft(draft)).toEqual({
       status: 'empty',
@@ -37,6 +38,96 @@ describe('performance input parsing', () => {
     expect(parsePerformanceInputDraft(createPerformanceInputDraft(inputs))).toEqual({
       status: 'valid',
       value: inputs,
+    });
+  });
+
+  it('preserves blank standard airport fields when restoring a saved draft', () => {
+    const standardInputs = {
+      ...inputs,
+      departureElevationFtMsl: 254,
+      destinationElevationFtMsl: 17,
+      departureWeather: { qnhHpa: 1013, isaDeviationC: 0 },
+      destinationWeather: { qnhHpa: 1013, isaDeviationC: 0 },
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: 350,
+        weather: { qnhHpa: 1013, isaDeviationC: 0 },
+      }],
+    };
+    const draft = {
+      ...createPerformanceInputDraft(standardInputs),
+      departureElevationFtMsl: '',
+      destinationElevationFtMsl: '',
+      departureQnhHpa: '',
+      departureIsaDeviationC: '',
+      destinationQnhHpa: '',
+      destinationIsaDeviationC: '',
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: '',
+        qnhHpa: '',
+        isaDeviationC: '',
+        stopDurationMinutes: '',
+      }],
+    };
+
+    const restored = createPerformanceInputDraft(
+      standardInputs,
+      createPerformanceInputOverrides(draft),
+    );
+
+    expect(restored.departureElevationFtMsl).toBe('');
+    expect(restored.departureQnhHpa).toBe('');
+    expect(restored.destinationIsaDeviationC).toBe('');
+    expect(restored.sectorStopPlans[0]).toMatchObject({
+      elevationFtMsl: '',
+      qnhHpa: '',
+      isaDeviationC: '',
+    });
+  });
+
+  it('restores only airport values that the user entered', () => {
+    const draft = {
+      ...createPerformanceInputDraft(inputs),
+      departureElevationFtMsl: '120',
+      departureQnhHpa: '1008',
+      departureIsaDeviationC: '',
+      destinationIsaDeviationC: '-4',
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: '300',
+        qnhHpa: '',
+        isaDeviationC: '2',
+        stopDurationMinutes: '',
+      }],
+    };
+    const semanticInputs = {
+      ...inputs,
+      departureElevationFtMsl: 120,
+      departureWeather: { qnhHpa: 1008, isaDeviationC: -2 },
+      destinationWeather: { qnhHpa: 1020, isaDeviationC: -4 },
+      sectorStopPlans: [{
+        waypointId: 'B',
+        elevationFtMsl: 300,
+        weather: { qnhHpa: 1013, isaDeviationC: 2 },
+      }],
+    };
+
+    expect(
+      createPerformanceInputDraft(
+        semanticInputs,
+        createPerformanceInputOverrides(draft),
+      ),
+    ).toMatchObject({
+      departureElevationFtMsl: '120',
+      departureQnhHpa: '1008',
+      departureIsaDeviationC: '',
+      destinationIsaDeviationC: '-4',
+      sectorStopPlans: [{
+        elevationFtMsl: '300',
+        qnhHpa: '',
+        isaDeviationC: '2',
+      }],
     });
   });
 

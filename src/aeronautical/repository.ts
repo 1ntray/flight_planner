@@ -66,6 +66,11 @@ export interface AeronauticalDataRepository {
     options?: AeronauticalQueryOptions,
   ): Promise<readonly CommunicationService[]>;
 
+  /** Lists services that can be selected by the route communication planner. */
+  listPlanningCommunicationServices(
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly CommunicationService[]>;
+
   getCommunicationService(
     id: string,
     options?: AeronauticalQueryOptions,

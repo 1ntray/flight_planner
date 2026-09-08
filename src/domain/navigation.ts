@@ -11,8 +11,22 @@ export interface NavigationParameters {
 /** How magnetic variation is obtained for the navigation log. */
 export type MagneticVariationMode = 'automatic-wmm2025' | 'manual';
 
+/** A forecast model selected for the whole flight plan. */
+export type WindForecastModelId = 'ecmwf_ifs025' | 'icon_eu';
+
+/** A user-entered wind bound to a stable, adjacent pair of route waypoints. */
+export interface ManualLegWindOverride {
+  fromWaypointId: string;
+  toWaypointId: string;
+  wind: Wind;
+}
+
 export interface RoutePlanningInputs {
   departureTimeUtcMs: number;
+  /** Defaults to ECMWF IFS 0.25° when loading documents created before this field. */
+  windForecastModel?: WindForecastModelId;
+  /** Optional manual winds take precedence over the selected forecast for their leg. */
+  manualLegWindOverrides?: readonly ManualLegWindOverride[];
   /**
    * The user-selected source of magnetic variation. Omitted only by legacy
    * calculation callers; those retain the historic manual interpretation.

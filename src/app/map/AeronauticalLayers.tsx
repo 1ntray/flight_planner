@@ -64,6 +64,7 @@ export interface AeronauticalLayersProps {
   visibility: AeronauticalLayerVisibility;
   airspaceCategoryVisibility: AirspaceCategoryVisibility;
   anchoringEnabled: boolean;
+  onSelectAirspaceInformation: () => void;
   onAddFreeWaypoint: (position: Position) => void;
   onAnchorPoint: (feature: AeronauticalPointFeature) => void;
   onSelectAerodromeInformation: (feature: AeronauticalPointFeature) => void;
@@ -110,7 +111,9 @@ function sameFeatureIds(
   right: readonly AeronauticalAreaFeature[],
 ): boolean {
   return left.length === right.length && left.every(
-    (feature, index) => feature.ref.featureId === right[index]?.ref.featureId,
+    (feature, index) =>
+      feature.ref.dataset.datasetId === right[index]?.ref.dataset.datasetId &&
+      feature.ref.featureId === right[index]?.ref.featureId,
   );
 }
 
@@ -125,6 +128,7 @@ export function AeronauticalLayers({
   visibility,
   airspaceCategoryVisibility,
   anchoringEnabled,
+  onSelectAirspaceInformation,
   onAddFreeWaypoint,
   onAnchorPoint,
   onSelectAerodromeInformation,
@@ -150,9 +154,11 @@ export function AeronauticalLayers({
       setSelectedAirspaces(null);
     },
     moveend() {
+      setHoveredAirspaces([]);
       setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
     },
     zoomend() {
+      setHoveredAirspaces([]);
       setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
     },
   });
@@ -185,6 +191,16 @@ export function AeronauticalLayers({
 
   useEffect(() => {
     setViewport({ zoom: map.getZoom(), bounds: mapBounds(map) });
+  }, [map]);
+
+  useEffect(() => {
+    const clearHoveredAirspaces = () => setHoveredAirspaces([]);
+    const container = map.getContainer();
+
+    // Polygon mouseout does not fire if the pointer leaves the map entirely.
+    // The map container is the final hover boundary, so clear its overlay here.
+    container.addEventListener('mouseleave', clearHoveredAirspaces);
+    return () => container.removeEventListener('mouseleave', clearHoveredAirspaces);
   }, [map]);
 
   useEffect(() => {
@@ -289,7 +305,10 @@ export function AeronauticalLayers({
             eventHandlers={{
               mouseover: updateHoveredAirspaces,
               mousemove: updateHoveredAirspaces,
-              mouseout: () => setHoveredAirspaces([]),
+              // Moving between overlapping SVG paths also raises mouseout. Use
+              // its pointer position instead of clearing blindly, so every
+              // airspace that contains that position stays highlighted.
+              mouseout: updateHoveredAirspaces,
               click: (event) => {
                 stopMapClick(event);
                 const position = pointerPosition(event);
@@ -303,6 +322,7 @@ export function AeronauticalLayers({
                   return;
                 }
                 const stack = airspacesAtPosition(areaFeatures, position);
+                onSelectAirspaceInformation();
                 nextAirspaceSelectionId.current += 1;
                 setSelectedAirspaces({
                   selectionId: nextAirspaceSelectionId.current,
@@ -323,6 +343,24 @@ export function AeronauticalLayers({
               )}
             </Tooltip>
           </Polygon>
+        ))}
+      </Pane>
+
+      <Pane name="aeronautical-airspace-hover" style={{ zIndex: 351 }}>
+        {hoveredAirspaces.map((feature) => (
+          <Polygon
+            key={`${feature.ref.dataset.datasetId}:${feature.ref.featureId}`}
+            positions={areaPositions(feature)}
+            interactive={false}
+            pathOptions={{
+              className: 'aeronautical-airspace-path aeronautical-airspace-path--hovered',
+              color: '#5a2773',
+              fillColor: '#7b3f91',
+              fillOpacity: 0.18,
+              opacity: 1,
+              weight: 3,
+            }}
+          />
         ))}
       </Pane>
 
@@ -358,7 +396,10 @@ export function AeronauticalLayers({
 
       <Pane
         name="aeronautical-points"
-        style={{ zIndex: anchoringEnabled ? 700 : 450 }}
+        // Keep reference points above route lines for anchoring, but below
+        // route waypoints and the popup pane. A source marker must never make
+        // its colocated route waypoint or an information window inaccessible.
+        style={{ zIndex: 550 }}
       >
         {pointFeatures.map((feature) => (
           <Marker

@@ -17,10 +17,10 @@ export function ShapingPointMapPopup({
   return (
     <StableMapPopup
       position={point.position}
-      closeButton={false}
       closeOnClick={false}
       autoClose={false}
       className="route-point-map-popup"
+      eventHandlers={{ remove: onClose }}
     >
       <p><strong>Route-shaping point</strong></p>
       <p>Changes distance and geometry without creating a navlog waypoint.</p>
@@ -43,9 +43,6 @@ export function ShapingPointMapPopup({
           onClick={onDelete}
         >
           Delete <kbd>Del</kbd>
-        </button>
-        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
-          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

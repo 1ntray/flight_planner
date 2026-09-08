@@ -33,7 +33,7 @@ export interface LegWindOverride {
   fromId: string;
   toId: string;
   wind: Wind;
-  source: Exclude<NavigationWindSource, 'manual'>;
+  source: NavigationWindSource;
 }
 
 export interface CalculatedNavigationRouteLeg extends CalculatedLeg {

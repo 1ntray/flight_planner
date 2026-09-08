@@ -80,6 +80,8 @@ const document: FlightPlanningDocument = {
   },
   planningInputs: {
     departureTimeUtcMs: Date.UTC(2026, 7, 28, 9),
+    windForecastModel: 'ecmwf_ifs025',
+    manualLegWindOverrides: [],
     magneticVariationMode: 'manual',
     magneticVariationDegEast: 8.5,
     wind: { directionFromTrueDeg: 240, speedKt: 18 },
@@ -115,6 +117,50 @@ const document: FlightPlanningDocument = {
 };
 
 describe('flight-planning document persistence', () => {
+  it('defaults older route inputs to ECMWF and persists manual winds by waypoint adjacency', () => {
+    const legacyLike = {
+      ...document,
+      planningInputs: {
+        ...document.planningInputs,
+        windForecastModel: undefined,
+        manualLegWindOverrides: undefined,
+      },
+    };
+    const restoredLegacy = parseFlightPlanningDocument(legacyLike);
+    expect(restoredLegacy.planningInputs).toMatchObject({
+      windForecastModel: 'ecmwf_ifs025',
+      manualLegWindOverrides: [],
+    });
+
+    const withManualWind = {
+      ...document,
+      planningInputs: {
+        ...document.planningInputs,
+        windForecastModel: 'icon_eu' as const,
+        manualLegWindOverrides: [{
+          fromWaypointId: 'A', toWaypointId: 'B',
+          wind: { directionFromTrueDeg: 230, speedKt: 18 },
+        }],
+      },
+    };
+    expect(parseFlightPlanningDocumentJson(
+      serializeFlightPlanningDocument(withManualWind),
+    ).planningInputs).toMatchObject({
+      windForecastModel: 'icon_eu',
+      manualLegWindOverrides: withManualWind.planningInputs.manualLegWindOverrides,
+    });
+    expect(() => parseFlightPlanningDocument({
+      ...withManualWind,
+      planningInputs: {
+        ...withManualWind.planningInputs,
+        manualLegWindOverrides: [{
+          fromWaypointId: 'B', toWaypointId: 'A',
+          wind: { directionFromTrueDeg: 230, speedKt: 18 },
+        }],
+      },
+    })).toThrow('adjacent route leg');
+  });
+
   it('round-trips route inputs, shaping geometry, and anchor provenance', () => {
     const restored = parseFlightPlanningDocumentJson(
       serializeFlightPlanningDocument(document),
@@ -124,6 +170,43 @@ describe('flight-planning document persistence', () => {
     expect(restored).not.toBe(document);
     expect(restored.flightPlan.waypoints[0]?.anchor?.feature.dataset.airacCycle)
       .toBe('2608');
+  });
+
+  it('round-trips airport default override provenance without raw form values', () => {
+    const documentWithOverrides: FlightPlanningDocument = {
+      ...document,
+      performanceInputOverrides: {
+        departureElevationFtMsl: true,
+        departureQnhHpa: true,
+        destinationIsaDeviationC: true,
+      },
+      operationalInputs: {
+        fuelOnboardLitres: 224,
+        leftSeatMassKg: 56,
+        rightSeatMassKg: 0,
+        baggageMassKg: 15,
+        extraFuelLitres: 18,
+        finalReserveLitres: 36,
+        sectorOperations: [],
+        patternPlans: [],
+        alternate: null,
+      },
+      operationalInputOverrides: { leftSeatMassKg: true },
+    };
+
+    expect(
+      parseFlightPlanningDocumentJson(
+        serializeFlightPlanningDocument(documentWithOverrides),
+      ),
+    ).toEqual(documentWithOverrides);
+    expect(() => parseFlightPlanningDocument({
+      ...documentWithOverrides,
+      performanceInputOverrides: { departureQnhHpa: false },
+    })).toThrow('document.performanceInputOverrides.departureQnhHpa must be true');
+    expect(() => parseFlightPlanningDocument({
+      ...documentWithOverrides,
+      operationalInputOverrides: { fuelOnboardLitres: false },
+    })).toThrow('document.operationalInputOverrides.fuelOnboardLitres must be true');
   });
 
   it('round-trips operational loading, stop, and alternate snapshots', () => {

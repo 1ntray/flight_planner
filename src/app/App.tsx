@@ -17,6 +17,7 @@ import {
   PROJECT_AIRCRAFT_DEFINITION,
 } from '../domain';
 import { calculateInitialTakeoffLoading } from '../calculations';
+import type { CommunicationPreferences } from '../calculations';
 import {
   clearLocalDraft,
   loadLocalDraft,
@@ -41,12 +42,16 @@ import {
   createDefaultNavigationInputDraft,
   createNavigationInputDraft,
   parseNavigationInputDraft,
+  reconcileManualLegWindOverrides,
 } from './navigation/navigationInput';
 import type { NavigationInputDraft } from './navigation/navigationInput';
 import {
   createEmptyPerformanceInputDraft,
   createEmptySectorStopInputDraft,
   createPerformanceInputDraft,
+  createPerformanceInputOverrides,
+  clearPerformanceDefaultValues,
+  DEFAULT_PLANNING_ALTITUDE_FT_MSL,
   parsePerformanceInputDraft,
 } from './navigation/performanceInput';
 import type {
@@ -57,6 +62,7 @@ import {
   createEmptyOperationalInputDraft,
   createEmptySectorOperationInputDraft,
   createOperationalInputDraft,
+  createOperationalInputOverrides,
   parseOperationalInputDraft,
 } from './navigation/operationalInput';
 import type { OperationalInputDraft } from './navigation/operationalInput';
@@ -83,6 +89,7 @@ import {
   traverseRouteSelection,
 } from './interaction/selectionTraversal';
 import { PlannerSidebar } from './layout/PlannerSidebar';
+import type { PlannerSidebarTab } from './layout/PlannerSidebar';
 import { NavlogDock } from './layout/NavlogDock';
 import {
   appendAnchoredWaypointToFlightPlan,
@@ -99,6 +106,10 @@ import {
   removeWaypointFromFlightPlan,
   setWaypointSectorBoundary,
 } from './route/flightPlanState';
+import {
+  loadCommunicationPreferences,
+  saveCommunicationPreferences,
+} from './settings/communicationPreferences';
 
 const aeronauticalRepository = getConfiguredAeronauticalRepository(
   window.location.search,
@@ -222,7 +233,9 @@ function createFreshPlanningState(nowUtcMs = Date.now()): PlanningState {
       planningInputs: parsedPlanningInputs.value,
       aircraftDefinition: PROJECT_AIRCRAFT_DEFINITION,
       performanceInputs: null,
+      performanceInputOverrides: null,
       operationalInputs: null,
+      operationalInputOverrides: null,
       useForecastWinds: false,
     },
   };
@@ -241,11 +254,17 @@ function createInitialPlanningState(): InitialPlanningState {
       performanceInputDraft:
         result.document.performanceInputs === null
           ? createEmptyPerformanceInputDraft()
-          : createPerformanceInputDraft(result.document.performanceInputs),
+          : createPerformanceInputDraft(
+              result.document.performanceInputs,
+              result.document.performanceInputOverrides,
+            ),
       operationalInputDraft:
         result.document.operationalInputs === null
           ? createEmptyOperationalInputDraft()
-          : createOperationalInputDraft(result.document.operationalInputs),
+          : createOperationalInputDraft(
+              result.document.operationalInputs,
+              result.document.operationalInputOverrides,
+            ),
       useForecastWinds: result.document.useForecastWinds,
       document: result.document,
       restoredFromLocalDraft: true,
@@ -285,7 +304,11 @@ export function App() {
   const [mapSelection, setMapSelection] = useState<MapSelection | null>(null);
   const [mapTool, setMapTool] = useState<MapTool>({ kind: 'select' });
   const [activeSidebarTab, setActiveSidebarTab] =
-    useState<'planning' | 'shortcuts'>('planning');
+    useState<PlannerSidebarTab>('planning');
+  const [communicationPreferences, setCommunicationPreferences] =
+    useState<CommunicationPreferences>(() =>
+      loadCommunicationPreferences(window.localStorage),
+    );
   const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
   const [msaFocusRequest, setMsaFocusRequest] = useState(0);
   const [waypointNameFocusRequest, setWaypointNameFocusRequest] = useState(0);
@@ -367,6 +390,17 @@ export function App() {
     () => parseNavigationInputDraft(navigationInputDraft),
     [navigationInputDraft],
   );
+  useEffect(() => {
+    setNavigationInputDraft((current) => {
+      const reconciled = reconcileManualLegWindOverrides(
+        flightPlan,
+        current.manualLegWindOverrides,
+      );
+      return reconciled.length === current.manualLegWindOverrides.length
+        ? current
+        : { ...current, manualLegWindOverrides: reconciled };
+    });
+  }, [flightPlan]);
   const parsedOperationalInputs = useMemo(
     () => parseOperationalInputDraft(
       operationalInputDraft,
@@ -477,6 +511,11 @@ export function App() {
       sectorStopAerodromeReferences,
     ],
   );
+  useEffect(() => {
+    setPerformanceInputDraft((currentDraft) =>
+      clearPerformanceDefaultValues(currentDraft, performanceInputDefaults),
+    );
+  }, [performanceInputDefaults]);
   const parsedPerformanceInputs = useMemo(
     () => parsePerformanceInputDraft(
       performanceInputDraft,
@@ -504,7 +543,12 @@ export function App() {
   const communicationPlan = useCommunicationPlan(
     aeronauticalRepository,
     calculations.performanceRoute,
+    communicationPreferences,
   );
+
+  useEffect(() => {
+    saveCommunicationPreferences(window.localStorage, communicationPreferences);
+  }, [communicationPreferences]);
   const planningDocument = useMemo<FlightPlanningDocument | null>(
     () =>
       parsedPlanningInputs.status === 'valid' &&
@@ -519,9 +563,17 @@ export function App() {
               parsedPerformanceInputs.status === 'valid'
                 ? parsedPerformanceInputs.value
                 : null,
+            performanceInputOverrides:
+              parsedPerformanceInputs.status === 'valid'
+                ? createPerformanceInputOverrides(performanceInputDraft)
+                : null,
             operationalInputs:
               parsedOperationalInputs.status === 'valid'
                 ? parsedOperationalInputs.value
+                : null,
+            operationalInputOverrides:
+              parsedOperationalInputs.status === 'valid'
+                ? createOperationalInputOverrides(operationalInputDraft)
                 : null,
             useForecastWinds,
           }
@@ -530,7 +582,9 @@ export function App() {
       flightPlan,
       aircraftDefinition,
       parsedPerformanceInputs,
+      performanceInputDraft,
       parsedOperationalInputs,
+      operationalInputDraft,
       parsedPlanningInputs,
       useForecastWinds,
     ],
@@ -917,14 +971,20 @@ export function App() {
       setPerformanceInputDraft(
         document.performanceInputs === null
           ? createEmptyPerformanceInputDraft()
-          : createPerformanceInputDraft(document.performanceInputs),
+          : createPerformanceInputDraft(
+              document.performanceInputs,
+              document.performanceInputOverrides,
+            ),
       );
       setEndpointAerodromeElevations(EMPTY_ENDPOINT_AERODROME_ELEVATIONS);
       setSectorStopAerodromeElevations([]);
       setOperationalInputDraft(
         document.operationalInputs === null
           ? createEmptyOperationalInputDraft()
-          : createOperationalInputDraft(document.operationalInputs),
+          : createOperationalInputDraft(
+              document.operationalInputs,
+              document.operationalInputOverrides,
+            ),
       );
       setUseForecastWinds(document.useForecastWinds);
       setForecastRequestKey(0);
@@ -1398,6 +1458,12 @@ export function App() {
       setUseForecastWinds(true);
       setForecastRequestKey((current) => current + 1);
     },
+    onManualLegWindOverridesChange: (manualLegWindOverrides) => {
+      setNavigationInputDraft((current) => ({
+        ...current,
+        manualLegWindOverrides,
+      }));
+    },
     onChooseAlternateByIcao: chooseAlternateAerodromeByIcao,
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
@@ -1426,7 +1492,10 @@ export function App() {
             selection={mapSelection}
             tool={mapTool}
             altitudePlans={performanceInputDraft.legAltitudePlans}
-            defaultAltitudeFtMsl={performanceInputDraft.defaultAltitudeFtMsl}
+            defaultAltitudeFtMsl={
+              performanceInputDraft.defaultAltitudeFtMsl ||
+              String(DEFAULT_PLANNING_ALTITUDE_FT_MSL)
+            }
             altitudeFocusRequest={altitudeFocusRequest}
             msaFocusRequest={msaFocusRequest}
             waypointNameFocusRequest={waypointNameFocusRequest}
@@ -1511,7 +1580,10 @@ export function App() {
                 title="Sequential altitude entry"
                 itemLabel={`${batchEntryMode.index + 1} of ${flightPlan.waypoints.length - 1} · ${from.name} → ${to.name}`}
                 initialValue={plan?.altitudeFtMsl === undefined ? '' : String(plan.altitudeFtMsl)}
-                placeholder={performanceInputDraft.defaultAltitudeFtMsl || 'Global altitude'}
+                placeholder={
+                  performanceInputDraft.defaultAltitudeFtMsl ||
+                  String(DEFAULT_PLANNING_ALTITUDE_FT_MSL)
+                }
                 inputMode="numeric"
                 unit="ft MSL"
                 onCommit={(value) => {
@@ -1574,6 +1646,9 @@ export function App() {
           planningDocument={planningDocument}
           localDraftStatus={localDraftStatus}
           navigationLogProps={navigationLogProps}
+          aeronauticalRepository={aeronauticalRepository}
+          communicationPreferences={communicationPreferences}
+          onCommunicationPreferencesChange={setCommunicationPreferences}
           onActiveTabChange={setActiveSidebarTab}
           onClearRoute={clearRoute}
           onImport={importPlanningDocument}

@@ -123,6 +123,15 @@ the clicked waypoint is anchored.
   information popup or block the deliberate map-add action.
 - Communication services relate frequencies to aerodromes and/or airspaces;
   frequencies are not owned by generic map features or persisted FlightPlans.
+- A published callsign/service remains a distinct communication-service identity;
+  frequencies from different callsigns are not flattened into one service.
+- The navlog derives communication changes from the WGS84 route and calculated
+  altitude profile. A service-label change does not create a retune when the
+  selected numeric operating frequency is unchanged, and multiple changes on
+  one leg remain on that leg.
+- Per-service frequency preferences are local application settings. They are
+  not part of `FlightPlan` persistence and do not change the normalized AIRAC
+  dataset.
 - ATS service areas are separate, data-only coverage volumes. They associate a
   published unit/service/frequency with WGS84 lateral geometry and semantic
   vertical limits for future frequency selection, but are not regulatory
@@ -219,6 +228,11 @@ Run `pnpm typecheck` and `pnpm test` before merging changes.
 - Anchored waypoint coordinates and complete source provenance are loaded from
   the saved snapshot. Loading never substitutes a coordinate from the currently
   configured aeronautical repository.
+- A discovered eAIP edition is candidate reference data only. The checked-in
+  edition pin and browser repository selector may change only through a reviewed
+  merge; scheduled automation must never activate or merge an AIRAC update.
+- eAIP discovery/import remains Node-only. Browser startup and normal planning
+  must never contact Avinor or parse provider HTML.
 - Browser autosave uses the same versioned document and validation boundary as
   file persistence. It retains the last valid document while a form draft is
   invalid and never persists the draft's raw text-field representation.

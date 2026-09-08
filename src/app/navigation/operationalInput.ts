@@ -1,9 +1,18 @@
 import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 import type {
   AircraftDefinition,
+  OperationalInputOverrides,
   OperationalPlanningInputs,
   Waypoint,
 } from '../../domain';
+
+export const DEFAULT_FUEL_ONBOARD_LITRES = 224;
+export const DEFAULT_LEFT_SEAT_MASS_KG = 56;
+export const DEFAULT_RIGHT_SEAT_MASS_KG = 0;
+export const DEFAULT_BAGGAGE_MASS_KG = 15;
+export const DEFAULT_EXTRA_FUEL_LITRES = 18;
+export const DEFAULT_FINAL_RESERVE_LITRES = 36;
+export const DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL = 2500;
 
 export interface SectorOperationInputDraft {
   waypointId: string;
@@ -41,17 +50,17 @@ export type OperationalInputParseResult =
 
 export function createEmptyOperationalInputDraft(): OperationalInputDraft {
   return {
-    fuelOnboardLitres: '224',
-    leftSeatMassKg: '56',
-    rightSeatMassKg: '0',
-    baggageMassKg: '15',
-    extraFuelLitres: '18',
-    finalReserveLitres: '36',
+    fuelOnboardLitres: '',
+    leftSeatMassKg: '',
+    rightSeatMassKg: '',
+    baggageMassKg: '',
+    extraFuelLitres: '',
+    finalReserveLitres: '',
     sectorOperations: [],
     patternPlans: [],
     alternateEnabled: false,
     alternateWaypoint: null,
-    alternatePlannedAltitudeFtMsl: '2500',
+    alternatePlannedAltitudeFtMsl: '',
     alternateDistanceNm: '',
     alternateTimeMinutes: '',
     alternateFuelLitres: '',
@@ -71,20 +80,53 @@ export function createEmptySectorOperationInputDraft(
 export function createEmptyAerodromePatternInputDraft(
   waypointId: string,
 ): AerodromePatternInputDraft {
-  return { waypointId, patternCount: '0' };
+  return { waypointId, patternCount: '' };
 }
 
 export function createOperationalInputDraft(
   inputs: OperationalPlanningInputs,
+  overrides: OperationalInputOverrides | null | undefined = undefined,
 ): OperationalInputDraft {
   const alternate = inputs.alternate;
+  const isExplicit = (field: keyof OperationalInputOverrides) =>
+    overrides === undefined || overrides?.[field] === true;
+  const valueOrDefault = (
+    value: number,
+    defaultValue: number,
+    explicit: boolean,
+  ) => explicit && value !== defaultValue ? String(value) : '';
+
   return {
-    fuelOnboardLitres: String(inputs.fuelOnboardLitres),
-    leftSeatMassKg: String(inputs.leftSeatMassKg),
-    rightSeatMassKg: String(inputs.rightSeatMassKg),
-    baggageMassKg: String(inputs.baggageMassKg),
-    extraFuelLitres: String(inputs.extraFuelLitres),
-    finalReserveLitres: String(inputs.finalReserveLitres),
+    fuelOnboardLitres: valueOrDefault(
+      inputs.fuelOnboardLitres,
+      DEFAULT_FUEL_ONBOARD_LITRES,
+      isExplicit('fuelOnboardLitres'),
+    ),
+    leftSeatMassKg: valueOrDefault(
+      inputs.leftSeatMassKg,
+      DEFAULT_LEFT_SEAT_MASS_KG,
+      isExplicit('leftSeatMassKg'),
+    ),
+    rightSeatMassKg: valueOrDefault(
+      inputs.rightSeatMassKg,
+      DEFAULT_RIGHT_SEAT_MASS_KG,
+      isExplicit('rightSeatMassKg'),
+    ),
+    baggageMassKg: valueOrDefault(
+      inputs.baggageMassKg,
+      DEFAULT_BAGGAGE_MASS_KG,
+      isExplicit('baggageMassKg'),
+    ),
+    extraFuelLitres: valueOrDefault(
+      inputs.extraFuelLitres,
+      DEFAULT_EXTRA_FUEL_LITRES,
+      isExplicit('extraFuelLitres'),
+    ),
+    finalReserveLitres: valueOrDefault(
+      inputs.finalReserveLitres,
+      DEFAULT_FINAL_RESERVE_LITRES,
+      isExplicit('finalReserveLitres'),
+    ),
     sectorOperations: inputs.sectorOperations.map((operation) => ({
       waypointId: operation.waypointId,
       kind: operation.kind,
@@ -100,11 +142,36 @@ export function createOperationalInputDraft(
     alternateEnabled: alternate !== null,
     alternateWaypoint: alternate?.waypoint ?? null,
     alternatePlannedAltitudeFtMsl:
-      alternate === null ? '2500' : String(alternate.plannedAltitudeFtMsl),
+      alternate === null
+        ? ''
+        : valueOrDefault(
+            alternate.plannedAltitudeFtMsl,
+            DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL,
+            isExplicit('alternatePlannedAltitudeFtMsl'),
+          ),
     alternateDistanceNm: alternate === null ? '' : String(alternate.distanceNm),
     alternateTimeMinutes: alternate === null ? '' : String(alternate.timeMinutes),
     alternateFuelLitres: alternate === null ? '' : String(alternate.fuelLitres),
   };
+}
+
+/** Captures user changes while leaving standard loading values as defaults. */
+export function createOperationalInputOverrides(
+  draft: OperationalInputDraft,
+): OperationalInputOverrides | null {
+  const isEntered = (value: string) => value.trim() !== '';
+  const overrides: OperationalInputOverrides = {
+    ...(isEntered(draft.fuelOnboardLitres) ? { fuelOnboardLitres: true } : {}),
+    ...(isEntered(draft.leftSeatMassKg) ? { leftSeatMassKg: true } : {}),
+    ...(isEntered(draft.rightSeatMassKg) ? { rightSeatMassKg: true } : {}),
+    ...(isEntered(draft.baggageMassKg) ? { baggageMassKg: true } : {}),
+    ...(isEntered(draft.extraFuelLitres) ? { extraFuelLitres: true } : {}),
+    ...(isEntered(draft.finalReserveLitres) ? { finalReserveLitres: true } : {}),
+    ...(isEntered(draft.alternatePlannedAltitudeFtMsl)
+      ? { alternatePlannedAltitudeFtMsl: true }
+      : {}),
+  };
+  return Object.keys(overrides).length === 0 ? null : overrides;
 }
 
 function parseNumber(
@@ -131,17 +198,6 @@ export function parseOperationalInputDraft(
   sectorBoundaryWaypointIds: readonly string[] = [],
   landingWaypointIds: readonly string[] = sectorBoundaryWaypointIds,
 ): OperationalInputParseResult {
-  const operationalStarted =
-    [
-      draft.fuelOnboardLitres,
-      draft.leftSeatMassKg,
-      draft.rightSeatMassKg,
-      draft.baggageMassKg,
-    ].some((value) => value.trim() !== '') || draft.alternateEnabled;
-
-  if (!operationalStarted) {
-    return { status: 'empty' };
-  }
   if (aircraft.fuelSystem === undefined || aircraft.weightBalance === undefined) {
     return {
       status: 'invalid',
@@ -150,12 +206,42 @@ export function parseOperationalInputDraft(
   }
 
   const fields = [
-    [draft.fuelOnboardLitres, 'Fuel onboard'],
-    [draft.leftSeatMassKg, 'Left-seat mass'],
-    [draft.rightSeatMassKg, 'Right-seat mass'],
-    [draft.baggageMassKg, 'Baggage mass'],
-    [draft.extraFuelLitres, 'Extra fuel'],
-    [draft.finalReserveLitres, 'Final reserve'],
+    [
+      draft.fuelOnboardLitres.trim() === ''
+        ? String(DEFAULT_FUEL_ONBOARD_LITRES)
+        : draft.fuelOnboardLitres,
+      'Fuel onboard',
+    ],
+    [
+      draft.leftSeatMassKg.trim() === ''
+        ? String(DEFAULT_LEFT_SEAT_MASS_KG)
+        : draft.leftSeatMassKg,
+      'Left-seat mass',
+    ],
+    [
+      draft.rightSeatMassKg.trim() === ''
+        ? String(DEFAULT_RIGHT_SEAT_MASS_KG)
+        : draft.rightSeatMassKg,
+      'Right-seat mass',
+    ],
+    [
+      draft.baggageMassKg.trim() === ''
+        ? String(DEFAULT_BAGGAGE_MASS_KG)
+        : draft.baggageMassKg,
+      'Baggage mass',
+    ],
+    [
+      draft.extraFuelLitres.trim() === ''
+        ? String(DEFAULT_EXTRA_FUEL_LITRES)
+        : draft.extraFuelLitres,
+      'Extra fuel',
+    ],
+    [
+      draft.finalReserveLitres.trim() === ''
+        ? String(DEFAULT_FINAL_RESERVE_LITRES)
+        : draft.finalReserveLitres,
+      'Final reserve',
+    ],
   ] as const;
   const parsed: number[] = [];
   for (const [value, label] of fields) {
@@ -271,7 +357,9 @@ export function parseOperationalInputDraft(
       };
     }
     seenPatternWaypointIds.add(plan.waypointId);
-    const patternCount = parseNumber(plan.patternCount, 'Pattern count');
+    const patternCount = plan.patternCount.trim() === ''
+      ? 0
+      : parseNumber(plan.patternCount, 'Pattern count');
     if (typeof patternCount === 'string') {
       return { status: 'invalid', message: patternCount };
     }
@@ -286,7 +374,13 @@ export function parseOperationalInputDraft(
   let alternate: OperationalPlanningInputs['alternate'] = null;
   if (draft.alternateEnabled) {
     const alternateFields = [
-      [draft.alternatePlannedAltitudeFtMsl, 'Alternate planned altitude', 0],
+      [
+        draft.alternatePlannedAltitudeFtMsl.trim() === ''
+          ? String(DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL)
+          : draft.alternatePlannedAltitudeFtMsl,
+        'Alternate planned altitude',
+        0,
+      ],
       [draft.alternateDistanceNm, 'Alternate distance', 0],
       [draft.alternateTimeMinutes, 'Alternate time', 0],
       [draft.alternateFuelLitres, 'Alternate fuel', 0],

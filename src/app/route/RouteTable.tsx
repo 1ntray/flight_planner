@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import type {
   CalculatedNavigationRoute,
@@ -8,15 +8,20 @@ import type {
   CalculatedSectorOperationalFlightPlan,
   WindAdjustedLegResult,
 } from '../../calculations';
-import { calculateMagneticDirectionDeg, normalizeTrackDeg } from '../../calculations';
 import type {
   AlternatePlanningInputs,
   LegAltitudePlan,
+  ManualLegWindOverride,
   Waypoint,
 } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
 import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
 import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
+import {
+  calculateNavlogDirectionDisplay,
+  roundNavlogAccumulatedIncrement,
+  roundNavlogValue,
+} from './navlogPresentation';
 import {
   formatDistanceNmValue,
   formatEetMinutesValue,
@@ -48,10 +53,92 @@ export interface RouteTableProps {
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
   communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
+  manualLegWindOverrides?: readonly ManualLegWindOverride[];
+  onManualLegWindOverridesChange?: (
+    overrides: readonly ManualLegWindOverride[],
+  ) => void;
 }
 
 function legKey(fromId: string, toId: string): string {
   return `${fromId}\0${toId}`;
+}
+
+function ManualLegWindEditor({
+  route,
+  waypoints,
+  forecastWinds,
+  overrides,
+  onChange,
+}: {
+  route: CalculatedNavigationRoute;
+  waypoints: readonly Waypoint[];
+  forecastWinds: readonly ForecastLegWind[];
+  overrides: readonly ManualLegWindOverride[];
+  onChange: (overrides: readonly ManualLegWindOverride[]) => void;
+}) {
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [direction, setDirection] = useState('');
+  const [speed, setSpeed] = useState('');
+  const overridesByLeg = new Map(overrides.map((override) => [
+    legKey(override.fromWaypointId, override.toWaypointId), override,
+  ]));
+  const forecastsByLeg = new Map<string, ForecastLegWind[]>();
+  for (const forecast of forecastWinds) {
+    const key = legKey(forecast.fromId, forecast.toId);
+    forecastsByLeg.set(key, [...(forecastsByLeg.get(key) ?? []), forecast]);
+  }
+  const startEditing = (key: string, override: ManualLegWindOverride | undefined, fallback: { directionFromTrueDeg: number; speedKt: number } | null) => {
+    setEditingKey(key);
+    setDirection(String(Math.round(override?.wind.directionFromTrueDeg ?? fallback?.directionFromTrueDeg ?? 0)));
+    setSpeed(String(Math.round(override?.wind.speedKt ?? fallback?.speedKt ?? 0)));
+  };
+  if (route.legs.length === 0) return null;
+  return (
+    <section className="route-table__manual-winds" aria-label="Per-leg wind overrides">
+      <h4>Per-leg wind overrides</h4>
+      <p>Manual wind is true direction FROM and takes precedence over the selected forecast.</p>
+      <ul>
+        {route.legs.map((leg, index) => {
+          const key = legKey(leg.fromId, leg.toId);
+          const override = overridesByLeg.get(key);
+          const forecasts = forecastsByLeg.get(key) ?? [];
+          const forecast = forecasts[0];
+          const effectiveWind = override?.wind ?? leg.wind;
+          const isEditing = editingKey === key;
+          return <li key={key}>
+            <strong>{waypoints[index]?.name ?? leg.fromId} → {waypoints[index + 1]?.name ?? leg.toId}</strong>{' '}
+            <span>{override === undefined ? 'Forecast / fallback' : 'Manual'}: {effectiveWind === null ? '—' : `${Math.round(effectiveWind.directionFromTrueDeg).toString().padStart(3, '0')}°T / ${Math.round(effectiveWind.speedKt)} kt`}</span>
+            {forecast === undefined ? null : <small> Forecast: {forecast.modelLabel} {Math.round(forecast.wind.directionFromTrueDeg).toString().padStart(3, '0')}°T / {Math.round(forecast.wind.speedKt)} kt.</small>}
+            {isEditing ? (
+              <form onSubmit={(event) => {
+                event.preventDefault();
+                const parsedDirection = Number(direction);
+                const parsedSpeed = Number(speed);
+                if (!Number.isFinite(parsedDirection) || !Number.isFinite(parsedSpeed) || parsedSpeed < 0) return;
+                const next = overrides.filter((item) => legKey(item.fromWaypointId, item.toWaypointId) !== key);
+                onChange([...next, {
+                  fromWaypointId: leg.fromId,
+                  toWaypointId: leg.toId,
+                  wind: { directionFromTrueDeg: ((parsedDirection % 360) + 360) % 360, speedKt: parsedSpeed },
+                }]);
+                setEditingKey(null);
+              }}>
+                <label>Direction <input aria-label={`${waypoints[index]?.name ?? leg.fromId} to ${waypoints[index + 1]?.name ?? leg.toId} manual wind direction`} type="number" value={direction} onChange={(event) => setDirection(event.currentTarget.value)} autoFocus /> °T</label>
+                <label>Speed <input aria-label={`${waypoints[index]?.name ?? leg.fromId} to ${waypoints[index + 1]?.name ?? leg.toId} manual wind speed`} type="number" min="0" value={speed} onChange={(event) => setSpeed(event.currentTarget.value)} /> kt</label>
+                <button className="button" type="submit">Apply manual wind</button>
+                <button className="button" type="button" onClick={() => setEditingKey(null)}>Cancel</button>
+              </form>
+            ) : (
+              <>
+                <button className="button" type="button" onClick={() => startEditing(key, override, forecast?.wind ?? leg.wind)}>Edit manually</button>
+                {override === undefined ? null : <button className="button" type="button" onClick={() => onChange(overrides.filter((item) => legKey(item.fromWaypointId, item.toWaypointId) !== key))}>Use forecast</button>}
+              </>
+            )}
+          </li>;
+        })}
+      </ul>
+    </section>
+  );
 }
 
 function getNoSolutionMessage(result: WindAdjustedLegResult): string | null {
@@ -110,20 +197,6 @@ function variationDetails(
   return undefined;
 }
 
-function windCorrection(
-  trueTrackDeg: number | null,
-  trueHeadingDeg: number | null,
-): string {
-  if (trueTrackDeg === null || trueHeadingDeg === null) return '—';
-  const correction =
-    ((normalizeTrackDeg(trueHeadingDeg) -
-      normalizeTrackDeg(trueTrackDeg) +
-      540) %
-      360) -
-    180;
-  return formatWindCorrectionDeg(correction);
-}
-
 function effectiveFuelFlowLph(leg: CalculatedPerformanceLeg): number | null {
   return leg.eetSeconds <= 0
     ? null
@@ -131,25 +204,70 @@ function effectiveFuelFlowLph(leg: CalculatedPerformanceLeg): number | null {
 }
 
 function formatTas(value: number | null): string {
-  return value === null ? '—' : value.toFixed(1);
+  return value === null ? '—' : roundNavlogValue(value).toString();
 }
 
 function formatFuel(value: number | null | undefined): string {
-  return value === null || value === undefined ? '—' : value.toFixed(1);
+  return value === null || value === undefined ? '—' : roundNavlogValue(value).toString();
+}
+
+function formatDistanceIncrement(
+  accumulatedDistanceNm: number,
+  priorAccumulatedDistanceNm: number,
+): string {
+  return roundNavlogAccumulatedIncrement(
+    accumulatedDistanceNm,
+    priorAccumulatedDistanceNm,
+  ).toString();
+}
+
+function formatTimeIncrement(
+  accumulatedSeconds: number,
+  priorAccumulatedSeconds: number,
+): string {
+  return roundNavlogAccumulatedIncrement(
+    accumulatedSeconds / 60,
+    priorAccumulatedSeconds / 60,
+  ).toString();
+}
+
+function formatFuelIncrement(
+  accumulatedFuelLitres: number,
+  priorAccumulatedFuelLitres: number,
+): string {
+  return roundNavlogAccumulatedIncrement(
+    accumulatedFuelLitres,
+    priorAccumulatedFuelLitres,
+  ).toString();
 }
 
 function communicationCell(changes: readonly CommunicationChange[]): {
-  readonly text: string;
+  readonly lines: readonly string[];
   readonly title: string;
 } {
-  const values = changes.flatMap(({ selection }) =>
-    selection.services.flatMap((service) => service.frequencies.map((frequency) => ({
-      text: frequency.valueMHz,
-      title: `${service.callsign ?? service.publishedServiceType} ${frequency.valueMHz} MHz`,
-    }))),
-  );
+  const values = changes.map(({ distanceFromLegStartNm, selection }) => {
+    const location = distanceFromLegStartNm <= 0.05
+      ? 'at leg start'
+      : `${distanceFromLegStartNm.toFixed(1)} NM from leg start`;
+    if (selection.operatingFrequency.status === 'selected') {
+      const { candidate } = selection.operatingFrequency;
+      return {
+        text: candidate.frequency.valueMHz,
+        title: `${candidate.callsign ?? candidate.publishedServiceType} ${candidate.frequency.valueMHz} MHz (${location})`,
+      };
+    }
+    const labels = selection.operatingFrequency.candidates.map((candidate) =>
+      `${candidate.callsign ?? candidate.publishedServiceType} ${candidate.frequency.valueMHz} MHz`,
+    );
+    return {
+      text: `${selection.operatingFrequency.candidates
+        .map(({ frequency }) => frequency.valueMHz)
+        .join(' / ')} ?`,
+      title: `Choose a preferred frequency in Settings: ${labels.join('; ')} (${location})`,
+    };
+  });
   return {
-    text: values.map(({ text }) => text).join(' / '),
+    lines: values.map(({ text }) => text),
     title: values.map(({ title }) => title).join('; '),
   };
 }
@@ -170,26 +288,48 @@ function AlternateRow({
   const leg = alternateNavigationRoute?.legs[0];
   if (leg === undefined) return null;
   const navigation = leg.navigation?.status === 'ok' ? leg.navigation : null;
+  const directions = calculateNavlogDirectionDisplay(
+    leg.trueTrackDeg,
+    leg.magneticVariationDegEast,
+    navigation?.trueHeadingDeg ?? null,
+  );
+  const priorAccumulatedDistanceNm = progress === null || progress === undefined
+    ? null
+    : progress.accumulatedDistanceNm - alternate.distanceNm;
+  const priorAccumulatedTimeSeconds = progress === null || progress === undefined
+    ? null
+    : progress.accumulatedTimeSeconds - alternate.timeMinutes * 60;
+  const priorAccumulatedFuelLitres =
+    progress?.accumulatedFuelLitres === null ||
+    progress?.accumulatedFuelLitres === undefined
+      ? null
+      : progress.accumulatedFuelLitres - alternate.fuelLitres;
   return (
     <tr className="route-table__alternate-row">
       <td>Alt.</td>
       <td>{formatTas(trueAirspeedKt ?? null)}</td>
-      <td>{formatTrueTrackDeg(leg.trueTrackDeg)}</td>
-      <td>{formatVariation(leg.magneticVariationDegEast)}</td>
-      <td>{formatMagneticTrackDeg(leg.magneticTrackDeg)}</td>
+      <td>{formatTrueTrackDeg(directions.trueTrackDeg)}</td>
+      <td>{formatVariation(directions.variationDegEast)}</td>
+      <td>{formatMagneticTrackDeg(directions.magneticTrackDeg)}</td>
       <td>{formatWindValue(leg.wind)}</td>
-      <td>{windCorrection(leg.trueTrackDeg, navigation?.trueHeadingDeg ?? null)}</td>
+      <td>{directions.windCorrectionDeg === null ? '—' : formatWindCorrectionDeg(directions.windCorrectionDeg)}</td>
       <td>{progress === null || progress === undefined ? '—' : formatDistanceNmValue(progress.accumulatedDistanceNm)}</td>
       <td>{progress === null || progress === undefined ? '—' : formatEetMinutesValue(progress.accumulatedTimeSeconds)}</td>
       <td>—</td>
-      <td>{formatFuel(alternate.fuelLitres)}</td>
+      <td>{priorAccumulatedFuelLitres === null || progress?.accumulatedFuelLitres === null || progress?.accumulatedFuelLitres === undefined
+        ? formatFuel(alternate.fuelLitres)
+        : formatFuelIncrement(progress.accumulatedFuelLitres, priorAccumulatedFuelLitres)}</td>
       <td>{progress === null || progress === undefined ? '—' : formatFuel(progress.accumulatedFuelLitres)}</td>
       <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
       <td>—</td><td>{Math.round(alternate.plannedAltitudeFtMsl)}</td>
-      <td>{formatMagneticHeadingDeg(leg.magneticHeadingDeg)}</td>
+      <td>{formatMagneticHeadingDeg(directions.magneticHeadingDeg)}</td>
       <td>{navigation === null ? '—' : formatGroundSpeedKtValue(navigation.groundSpeedKt)}</td>
-      <td>{formatDistanceNmValue(alternate.distanceNm)}</td>
-      <td>{formatEetMinutesValue(alternate.timeMinutes * 60)}</td>
+      <td>{priorAccumulatedDistanceNm === null || progress === null || progress === undefined
+        ? formatDistanceNmValue(alternate.distanceNm)
+        : formatDistanceIncrement(progress.accumulatedDistanceNm, priorAccumulatedDistanceNm)}</td>
+      <td>{priorAccumulatedTimeSeconds === null || progress === null || progress === undefined
+        ? formatEetMinutesValue(alternate.timeMinutes * 60)
+        : formatTimeIncrement(progress.accumulatedTimeSeconds, priorAccumulatedTimeSeconds)}</td>
       <td>—</td><td>—</td><td>—</td>
       <td>{progress === null || progress === undefined ? '—' : formatFuel(progress.estimatedFuelRemainingLitres)}</td>
       <td>—</td><td>—</td>
@@ -205,6 +345,8 @@ function PatternRow({
   waypointNames: ReadonlyMap<string, string>;
 }) {
   const airportName = waypointNames.get(row.airportWaypointId) ?? row.airportWaypointId;
+  const priorAccumulatedSeconds = row.accumulated.airborneSeconds - row.intermediate.airborneSeconds;
+  const priorAccumulatedFuelLitres = row.accumulated.airborneFuelLitres - row.intermediate.airborneFuelLitres;
   return (
     <tr className="route-table__pattern-row">
       <td>{airportName}</td>
@@ -212,12 +354,12 @@ function PatternRow({
       <td>—</td>
       <td>{formatEetMinutesValue(row.accumulated.airborneSeconds)}</td>
       <td>{formatFuel(row.fuelFlowLph)}</td>
-      <td>{formatFuel(row.intermediate.airborneFuelLitres)}</td>
+      <td>{formatFuelIncrement(row.accumulated.airborneFuelLitres, priorAccumulatedFuelLitres)}</td>
       <td>{formatFuel(row.accumulated.airborneFuelLitres)}</td>
       <td>{airportName}</td>
       <td>—</td><td>{Math.round(row.patternAltitudeFtMsl)}</td><td>—</td>
       <td>—</td><td>—</td>
-      <td>{formatEetMinutesValue(row.intermediate.airborneSeconds)}</td>
+      <td>{formatTimeIncrement(row.accumulated.airborneSeconds, priorAccumulatedSeconds)}</td>
       <td>—</td><td>—</td><td>—</td>
       <td>{formatFuel(row.estimatedFuelRemainingLitres)}</td>
       <td>—</td><td>—</td>
@@ -238,6 +380,8 @@ export function RouteTable({
   forecastWinds = [],
   legAltitudePlans = [],
   communicationChangesByLeg = new Map(),
+  manualLegWindOverrides = [],
+  onManualLegWindOverridesChange,
 }: RouteTableProps) {
   const waypointNames = useMemo(
     () =>
@@ -292,6 +436,19 @@ export function RouteTable({
   let localDistanceNm = 0;
   let localTimeSeconds = 0;
   let localFuelLitres = 0;
+  const operationalSectorPriorAccumulated = operationalSector === undefined
+    ? null
+    : {
+        distanceNm:
+          operationalSector.accumulatedTotal.distanceNm -
+          operationalSector.intermediateTotal.distanceNm,
+        airborneSeconds:
+          operationalSector.accumulatedTotal.airborneSeconds -
+          operationalSector.intermediateTotal.airborneSeconds,
+        airborneFuelLitres:
+          operationalSector.accumulatedTotal.airborneFuelLitres -
+          operationalSector.intermediateTotal.airborneFuelLitres,
+      };
 
   return (
     <div className="route-table-wrap route-table-wrap--ofp">
@@ -336,6 +493,11 @@ export function RouteTable({
               );
               const eetSeconds = performanceLeg?.eetSeconds ?? leg.eetSeconds;
               const fuelLitres = performanceLeg?.fuelLitres ?? 0;
+              const priorFallbackAccumulated = {
+                distanceNm: localDistanceNm,
+                airborneSeconds: localTimeSeconds,
+                airborneFuelLitres: localFuelLitres,
+              };
               localDistanceNm += leg.distanceNm;
               localTimeSeconds += eetSeconds ?? 0;
               localFuelLitres += fuelLitres;
@@ -344,15 +506,26 @@ export function RouteTable({
                 airborneSeconds: localTimeSeconds,
                 airborneFuelLitres: localFuelLitres,
               };
+              const priorAccumulated = operationalRow === undefined
+                ? priorFallbackAccumulated
+                : {
+                    distanceNm:
+                      operationalRow.accumulated.distanceNm -
+                      operationalRow.intermediate.distanceNm,
+                    airborneSeconds:
+                      operationalRow.accumulated.airborneSeconds -
+                      operationalRow.intermediate.airborneSeconds,
+                    airborneFuelLitres:
+                      operationalRow.accumulated.airborneFuelLitres -
+                      operationalRow.intermediate.airborneFuelLitres,
+                  };
               const trueHeadingDeg =
                 summary?.trueHeadingDeg ?? solution?.trueHeadingDeg ?? null;
-              const magneticHeadingDeg =
-                leg.magneticVariationDegEast === null || trueHeadingDeg === null
-                  ? null
-                  : calculateMagneticDirectionDeg(
-                      trueHeadingDeg,
-                      leg.magneticVariationDegEast,
-                    );
+              const directions = calculateNavlogDirectionDisplay(
+                leg.trueTrackDeg,
+                leg.magneticVariationDegEast,
+                trueHeadingDeg,
+              );
               const wind = summary?.wind ?? leg.wind;
               const endTimeUtcMs =
                 performanceLeg?.endTimeUtcMs ?? leg.endTimeUtcMs;
@@ -376,22 +549,22 @@ export function RouteTable({
                 <tr key={legKey(leg.fromId, leg.toId)}>
                   <td>{waypointNames.get(leg.fromId) ?? leg.fromId}</td>
                   <td>{performanceLeg === undefined ? '—' : formatTas(representativeTasKt(performanceLeg))}</td>
-                  <td>{formatTrueTrackDeg(leg.trueTrackDeg)}</td>
-                  <td title={magneticVariationDetails}>{formatVariation(leg.magneticVariationDegEast)}</td>
-                  <td>{formatMagneticTrackDeg(leg.magneticTrackDeg)}</td>
+                  <td>{formatTrueTrackDeg(directions.trueTrackDeg)}</td>
+                  <td title={magneticVariationDetails}>{formatVariation(directions.variationDegEast)}</td>
+                  <td>{formatMagneticTrackDeg(directions.magneticTrackDeg)}</td>
                   <td title={windDetails}>{formatWindValue(wind)}</td>
-                  <td>{windCorrection(leg.trueTrackDeg, trueHeadingDeg)}</td>
+                  <td>{directions.windCorrectionDeg === null ? '—' : formatWindCorrectionDeg(directions.windCorrectionDeg)}</td>
                   <td>{formatDistanceNmValue(accumulated.distanceNm)}</td>
                   <td>{formatEetMinutesValue(accumulated.airborneSeconds)}</td>
                   <td>{performanceLeg === undefined ? '—' : formatFuel(effectiveFuelFlowLph(performanceLeg))}</td>
-                  <td>{performanceLeg === undefined ? '—' : formatFuel(performanceLeg.fuelLitres)}</td>
+                  <td>{performanceLeg === undefined ? '—' : formatFuelIncrement(accumulated.airborneFuelLitres, priorAccumulated.airborneFuelLitres)}</td>
                   <td>{operationalRow === undefined ? '—' : formatFuel(accumulated.airborneFuelLitres)}</td>
                   <td>{waypointNames.get(leg.toId) ?? leg.toId}</td>
                   <td>{altitudePlan?.minimumSafeAltitudeFtMsl === undefined
                     ? '—'
                     : Math.round(altitudePlan.minimumSafeAltitudeFtMsl)}</td>
                   <td>{performanceLeg === undefined ? '—' : Math.round(performanceLeg.targetAltitudeFtMsl)}</td>
-                  <td>{formatMagneticHeadingDeg(magneticHeadingDeg)}</td>
+                  <td>{formatMagneticHeadingDeg(directions.magneticHeadingDeg)}</td>
                   <td>{performanceLeg?.effectiveGroundSpeedKt !== undefined
                     ? performanceLeg.effectiveGroundSpeedKt === null
                       ? '—'
@@ -399,14 +572,23 @@ export function RouteTable({
                     : solution === null
                       ? '—'
                       : formatGroundSpeedKtValue(solution.groundSpeedKt)}</td>
-                  <td>{formatDistanceNmValue(leg.distanceNm)}</td>
-                  <td title={noSolution ?? undefined}>{eetSeconds === null ? '—' : formatEetMinutesValue(eetSeconds)}</td>
+                  <td>{formatDistanceIncrement(accumulated.distanceNm, priorAccumulated.distanceNm)}</td>
+                  <td title={noSolution ?? undefined}>{eetSeconds === null ? '—' : formatTimeIncrement(accumulated.airborneSeconds, priorAccumulated.airborneSeconds)}</td>
                   <td title={endTimeUtcMs === null ? undefined : formatUtcDateTime(endTimeUtcMs)}>{endTimeUtcMs === null || route.departureTimeUtcMs === null ? '—' : formatUtcRouteTime(endTimeUtcMs, route.departureTimeUtcMs)}</td>
                   <td>—</td><td>—</td>
                   <td>{operationalRow === undefined ? '—' : formatFuel(operationalRow.estimatedFuelRemainingLitres)}</td>
                   <td>—</td>
                   <td title={communication.title || undefined}>
-                    {communication.text || '—'}
+                    {communication.lines.length === 0
+                      ? '—'
+                      : communication.lines.map((line, index) => (
+                          <span
+                            key={`${line}:${index}`}
+                            className="route-table__frequency-line"
+                          >
+                            {line}
+                          </span>
+                        ))}
                   </td>
                 </tr>
               );
@@ -440,20 +622,42 @@ export function RouteTable({
                 : formatEetMinutesValue(operationalSector.accumulatedTotal.airborneSeconds)
                 : formatEetMinutesValue(alternateProgress.accumulatedTimeSeconds)}</td>
               <td>—</td>
-              <td>{formatFuel(operationalSector?.intermediateTotal.airborneFuelLitres ?? (performanceRoute?.status === 'ok' ? performanceRoute.totalFuelLitres : null))}</td>
+              <td>{operationalSectorPriorAccumulated === null || operationalSector === undefined
+                ? formatFuel(performanceRoute?.status === 'ok' ? performanceRoute.totalFuelLitres : null)
+                : formatFuelIncrement(
+                    operationalSector.accumulatedTotal.airborneFuelLitres,
+                    operationalSectorPriorAccumulated.airborneFuelLitres,
+                  )}</td>
               <td>{formatFuel(alternateProgress?.accumulatedFuelLitres ?? operationalSector?.accumulatedTotal.airborneFuelLitres)}</td>
               <td>Total</td><td colSpan={4} />
-              <td>{formatDistanceNmValue(operationalSector?.intermediateTotal.distanceNm ?? route.totalDistanceNm)}</td>
+              <td>{operationalSectorPriorAccumulated === null || operationalSector === undefined
+                ? formatDistanceNmValue(route.totalDistanceNm)
+                : formatDistanceIncrement(
+                    operationalSector.accumulatedTotal.distanceNm,
+                    operationalSectorPriorAccumulated.distanceNm,
+                  )}</td>
               <td>{operationalSector === undefined
                 ? route.totalEetSeconds === null
                   ? '—'
                   : formatEetMinutesValue(route.totalEetSeconds)
-                : formatEetMinutesValue(operationalSector.intermediateTotal.airborneSeconds)}</td>
+                : formatTimeIncrement(
+                    operationalSector.accumulatedTotal.airborneSeconds,
+                    operationalSectorPriorAccumulated!.airborneSeconds,
+                  )}</td>
               <td colSpan={3} />
               <td>{formatFuel(alternateProgress?.estimatedFuelRemainingLitres ?? operationalSector?.fuelAtLandingLitres)}</td><td /><td />
             </tr>
           </tfoot>
         </table>
+      )}
+      {onManualLegWindOverridesChange === undefined ? null : (
+        <ManualLegWindEditor
+          route={route}
+          waypoints={waypoints}
+          forecastWinds={forecastWinds}
+          overrides={manualLegWindOverrides}
+          onChange={onManualLegWindOverridesChange}
+        />
       )}
     </div>
   );

@@ -20,7 +20,10 @@ import type {
   AircraftPerformancePlanInputs,
   FlightPlan,
 } from '../../domain';
-import { createSampledWindResolver } from '../../weather';
+import {
+  createEffectiveLegWinds,
+  createEffectiveSampledWindResolver,
+} from '../../weather';
 import type { ForecastLegWind } from '../../weather';
 import { calculateNavigationSummaryRoute } from './calculateNavigationSummaryRoute';
 import {
@@ -50,9 +53,9 @@ import type {
   OperationalInputDraft,
   OperationalInputParseResult,
 } from './operationalInput';
-import { useOpenMeteoPerformanceWinds } from './useOpenMeteoPerformanceWinds';
-import { useOpenMeteoRouteWinds } from './useOpenMeteoRouteWinds';
-import type { RouteForecastStatus } from './useOpenMeteoRouteWinds';
+import { useForecastPerformanceWinds } from './useForecastPerformanceWinds';
+import { useForecastRouteWinds } from './useForecastRouteWinds';
+import type { RouteForecastStatus } from './useForecastRouteWinds';
 
 const NO_ADDITIONAL_PERFORMANCE_ROUTES:
   readonly CalculatedPerformanceRoute[] = [];
@@ -235,7 +238,13 @@ export function usePlanningCalculations({
       ? EMPTY_CALCULATED_ROUTE
       : measureDevelopmentCalculation(
           'manual navigation route',
-          () => calculateNavigationRoute({ flightPlan, planning: legacyPlanning }),
+          () => calculateNavigationRoute({
+            flightPlan,
+            planning: legacyPlanning,
+            legWinds: legacyPlanning === null
+              ? []
+              : createEffectiveLegWinds([], legacyPlanning.manualLegWindOverrides ?? []),
+          }),
           calculationContext(flightPlan),
         ),
     [calculationsSuspended, flightPlan, legacyPlanning],
@@ -258,6 +267,9 @@ export function usePlanningCalculations({
         performance: parsedPerformance.value,
         aircraft: aircraftDefinition,
         operational: parsedOperational.value,
+        resolveWind: createEffectiveSampledWindResolver(
+          [], parsedInputs.value.manualLegWindOverrides ?? [], parsedInputs.value.wind,
+        ),
       }),
       calculationContext(flightPlan, parsedPerformance.value),
     );
@@ -289,6 +301,9 @@ export function usePlanningCalculations({
         navigation: parsedInputs.value,
         performance: parsedPerformance.value,
         profile: aircraftDefinition.performance,
+        resolveWind: createEffectiveSampledWindResolver(
+          [], parsedInputs.value.manualLegWindOverrides ?? [], parsedInputs.value.wind,
+        ),
       }),
       calculationContext(flightPlan, parsedPerformance.value),
     );
@@ -300,7 +315,7 @@ export function usePlanningCalculations({
     parsedInputs,
     parsedPerformance,
   ]);
-  const legForecast = useOpenMeteoRouteWinds({
+  const legForecast = useForecastRouteWinds({
     enabled:
       !calculationsSuspended &&
       useForecastWinds &&
@@ -309,8 +324,14 @@ export function usePlanningCalculations({
     planning: legacyPlanning,
     preliminaryRoute: manualWindRoute,
     requestKey: forecastRequestKey,
+    model: parsedInputs.status === 'valid'
+      ? parsedInputs.value.windForecastModel ?? 'ecmwf_ifs025'
+      : 'ecmwf_ifs025',
+    manualOverrides: parsedInputs.status === 'valid'
+      ? parsedInputs.value.manualLegWindOverrides ?? []
+      : [],
   });
-  const performanceForecast = useOpenMeteoPerformanceWinds({
+  const performanceForecast = useForecastPerformanceWinds({
     enabled:
       !calculationsSuspended &&
       useForecastWinds &&
@@ -323,6 +344,12 @@ export function usePlanningCalculations({
     preliminaryRoute: manualPerformanceRoute,
     additionalPreliminaryRoutes: NO_ADDITIONAL_PERFORMANCE_ROUTES,
     requestKey: forecastRequestKey,
+    model: parsedInputs.status === 'valid'
+      ? parsedInputs.value.windForecastModel ?? 'ecmwf_ifs025'
+      : 'ecmwf_ifs025',
+    manualOverrides: parsedInputs.status === 'valid'
+      ? parsedInputs.value.manualLegWindOverrides ?? []
+      : [],
   });
   const selectedForecast = parsedPerformance.status === 'valid'
       ? performanceForecast
@@ -350,7 +377,12 @@ export function usePlanningCalculations({
             () => calculateNavigationSummaryRoute({
               flightPlan,
               planning: legacyPlanning,
-              forecastWinds: forecast.winds,
+              forecastWinds: createEffectiveLegWinds(
+                forecast.winds,
+                parsedInputs.status === 'valid'
+                  ? parsedInputs.value.manualLegWindOverrides ?? []
+                  : [],
+              ),
               performancePlanActive: parsedPerformance.status === 'valid',
             }),
             calculationContext(flightPlan),
@@ -384,8 +416,9 @@ export function usePlanningCalculations({
           performance: parsedPerformance.value,
           aircraft: aircraftDefinition,
           operational: parsedOperational.value,
-          resolveWind: createSampledWindResolver(
+          resolveWind: createEffectiveSampledWindResolver(
             forecast.winds,
+            parsedInputs.value.manualLegWindOverrides ?? [],
             parsedInputs.value.wind,
           ),
         }),
@@ -422,8 +455,9 @@ export function usePlanningCalculations({
         navigation: parsedInputs.value,
         performance: parsedPerformance.value,
         profile: aircraftDefinition.performance,
-        resolveWind: createSampledWindResolver(
+        resolveWind: createEffectiveSampledWindResolver(
           forecast.winds,
+          parsedInputs.value.manualLegWindOverrides ?? [],
           parsedInputs.value.wind,
         ),
       }),

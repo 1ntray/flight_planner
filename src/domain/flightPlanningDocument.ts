@@ -26,6 +26,40 @@ export type LegacyAircraftPerformancePlanInputsV3 = Omit<
   'sectorStopPlans'
 >;
 
+/**
+ * Records only which optional airport defaults were deliberately overridden.
+ * The resolved values remain in `performanceInputs`; this keeps a saved blank
+ * field blank when its standard or aerodrome fallback is restored.
+ */
+export interface SectorStopPerformanceInputOverrides {
+  readonly waypointId: string;
+  readonly elevationFtMsl?: true;
+  readonly qnhHpa?: true;
+  readonly isaDeviationC?: true;
+}
+
+export interface PerformanceInputOverrides {
+  readonly defaultAltitudeFtMsl?: true;
+  readonly departureElevationFtMsl?: true;
+  readonly destinationElevationFtMsl?: true;
+  readonly departureQnhHpa?: true;
+  readonly departureIsaDeviationC?: true;
+  readonly destinationQnhHpa?: true;
+  readonly destinationIsaDeviationC?: true;
+  readonly sectorStopPlans?: readonly SectorStopPerformanceInputOverrides[];
+}
+
+/** Records deliberate changes to configured loading and fuel defaults. */
+export interface OperationalInputOverrides {
+  readonly fuelOnboardLitres?: true;
+  readonly leftSeatMassKg?: true;
+  readonly rightSeatMassKg?: true;
+  readonly baggageMassKg?: true;
+  readonly extraFuelLitres?: true;
+  readonly finalReserveLitres?: true;
+  readonly alternatePlannedAltitudeFtMsl?: true;
+}
+
 export interface LegacyAircraftPerformanceProfileV2 {
   readonly profileId: string;
   readonly revision: number;
@@ -118,7 +152,11 @@ export interface FlightPlanningDocumentV9 {
   readonly planningInputs: RoutePlanningInputs;
   readonly aircraftDefinition: AircraftDefinition;
   readonly performanceInputs: AircraftPerformancePlanInputs | null;
+  /** Omitted by older V9 documents, whose resolved values remain explicit. */
+  readonly performanceInputOverrides?: PerformanceInputOverrides | null;
   readonly operationalInputs: OperationalPlanningInputs | null;
+  /** Omitted by older V9 documents, whose resolved values remain explicit. */
+  readonly operationalInputOverrides?: OperationalInputOverrides | null;
   readonly useForecastWinds: boolean;
 }
 

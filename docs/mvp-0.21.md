@@ -73,10 +73,9 @@ contains:
 
 - 53 AD 2 aerodromes with ARP, elevation, runway information, and standard
   declared distances where published;
-- 179 rendered airspace volumes, including 84 TMA, 24 CTA, and 19 TIA volumes;
-- 38 data-only Polaris ACC service-area volumes, of which 29 have resolved
-  coordinate-only geometry;
-- 18 ATS units and 215 communication services containing 481 source frequency
+- 206 rendered airspace volumes, including 96 TMA, 38 CTA, and 20 TIA volumes;
+- 38 data-only Polaris ACC service-area volumes with resolved WGS84 geometry;
+- 19 ATS units and 223 communication services containing 487 source frequency
   assignments; and
 - 218 reporting points with published WGS84 coordinates, covering 23
   aerodromes.
@@ -183,7 +182,8 @@ checks.
 ## Deliberately excluded
 
 MVP 0.21 does not add live NOTAM, METAR, TAF, runway-state, or airspace-status
-feeds. It does not automatically select OFP frequencies, calculate terrain or
-obstacle clearance, infer graphical reporting-point coordinates, render an
-unvalidated VAC overlay, automatically discover new AIRAC editions, or replace
-the pilot's obligation to verify current operational information.
+feeds. It does not calculate terrain or obstacle clearance, infer graphical
+reporting-point coordinates, render an unvalidated VAC overlay, or replace the
+pilot's obligation to verify current operational information. AIRAC discovery
+is build-time automation only: it can prepare a candidate pull request, but it
+cannot activate or merge an edition without human review.

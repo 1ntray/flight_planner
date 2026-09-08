@@ -210,6 +210,23 @@ function serviceType(value: string): CommunicationServiceType {
   return 'other';
 }
 
+function publishedPlanningUse(
+  remarks: string,
+): CommunicationFrequencyAssignment['planningUse'] | undefined {
+  if (/\bAVBL only when\b.*\bU\/S\b/i.test(remarks)) return 'contingency';
+  if (/\bIFR TFC only\b/i.test(remarks)) return 'ifr-only';
+  if (/\bVFR\b/i.test(remarks)) return 'vfr';
+  if (/\bMain\b/i.test(remarks) && !/\bUHF\b/i.test(remarks)) return 'primary';
+  return undefined;
+}
+
+function planningUseFields(
+  remarks: string,
+): Pick<CommunicationFrequencyAssignment, 'planningUse'> | Record<string, never> {
+  const planningUse = publishedPlanningUse(remarks);
+  return planningUse === undefined ? {} : { planningUse };
+}
+
 function sourceReference(config: OperationalImportConfig, section: string) {
   return {
     sourceType: 'eAIP-html' as const,
@@ -427,6 +444,7 @@ export function importAd2OperationalData(
         valueMHz: match[1],
         ...(hours === '' ? {} : { hours }),
         ...(rowRemarks === '' || rowRemarks === 'NIL' ? {} : { remarks: rowRemarks }),
+        ...planningUseFields(rowRemarks),
       });
     }
   }
@@ -508,7 +526,11 @@ interface Enr21Group {
   readonly type: Extract<AirspaceType, 'tma' | 'cta'>;
   readonly definitions: string[];
   unitName: string;
-  callsignHours: string;
+  readonly services: Enr21ServiceDraft[];
+}
+
+interface Enr21ServiceDraft {
+  readonly callsignHours: string;
   readonly frequencies: CommunicationFrequencyAssignment[];
 }
 
@@ -568,6 +590,7 @@ function addUniqueFrequency(
   target.push({
     valueMHz: match[1],
     ...(remarks === '' ? {} : { remarks }),
+    ...planningUseFields(remarks),
   });
 }
 
@@ -588,9 +611,11 @@ export function importEnr21Airspaces(
       : new Set(config.includedPublishedNames.map((name) => name.toLowerCase()));
   const groups = new Map<string, Enr21Group>();
   let currentGroup: Enr21Group | null = null;
+  let currentService: Enr21ServiceDraft | null = null;
 
   for (const table of $('table').toArray()) {
     currentGroup = null;
+    currentService = null;
     for (const row of expandTable($, $(table))) {
       const [definition = '', unitName = '', callsignHours = '', frequency = '', remarks = ''] = row;
       const named = /^(.+?\b(TMA|CTA)\b)(?=\s+\d{6}(?:\.\d+)?[NS]\b)/i.exec(
@@ -599,6 +624,7 @@ export function importEnr21Airspaces(
       if (named?.[1] !== undefined && named[2] !== undefined) {
         const publishedName = normalizeText(named[1]);
         const type = named[2].toLowerCase() as Extract<AirspaceType, 'tma' | 'cta'>;
+        currentService = null;
         if (
           !includedTypes.has(type) ||
           (includedNames !== null && !includedNames.has(publishedName.toLowerCase()))
@@ -612,8 +638,7 @@ export function importEnr21Airspaces(
           type,
           definitions: [],
           unitName: '',
-          callsignHours: '',
-          frequencies: [],
+          services: [],
         };
         groups.set(key, currentGroup);
         if (!currentGroup.definitions.includes(definition)) {
@@ -628,12 +653,32 @@ export function importEnr21Airspaces(
         currentGroup.definitions.push(definition);
       } else if (definition !== '') {
         currentGroup = null;
+        currentService = null;
       }
 
       if (currentGroup === null) continue;
       if (unitName !== '') currentGroup.unitName = unitName;
-      if (callsignHours !== '') currentGroup.callsignHours = callsignHours;
-      addUniqueFrequency(currentGroup.frequencies, frequency, remarks);
+      if (callsignHours !== '') {
+        currentService = currentGroup.services.find(
+          (service) => service.callsignHours === callsignHours,
+        ) ?? {
+          callsignHours,
+          frequencies: [],
+        };
+        if (!currentGroup.services.includes(currentService)) {
+          currentGroup.services.push(currentService);
+        }
+      }
+      if (frequency !== '') {
+        if (currentService === null) {
+          throw new AvinorEaipImportError(
+            'malformed-communication-service',
+            `ENR 2.1 frequency ${frequency} has no associated callsign/service`,
+            'ENR 2.1',
+          );
+        }
+        addUniqueFrequency(currentService.frequencies, frequency, remarks);
+      }
     }
   }
 
@@ -732,27 +777,32 @@ export function importEnr21Airspaces(
     }
 
     if (groupFeatures.length === 0) continue;
-    let serviceId: string | null = null;
-    if (group.frequencies.length > 0) {
-      serviceId = `communication:enr21:${slug(group.publishedName)}:${group.type === 'tma' ? 'approach' : 'area-control'}`;
-      const unitId = group.unitName === '' ? undefined : `ats-unit:${slug(group.unitName)}`;
-      if (unitId !== undefined && !atsUnits.has(unitId)) {
-        atsUnits.set(unitId, {
-          id: unitId,
-          publishedName: group.unitName,
-          sourceReferences: [sourceRef],
-        });
-      }
-      const callsign = group.callsignHours.replace(/\s+English\b.*$/i, '').trim();
-      const associatedAerodromes =
-        config.associatedAerodromeFeatureIdsByName?.[group.publishedName] ?? [];
+    const unitId = group.unitName === '' ? undefined : `ats-unit:${slug(group.unitName)}`;
+    if (unitId !== undefined && !atsUnits.has(unitId)) {
+      atsUnits.set(unitId, {
+        id: unitId,
+        publishedName: group.unitName,
+        sourceReferences: [sourceRef],
+      });
+    }
+    const associatedAerodromes =
+      config.associatedAerodromeFeatureIdsByName?.[group.publishedName] ?? [];
+    const serviceIds: string[] = [];
+    for (const draft of group.services.filter(({ frequencies }) => frequencies.length > 0)) {
+      const callsign = draft.callsignHours.replace(/\s+English\b.*$/i, '').trim();
+      const serviceKind = group.type === 'tma' ? 'approach' : 'area-control';
+      const serviceId = [
+        `communication:enr21:${slug(group.publishedName)}:${serviceKind}`,
+        slug(callsign === '' ? 'unspecified' : callsign),
+      ].join(':');
+      serviceIds.push(serviceId);
       communicationServices.push({
         id: serviceId,
-        serviceType: group.type === 'tma' ? 'approach' : 'area-control',
+        serviceType: serviceKind,
         publishedServiceType: group.type === 'tma' ? 'APP' : 'ACC',
         ...(unitId === undefined ? {} : { unitId }),
         ...(callsign === '' ? {} : { callsign }),
-        frequencies: group.frequencies,
+        frequencies: draft.frequencies,
         associations: [
           ...(group.type === 'cta' ? [] : groupFeatures.map((feature) => ({
             featureId: feature.ref.featureId,
@@ -774,7 +824,7 @@ export function importEnr21Airspaces(
       ...groupDetails.map((details) => ({
         ...details,
         communicationServiceIds:
-          serviceId === null || group.type === 'cta' ? [] : [serviceId],
+          group.type === 'cta' ? [] : serviceIds,
       })),
     );
   }
@@ -922,6 +972,7 @@ function addEnr22Frequency(
     ...(match[2] === undefined || match[2] === ''
       ? {}
       : { remarks: normalizeText(match[2]) }),
+    ...planningUseFields(match[2] ?? ''),
   });
 }
 

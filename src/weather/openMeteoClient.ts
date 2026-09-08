@@ -2,6 +2,8 @@ import {
   buildOpenMeteoForecastRequest,
   parseOpenMeteoForecast,
 } from './openMeteoForecast';
+import type { WindForecastModelId } from '../domain';
+import { DEFAULT_WIND_FORECAST_MODEL } from './forecastModels';
 import type { ForecastLegWind, WeatherSampleRequest } from './types';
 
 const CACHE_LIFETIME_MS = 10 * 60 * 1000;
@@ -69,6 +71,7 @@ async function fetchForecastJson(
 async function fetchOpenMeteoWindBatch(
   requests: readonly WeatherSampleRequest[],
   signal: AbortSignal,
+  model: WindForecastModelId,
 ): Promise<ForecastLegWind[]> {
   if (requests.length === 0) {
     return [];
@@ -78,7 +81,7 @@ async function fetchOpenMeteoWindBatch(
     throw new DOMException('Forecast request was aborted', 'AbortError');
   }
 
-  const forecastRequest = buildOpenMeteoForecastRequest(requests);
+  const forecastRequest = buildOpenMeteoForecastRequest(requests, model);
   const nowUtcMs = Date.now();
   const cached = forecastCache.get(forecastRequest.url);
   let retrievedAtUtcMs: number;
@@ -117,12 +120,14 @@ async function fetchOpenMeteoWindBatch(
     requests,
     forecastRequest.pressureLevels,
     { retrievedAtUtcMs },
+    model,
   );
 }
 
 export async function fetchOpenMeteoLegWinds(
   requests: readonly WeatherSampleRequest[],
   signal: AbortSignal,
+  model: WindForecastModelId = DEFAULT_WIND_FORECAST_MODEL,
 ): Promise<ForecastLegWind[]> {
   const batches: WeatherSampleRequest[][] = [];
 
@@ -131,7 +136,7 @@ export async function fetchOpenMeteoLegWinds(
   }
 
   const results = await Promise.all(
-    batches.map((batch) => fetchOpenMeteoWindBatch(batch, signal)),
+    batches.map((batch) => fetchOpenMeteoWindBatch(batch, signal, model)),
   );
 
   return results.flat();

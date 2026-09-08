@@ -1,9 +1,12 @@
 {
   "name": "flight-planner",
   "private": true,
-  "version": "0.20.0",
+  "version": "0.21.0",
   "type": "module",
   "scripts": {
+    "aero:check-update": "tsx tools/aeronautical/avinor-eaip/airacUpdateCli.ts --check",
+    "aero:validate-update": "tsx tools/aeronautical/avinor-eaip/airacUpdateCli.ts --validate",
+    "aero:update": "tsx tools/aeronautical/avinor-eaip/airacUpdateCli.ts --update",
     "aero:import": "tsx tools/aeronautical/avinor-eaip/cli.ts",
     "aero:import:endu": "tsx tools/aeronautical/avinor-eaip/cli.ts --aerodrome ENDU",
     "aero:prepare:boundaries": "tsx tools/aeronautical/avinor-eaip/prepareNationalBoundary.ts",

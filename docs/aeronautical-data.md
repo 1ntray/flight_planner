@@ -131,12 +131,14 @@ waypoint's saved coordinate snapshot while its published details are looked up
 by its saved source reference.
 
 Published communication services appear on aerodrome and airspace information
-popups but do not currently populate the OFP automatically. The planner UI
-shows only frequency assignments from 118.000 through 137.000 MHz, inclusive.
+popups and can populate derived OFP frequency changes. The planner UI shows
+only frequency assignments from 118.000 through 137.000 MHz, inclusive.
 Assignments outside that range remain in the normalized dataset and import
 report for source traceability, but are not presented to the user. The
 international emergency frequency 121.500 MHz is also retained but omitted
-from normal flight-planning displays.
+from normal flight-planning displays. Explicitly published IFR-only and
+contingency/backup assignments are likewise retained but excluded from normal
+VFR automatic selection.
 
 Live operational data such as METAR, TAF, NOTAMs, or weather products is not
 part of `AeronauticalDataRepository` or the persisted `FlightPlan`. A future
@@ -184,7 +186,7 @@ fixed edition configuration, semantic AIP section headings, published table
 headers, and HTML rowspan/colspan expansion. Generated HTML element IDs and
 the numeric suffixes in hidden eAIP markers are not identities.
 
-The selected edition is discovered from AD 1.3. The importer includes AD 2
+The aerodrome list within the selected edition is discovered from AD 1.3. The importer includes AD 2
 aerodromes and deliberately excludes AD 3 heliports. Each AD 2 page reads AD
 2.1, AD 2.2, AD 2.12, the standard declared-distance table in AD 2.13, AD 2.17,
 and AD 2.18. The separate `Reduced (Alternate) Take-off PSN` table is
@@ -223,7 +225,13 @@ but is not associated with every CTA polygon. Runtime selection uses the ENR
 the closest overlying TMA/TIA, then the geographically and vertically relevant
 Polaris sector. Only 118.000–137.000 MHz is displayed and 121.500 MHz is omitted.
 Navlog frequency changes are derived from the WGS84 route and calculated
-altitude profile; multiple changes on one leg overflow into following FREQ cells.
+altitude profile. Distinct published callsigns are normalized as distinct
+services rather than combining all rows from an ENR 2.1 airspace. When one
+service has several eligible frequencies, a browser-local preference can select
+the normal operating frequency; source ambiguity remains visible until the user
+chooses. A service transition is suppressed when the selected numeric frequency
+does not change. Multiple changes on one leg are displayed together in that
+leg's FREQ cell and never overflow into unrelated rows.
 
 Parser tests use checked-in fixtures and do not require Avinor to be online. To
 explicitly retrieve the configured edition and regenerate the local JSON dataset
@@ -232,6 +240,24 @@ and import report for every AD 2 aerodrome, run:
 ```sh
 pnpm aero:import
 ```
+
+The approved edition remains explicitly pinned. A separate Node-only workflow
+can inspect Avinor's publication history without changing files, or prepare a
+fully imported candidate and semantic change report:
+
+```sh
+pnpm aero:check-update
+pnpm aero:validate-update
+pnpm aero:update
+```
+
+Neither command is used by the browser. The scheduled GitHub workflow opens or
+updates a review pull request only after a complete import, validation,
+typecheck, tests, and production build. Discovery alone never activates data;
+only merging that pull request changes the default repository. VAC-derived
+reporting points and VAC chart manifests are carried forward unchanged with
+their original provenance because their edition review is separate. See
+[`airac-updates.md`](airac-updates.md) for failure behavior and review guidance.
 
 The authoritative boundary snapshot is prepared separately and is never
 downloaded by the browser runtime:

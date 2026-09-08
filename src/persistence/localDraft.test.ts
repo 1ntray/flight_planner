@@ -31,6 +31,8 @@ const document: FlightPlanningDocument = {
   },
   planningInputs: {
     departureTimeUtcMs: Date.UTC(2026, 7, 28, 10),
+    windForecastModel: 'ecmwf_ifs025',
+    manualLegWindOverrides: [],
     magneticVariationMode: 'manual',
     magneticVariationDegEast: 8,
     wind: { directionFromTrueDeg: 230, speedKt: 15 },

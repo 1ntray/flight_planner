@@ -36,17 +36,17 @@ export function formatWindValue(wind: Wind | null): string {
     return '—';
   }
 
-  const direction = Math.round(normalizeTrackDeg(wind.directionFromTrueDeg)) % 360;
+  const direction = Math.round(normalizeTrackDeg(wind.directionFromTrueDeg) / 10) * 10 % 360;
   return `${direction.toString().padStart(3, '0')}/${Math.round(wind.speedKt)}`;
 }
 
 export function formatWindCorrectionDeg(windCorrectionDeg: number): string {
-  const roundedCorrectionDeg = Math.round(windCorrectionDeg * 10) / 10;
+  const roundedCorrectionDeg = Math.round(windCorrectionDeg);
   const displayCorrectionDeg =
     roundedCorrectionDeg === 0 ? 0 : roundedCorrectionDeg;
   const sign = displayCorrectionDeg > 0 ? '+' : '';
 
-  return `${sign}${displayCorrectionDeg.toFixed(1)}°`;
+  return `${sign}${displayCorrectionDeg}°`;
 }
 
 export function formatDistanceNm(distanceNm: number): string {
@@ -54,7 +54,7 @@ export function formatDistanceNm(distanceNm: number): string {
 }
 
 export function formatDistanceNmValue(distanceNm: number): string {
-  return distanceNm.toFixed(1);
+  return Math.round(distanceNm).toString();
 }
 
 export function formatGroundSpeedKt(groundSpeedKt: number): string {
@@ -62,7 +62,7 @@ export function formatGroundSpeedKt(groundSpeedKt: number): string {
 }
 
 export function formatGroundSpeedKtValue(groundSpeedKt: number): string {
-  return groundSpeedKt.toFixed(1);
+  return Math.round(groundSpeedKt).toString();
 }
 
 export function formatEetSeconds(eetSeconds: number): string {
@@ -70,7 +70,7 @@ export function formatEetSeconds(eetSeconds: number): string {
 }
 
 export function formatEetMinutesValue(eetSeconds: number): string {
-  return (eetSeconds / 60).toFixed(1);
+  return Math.round(eetSeconds / 60).toString();
 }
 
 function roundToNearestMinute(timestampUtcMs: number): number {

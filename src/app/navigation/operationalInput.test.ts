@@ -4,20 +4,62 @@ import { PROJECT_AIRCRAFT_DEFINITION } from '../../domain';
 import {
   createEmptyOperationalInputDraft,
   createOperationalInputDraft,
+  createOperationalInputOverrides,
   parseOperationalInputDraft,
 } from './operationalInput';
 
 describe('operational input parsing', () => {
-  it('starts with the configured loading and reserve defaults', () => {
+  it('keeps configured loading and reserve defaults as blank fields', () => {
     const draft = createEmptyOperationalInputDraft();
-    expect(draft.extraFuelLitres).toBe('18');
-    expect(draft.finalReserveLitres).toBe('36');
-    expect(draft.fuelOnboardLitres).toBe('224');
-    expect(draft.leftSeatMassKg).toBe('56');
-    expect(draft.rightSeatMassKg).toBe('0');
-    expect(draft.baggageMassKg).toBe('15');
+    expect(draft.extraFuelLitres).toBe('');
+    expect(draft.finalReserveLitres).toBe('');
+    expect(draft.fuelOnboardLitres).toBe('');
+    expect(draft.leftSeatMassKg).toBe('');
+    expect(draft.rightSeatMassKg).toBe('');
+    expect(draft.baggageMassKg).toBe('');
     expect(parseOperationalInputDraft(draft, PROJECT_AIRCRAFT_DEFINITION))
-      .toMatchObject({ status: 'valid' });
+      .toMatchObject({
+        status: 'valid',
+        value: {
+          fuelOnboardLitres: 224,
+          leftSeatMassKg: 56,
+          rightSeatMassKg: 0,
+          baggageMassKg: 15,
+          extraFuelLitres: 18,
+          finalReserveLitres: 36,
+        },
+      });
+  });
+
+  it('keeps standard values blank after save and restores only overrides', () => {
+    const standardInputs = {
+      fuelOnboardLitres: 224,
+      leftSeatMassKg: 56,
+      rightSeatMassKg: 0,
+      baggageMassKg: 15,
+      extraFuelLitres: 18,
+      finalReserveLitres: 36,
+      sectorOperations: [],
+      patternPlans: [],
+      alternate: null,
+    };
+    const customDraft = {
+      ...createEmptyOperationalInputDraft(),
+      leftSeatMassKg: '80',
+      extraFuelLitres: '24',
+    };
+
+    expect(createOperationalInputDraft(standardInputs, null)).toMatchObject({
+      fuelOnboardLitres: '',
+      leftSeatMassKg: '',
+      finalReserveLitres: '',
+    });
+    expect(
+      createOperationalInputDraft(
+        { ...standardInputs, leftSeatMassKg: 80, extraFuelLitres: 24 },
+        createOperationalInputOverrides(customDraft),
+      ),
+    ).toMatchObject({ leftSeatMassKg: '80', extraFuelLitres: '24' });
   });
 
   it('round-trips loading, stop, and alternate inputs', () => {
@@ -96,5 +138,15 @@ describe('operational input parsing', () => {
       [],
       ['DEST'],
     )).toMatchObject({ status: 'invalid', message: expect.stringContaining('whole') });
+  });
+
+  it('treats a blank pattern field as the standard zero patterns', () => {
+    expect(parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      patternPlans: [{ waypointId: 'DEST', patternCount: '' }],
+    }, PROJECT_AIRCRAFT_DEFINITION, [], ['DEST'])).toMatchObject({
+      status: 'valid',
+      value: { patternPlans: [] },
+    });
   });
 });

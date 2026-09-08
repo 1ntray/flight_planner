@@ -293,6 +293,7 @@ export function AirportInputs({
         {pattern === null ? null : <NumberField
           label="Patterns"
           value={pattern.patternCount}
+          placeholder="0 (standard)"
           unit="rounds"
           min="0"
           step="1"

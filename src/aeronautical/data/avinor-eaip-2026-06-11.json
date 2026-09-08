@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "metadata": {
     "datasetId": "avinor-eaip-2026-06-11",
     "providerId": "avinor",
@@ -9,8 +9,8 @@
     "effectiveToUtc": null,
     "revisionId": "AIP AMDT 04/2026",
     "editionLabel": "2026-06-11-AIRAC",
-    "retrievedAtUtc": "2026-09-01T13:15:02.284Z",
-    "importedAtUtc": "2026-09-01T13:15:12.984Z",
+    "retrievedAtUtc": "2026-09-01T21:45:46.227Z",
+    "importedAtUtc": "2026-09-01T21:45:57.387Z",
     "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-AD-1.3-en-GB.html",
     "importer": {
       "name": "avinor-eaip-normalizer",
@@ -50254,7 +50254,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:alta-tma:approach"
+        "communication:enr21:alta-tma:approach:alta-tower"
       ],
       "sourceReferences": [
         {
@@ -50364,7 +50364,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:alta-tma:approach"
+        "communication:enr21:alta-tma:approach:alta-tower"
       ],
       "sourceReferences": [
         {
@@ -50496,7 +50496,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:alta-tma:approach"
+        "communication:enr21:alta-tma:approach:alta-tower"
       ],
       "sourceReferences": [
         {
@@ -50606,7 +50606,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:and-ya-tma:approach"
+        "communication:enr21:and-ya-tma:approach:and-ya-tower"
       ],
       "sourceReferences": [
         {
@@ -50738,7 +50738,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:and-ya-tma:approach"
+        "communication:enr21:and-ya-tma:approach:and-ya-tower"
       ],
       "sourceReferences": [
         {
@@ -50826,7 +50826,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:and-ya-tma:approach"
+        "communication:enr21:and-ya-tma:approach:and-ya-tower"
       ],
       "sourceReferences": [
         {
@@ -50980,7 +50980,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:banak-tma:approach"
+        "communication:enr21:banak-tma:approach:banak-approach"
       ],
       "sourceReferences": [
         {
@@ -51090,7 +51090,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bardufoss-tma:approach"
+        "communication:enr21:bardufoss-tma:approach:bardufoss-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51266,7 +51266,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bardufoss-tma:approach"
+        "communication:enr21:bardufoss-tma:approach:bardufoss-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51365,7 +51365,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bardufoss-tma:approach"
+        "communication:enr21:bardufoss-tma:approach:bardufoss-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51497,7 +51497,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51629,7 +51629,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51744,7 +51744,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51855,7 +51855,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -51983,7 +51983,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -52104,7 +52104,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:bod-tma:approach"
+        "communication:enr21:bod-tma:approach:bod-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -52302,7 +52302,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:evenes-tma:approach"
+        "communication:enr21:evenes-tma:approach:evenes-approach"
       ],
       "sourceReferences": [
         {
@@ -52445,7 +52445,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:evenes-tma:approach"
+        "communication:enr21:evenes-tma:approach:evenes-approach"
       ],
       "sourceReferences": [
         {
@@ -52577,7 +52577,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:evenes-tma:approach"
+        "communication:enr21:evenes-tma:approach:evenes-approach"
       ],
       "sourceReferences": [
         {
@@ -52703,7 +52703,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:evenes-tma:approach"
+        "communication:enr21:evenes-tma:approach:evenes-approach"
       ],
       "sourceReferences": [
         {
@@ -52875,7 +52875,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53100,7 +53100,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53294,7 +53294,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53481,7 +53481,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53646,7 +53646,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53833,7 +53833,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -53964,7 +53964,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54042,7 +54042,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54170,7 +54170,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54390,7 +54390,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54522,7 +54522,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54645,7 +54645,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:farris-tma:approach"
+        "communication:enr21:farris-tma:approach:farris-approach"
       ],
       "sourceReferences": [
         {
@@ -54799,7 +54799,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55008,7 +55009,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55228,7 +55230,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55393,7 +55396,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55525,7 +55529,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55657,7 +55662,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -55877,7 +55883,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -56020,7 +56027,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -56119,7 +56127,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -56262,7 +56271,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -56350,7 +56360,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:flesland-tma:approach"
+        "communication:enr21:flesland-tma:approach:flesland-approach",
+        "communication:enr21:flesland-tma:approach:flesland-director"
       ],
       "sourceReferences": [
         {
@@ -56482,7 +56493,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:hammerfest-tma:approach"
+        "communication:enr21:hammerfest-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -56680,7 +56691,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:hammerfest-tma:approach"
+        "communication:enr21:hammerfest-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -56834,7 +56845,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:helgeland-tma:approach"
+        "communication:enr21:helgeland-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -56988,7 +56999,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:helgeland-tma:approach"
+        "communication:enr21:helgeland-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -57109,7 +57120,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:helgeland-tma:approach"
+        "communication:enr21:helgeland-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -57316,7 +57327,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kirkenes-tma:approach"
+        "communication:enr21:kirkenes-tma:approach:kirkenes-approach"
       ],
       "sourceReferences": [
         {
@@ -57465,7 +57476,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kirkenes-centre-tma:approach"
+        "communication:enr21:kirkenes-centre-tma:approach:kirkenes-tower"
       ],
       "sourceReferences": [
         {
@@ -57593,7 +57604,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kirkenes-west-tma:approach"
+        "communication:enr21:kirkenes-west-tma:approach:kirkenes-tower"
       ],
       "sourceReferences": [
         {
@@ -57703,7 +57714,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -57802,7 +57813,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -57978,7 +57989,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -58077,7 +58088,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -58176,7 +58187,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -58341,7 +58352,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:kjevik-tma:approach"
+        "communication:enr21:kjevik-tma:approach:kjevik-approach"
       ],
       "sourceReferences": [
         {
@@ -58528,7 +58539,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:lofoten-tma:approach"
+        "communication:enr21:lofoten-tma:approach:polaris-control"
       ],
       "sourceReferences": [
         {
@@ -58704,7 +58715,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -58902,7 +58913,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59001,7 +59012,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59122,7 +59133,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59276,7 +59287,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59430,7 +59441,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59661,7 +59672,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59804,7 +59815,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -59892,7 +59903,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:m-re-tma:approach"
+        "communication:enr21:m-re-tma:approach:m-re-approach"
       ],
       "sourceReferences": [
         {
@@ -60178,7 +60189,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -60365,7 +60378,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -60629,7 +60644,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -60904,7 +60921,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -61069,7 +61088,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -61250,7 +61271,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -61416,7 +61439,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -61544,7 +61569,9 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:oslo-tma:approach"
+        "communication:enr21:oslo-tma:approach:director",
+        "communication:enr21:oslo-tma:approach:final",
+        "communication:enr21:oslo-tma:approach:oslo-approach"
       ],
       "sourceReferences": [
         {
@@ -61753,7 +61780,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -61995,7 +62023,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62138,7 +62167,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62270,7 +62300,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62413,7 +62444,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62545,7 +62577,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62644,7 +62677,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sola-tma:approach"
+        "communication:enr21:sola-tma:approach:sola-approach",
+        "communication:enr21:sola-tma:approach:sola-arrival"
       ],
       "sourceReferences": [
         {
@@ -62748,7 +62782,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:sa-len-tma:approach"
+        "communication:enr21:sa-len-tma:approach:sa-len-control"
       ],
       "sourceReferences": [
         {
@@ -62909,7 +62943,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:troms-tma:approach"
+        "communication:enr21:troms-tma:approach:troms-approach"
       ],
       "sourceReferences": [
         {
@@ -63063,7 +63097,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:troms-tma:approach"
+        "communication:enr21:troms-tma:approach:troms-approach"
       ],
       "sourceReferences": [
         {
@@ -63151,7 +63185,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:troms-tma:approach"
+        "communication:enr21:troms-tma:approach:troms-approach"
       ],
       "sourceReferences": [
         {
@@ -63316,7 +63350,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:v-rnes-tma:approach"
+        "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -63580,7 +63614,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:v-rnes-tma:approach"
+        "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -63750,7 +63784,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:v-rnes-tma:approach"
+        "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -63900,7 +63934,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:v-rnes-tma:approach"
+        "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64043,7 +64077,7 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:v-rnes-tma:approach"
+        "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64197,7 +64231,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:rland-tma:approach"
+        "communication:enr21:rland-tma:approach:rland-approach-radar",
+        "communication:enr21:rland-tma:approach:rland-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64318,7 +64353,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:rland-tma:approach"
+        "communication:enr21:rland-tma:approach:rland-approach-radar",
+        "communication:enr21:rland-tma:approach:rland-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64450,7 +64486,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:rland-tma:approach"
+        "communication:enr21:rland-tma:approach:rland-approach-radar",
+        "communication:enr21:rland-tma:approach:rland-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64584,7 +64621,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:rland-tma:approach"
+        "communication:enr21:rland-tma:approach:rland-approach-radar",
+        "communication:enr21:rland-tma:approach:rland-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -64685,7 +64723,8 @@
         ]
       },
       "communicationServiceIds": [
-        "communication:enr21:rland-tma:approach"
+        "communication:enr21:rland-tma:approach:rland-approach-radar",
+        "communication:enr21:rland-tma:approach:rland-approach-radar"
       ],
       "sourceReferences": [
         {
@@ -91041,7 +91080,8 @@
         {
           "valueMHz": "118.855",
           "hours": "HO",
-          "remarks": "IFR TFC only"
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
         }
       ],
       "associations": [
@@ -91729,12 +91769,14 @@
         {
           "valueMHz": "118.005",
           "hours": "HO",
-          "remarks": "Main"
+          "remarks": "Main",
+          "planningUse": "primary"
         },
         {
           "valueMHz": "120.105",
           "hours": "HO",
-          "remarks": "Main when combined TWR/APP"
+          "remarks": "Main when combined TWR/APP",
+          "planningUse": "primary"
         },
         {
           "valueMHz": "121.500",
@@ -92032,7 +92074,8 @@
         {
           "valueMHz": "119.405",
           "hours": "HO",
-          "remarks": "IFR TFC only"
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
         }
       ],
       "associations": [
@@ -92130,7 +92173,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -92171,7 +92215,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -92787,7 +92832,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -92828,7 +92874,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93289,12 +93336,14 @@
         {
           "valueMHz": "124.355",
           "hours": "HO",
-          "remarks": "Farris TMA sector DIR/VFR"
+          "remarks": "Farris TMA sector DIR/VFR",
+          "planningUse": "vfr"
         },
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93331,7 +93380,8 @@
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93537,12 +93587,14 @@
         {
           "valueMHz": "118.705",
           "hours": "HO",
-          "remarks": "AVBL only when 118.305 MHZ U/S."
+          "remarks": "AVBL only when 118.305 MHZ U/S.",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "123.330",
           "hours": "HO",
-          "remarks": "AVBL only when 120.105 MHZ U/S."
+          "remarks": "AVBL only when 120.105 MHZ U/S.",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "243.000",
@@ -93591,7 +93643,8 @@
         {
           "valueMHz": "119.980",
           "hours": "HO",
-          "remarks": "AVBL only when 128.905/136.405 MHZ U/S"
+          "remarks": "AVBL only when 128.905/136.405 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93628,7 +93681,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93668,7 +93722,8 @@
         {
           "valueMHz": "119.980",
           "hours": "HO",
-          "remarks": "AVBL only when 128.905/136.405 MHZ U/S"
+          "remarks": "AVBL only when 128.905/136.405 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93705,7 +93760,8 @@
         {
           "valueMHz": "129.305",
           "hours": "HO",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93875,12 +93931,14 @@
         {
           "valueMHz": "124.355",
           "hours": "HO",
-          "remarks": "Farris TMA sector DIR/VFR"
+          "remarks": "Farris TMA sector DIR/VFR",
+          "planningUse": "vfr"
         },
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -93917,7 +93975,8 @@
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -94311,12 +94370,14 @@
         {
           "valueMHz": "124.355",
           "hours": "HO",
-          "remarks": "Farris TMA sector DIR/VFR"
+          "remarks": "Farris TMA sector DIR/VFR",
+          "planningUse": "vfr"
         },
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -94353,7 +94414,8 @@
         {
           "valueMHz": "120.605",
           "hours": "HO",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "121.500",
@@ -94692,7 +94754,8 @@
         {
           "valueMHz": "119.405",
           "hours": "HO",
-          "remarks": "IFR TFC only"
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
         }
       ],
       "associations": [
@@ -95347,7 +95410,8 @@
         {
           "valueMHz": "119.155",
           "hours": "HO",
-          "remarks": "IFR TFC only"
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
         }
       ],
       "associations": [
@@ -95819,7 +95883,7 @@
       ]
     },
     {
-      "id": "communication:enr21:polaris-cta:area-control",
+      "id": "communication:enr21:polaris-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-bod-polaris-acc-oslo-polaris-acc-stavanger",
@@ -95903,7 +95967,8 @@
         },
         {
           "valueMHz": "135.555",
-          "remarks": "AVBL only when 118.830/126.630/120.380 or 124.780 U/S or HO"
+          "remarks": "AVBL only when 118.830/126.630/120.380 or 124.780 U/S or HO",
+          "planningUse": "contingency"
         },
         {
           "valueMHz": "120.655",
@@ -95958,7 +96023,7 @@
       ]
     },
     {
-      "id": "communication:enr21:balder-cta:area-control",
+      "id": "communication:enr21:balder-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-stavanger",
@@ -95981,7 +96046,7 @@
       ]
     },
     {
-      "id": "communication:enr21:ekofisk-cta:area-control",
+      "id": "communication:enr21:ekofisk-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-stavanger",
@@ -96004,7 +96069,7 @@
       ]
     },
     {
-      "id": "communication:enr21:heidrun-cta:area-control",
+      "id": "communication:enr21:heidrun-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-bod",
@@ -96027,7 +96092,7 @@
       ]
     },
     {
-      "id": "communication:enr21:norne-cta:area-control",
+      "id": "communication:enr21:norne-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-bod",
@@ -96050,7 +96115,7 @@
       ]
     },
     {
-      "id": "communication:enr21:statfjord-cta:area-control",
+      "id": "communication:enr21:statfjord-cta:area-control:polaris-control",
       "serviceType": "area-control",
       "publishedServiceType": "ACC",
       "unitId": "ats-unit:polaris-acc-stavanger",
@@ -96073,7 +96138,7 @@
       ]
     },
     {
-      "id": "communication:enr21:alta-tma:approach",
+      "id": "communication:enr21:alta-tma:approach:alta-tower",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:alta-twr",
@@ -96111,7 +96176,7 @@
       ]
     },
     {
-      "id": "communication:enr21:and-ya-tma:approach",
+      "id": "communication:enr21:and-ya-tma:approach:and-ya-tower",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:and-ya-twr",
@@ -96164,7 +96229,7 @@
       ]
     },
     {
-      "id": "communication:enr21:banak-tma:approach",
+      "id": "communication:enr21:banak-tma:approach:banak-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:banak-twr",
@@ -96195,7 +96260,7 @@
       ]
     },
     {
-      "id": "communication:enr21:bardufoss-tma:approach",
+      "id": "communication:enr21:bardufoss-tma:approach:bardufoss-approach-radar",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:bardufoss-twr",
@@ -96245,7 +96310,7 @@
       ]
     },
     {
-      "id": "communication:enr21:bod-tma:approach",
+      "id": "communication:enr21:bod-tma:approach:bod-approach-radar",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:bod-twr",
@@ -96307,7 +96372,7 @@
       ]
     },
     {
-      "id": "communication:enr21:evenes-tma:approach",
+      "id": "communication:enr21:evenes-tma:approach:evenes-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:evenes-twr",
@@ -96354,7 +96419,7 @@
       ]
     },
     {
-      "id": "communication:enr21:farris-tma:approach",
+      "id": "communication:enr21:farris-tma:approach:farris-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:polaris-acc-oslo",
@@ -96362,7 +96427,8 @@
       "frequencies": [
         {
           "valueMHz": "124.355",
-          "remarks": "Farris TMA sector DIR/VFR"
+          "remarks": "Farris TMA sector DIR/VFR",
+          "planningUse": "vfr"
         },
         {
           "valueMHz": "134.055",
@@ -96370,7 +96436,8 @@
         },
         {
           "valueMHz": "120.605",
-          "remarks": "AVBL only when 124.355/134.055 MHZ U/S"
+          "remarks": "AVBL only when 124.355/134.055 MHZ U/S",
+          "planningUse": "contingency"
         }
       ],
       "associations": [
@@ -96446,11 +96513,11 @@
       ]
     },
     {
-      "id": "communication:enr21:flesland-tma:approach",
+      "id": "communication:enr21:flesland-tma:approach:flesland-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:flesland-twr",
-      "callsign": "Flesland Director",
+      "callsign": "Flesland Approach",
       "frequencies": [
         {
           "valueMHz": "121.005",
@@ -96459,10 +96526,6 @@
         {
           "valueMHz": "126.105",
           "remarks": "Sector East"
-        },
-        {
-          "valueMHz": "118.855",
-          "remarks": "IFR TFC only"
         }
       ],
       "associations": [
@@ -96533,7 +96596,87 @@
       ]
     },
     {
-      "id": "communication:enr21:hammerfest-tma:approach",
+      "id": "communication:enr21:flesland-tma:approach:flesland-director",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "unitId": "ats-unit:flesland-twr",
+      "callsign": "Flesland Director",
+      "frequencies": [
+        {
+          "valueMHz": "118.855",
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "airspace:enr21:flesland-tma:700-ft-amsl-to-fl-175:605000n-0042744e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:2000-ft-amsl-to-fl-175:603907n-0051654e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:3500-ft-amsl-to-fl-175:604643n-0052252e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:5500-ft-amsl-to-fl-175:605839n-0053220e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:5500-ft-amsl-to-fl-175:610000n-0043000e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:3500-ft-amsl-to-fl-175:605000n-0043400e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:2000-ft-amsl-to-fl-175:603700n-0045000e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:3500-ft-amsl-to-fl-175:600009n-0042352e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:2500-ft-amsl-to-fl-175:602322n-0051836e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:3200-ft-amsl-to-fl-175:602324n-0052552e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:flesland-tma:2500-ft-amsl-to-fl-175:603700n-0052200e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Flesland TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:enr21:hammerfest-tma:approach:polaris-control",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:polaris-acc-bod",
@@ -96567,7 +96710,7 @@
       ]
     },
     {
-      "id": "communication:enr21:helgeland-tma:approach",
+      "id": "communication:enr21:helgeland-tma:approach:polaris-control",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:polaris-acc-bod",
@@ -96608,7 +96751,7 @@
       ]
     },
     {
-      "id": "communication:enr21:kirkenes-tma:approach",
+      "id": "communication:enr21:kirkenes-tma:approach:kirkenes-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:kirkenes-twr",
@@ -96643,7 +96786,7 @@
       ]
     },
     {
-      "id": "communication:enr21:kirkenes-centre-tma:approach",
+      "id": "communication:enr21:kirkenes-centre-tma:approach:kirkenes-tower",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:kirkenes-twr",
@@ -96672,7 +96815,7 @@
       ]
     },
     {
-      "id": "communication:enr21:kirkenes-west-tma:approach",
+      "id": "communication:enr21:kirkenes-west-tma:approach:kirkenes-tower",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:kirkenes-twr",
@@ -96701,7 +96844,7 @@
       ]
     },
     {
-      "id": "communication:enr21:kjevik-tma:approach",
+      "id": "communication:enr21:kjevik-tma:approach:kjevik-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:kjevik-twr",
@@ -96757,7 +96900,7 @@
       ]
     },
     {
-      "id": "communication:enr21:lofoten-tma:approach",
+      "id": "communication:enr21:lofoten-tma:approach:polaris-control",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:polaris-acc-bod",
@@ -96790,7 +96933,7 @@
       ]
     },
     {
-      "id": "communication:enr21:m-re-tma:approach",
+      "id": "communication:enr21:m-re-tma:approach:m-re-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:v-rnes-twr",
@@ -96861,33 +97004,19 @@
       ]
     },
     {
-      "id": "communication:enr21:oslo-tma:approach",
+      "id": "communication:enr21:oslo-tma:approach:director",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:polaris-acc-oslo",
-      "callsign": "Oslo Approach",
+      "callsign": "Director",
       "frequencies": [
         {
           "valueMHz": "136.405"
         },
         {
           "valueMHz": "119.980",
-          "remarks": "AVBL only when 128.905/136.405 MHZ U/S"
-        },
-        {
-          "valueMHz": "128.905"
-        },
-        {
-          "valueMHz": "118.480",
-          "remarks": "Oslo TMA sector E"
-        },
-        {
-          "valueMHz": "120.455",
-          "remarks": "Oslo TMA sector W"
-        },
-        {
-          "valueMHz": "129.305",
-          "remarks": "AVBL only when 118.480/120.455 MHZ U/S"
+          "remarks": "AVBL only when 128.905/136.405 MHZ U/S",
+          "planningUse": "contingency"
         }
       ],
       "associations": [
@@ -96943,11 +97072,147 @@
       ]
     },
     {
-      "id": "communication:enr21:sola-tma:approach",
+      "id": "communication:enr21:oslo-tma:approach:final",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "unitId": "ats-unit:polaris-acc-oslo",
+      "callsign": "Final",
+      "frequencies": [
+        {
+          "valueMHz": "128.905"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "airspace:enr21:oslo-tma:2500-ft-amsl-to-fl-215:601909n-0105543e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3000-ft-amsl-to-fl-215:601617n-0102144e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3500-ft-amsl-to-fl-215:605240n-0110420e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:4500-ft-amsl-to-fl-215:604345n-0100600e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:5500-ft-amsl-to-fl-215:605230n-0114945e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:4500-ft-amsl-to-fl-215:602200n-0115615e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3500-ft-amsl-to-fl-215:595000n-0112000e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:5500-ft-amsl-to-fl-215:594100n-0102830e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Oslo TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:enr21:oslo-tma:approach:oslo-approach",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "unitId": "ats-unit:polaris-acc-oslo",
+      "callsign": "Oslo Approach",
+      "frequencies": [
+        {
+          "valueMHz": "118.480",
+          "remarks": "Oslo TMA sector E"
+        },
+        {
+          "valueMHz": "120.455",
+          "remarks": "Oslo TMA sector W"
+        },
+        {
+          "valueMHz": "129.305",
+          "remarks": "AVBL only when 118.480/120.455 MHZ U/S",
+          "planningUse": "contingency"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "airspace:enr21:oslo-tma:2500-ft-amsl-to-fl-215:601909n-0105543e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3000-ft-amsl-to-fl-215:601617n-0102144e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3500-ft-amsl-to-fl-215:605240n-0110420e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:4500-ft-amsl-to-fl-215:604345n-0100600e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:5500-ft-amsl-to-fl-215:605230n-0114945e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:4500-ft-amsl-to-fl-215:602200n-0115615e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:3500-ft-amsl-to-fl-215:595000n-0112000e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:oslo-tma:5500-ft-amsl-to-fl-215:594100n-0102830e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Oslo TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:enr21:sola-tma:approach:sola-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:sola-twr",
-      "callsign": "Sola Arrival",
+      "callsign": "Sola Approach",
       "frequencies": [
         {
           "valueMHz": "119.605"
@@ -96957,10 +97222,6 @@
         },
         {
           "valueMHz": "363.675"
-        },
-        {
-          "valueMHz": "119.405",
-          "remarks": "IFR TFC only"
         }
       ],
       "associations": [
@@ -97011,7 +97272,67 @@
       ]
     },
     {
-      "id": "communication:enr21:sa-len-tma:approach",
+      "id": "communication:enr21:sola-tma:approach:sola-arrival",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "unitId": "ats-unit:sola-twr",
+      "callsign": "Sola Arrival",
+      "frequencies": [
+        {
+          "valueMHz": "119.405",
+          "remarks": "IFR TFC only",
+          "planningUse": "ifr-only"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "airspace:enr21:sola-tma:700-ft-amsl-to-fl-175:592904n-0043144e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:1500-ft-amsl-to-fl-175:593623n-0042957e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:2500-ft-amsl-to-fl-175:591508n-0054712e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:3500-ft-amsl-to-fl-175:591731n-0055737e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:3500-ft-amsl-to-fl-175:593816n-0050933e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:1500-ft-amsl-to-fl-175:591418n-0054335e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:sola-tma:2500-ft-amsl-to-fl-175:583704n-0054404e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Sola TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:enr21:sa-len-tma:approach:sa-len-control",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:sa-len-twr",
@@ -97043,7 +97364,7 @@
       ]
     },
     {
-      "id": "communication:enr21:troms-tma:approach",
+      "id": "communication:enr21:troms-tma:approach:troms-approach",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:troms-twr",
@@ -97081,7 +97402,7 @@
       ]
     },
     {
-      "id": "communication:enr21:v-rnes-tma:approach",
+      "id": "communication:enr21:v-rnes-tma:approach:v-rnes-approach-radar",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:v-rnes-twr",
@@ -97135,18 +97456,63 @@
       ]
     },
     {
-      "id": "communication:enr21:rland-tma:approach",
+      "id": "communication:enr21:rland-tma:approach:rland-approach-radar",
       "serviceType": "approach",
       "publishedServiceType": "APP",
       "unitId": "ats-unit:rland-twr",
-      "callsign": "Ørland Approach/Radar",
+      "callsign": "Ørland Approach/ Radar",
       "frequencies": [
         {
           "valueMHz": "126.205"
         },
         {
           "valueMHz": "278.650"
+        }
+      ],
+      "associations": [
+        {
+          "featureId": "airspace:enr21:rland-tma:2500-ft-amsl-to-fl-175:635742n-0083547e",
+          "featureKind": "airspace",
+          "basis": "explicit"
         },
+        {
+          "featureId": "airspace:enr21:rland-tma:3500-ft-amsl-to-fl-175:641722n-0093935e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:rland-tma:3500-ft-amsl-to-fl-175:634621n-0080000e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:rland-tma:2500-ft-amsl-to-5500-ft-amsl:634050n-0100240e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        },
+        {
+          "featureId": "airspace:enr21:rland-tma:3500-ft-amsl-to-5500-ft-amsl:632057n-0084841e",
+          "featureKind": "airspace",
+          "basis": "explicit"
+        }
+      ],
+      "sourceReferences": [
+        {
+          "sourceType": "eAIP-html",
+          "sourceDocument": "ENR 2.1",
+          "aipSection": "ENR 2.1",
+          "publishedIdentifier": "Ørland TMA",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/154/2026-06-11-AIRAC/html/eAIP/EN-ENR-2.1-en-GB.html"
+        }
+      ]
+    },
+    {
+      "id": "communication:enr21:rland-tma:approach:rland-approach-radar",
+      "serviceType": "approach",
+      "publishedServiceType": "APP",
+      "unitId": "ats-unit:rland-twr",
+      "callsign": "Ørland Approach/Radar",
+      "frequencies": [
         {
           "valueMHz": "118.255"
         },

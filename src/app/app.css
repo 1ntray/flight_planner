@@ -237,7 +237,7 @@ h3 {
 
 .sidebar-tabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 0.8rem;
   border-bottom: 1px solid #cad5e1;
 }
@@ -263,6 +263,52 @@ h3 {
 .map-tool-control kbd,
 .leg-map-popup kbd {
   margin-left: 0.3rem;
+}
+
+.frequency-preferences {
+  padding: 0.8rem 0.45rem;
+}
+
+.frequency-preferences h3,
+.frequency-preferences p {
+  margin-top: 0;
+}
+
+.frequency-preferences__list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.8rem 0;
+}
+
+.frequency-preferences__item {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.frequency-preferences__item span,
+.frequency-preferences__item small {
+  display: block;
+}
+
+.frequency-preferences__item small {
+  color: #617084;
+}
+
+.frequency-preferences__item select {
+  width: 100%;
+}
+
+.frequency-preferences__warning {
+  margin: 0.75rem 0;
+  padding: 0.65rem;
+  border: 1px solid #d49c3d;
+  border-radius: 0.35rem;
+  background: #fff8e7;
+}
+
+.route-table__frequency-line {
+  display: block;
+  white-space: nowrap;
 }
 
 .navlog-dock {
@@ -365,18 +411,6 @@ h3 {
 .waypoint-editor__heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.waypoint-editor__kind {
-  padding: 0.18rem 0.45rem;
-  border-radius: 999px;
-  color: #275d87;
-  background: #e3f0f8;
-  font-size: 0.68rem;
-  font-weight: 750;
-  text-transform: uppercase;
 }
 
 .waypoint-editor label {
@@ -386,9 +420,7 @@ h3 {
 }
 
 .waypoint-editor__name-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.45rem;
+  display: block;
 }
 
 .waypoint-editor input {
@@ -408,10 +440,6 @@ h3 {
 
 .waypoint-editor input[aria-invalid="true"] {
   border-color: #c76661;
-}
-
-.waypoint-editor__name-control .button {
-  min-height: 2.2rem;
 }
 
 .waypoint-editor__help,
@@ -1068,6 +1096,58 @@ kbd {
   color: #5c4823;
 }
 
+.route-table__manual-winds {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-top: 1px solid #dbe3eb;
+  background: #f8fafc;
+  color: #344155;
+  font-size: 0.76rem;
+}
+
+.route-table__manual-winds h4,
+.route-table__manual-winds p {
+  margin: 0;
+}
+
+.route-table__manual-winds p,
+.route-table__manual-winds small {
+  color: #69788c;
+}
+
+.route-table__manual-winds ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route-table__manual-winds li,
+.route-table__manual-winds form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.route-table__manual-winds small {
+  flex-basis: 100%;
+}
+
+.route-table__manual-winds input {
+  width: 4.4rem;
+  min-height: 1.85rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.route-table__manual-winds .button {
+  min-height: 1.85rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.72rem;
+}
+
 .operational-summary__fuel-used {
   color: #8f2722;
 }
@@ -1669,6 +1749,28 @@ kbd {
   min-height: 2rem;
   padding: 0.35rem 0.45rem;
   font-size: 0.7rem;
+}
+
+.leg-map-popup__target-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.leg-map-popup__target-actions .button,
+.leg-map-popup__insert-action .button {
+  min-height: 2rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.leg-map-popup__insert-action {
+  display: flex;
+}
+
+.leg-map-popup__insert-action .button {
+  min-width: 8rem;
 }
 
 .route-point-map-popup p,

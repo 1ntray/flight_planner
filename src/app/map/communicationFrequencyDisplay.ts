@@ -1,18 +1,6 @@
-import type { CommunicationFrequencyAssignment } from '../../domain';
-
-export const DISPLAY_FREQUENCY_MIN_MHZ = 118;
-export const DISPLAY_FREQUENCY_MAX_MHZ = 137;
-export const EMERGENCY_FREQUENCY_MHZ = '121.500';
-
-/** Keeps the map information UI focused on the requested civil VHF range. */
-export function isDisplayedCommunicationFrequency(
-  frequency: CommunicationFrequencyAssignment,
-): boolean {
-  if (!/^\d{3}\.\d{3}$/.test(frequency.valueMHz)) return false;
-  const value = Number(frequency.valueMHz);
-  return (
-    value >= DISPLAY_FREQUENCY_MIN_MHZ &&
-    value <= DISPLAY_FREQUENCY_MAX_MHZ &&
-    frequency.valueMHz !== EMERGENCY_FREQUENCY_MHZ
-  );
-}
+export {
+  COMMUNICATION_DISPLAY_MAX_MHZ as DISPLAY_FREQUENCY_MAX_MHZ,
+  COMMUNICATION_DISPLAY_MIN_MHZ as DISPLAY_FREQUENCY_MIN_MHZ,
+  COMMUNICATION_EMERGENCY_FREQUENCY_MHZ as EMERGENCY_FREQUENCY_MHZ,
+  isDisplayedCommunicationFrequency,
+} from '../../calculations/communicationFrequencySelection';

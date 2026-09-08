@@ -912,6 +912,10 @@ export function FlightMap({
           visibility={aeronauticalLayerVisibility}
           airspaceCategoryVisibility={airspaceCategoryVisibility}
           anchoringEnabled={tool.kind === 'add-waypoint'}
+          onSelectAirspaceInformation={() => {
+            setSelectedAerodromeInformation(null);
+            onSelectionChange(null);
+          }}
           onAddFreeWaypoint={onAddWaypoint}
           onAnchorPoint={onAddAnchoredWaypoint}
           onSelectAerodromeInformation={showAerodromeInformation}

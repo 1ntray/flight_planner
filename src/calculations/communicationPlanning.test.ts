@@ -8,6 +8,7 @@ import type {
 } from '../domain';
 import {
   allocateCommunicationChangesToLegs,
+  calculateCommunicationRoutePlan,
   selectCommunicationAtPosition,
 } from './communicationPlanning';
 import type { CalculatedPerformanceRouteSuccess } from './performanceRoute';
@@ -157,7 +158,7 @@ describe('communication planning', () => {
     expect(selected?.services).toHaveLength(1);
   });
 
-  it('overflows multiple changes on one leg into succeeding navlog rows', () => {
+  it('keeps multiple changes on their actual leg instead of overflowing them', () => {
     const legs = ['a', 'b', 'c', 'd'].slice(1).map((toId, index) => ({
       fromId: ['a', 'b', 'c'][index]!,
       toId,
@@ -191,6 +192,16 @@ describe('communication planning', () => {
       services: [],
       airspaceFeatureIds: [],
       serviceAreaIds: [],
+      operatingFrequency: {
+        status: 'selected' as const,
+        candidate: {
+          serviceId: 'service',
+          callsign: 'Service',
+          publishedServiceType: 'ACC',
+          frequency: { valueMHz: '123.500' },
+        },
+        candidates: [],
+      },
       key: 'service',
     };
     const changes = [0, 1, 2].map((index) => ({
@@ -201,8 +212,73 @@ describe('communication planning', () => {
       selection: { ...selection, key: String(index) },
     }));
     const allocations = allocateCommunicationChangesToLegs(route, changes);
-    expect(allocations.get('a\0b')).toHaveLength(1);
-    expect(allocations.get('b\0c')).toHaveLength(1);
-    expect(allocations.get('c\0d')).toHaveLength(1);
+    expect(allocations.get('a\0b')).toHaveLength(3);
+    expect(allocations.has('b\0c')).toBe(false);
+    expect(allocations.has('c\0d')).toBe(false);
+  });
+
+  it('does not create a retune when the service changes but the chosen frequency does not', () => {
+    const west = feature('west', 'tma');
+    const east: AeronauticalAreaFeature = {
+      ...feature('east', 'tma'),
+      polygons: square(20, 68, 22, 70),
+    };
+    const route = {
+      status: 'ok',
+      environment: {} as CalculatedPerformanceRouteSuccess['environment'],
+      legs: [{
+        fromId: 'a',
+        toId: 'b',
+        geometry: [
+          { latitude: 69, longitude: 18.5 },
+          { latitude: 69, longitude: 21.5 },
+        ],
+        distanceNm: 64,
+        trueTrackDeg: 90,
+        targetAltitudeFtMsl: 2000,
+        startAltitudeFtMsl: 2000,
+        endAltitudeFtMsl: 2000,
+        phases: [],
+        steps: [],
+        eetSeconds: 0,
+        fuelLitres: 0,
+        effectiveGroundSpeedKt: null,
+        startTimeUtcMs: 0,
+        endTimeUtcMs: 0,
+      }],
+      sectors: [],
+      totalDistanceNm: 64,
+      totalEetSeconds: 0,
+      totalFuelLitres: 0,
+      estimatedArrivalTimeUtcMs: 0,
+      arrivalTargetAltitudeFtMsl: 2000,
+    } satisfies CalculatedPerformanceRouteSuccess;
+    const plan = calculateCommunicationRoutePlan(route, {
+      airspaces: [west, east],
+      featureDetails: [
+        details(
+          west,
+          { kind: 'surface', value: 'SFC', publishedText: 'SFC' },
+          { kind: 'flight-level', level: 95, publishedText: 'FL 95' },
+          'west-service',
+        ),
+        details(
+          east,
+          { kind: 'surface', value: 'SFC', publishedText: 'SFC' },
+          { kind: 'flight-level', level: 95, publishedText: 'FL 95' },
+          'east-service',
+        ),
+      ],
+      serviceAreas: [],
+      services: [
+        service('west-service', '120.105'),
+        service('east-service', '120.105'),
+      ],
+    });
+    expect(plan.changes).toHaveLength(1);
+    expect(plan.changes[0]?.selection.operatingFrequency).toMatchObject({
+      status: 'selected',
+      candidate: { frequency: { valueMHz: '120.105' } },
+    });
   });
 });

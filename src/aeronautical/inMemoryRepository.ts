@@ -193,6 +193,23 @@ export class InMemoryAeronauticalRepository
     );
   }
 
+  async listPlanningCommunicationServices(
+    options?: AeronauticalQueryOptions,
+  ): Promise<readonly CommunicationService[]> {
+    options?.signal?.throwIfAborted();
+    const referencedIds = new Set([
+      ...this.featureDetails.flatMap((details) =>
+        details.detailKind === 'airspace'
+          ? details.communicationServiceIds
+          : [],
+      ),
+      ...this.atsServiceAreas.map(({ communicationServiceId }) =>
+        communicationServiceId,
+      ),
+    ]);
+    return this.communicationServices.filter(({ id }) => referencedIds.has(id));
+  }
+
   async getCommunicationService(
     id: string,
     options?: AeronauticalQueryOptions,

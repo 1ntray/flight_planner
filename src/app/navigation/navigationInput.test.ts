@@ -5,6 +5,7 @@ import {
   createNavigationInputDraft,
   formatUtcDateTimeInput,
   parseNavigationInputDraft,
+  reconcileManualLegWindOverrides,
 } from './navigationInput';
 
 const DEPARTURE_TIME_UTC_MS = Date.UTC(2026, 7, 27, 12, 5);
@@ -16,6 +17,8 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        windForecastModel: 'ecmwf_ifs025',
+        manualLegWindOverrides: [],
         magneticVariationMode: 'automatic-wmm2025',
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 0, speedKt: 0 },
@@ -34,6 +37,8 @@ describe('parseNavigationInputDraft', () => {
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        windForecastModel: 'ecmwf_ifs025',
+        manualLegWindOverrides: [],
         magneticVariationMode: 'automatic-wmm2025',
         magneticVariationDegEast: 0,
         wind: { directionFromTrueDeg: 10, speedKt: 12.5 },
@@ -146,6 +151,8 @@ describe('departure-time input helpers', () => {
   it('formats semantic planning inputs back into an editable draft', () => {
     const draft = createNavigationInputDraft({
       departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+      windForecastModel: 'ecmwf_ifs025',
+      manualLegWindOverrides: [],
       magneticVariationMode: 'manual',
       magneticVariationDegEast: -8.2,
       wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
@@ -158,15 +165,36 @@ describe('departure-time input helpers', () => {
       magneticVariationDirection: 'W',
       windDirectionFromTrueDeg: '275',
       windSpeedKt: '16.5',
+      windForecastModel: 'ecmwf_ifs025',
+      manualLegWindOverrides: [],
     });
     expect(parseNavigationInputDraft(draft)).toEqual({
       status: 'valid',
       value: {
         departureTimeUtcMs: DEPARTURE_TIME_UTC_MS,
+        windForecastModel: 'ecmwf_ifs025',
+        manualLegWindOverrides: [],
         magneticVariationMode: 'manual',
         magneticVariationDegEast: -8.2,
         wind: { directionFromTrueDeg: 275, speedKt: 16.5 },
       },
     });
+  });
+});
+
+describe('manual leg wind reconciliation', () => {
+  it('keeps only the exact adjacent leg after route structure changes', () => {
+    const overrides = [{
+      fromWaypointId: 'A', toWaypointId: 'B',
+      wind: { directionFromTrueDeg: 230, speedKt: 18 },
+    }];
+    expect(reconcileManualLegWindOverrides({
+      waypoints: [
+        { id: 'A', name: 'A', position: { latitude: 60, longitude: 10 } },
+        { id: 'C', name: 'C', position: { latitude: 60.1, longitude: 10.1 } },
+        { id: 'B', name: 'B', position: { latitude: 60.2, longitude: 10.2 } },
+      ],
+      legShapes: [],
+    }, overrides)).toEqual([]);
   });
 });

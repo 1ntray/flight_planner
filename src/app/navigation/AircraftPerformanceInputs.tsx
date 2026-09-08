@@ -6,6 +6,7 @@ import type {
 } from './performanceInput';
 import {
   DEFAULT_PLANNING_ISA_DEVIATION_C,
+  DEFAULT_PLANNING_ALTITUDE_FT_MSL,
   DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT,
   DEFAULT_PLANNING_QNH_HPA,
 } from './performanceInput';
@@ -114,6 +115,7 @@ export function AircraftPerformanceInputs({
         min="0"
         max={String(MAX_SUPPORTED_PLANNING_ALTITUDE_FT)}
         step="100"
+        placeholder={`${DEFAULT_PLANNING_ALTITUDE_FT_MSL} (standard)`}
         draft={draft}
         invalid={invalid}
         onChange={onChange}

@@ -1,4 +1,12 @@
 export { fetchOpenMeteoLegWinds } from './openMeteoClient';
+export { getWindForecastProvider } from './forecastProvider';
+export type { WindForecastProvider } from './forecastProvider';
+export {
+  DEFAULT_WIND_FORECAST_MODEL,
+  getWindForecastModel,
+  WIND_FORECAST_MODELS,
+} from './forecastModels';
+export type { WindForecastModelDefinition } from './forecastModels';
 export {
   buildOpenMeteoForecastRequest,
   FEET_TO_METERS,
@@ -22,6 +30,8 @@ export type { ForecastLegWind, WeatherSampleRequest } from './types';
 export {
   buildPerformanceWeatherSampleRequests,
   buildWeatherSampleRequests,
+  createEffectiveLegWinds,
+  createEffectiveSampledWindResolver,
   createSampledWindResolver,
   weatherSampleRequestsMatch,
 } from './weatherRequests';

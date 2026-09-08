@@ -32,6 +32,15 @@ describe('resolveExplicitForecastStatus', () => {
     expect(status).toEqual({ status: 'stale' });
   });
 
+  it('marks ECMWF data stale when the selected model changes to ICON-EU', () => {
+    expect(resolveExplicitForecastStatus(true, 'model:icon_eu', {
+      status: 'success',
+      contextKey: 'model:ecmwf_ifs025',
+      winds: [wind],
+      refined: false,
+    })).toEqual({ status: 'stale' });
+  });
+
   it('marks an in-flight request stale instead of reusing its result context', () => {
     expect(
       resolveExplicitForecastStatus(true, 'changed', {

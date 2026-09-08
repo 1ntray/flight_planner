@@ -46,10 +46,10 @@ export function WaypointMapPopup({
   return (
     <StableMapPopup
       position={position}
-      closeButton={false}
       closeOnClick={false}
       autoClose={false}
       className="waypoint-map-popup"
+      eventHandlers={{ remove: onClose }}
     >
       <WaypointEditor
         waypoint={waypoint}
@@ -96,12 +96,6 @@ export function WaypointMapPopup({
         </div>
       )}
       <dl className="waypoint-map-popup__details">
-        <div>
-          <dt>Position</dt>
-          <dd>
-            {waypoint.position.latitude.toFixed(5)}, {waypoint.position.longitude.toFixed(5)}
-          </dd>
-        </div>
         {waypoint.anchor === undefined ? null : (
           <div>
             <dt>Source</dt>
@@ -167,9 +161,6 @@ export function WaypointMapPopup({
           onClick={onDelete}
         >
           Delete <kbd>Del</kbd>
-        </button>
-        <button type="button" className="button" aria-keyshortcuts="Escape" onClick={onClose}>
-          Close <kbd>Esc</kbd>
         </button>
       </div>
     </StableMapPopup>

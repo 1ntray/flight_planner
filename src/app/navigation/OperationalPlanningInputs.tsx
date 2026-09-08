@@ -1,6 +1,15 @@
 import { useState } from 'react';
 
 import type { AircraftDefinition } from '../../domain';
+import {
+  DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL,
+  DEFAULT_BAGGAGE_MASS_KG,
+  DEFAULT_EXTRA_FUEL_LITRES,
+  DEFAULT_FINAL_RESERVE_LITRES,
+  DEFAULT_FUEL_ONBOARD_LITRES,
+  DEFAULT_LEFT_SEAT_MASS_KG,
+  DEFAULT_RIGHT_SEAT_MASS_KG,
+} from './operationalInput';
 import type { OperationalInputDraft } from './operationalInput';
 
 export interface OperationalPlanningInputsProps {
@@ -26,6 +35,7 @@ interface NumericFieldProps {
   unit: string;
   draft: OperationalInputDraft;
   invalid: boolean;
+  placeholder?: string;
   min?: string;
   max?: string;
   step?: string;
@@ -38,6 +48,7 @@ function NumericField({
   unit,
   draft,
   invalid,
+  placeholder,
   min,
   max,
   step = '1',
@@ -50,6 +61,7 @@ function NumericField({
         <input
           type="number"
           value={draft[field]}
+          placeholder={placeholder}
           aria-invalid={invalid}
           {...(min === undefined ? {} : { min })}
           {...(max === undefined ? {} : { max })}
@@ -81,10 +93,13 @@ export function OperationalPlanningInputs({
     ? undefined
     : fuelSystem.main.usableCapacityLitres +
       fuelSystem.auxiliary.usableCapacityLitres;
-  const enteredFuel = Number(draft.fuelOnboardLitres);
+  const enteredFuel = Number(
+    draft.fuelOnboardLitres.trim() === ''
+      ? DEFAULT_FUEL_ONBOARD_LITRES
+      : draft.fuelOnboardLitres,
+  );
   const fuelAllocation =
     fuelSystem !== undefined &&
-    draft.fuelOnboardLitres.trim() !== '' &&
     Number.isFinite(enteredFuel) &&
     enteredFuel >= 0 &&
     enteredFuel <= (capacity ?? 0)
@@ -111,6 +126,7 @@ export function OperationalPlanningInputs({
         field="fuelOnboardLitres"
         unit="L"
         min="0"
+        placeholder={String(DEFAULT_FUEL_ONBOARD_LITRES)}
         {...(capacity === undefined ? {} : { max: String(capacity) })}
         draft={draft}
         invalid={invalid}
@@ -121,6 +137,7 @@ export function OperationalPlanningInputs({
         field="leftSeatMassKg"
         unit="kg"
         min="0"
+        placeholder={String(DEFAULT_LEFT_SEAT_MASS_KG)}
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -130,6 +147,7 @@ export function OperationalPlanningInputs({
         field="rightSeatMassKg"
         unit="kg"
         min="0"
+        placeholder={String(DEFAULT_RIGHT_SEAT_MASS_KG)}
         draft={draft}
         invalid={invalid}
         onChange={onChange}
@@ -139,6 +157,7 @@ export function OperationalPlanningInputs({
         field="baggageMassKg"
         unit="kg"
         min="0"
+        placeholder={String(DEFAULT_BAGGAGE_MASS_KG)}
         {...(loading === undefined
           ? {}
           : { max: String(loading.maximumBaggageMassKg) })}
@@ -151,6 +170,7 @@ export function OperationalPlanningInputs({
         field="extraFuelLitres"
         unit="L"
         min="0"
+        placeholder={String(DEFAULT_EXTRA_FUEL_LITRES)}
         step="0.1"
         draft={draft}
         invalid={invalid}
@@ -161,6 +181,7 @@ export function OperationalPlanningInputs({
         field="finalReserveLitres"
         unit="L"
         min="0"
+        placeholder={String(DEFAULT_FINAL_RESERVE_LITRES)}
         step="0.1"
         draft={draft}
         invalid={invalid}
@@ -233,7 +254,7 @@ export function OperationalPlanningInputs({
               {alternateLookupError}
             </p>
           )}
-          <NumericField label="Alternate planned altitude" field="alternatePlannedAltitudeFtMsl" unit="ft MSL" min="0" step="100" draft={draft} invalid={invalid} onChange={onChange} />
+          <NumericField label="Alternate planned altitude" field="alternatePlannedAltitudeFtMsl" unit="ft MSL" min="0" step="100" placeholder={String(DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL)} draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate distance" field="alternateDistanceNm" unit="NM" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate time" field="alternateTimeMinutes" unit="min" min="0" step="1" draft={draft} invalid={invalid} onChange={onChange} />
           <NumericField label="Alternate fuel" field="alternateFuelLitres" unit="L" min="0" step="0.1" draft={draft} invalid={invalid} onChange={onChange} />

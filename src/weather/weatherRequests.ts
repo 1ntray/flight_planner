@@ -8,6 +8,8 @@ import type {
   WindResolver,
 } from '../calculations';
 import type { Wind } from '../domain';
+import type { ManualLegWindOverride } from '../domain';
+import type { LegWindOverride } from '../calculations';
 import type { ForecastLegWind } from './types';
 import type { WeatherSampleRequest } from './types';
 
@@ -88,6 +90,48 @@ export function createSampledWindResolver(
 
     return best?.wind ?? fallback;
   };
+}
+
+/** Combines provenance-bearing forecast samples with persistent manual leg overrides. */
+export function createEffectiveLegWinds(
+  forecastWinds: readonly ForecastLegWind[],
+  manualOverrides: readonly ManualLegWindOverride[],
+): readonly LegWindOverride[] {
+  const manualByLeg = new Map(
+    manualOverrides.map((override) => [
+      `${override.fromWaypointId}\u0000${override.toWaypointId}`,
+      override,
+    ]),
+  );
+  const effectiveForecasts = forecastWinds.filter((forecast) =>
+    !manualByLeg.has(`${forecast.fromId}\u0000${forecast.toId}`),
+  );
+  return [
+    ...effectiveForecasts,
+    ...manualOverrides.map((override): LegWindOverride => ({
+      fromId: override.fromWaypointId,
+      toId: override.toWaypointId,
+      wind: override.wind,
+      source: 'manual',
+    })),
+  ];
+}
+
+export function createEffectiveSampledWindResolver(
+  samples: readonly ForecastLegWind[],
+  manualOverrides: readonly ManualLegWindOverride[],
+  fallback: Wind,
+): WindResolver {
+  const manualByLeg = new Map(
+    manualOverrides.map((override) => [
+      `${override.fromWaypointId}\u0000${override.toWaypointId}`,
+      override.wind,
+    ]),
+  );
+  const forecastResolver = createSampledWindResolver(samples, fallback);
+  return (query) => manualByLeg.get(
+    `${query.fromWaypointId}\u0000${query.toWaypointId}`,
+  ) ?? forecastResolver(query);
 }
 
 export function weatherSampleRequestsMatch(

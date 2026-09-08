@@ -10,11 +10,17 @@ import type {
 } from '../domain';
 import type { CalculatedPerformanceRouteSuccess } from './performanceRoute';
 import { polygonsContainPosition } from './airspaceContainment';
+import {
+  chooseOperatingFrequency,
+  eligibleVfrPlanningFrequencies,
+  EMPTY_COMMUNICATION_PREFERENCES,
+} from './communicationFrequencySelection';
+import type {
+  CommunicationPreferences,
+  OperatingFrequencyChoice,
+} from './communicationFrequencySelection';
 import { calculatePositionAlongGeometry } from './routeProgress';
 
-const DISPLAY_MIN_MHZ = 118;
-const DISPLAY_MAX_MHZ = 137;
-const EMERGENCY_FREQUENCY_MHZ = '121.500';
 const SAMPLE_INTERVAL_NM = 1;
 export const MAX_COMMUNICATION_ROUTE_SAMPLES = 2_500;
 const TRANSITION_REFINEMENT_ITERATIONS = 10;
@@ -37,6 +43,7 @@ export interface CommunicationSelection {
   readonly services: readonly SelectedCommunicationService[];
   readonly airspaceFeatureIds: readonly string[];
   readonly serviceAreaIds: readonly string[];
+  readonly operatingFrequency: OperatingFrequencyChoice;
   /** Stable derived key used to detect an actual radio-service change. */
   readonly key: string;
 }
@@ -60,16 +67,6 @@ export interface CommunicationPlanningData {
   readonly featureDetails: readonly AeronauticalFeatureDetails[];
   readonly serviceAreas: readonly AtsServiceArea[];
   readonly services: readonly CommunicationService[];
-}
-
-function isDisplayedFrequency(
-  frequency: CommunicationFrequencyAssignment,
-): boolean {
-  const value = Number(frequency.valueMHz);
-  return Number.isFinite(value) &&
-    value >= DISPLAY_MIN_MHZ &&
-    value <= DISPLAY_MAX_MHZ &&
-    frequency.valueMHz !== EMERGENCY_FREQUENCY_MHZ;
 }
 
 function comparableLimitFt(limit: VerticalLimit): number | null {
@@ -106,39 +103,48 @@ function altitudeIsWithin(
 function selectedServices(
   serviceIds: readonly string[],
   servicesById: ReadonlyMap<string, CommunicationService>,
-): readonly SelectedCommunicationService[] {
+): readonly CommunicationService[] {
   return [...new Set(serviceIds)]
     .flatMap((serviceId) => {
       const service = servicesById.get(serviceId);
       if (service === undefined) return [];
-      const frequencies = service.frequencies.filter(isDisplayedFrequency);
-      return frequencies.length === 0
+      return eligibleVfrPlanningFrequencies(service).length === 0
         ? []
-        : [{
-            serviceId,
-            serviceType: service.serviceType,
-            publishedServiceType: service.publishedServiceType,
-            callsign: service.callsign ?? null,
-            frequencies,
-          }];
+        : [service];
     })
-    .sort((left, right) => left.serviceId.localeCompare(right.serviceId));
+    .sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function selection(
   basis: CommunicationSelectionBasis,
-  services: readonly SelectedCommunicationService[],
+  sourceServices: readonly CommunicationService[],
   airspaceFeatureIds: readonly string[],
   serviceAreaIds: readonly string[],
+  preferences: CommunicationPreferences,
 ): CommunicationSelection | null {
-  if (services.length === 0) return null;
+  const operatingFrequency = chooseOperatingFrequency(sourceServices, preferences);
+  if (operatingFrequency === null) return null;
+  const services: SelectedCommunicationService[] = sourceServices.map((service) => ({
+    serviceId: service.id,
+    serviceType: service.serviceType,
+    publishedServiceType: service.publishedServiceType,
+    callsign: service.callsign ?? null,
+    frequencies: eligibleVfrPlanningFrequencies(service),
+  }));
   const key = services
     .flatMap((service) => service.frequencies.map(
       (frequency) => `${service.serviceId}:${frequency.valueMHz}`,
     ))
     .sort()
     .join('|');
-  return { basis, services, airspaceFeatureIds, serviceAreaIds, key };
+  return {
+    basis,
+    services,
+    airspaceFeatureIds,
+    serviceAreaIds,
+    operatingFrequency,
+    key,
+  };
 }
 
 interface PreparedArea {
@@ -155,7 +161,10 @@ const LOCAL_PRIORITY: Readonly<Record<'ctr' | 'tiz' | 'tia' | 'tma', number>> = 
   tma: 2,
 };
 
-export function createCommunicationResolver(data: CommunicationPlanningData) {
+export function createCommunicationResolver(
+  data: CommunicationPlanningData,
+  preferences: CommunicationPreferences = EMPTY_COMMUNICATION_PREFERENCES,
+) {
   const servicesById = new Map(data.services.map((service) => [service.id, service]));
   const detailsById = new Map(
     data.featureDetails
@@ -199,6 +208,7 @@ export function createCommunicationResolver(data: CommunicationPlanningData) {
         services,
         selectedAreas.map(({ feature }) => feature.ref.featureId),
         [],
+        preferences,
       );
       if (result !== null) return result;
     }
@@ -227,6 +237,7 @@ export function createCommunicationResolver(data: CommunicationPlanningData) {
         services,
         selectedAreas.map(({ feature }) => feature.ref.featureId),
         [],
+        preferences,
       );
       if (result !== null) return result;
     }
@@ -262,6 +273,7 @@ export function createCommunicationResolver(data: CommunicationPlanningData) {
       ),
       [],
       sectorAreas.map(({ ref }) => ref.serviceAreaId),
+      preferences,
     );
   };
 }
@@ -270,8 +282,9 @@ export function selectCommunicationAtPosition(
   data: CommunicationPlanningData,
   position: Position,
   altitudeFtMsl: number,
+  preferences: CommunicationPreferences = EMPTY_COMMUNICATION_PREFERENCES,
 ): CommunicationSelection | null {
-  return createCommunicationResolver(data)(position, altitudeFtMsl);
+  return createCommunicationResolver(data, preferences)(position, altitudeFtMsl);
 }
 
 function altitudeAtDistance(
@@ -296,8 +309,9 @@ function altitudeAtDistance(
 export function calculateCommunicationRoutePlan(
   route: CalculatedPerformanceRouteSuccess,
   data: CommunicationPlanningData,
+  preferences: CommunicationPreferences = EMPTY_COMMUNICATION_PREFERENCES,
 ): CommunicationRoutePlan {
-  const resolver = createCommunicationResolver(data);
+  const resolver = createCommunicationResolver(data, preferences);
   const totalDistanceNm = route.legs.reduce((sum, leg) => sum + leg.distanceNm, 0);
   const sampleIntervalNm = Math.max(
     SAMPLE_INTERVAL_NM,
@@ -305,6 +319,7 @@ export function calculateCommunicationRoutePlan(
   );
   const changes: CommunicationChange[] = [];
   let previousSelection: CommunicationSelection | null | undefined;
+  let previousFrequencyKey: string | null | undefined;
   let sampleCount = 0;
 
   for (const leg of route.legs) {
@@ -322,24 +337,32 @@ export function calculateCommunicationRoutePlan(
       const current = resolver(position, altitudeAtDistance(leg, distance));
       sampleCount += 1;
       if (previousSelection === undefined || current?.key !== previousSelection?.key) {
-        if (current !== null) {
-          let transitionDistance = distance;
-          if (previousSelection !== undefined && distance > previousDistance) {
-            let lower = previousDistance;
-            let upper = distance;
-            for (let iteration = 0; iteration < TRANSITION_REFINEMENT_ITERATIONS; iteration += 1) {
-              const midpoint = (lower + upper) / 2;
-              const midpointPosition = calculatePositionAlongGeometry(leg.geometry, midpoint).position;
-              const midpointSelection = resolver(
-                midpointPosition,
-                altitudeAtDistance(leg, midpoint),
-              );
-              sampleCount += 1;
-              if (midpointSelection?.key === previousSelection?.key) lower = midpoint;
-              else upper = midpoint;
-            }
-            transitionDistance = upper;
+        let transitionDistance = distance;
+        if (previousSelection !== undefined && distance > previousDistance) {
+          let lower = previousDistance;
+          let upper = distance;
+          for (let iteration = 0; iteration < TRANSITION_REFINEMENT_ITERATIONS; iteration += 1) {
+            const midpoint = (lower + upper) / 2;
+            const midpointPosition = calculatePositionAlongGeometry(leg.geometry, midpoint).position;
+            const midpointSelection = resolver(
+              midpointPosition,
+              altitudeAtDistance(leg, midpoint),
+            );
+            sampleCount += 1;
+            if (midpointSelection?.key === previousSelection?.key) lower = midpoint;
+            else upper = midpoint;
           }
+          transitionDistance = upper;
+        }
+        const frequencyKey = current === null
+          ? null
+          : current.operatingFrequency.status === 'selected'
+            ? current.operatingFrequency.candidate.frequency.valueMHz
+            : `ambiguous:${current.operatingFrequency.candidates
+                .map(({ frequency }) => frequency.valueMHz)
+                .sort()
+                .join('|')}`;
+        if (current !== null && frequencyKey !== previousFrequencyKey) {
           changes.push({
             legFromId: leg.fromId,
             legToId: leg.toId,
@@ -351,6 +374,7 @@ export function calculateCommunicationRoutePlan(
             selection: current,
           });
         }
+        previousFrequencyKey = frequencyKey;
         previousSelection = current;
       }
       previousDistance = distance;
@@ -365,19 +389,13 @@ export function allocateCommunicationChangesToLegs(
 ): ReadonlyMap<string, readonly CommunicationChange[]> {
   const allocations = new Map<string, CommunicationChange[]>();
   if (route.legs.length === 0) return allocations;
-  let nextAvailableIndex = 0;
   for (const change of changes) {
-    const desiredIndex = Math.max(0, route.legs.findIndex((leg) =>
-      leg.fromId === change.legFromId && leg.toId === change.legToId,
-    ));
-    const allocatedIndex = Math.min(
-      route.legs.length - 1,
-      Math.max(desiredIndex, nextAvailableIndex),
+    const leg = route.legs.find((candidate) =>
+      candidate.fromId === change.legFromId && candidate.toId === change.legToId,
     );
-    const leg = route.legs[allocatedIndex]!;
+    if (leg === undefined) continue;
     const key = `${leg.fromId}\0${leg.toId}`;
     allocations.set(key, [...(allocations.get(key) ?? []), change]);
-    nextAvailableIndex = allocatedIndex + 1;
   }
   return allocations;
 }

@@ -98,6 +98,16 @@ describe('Open-Meteo request construction', () => {
     expect(built.pressureLevels.map(({ pressureHpa }) => pressureHpa)).toContain(1000);
     expect(built.pressureLevels.map(({ pressureHpa }) => pressureHpa)).toContain(700);
   });
+
+  it('builds a DWD ICON-EU request with the shared upper-air variables', () => {
+    const built = buildOpenMeteoForecastRequest([request], 'icon_eu');
+    const url = new URL(built.url);
+
+    expect(built.model).toBe('icon_eu');
+    expect(url.searchParams.get('models')).toBe('icon_eu');
+    expect(url.searchParams.get('hourly')).toContain('wind_direction_950hPa');
+    expect(url.searchParams.get('hourly')).toContain('geopotential_height_950hPa');
+  });
 });
 
 describe('Open-Meteo forecast interpolation', () => {
@@ -142,6 +152,23 @@ describe('Open-Meteo forecast interpolation', () => {
     });
     expect(result?.wind.directionFromTrueDeg).toBeCloseTo(0, 12);
     expect(result?.wind.speedKt).toBeCloseTo(14.7721163, 7);
+  });
+
+  it('retains ICON-EU provenance while using the common interpolation path', () => {
+    const [result] = parseOpenMeteoForecast(
+      response,
+      [request],
+      pressureLevels,
+      metadata,
+      'icon_eu',
+    );
+
+    expect(result).toMatchObject({
+      model: 'icon_eu',
+      modelLabel: 'DWD ICON-EU',
+      provider: 'open-meteo',
+      providerLabel: 'Open-Meteo',
+    });
   });
 
   it('clamps to the nearest usable pressure level outside the returned heights', () => {

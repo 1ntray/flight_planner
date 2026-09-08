@@ -1,13 +1,18 @@
 import type { ForecastLegWind } from '../../weather';
-import {
-  FEET_TO_METERS,
-  OPEN_METEO_FORECAST_MODEL_LABEL,
-  OPEN_METEO_FORECAST_PROVIDER_LABEL,
-} from '../../weather';
+import { FEET_TO_METERS } from '../../weather';
 import { formatUtcDateTime } from '../route/routeFormatting';
 
-export const FORECAST_SOURCE_LABEL =
-  `${OPEN_METEO_FORECAST_MODEL_LABEL} via ${OPEN_METEO_FORECAST_PROVIDER_LABEL}`;
+export function formatForecastSourceLabel(
+  forecasts: readonly ForecastLegWind[],
+): string {
+  const forecast = forecasts[0];
+  return forecast === undefined
+    ? 'Forecast'
+    : `${forecast.modelLabel} via ${forecast.providerLabel}`;
+}
+
+/** Backwards-compatible ECMWF label for existing callers and documents. */
+export const FORECAST_SOURCE_LABEL = 'ECMWF IFS 0.25° via Open-Meteo';
 
 function formatRounded(value: number): string {
   return Math.round(value).toString();
@@ -62,7 +67,7 @@ export function formatForecastWindDetails(
     ? `requested ${requestedAltitudeFt} ft MSL, clamped to ${formatRounded(forecast.effectiveAltitudeMetersMsl / FEET_TO_METERS)} ft MSL at ${levelDescription}`
     : `requested ${requestedAltitudeFt} ft MSL, vertically interpolated using ${levelDescription}`;
 
-  return `${FORECAST_SOURCE_LABEL}; valid ${formatUtcDateTime(forecast.sampledTimeUtcMs)}; ${altitudeDescription}; retrieved ${formatUtcDateTime(forecast.retrievedAtUtcMs)}`;
+  return `${formatForecastSourceLabel([forecast])}; valid ${formatUtcDateTime(forecast.sampledTimeUtcMs)}; ${altitudeDescription}; retrieved ${formatUtcDateTime(forecast.retrievedAtUtcMs)}`;
 }
 
 export function formatForecastWindCollectionDetails(
@@ -76,5 +81,5 @@ export function formatForecastWindCollectionDetails(
     return formatForecastWindDetails(forecasts[0]!);
   }
 
-  return `${FORECAST_SOURCE_LABEL}; ${forecasts.length} performance samples across this leg; valid ${formatForecastValidTimeRange(forecasts)}; retrieved ${formatForecastRetrievalTime(forecasts)}`;
+  return `${formatForecastSourceLabel(forecasts)}; ${forecasts.length} performance samples across this leg; valid ${formatForecastValidTimeRange(forecasts)}; retrieved ${formatForecastRetrievalTime(forecasts)}`;
 }

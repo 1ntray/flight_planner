@@ -10,7 +10,10 @@ import type {
   LegShape,
   LegacyAircraftPerformanceProfileV2,
   NavigationPlanInputs,
+  ManualLegWindOverride,
+  OperationalInputOverrides,
   OperationalPlanningInputs,
+  PerformanceInputOverrides,
   Position,
   RoutePlanningInputs,
   ReportingPointShapingAnchor,
@@ -469,6 +472,7 @@ function requirePlanningInputs(
 function requireRoutePlanningInputs(
   value: unknown,
   path: string,
+  flightPlan?: FlightPlan,
 ): RoutePlanningInputs {
   const record = requireRecord(value, path);
   const departureTimeUtcMs = requireFiniteNumber(
@@ -495,6 +499,34 @@ function requireRoutePlanningInputs(
     windRecord.speedKt,
     `${path}.wind.speedKt`,
   );
+  const windForecastModel =
+    record.windForecastModel === undefined
+      ? 'ecmwf_ifs025'
+      : requireString(record.windForecastModel, `${path}.windForecastModel`);
+  const manualLegWindOverrides = (record.manualLegWindOverrides === undefined
+    ? []
+    : requireArray(record.manualLegWindOverrides, `${path}.manualLegWindOverrides`)
+  ).map((value, index): ManualLegWindOverride => {
+    const overridePath = `${path}.manualLegWindOverrides[${index}]`;
+    const override = requireRecord(value, overridePath);
+    const wind = requireRecord(override.wind, `${overridePath}.wind`);
+    const directionFromTrueDeg = requireFiniteNumber(
+      wind.directionFromTrueDeg,
+      `${overridePath}.wind.directionFromTrueDeg`,
+    );
+    const speedKt = requireNonNegativeNumber(
+      wind.speedKt,
+      `${overridePath}.wind.speedKt`,
+    );
+    if (directionFromTrueDeg < 0 || directionFromTrueDeg >= 360) {
+      throw new RangeError(`${overridePath}.wind.directionFromTrueDeg must be in [0, 360)`);
+    }
+    return {
+      fromWaypointId: requireString(override.fromWaypointId, `${overridePath}.fromWaypointId`),
+      toWaypointId: requireString(override.toWaypointId, `${overridePath}.toWaypointId`),
+      wind: { directionFromTrueDeg, speedKt },
+    };
+  });
 
   if (!Number.isFinite(new Date(departureTimeUtcMs).getTime())) {
     throw new RangeError(`${path}.departureTimeUtcMs must be a valid UTC timestamp`);
@@ -523,9 +555,32 @@ function requireRoutePlanningInputs(
   if (speedKt < 0) {
     throw new RangeError(`${path}.wind.speedKt must not be negative`);
   }
+  if (windForecastModel !== 'ecmwf_ifs025' && windForecastModel !== 'icon_eu') {
+    throw new RangeError(`${path}.windForecastModel is not supported`);
+  }
+  const seenManualWindLegs = new Set<string>();
+  for (const override of manualLegWindOverrides) {
+    const key = `${override.fromWaypointId}\u0000${override.toWaypointId}`;
+    if (seenManualWindLegs.has(key)) {
+      throw new RangeError(`${path}.manualLegWindOverrides duplicates a leg`);
+    }
+    seenManualWindLegs.add(key);
+  }
+  if (flightPlan !== undefined) {
+    const routeLegs = new Set(flightPlan.waypoints.slice(1).map((waypoint, index) =>
+      `${flightPlan.waypoints[index]!.id}\u0000${waypoint.id}`,
+    ));
+    for (const override of manualLegWindOverrides) {
+      if (!routeLegs.has(`${override.fromWaypointId}\u0000${override.toWaypointId}`)) {
+        throw new RangeError(`${path}.manualLegWindOverrides must reference an adjacent route leg`);
+      }
+    }
+  }
 
   return {
     departureTimeUtcMs,
+    windForecastModel,
+    manualLegWindOverrides,
     magneticVariationMode,
     magneticVariationDegEast,
     wind: { directionFromTrueDeg, speedKt },
@@ -834,6 +889,162 @@ function requirePlanningWeather(value: unknown, path: string) {
       `${path}.isaDeviationC`,
     ),
   };
+}
+
+function requireOverrideFlag(value: unknown, path: string): true | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value !== true) {
+    throw new RangeError(`${path} must be true when present`);
+  }
+  return true;
+}
+
+function requirePerformanceInputOverrides(
+  value: unknown,
+  path: string,
+  flightPlan: FlightPlan,
+  performanceInputs: AircraftPerformancePlanInputs | null,
+): PerformanceInputOverrides | null | undefined {
+  if (value === undefined || value === null) {
+    return value;
+  }
+  if (performanceInputs === null) {
+    throw new RangeError(`${path} requires document.performanceInputs`);
+  }
+
+  const record = requireRecord(value, path);
+  const defaultAltitudeFtMsl = requireOverrideFlag(
+    record.defaultAltitudeFtMsl,
+    `${path}.defaultAltitudeFtMsl`,
+  );
+  const departureElevationFtMsl = requireOverrideFlag(
+    record.departureElevationFtMsl,
+    `${path}.departureElevationFtMsl`,
+  );
+  const destinationElevationFtMsl = requireOverrideFlag(
+    record.destinationElevationFtMsl,
+    `${path}.destinationElevationFtMsl`,
+  );
+  const departureQnhHpa = requireOverrideFlag(
+    record.departureQnhHpa,
+    `${path}.departureQnhHpa`,
+  );
+  const departureIsaDeviationC = requireOverrideFlag(
+    record.departureIsaDeviationC,
+    `${path}.departureIsaDeviationC`,
+  );
+  const destinationQnhHpa = requireOverrideFlag(
+    record.destinationQnhHpa,
+    `${path}.destinationQnhHpa`,
+  );
+  const destinationIsaDeviationC = requireOverrideFlag(
+    record.destinationIsaDeviationC,
+    `${path}.destinationIsaDeviationC`,
+  );
+  const boundaryIds = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
+  const seenStopIds = new Set<string>();
+  const sectorStopPlans = record.sectorStopPlans === undefined
+    ? []
+    : requireArray(record.sectorStopPlans, `${path}.sectorStopPlans`).flatMap(
+        (value, index) => {
+          const stopPath = `${path}.sectorStopPlans[${index}]`;
+          const stop = requireRecord(value, stopPath);
+          const waypointId = requireString(stop.waypointId, `${stopPath}.waypointId`);
+          if (!boundaryIds.has(waypointId)) {
+            throw new RangeError(`${stopPath} is not a route sector boundary`);
+          }
+          if (seenStopIds.has(waypointId)) {
+            throw new RangeError(`${stopPath} duplicates a sector stop override`);
+          }
+          seenStopIds.add(waypointId);
+          const elevationFtMsl = requireOverrideFlag(
+            stop.elevationFtMsl,
+            `${stopPath}.elevationFtMsl`,
+          );
+          const qnhHpa = requireOverrideFlag(stop.qnhHpa, `${stopPath}.qnhHpa`);
+          const isaDeviationC = requireOverrideFlag(
+            stop.isaDeviationC,
+            `${stopPath}.isaDeviationC`,
+          );
+          return elevationFtMsl === undefined && qnhHpa === undefined && isaDeviationC === undefined
+            ? []
+            : [{
+                waypointId,
+                ...(elevationFtMsl === undefined ? {} : { elevationFtMsl }),
+                ...(qnhHpa === undefined ? {} : { qnhHpa }),
+                ...(isaDeviationC === undefined ? {} : { isaDeviationC }),
+              }];
+        },
+      );
+
+  const overrides: PerformanceInputOverrides = {
+    ...(defaultAltitudeFtMsl === undefined ? {} : { defaultAltitudeFtMsl }),
+    ...(departureElevationFtMsl === undefined ? {} : { departureElevationFtMsl }),
+    ...(destinationElevationFtMsl === undefined ? {} : { destinationElevationFtMsl }),
+    ...(departureQnhHpa === undefined ? {} : { departureQnhHpa }),
+    ...(departureIsaDeviationC === undefined ? {} : { departureIsaDeviationC }),
+    ...(destinationQnhHpa === undefined ? {} : { destinationQnhHpa }),
+    ...(destinationIsaDeviationC === undefined ? {} : { destinationIsaDeviationC }),
+    ...(sectorStopPlans.length === 0 ? {} : { sectorStopPlans }),
+  };
+  return Object.keys(overrides).length === 0 ? null : overrides;
+}
+
+function requireOperationalInputOverrides(
+  value: unknown,
+  path: string,
+  operationalInputs: OperationalPlanningInputs | null,
+): OperationalInputOverrides | null | undefined {
+  if (value === undefined || value === null) {
+    return value;
+  }
+  if (operationalInputs === null) {
+    throw new RangeError(`${path} requires document.operationalInputs`);
+  }
+
+  const record = requireRecord(value, path);
+  const fuelOnboardLitres = requireOverrideFlag(
+    record.fuelOnboardLitres,
+    `${path}.fuelOnboardLitres`,
+  );
+  const leftSeatMassKg = requireOverrideFlag(
+    record.leftSeatMassKg,
+    `${path}.leftSeatMassKg`,
+  );
+  const rightSeatMassKg = requireOverrideFlag(
+    record.rightSeatMassKg,
+    `${path}.rightSeatMassKg`,
+  );
+  const baggageMassKg = requireOverrideFlag(
+    record.baggageMassKg,
+    `${path}.baggageMassKg`,
+  );
+  const extraFuelLitres = requireOverrideFlag(
+    record.extraFuelLitres,
+    `${path}.extraFuelLitres`,
+  );
+  const finalReserveLitres = requireOverrideFlag(
+    record.finalReserveLitres,
+    `${path}.finalReserveLitres`,
+  );
+  const alternatePlannedAltitudeFtMsl = requireOverrideFlag(
+    record.alternatePlannedAltitudeFtMsl,
+    `${path}.alternatePlannedAltitudeFtMsl`,
+  );
+  const overrides: OperationalInputOverrides = {
+    ...(fuelOnboardLitres === undefined ? {} : { fuelOnboardLitres }),
+    ...(leftSeatMassKg === undefined ? {} : { leftSeatMassKg }),
+    ...(rightSeatMassKg === undefined ? {} : { rightSeatMassKg }),
+    ...(baggageMassKg === undefined ? {} : { baggageMassKg }),
+    ...(extraFuelLitres === undefined ? {} : { extraFuelLitres }),
+    ...(finalReserveLitres === undefined ? {} : { finalReserveLitres }),
+    ...(alternatePlannedAltitudeFtMsl === undefined
+      ? {}
+      : { alternatePlannedAltitudeFtMsl }),
+  };
+  return Object.keys(overrides).length === 0 ? null : overrides;
 }
 
 function requirePerformanceInputs(
@@ -1333,6 +1544,8 @@ export function parseFlightPlanningDocument(
       flightPlan,
       planningInputs: {
         departureTimeUtcMs: legacyPlanning.departureTimeUtcMs,
+        windForecastModel: 'ecmwf_ifs025',
+        manualLegWindOverrides: [],
         magneticVariationMode: 'manual',
         magneticVariationDegEast: legacyPlanning.magneticVariationDegEast,
         wind: legacyPlanning.wind,
@@ -1353,6 +1566,7 @@ export function parseFlightPlanningDocument(
       planningInputs: requireRoutePlanningInputs(
         record.planningInputs,
         'document.planningInputs',
+        flightPlan,
       ),
       aircraftDefinition: migrateLegacyAircraftProfile(
         requireLegacyAircraftPerformanceProfileV2(
@@ -1381,6 +1595,7 @@ export function parseFlightPlanningDocument(
       planningInputs: requireRoutePlanningInputs(
         record.planningInputs,
         'document.planningInputs',
+        flightPlan,
       ),
       aircraftDefinition: requireAircraftDefinition(
         record.aircraftDefinition,
@@ -1406,6 +1621,7 @@ export function parseFlightPlanningDocument(
       planningInputs: requireRoutePlanningInputs(
         record.planningInputs,
         'document.planningInputs',
+        flightPlan,
       ),
       aircraftDefinition: requireAircraftDefinition(
         record.aircraftDefinition,
@@ -1429,6 +1645,7 @@ export function parseFlightPlanningDocument(
       planningInputs: requireRoutePlanningInputs(
         record.planningInputs,
         'document.planningInputs',
+        flightPlan,
       ),
       aircraftDefinition: requireAircraftDefinition(
         record.aircraftDefinition,
@@ -1449,6 +1666,30 @@ export function parseFlightPlanningDocument(
     record.aircraftDefinition,
     'document.aircraftDefinition',
   );
+  const performanceInputs = requirePerformanceInputs(
+    record.performanceInputs,
+    'document.performanceInputs',
+    flightPlan,
+    true,
+  );
+  const performanceInputOverrides = requirePerformanceInputOverrides(
+    record.performanceInputOverrides,
+    'document.performanceInputOverrides',
+    flightPlan,
+    performanceInputs,
+  );
+  const operationalInputs = requireOperationalInputs(
+    record.operationalInputs,
+    'document.operationalInputs',
+    flightPlan,
+    aircraftDefinition,
+    record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
+  );
+  const operationalInputOverrides = requireOperationalInputOverrides(
+    record.operationalInputOverrides,
+    'document.operationalInputOverrides',
+    operationalInputs,
+  );
 
   return {
     schemaVersion: FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
@@ -1456,21 +1697,17 @@ export function parseFlightPlanningDocument(
     planningInputs: requireRoutePlanningInputs(
       record.planningInputs,
       'document.planningInputs',
+      flightPlan,
     ),
     aircraftDefinition,
-    performanceInputs: requirePerformanceInputs(
-      record.performanceInputs,
-      'document.performanceInputs',
-      flightPlan,
-      true,
-    ),
-    operationalInputs: requireOperationalInputs(
-      record.operationalInputs,
-      'document.operationalInputs',
-      flightPlan,
-      aircraftDefinition,
-      record.schemaVersion !== FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
-    ),
+    performanceInputs,
+    ...(performanceInputOverrides === undefined
+      ? {}
+      : { performanceInputOverrides }),
+    operationalInputs,
+    ...(operationalInputOverrides === undefined
+      ? {}
+      : { operationalInputOverrides }),
     useForecastWinds: record.useForecastWinds,
   };
 }

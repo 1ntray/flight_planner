@@ -11,6 +11,9 @@ import {
 } from './altitudePlanState';
 import { evaluateMinimumSafeAltitude } from './minimumSafeAltitude';
 import type { AltitudePlacementLeg } from './altitudePlanState';
+import {
+  DEFAULT_PLANNING_ALTITUDE_FT_MSL,
+} from './performanceInput';
 import type { PerformanceInputDraft } from './performanceInput';
 
 export type { AltitudePlacementLeg } from './altitudePlanState';
@@ -88,6 +91,7 @@ export function LegAltitudeControls({
             min="0"
             step="100"
             value={draft.defaultAltitudeFtMsl}
+            placeholder={`${DEFAULT_PLANNING_ALTITUDE_FT_MSL} (standard)`}
             onChange={(event) => onDraftChange({
               ...draft,
               defaultAltitudeFtMsl: event.currentTarget.value,
@@ -116,7 +120,11 @@ export function LegAltitudeControls({
           placementLeg?.fromWaypointId === leg.fromId &&
           placementLeg.toWaypointId === leg.toId &&
           placementLeg.target === 'end';
-        const defaultAltitude = Number(draft.defaultAltitudeFtMsl);
+        const defaultAltitude = Number(
+          draft.defaultAltitudeFtMsl === ''
+            ? DEFAULT_PLANNING_ALTITUDE_FT_MSL
+            : draft.defaultAltitudeFtMsl,
+        );
         const plannedAltitude = plan?.altitudeFtMsl ??
           (Number.isFinite(defaultAltitude) ? defaultAltitude : null);
         const msaWarning = evaluateMinimumSafeAltitude(
@@ -181,7 +189,10 @@ export function LegAltitudeControls({
                   min="0"
                   step="100"
                   value={plan?.altitudeFtMsl ?? ''}
-                  placeholder={draft.defaultAltitudeFtMsl || 'global'}
+                  placeholder={
+                    draft.defaultAltitudeFtMsl ||
+                    String(DEFAULT_PLANNING_ALTITUDE_FT_MSL)
+                  }
                   onChange={(event) => {
                     const value = event.currentTarget.value;
                     onDraftChange({

@@ -1,4 +1,4 @@
-import type { AircraftDefinition, FlightPlan } from '../../domain';
+import type { AircraftDefinition, FlightPlan, ManualLegWindOverride } from '../../domain';
 import { SectorRouteTables } from '../route/SectorRouteTables';
 import { CollapsibleSection } from '../layout/CollapsibleSection';
 import type { NavigationInputDraft } from './navigationInput';
@@ -10,13 +10,15 @@ import type {
   PerformanceInputDefaults,
   PerformanceInputDraft,
 } from './performanceInput';
+import { DEFAULT_PLANNING_ALTITUDE_FT_MSL } from './performanceInput';
 import type { OperationalInputDraft } from './operationalInput';
+import { DEFAULT_FUEL_ONBOARD_LITRES } from './operationalInput';
 import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
 import type { CommunicationChange } from '../../calculations';
 import { formatPerformanceRouteFailureLeg } from './performanceRouteFormatting';
 import {
-  FORECAST_SOURCE_LABEL,
+  formatForecastSourceLabel,
   formatForecastRetrievalTime,
   formatForecastValidTimeRange,
 } from './weatherFormatting';
@@ -59,6 +61,9 @@ export interface NavigationLogProps {
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   onLoadForecastWinds: () => void;
+  onManualLegWindOverridesChange: (
+    overrides: readonly ManualLegWindOverride[],
+  ) => void;
   onChooseAlternateByIcao: (icaoIdentifier: string) => Promise<string | null>;
   altitudePlacementLeg: AltitudePlacementLeg | null;
   onAltitudePlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
@@ -81,6 +86,7 @@ export function NavigationLog({
   onOperationalDraftChange,
   onUseForecastWindsChange,
   onLoadForecastWinds,
+  onManualLegWindOverridesChange,
   onChooseAlternateByIcao,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
@@ -167,6 +173,22 @@ export function NavigationLog({
             />
             <span>UTC</span>
           </span>
+        </label>
+
+        <label>
+          <span>Wind forecast model</span>
+          <select
+            value={draft.windForecastModel}
+            onChange={(event) =>
+              updateDraft(
+                'windForecastModel',
+                event.currentTarget.value as NavigationInputDraft['windForecastModel'],
+              )
+            }
+          >
+            <option value="ecmwf_ifs025">ECMWF IFS 0.25°</option>
+            <option value="icon_eu">DWD ICON-EU</option>
+          </select>
         </label>
 
         <label>
@@ -301,7 +323,7 @@ export function NavigationLog({
         {useForecastWinds &&
         forecast.status.status === 'loading' ? (
           <p className="navigation-inputs__weather-status" role="status">
-            Loading Open-Meteo forecast…
+            Loading forecast…
           </p>
         ) : null}
 
@@ -309,7 +331,7 @@ export function NavigationLog({
         forecast.status.status === 'success' ? (
           <div className="navigation-inputs__weather-status" role="status">
             <p>
-              {FORECAST_SOURCE_LABEL} winds applied from{' '}
+              {formatForecastSourceLabel(forecast.status.winds)} winds applied from{' '}
               {forecast.status.winds.length}{' '}
               {forecast.status.winds.length === 1 ? 'sample' : 'samples'}
               {forecast.status.refined ? ' after one timing refinement' : ''}.
@@ -334,7 +356,7 @@ export function NavigationLog({
         {useForecastWinds &&
         forecast.status.status === 'error' ? (
           <p className="navigation-inputs__error" role="alert">
-            Open-Meteo unavailable:{' '}
+            Forecast unavailable:{' '}
             {withoutTrailingPunctuation(forecast.status.message)}. Using manual
             wind.
           </p>
@@ -377,7 +399,7 @@ export function NavigationLog({
 
       <CollapsibleSection
         title="Fuel and mass & balance"
-        summary={`${operationalDraft.fuelOnboardLitres || '—'} L onboard`}
+        summary={`${operationalDraft.fuelOnboardLitres || DEFAULT_FUEL_ONBOARD_LITRES} L onboard`}
         hasIssue={parsedOperational.status === 'invalid' || operationalPlan?.status === 'no-solution'}
       >
       <OperationalPlanningInputs
@@ -414,7 +436,7 @@ export function NavigationLog({
 
       <CollapsibleSection
         title="Altitude schedule"
-        summary={`${performanceDraft.defaultAltitudeFtMsl || '—'} ft default · ${flightPlan.waypoints.length > 1 ? flightPlan.waypoints.length - 1 : 0} leg(s)`}
+        summary={`${performanceDraft.defaultAltitudeFtMsl || DEFAULT_PLANNING_ALTITUDE_FT_MSL} ft default · ${flightPlan.waypoints.length > 1 ? flightPlan.waypoints.length - 1 : 0} leg(s)`}
         hasIssue={performanceRoute?.status === 'no-solution'}
       >
       <LegAltitudeControls
@@ -461,6 +483,8 @@ export function NavigationLog({
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }
+        manualLegWindOverrides={draft.manualLegWindOverrides}
+        onManualLegWindOverridesChange={onManualLegWindOverridesChange}
         legAltitudePlans={performanceDraft.legAltitudePlans}
         communicationChangesByLeg={communicationChangesByLeg}
       />

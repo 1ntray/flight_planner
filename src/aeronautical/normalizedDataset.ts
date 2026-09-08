@@ -9,7 +9,7 @@ import type {
 } from '../domain';
 import { InMemoryAeronauticalRepository } from './inMemoryRepository';
 
-export const NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION = 3;
+export const NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION = 4;
 
 export interface NormalizedAeronauticalDataset {
   readonly schemaVersion: typeof NORMALIZED_AERONAUTICAL_DATASET_SCHEMA_VERSION;

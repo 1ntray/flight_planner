@@ -7,11 +7,13 @@ import type {
   AircraftPerformanceProfile,
   FlightPlan,
   RoutePlanningInputs,
+  WindForecastModelId,
+  ManualLegWindOverride,
 } from '../../domain';
 import {
   buildPerformanceWeatherSampleRequests,
-  createSampledWindResolver,
-  fetchOpenMeteoLegWinds,
+  createEffectiveSampledWindResolver,
+  getWindForecastProvider,
   weatherSampleRequestsMatch,
 } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
@@ -30,6 +32,8 @@ export interface UseOpenMeteoPerformanceWindsInput {
   preliminaryRoute: CalculatedPerformanceRoute | null;
   additionalPreliminaryRoutes?: readonly CalculatedPerformanceRoute[];
   requestKey: number;
+  model: WindForecastModelId;
+  manualOverrides?: readonly ManualLegWindOverride[];
 }
 
 export interface UseOpenMeteoPerformanceWindsResult {
@@ -42,7 +46,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown forecast error';
 }
 
-export function useOpenMeteoPerformanceWinds({
+export function useForecastPerformanceWinds({
   enabled,
   flightPlan,
   navigation,
@@ -51,10 +55,18 @@ export function useOpenMeteoPerformanceWinds({
   preliminaryRoute,
   additionalPreliminaryRoutes = [],
   requestKey,
+  model,
+  manualOverrides = [],
 }: UseOpenMeteoPerformanceWindsInput): UseOpenMeteoPerformanceWindsResult {
   const [stored, setStored] = useState<StoredForecastState>({ status: 'idle' });
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeContextKeyRef = useRef<string | null>(null);
+  const forecastNavigationContext = navigation === null
+    ? null
+    : (() => {
+        const { manualLegWindOverrides: _manualLegWindOverrides, ...rest } = navigation;
+        return rest;
+      })();
   const contextKey = useMemo(
     () => {
       if (!enabled || requestKey <= 0) {
@@ -62,8 +74,9 @@ export function useOpenMeteoPerformanceWinds({
       }
 
       return JSON.stringify({
+        model,
         flightPlan,
-        navigation,
+        navigation: forecastNavigationContext,
         performance,
         profile,
         additionalPreliminaryRoutes,
@@ -73,7 +86,8 @@ export function useOpenMeteoPerformanceWinds({
       additionalPreliminaryRoutes,
       enabled,
       flightPlan,
-      navigation,
+      forecastNavigationContext,
+      model,
       performance,
       profile,
       requestKey,
@@ -138,7 +152,9 @@ export function useOpenMeteoPerformanceWinds({
 
     void (async () => {
       try {
-        let winds = await fetchOpenMeteoLegWinds(
+        const provider = getWindForecastProvider(model);
+        let winds = await provider.fetchWinds(
+          model,
           initialRequests,
           abortController.signal,
         );
@@ -147,7 +163,9 @@ export function useOpenMeteoPerformanceWinds({
           navigation,
           performance,
           profile,
-          resolveWind: createSampledWindResolver(winds, navigation.wind),
+          resolveWind: createEffectiveSampledWindResolver(
+            winds, manualOverrides, navigation.wind,
+          ),
         });
         const refinedRequests = [
           ...buildPerformanceWeatherSampleRequests(firstRoute),
@@ -161,7 +179,8 @@ export function useOpenMeteoPerformanceWinds({
           refinedRequests.length > 0 &&
           !weatherSampleRequestsMatch(initialRequests, refinedRequests)
         ) {
-          winds = await fetchOpenMeteoLegWinds(
+          winds = await provider.fetchWinds(
+            model,
             refinedRequests,
             abortController.signal,
           );
@@ -169,7 +188,7 @@ export function useOpenMeteoPerformanceWinds({
         }
 
         if (!abortController.signal.aborted) {
-          setStored({ status: 'success', contextKey, winds, refined });
+          setStored({ status: 'success', contextKey, winds: [...winds], refined });
         }
       } catch (error) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
@@ -199,3 +218,6 @@ export function useOpenMeteoPerformanceWinds({
     canLoad,
   };
 }
+
+/** @deprecated Use useForecastPerformanceWinds; retained for existing integrations. */
+export const useOpenMeteoPerformanceWinds = useForecastPerformanceWinds;

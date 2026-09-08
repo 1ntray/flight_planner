@@ -8,6 +8,7 @@ import {
 import type {
   CalculatedPerformanceRoute,
   CommunicationChange,
+  CommunicationPreferences,
   CommunicationRoutePlan,
 } from '../../calculations';
 import type {
@@ -46,6 +47,7 @@ function routeBounds(
 export function useCommunicationPlan(
   repository: AeronauticalDataRepository,
   performanceRoute: CalculatedPerformanceRoute | null,
+  preferences: CommunicationPreferences,
 ): CommunicationPlanState {
   const [state, setState] = useState<CommunicationPlanState>({
     status: 'idle',
@@ -102,7 +104,7 @@ export function useCommunicationPlan(
         featureDetails,
         serviceAreas,
         services,
-      });
+      }, preferences);
       setState({
         status: 'ready',
         plan,
@@ -114,7 +116,7 @@ export function useCommunicationPlan(
       }
     });
     return () => controller.abort();
-  }, [bounds, performanceRoute, repository]);
+  }, [bounds, performanceRoute, preferences, repository]);
 
   return state;
 }

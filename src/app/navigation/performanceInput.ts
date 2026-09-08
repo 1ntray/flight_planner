@@ -1,12 +1,14 @@
 import type {
   AircraftPerformancePlanInputs,
   LegAltitudePlan,
+  PerformanceInputOverrides,
 } from '../../domain';
 import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 
 export const DEFAULT_PLANNING_QNH_HPA = 1013;
 export const DEFAULT_PLANNING_ISA_DEVIATION_C = 0;
 export const DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT = 1000;
+export const DEFAULT_PLANNING_ALTITUDE_FT_MSL = 2500;
 
 export interface SectorStopInputDraft {
   waypointId: string;
@@ -49,7 +51,7 @@ export type PerformanceInputParseResult =
 export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
   return {
     massKg: '',
-    defaultAltitudeFtMsl: '2500',
+    defaultAltitudeFtMsl: '',
     departureElevationFtMsl: '',
     destinationElevationFtMsl: '',
     patternHeightAglFt: '',
@@ -64,36 +66,209 @@ export function createEmptyPerformanceInputDraft(): PerformanceInputDraft {
 
 export function createPerformanceInputDraft(
   inputs: AircraftPerformancePlanInputs,
+  overrides: PerformanceInputOverrides | null | undefined = undefined,
 ): PerformanceInputDraft {
+  const isExplicit = (field: keyof Omit<
+    PerformanceInputOverrides,
+    'sectorStopPlans'
+  >) => overrides === undefined || overrides?.[field] === true;
+  const valueOrBlank = (
+    value: number,
+    explicit: boolean,
+    standardValue?: number,
+  ) => explicit && value !== standardValue ? String(value) : '';
+
   return {
     massKg: String(inputs.massKg),
-    defaultAltitudeFtMsl: String(inputs.defaultAltitudeFtMsl),
-    departureElevationFtMsl: String(inputs.departureElevationFtMsl),
-    destinationElevationFtMsl: String(inputs.destinationElevationFtMsl),
-    patternHeightAglFt: String(inputs.patternHeightAglFt),
-    departureQnhHpa: String(inputs.departureWeather.qnhHpa),
-    departureIsaDeviationC: String(
-      inputs.departureWeather.isaDeviationC,
+    defaultAltitudeFtMsl: valueOrBlank(
+      inputs.defaultAltitudeFtMsl,
+      isExplicit('defaultAltitudeFtMsl'),
+      DEFAULT_PLANNING_ALTITUDE_FT_MSL,
     ),
-    destinationQnhHpa: String(inputs.destinationWeather.qnhHpa),
-    destinationIsaDeviationC: String(
+    departureElevationFtMsl: valueOrBlank(
+      inputs.departureElevationFtMsl,
+      isExplicit('departureElevationFtMsl'),
+    ),
+    destinationElevationFtMsl: valueOrBlank(
+      inputs.destinationElevationFtMsl,
+      isExplicit('destinationElevationFtMsl'),
+    ),
+    patternHeightAglFt: '',
+    departureQnhHpa: valueOrBlank(
+      inputs.departureWeather.qnhHpa,
+      isExplicit('departureQnhHpa'),
+      DEFAULT_PLANNING_QNH_HPA,
+    ),
+    departureIsaDeviationC: valueOrBlank(
+      inputs.departureWeather.isaDeviationC,
+      isExplicit('departureIsaDeviationC'),
+      DEFAULT_PLANNING_ISA_DEVIATION_C,
+    ),
+    destinationQnhHpa: valueOrBlank(
+      inputs.destinationWeather.qnhHpa,
+      isExplicit('destinationQnhHpa'),
+      DEFAULT_PLANNING_QNH_HPA,
+    ),
+    destinationIsaDeviationC: valueOrBlank(
       inputs.destinationWeather.isaDeviationC,
+      isExplicit('destinationIsaDeviationC'),
+      DEFAULT_PLANNING_ISA_DEVIATION_C,
     ),
     legAltitudePlans: inputs.legAltitudePlans,
-    sectorStopPlans: (inputs.sectorStopPlans ?? []).map((stop) => ({
-      waypointId: stop.waypointId,
-      elevationFtMsl: String(stop.elevationFtMsl),
-      qnhHpa: String(stop.weather.qnhHpa),
-      isaDeviationC: String(stop.weather.isaDeviationC),
-      stopDurationMinutes:
-        stop.stopDurationMinutes === undefined
-          ? ''
-          : String(stop.stopDurationMinutes),
-      ...(stop.onwardDepartureTimeUtcMs === undefined
-        ? {}
-        : { legacyOnwardDepartureTimeUtcMs: stop.onwardDepartureTimeUtcMs }),
-    })),
+    sectorStopPlans: (inputs.sectorStopPlans ?? []).map((stop) => {
+      const stopOverrides = overrides?.sectorStopPlans?.find(
+        (candidate) => candidate.waypointId === stop.waypointId,
+      );
+      const hasLegacyValues = overrides === undefined;
+      return {
+        waypointId: stop.waypointId,
+        elevationFtMsl: valueOrBlank(
+          stop.elevationFtMsl,
+          hasLegacyValues || stopOverrides?.elevationFtMsl === true,
+        ),
+        qnhHpa: valueOrBlank(
+          stop.weather.qnhHpa,
+          hasLegacyValues || stopOverrides?.qnhHpa === true,
+          DEFAULT_PLANNING_QNH_HPA,
+        ),
+        isaDeviationC: valueOrBlank(
+          stop.weather.isaDeviationC,
+          hasLegacyValues || stopOverrides?.isaDeviationC === true,
+          DEFAULT_PLANNING_ISA_DEVIATION_C,
+        ),
+        stopDurationMinutes:
+          stop.stopDurationMinutes === undefined
+            ? ''
+            : String(stop.stopDurationMinutes),
+        ...(stop.onwardDepartureTimeUtcMs === undefined
+          ? {}
+          : { legacyOnwardDepartureTimeUtcMs: stop.onwardDepartureTimeUtcMs }),
+      };
+    }),
   };
+}
+
+/**
+ * Captures default-field provenance without persisting raw, potentially invalid
+ * form text. Any nonblank airport field is an intentional override.
+ */
+export function createPerformanceInputOverrides(
+  draft: PerformanceInputDraft,
+): PerformanceInputOverrides | null {
+  const isEntered = (value: string) => value.trim() !== '';
+  const sectorStopPlans = draft.sectorStopPlans.flatMap((stop) => {
+    const overrides = {
+      ...(isEntered(stop.elevationFtMsl) ? { elevationFtMsl: true as const } : {}),
+      ...(isEntered(stop.qnhHpa) ? { qnhHpa: true as const } : {}),
+      ...(isEntered(stop.isaDeviationC) ? { isaDeviationC: true as const } : {}),
+    };
+    return Object.keys(overrides).length === 0
+      ? []
+      : [{ waypointId: stop.waypointId, ...overrides }];
+  });
+  const overrides: PerformanceInputOverrides = {
+    ...(isEntered(draft.defaultAltitudeFtMsl)
+      ? { defaultAltitudeFtMsl: true }
+      : {}),
+    ...(isEntered(draft.departureElevationFtMsl)
+      ? { departureElevationFtMsl: true }
+      : {}),
+    ...(isEntered(draft.destinationElevationFtMsl)
+      ? { destinationElevationFtMsl: true }
+      : {}),
+    ...(isEntered(draft.departureQnhHpa) ? { departureQnhHpa: true } : {}),
+    ...(isEntered(draft.departureIsaDeviationC)
+      ? { departureIsaDeviationC: true }
+      : {}),
+    ...(isEntered(draft.destinationQnhHpa) ? { destinationQnhHpa: true } : {}),
+    ...(isEntered(draft.destinationIsaDeviationC)
+      ? { destinationIsaDeviationC: true }
+      : {}),
+    ...(sectorStopPlans.length === 0 ? {} : { sectorStopPlans }),
+  };
+
+  return Object.keys(overrides).length === 0 ? null : overrides;
+}
+
+/** Converts resolved airport fallbacks back into their blank input state. */
+export function clearPerformanceDefaultValues(
+  draft: PerformanceInputDraft,
+  defaults: PerformanceInputDefaults,
+): PerformanceInputDraft {
+  const blankIfDefault = (value: string, defaultValue: number | undefined) =>
+    defaultValue !== undefined && Number(value) === defaultValue ? '' : value;
+  const defaultAltitudeFtMsl = blankIfDefault(
+    draft.defaultAltitudeFtMsl,
+    DEFAULT_PLANNING_ALTITUDE_FT_MSL,
+  );
+  const patternHeightAglFt = blankIfDefault(
+    draft.patternHeightAglFt,
+    DEFAULT_PLANNING_PATTERN_HEIGHT_AGL_FT,
+  );
+  const departureElevationFtMsl = blankIfDefault(
+    draft.departureElevationFtMsl,
+    defaults.departureElevationFtMsl,
+  );
+  const destinationElevationFtMsl = blankIfDefault(
+    draft.destinationElevationFtMsl,
+    defaults.destinationElevationFtMsl,
+  );
+  const departureQnhHpa = blankIfDefault(
+    draft.departureQnhHpa,
+    DEFAULT_PLANNING_QNH_HPA,
+  );
+  const departureIsaDeviationC = blankIfDefault(
+    draft.departureIsaDeviationC,
+    DEFAULT_PLANNING_ISA_DEVIATION_C,
+  );
+  const destinationQnhHpa = blankIfDefault(
+    draft.destinationQnhHpa,
+    DEFAULT_PLANNING_QNH_HPA,
+  );
+  const destinationIsaDeviationC = blankIfDefault(
+    draft.destinationIsaDeviationC,
+    DEFAULT_PLANNING_ISA_DEVIATION_C,
+  );
+  const sectorStopPlans = draft.sectorStopPlans.map((stop) => {
+    const elevationFtMsl = blankIfDefault(
+      stop.elevationFtMsl,
+      defaults.sectorStopElevationFtMslByWaypointId?.[stop.waypointId],
+    );
+    const qnhHpa = blankIfDefault(stop.qnhHpa, DEFAULT_PLANNING_QNH_HPA);
+    const isaDeviationC = blankIfDefault(
+      stop.isaDeviationC,
+      DEFAULT_PLANNING_ISA_DEVIATION_C,
+    );
+    return elevationFtMsl === stop.elevationFtMsl &&
+      qnhHpa === stop.qnhHpa &&
+      isaDeviationC === stop.isaDeviationC
+      ? stop
+      : { ...stop, elevationFtMsl, qnhHpa, isaDeviationC };
+  });
+  const unchanged =
+    defaultAltitudeFtMsl === draft.defaultAltitudeFtMsl &&
+    patternHeightAglFt === draft.patternHeightAglFt &&
+    departureElevationFtMsl === draft.departureElevationFtMsl &&
+    destinationElevationFtMsl === draft.destinationElevationFtMsl &&
+    departureQnhHpa === draft.departureQnhHpa &&
+    departureIsaDeviationC === draft.departureIsaDeviationC &&
+    destinationQnhHpa === draft.destinationQnhHpa &&
+    destinationIsaDeviationC === draft.destinationIsaDeviationC &&
+    sectorStopPlans.every((stop, index) => stop === draft.sectorStopPlans[index]);
+  return unchanged
+    ? draft
+    : {
+        ...draft,
+        defaultAltitudeFtMsl,
+        patternHeightAglFt,
+        departureElevationFtMsl,
+        destinationElevationFtMsl,
+        departureQnhHpa,
+        departureIsaDeviationC,
+        destinationQnhHpa,
+        destinationIsaDeviationC,
+        sectorStopPlans,
+      };
 }
 
 export function createEmptySectorStopInputDraft(
@@ -235,7 +410,8 @@ export function parsePerformanceInputDraft(
 
   if (
     scalarValues.every((value) => value.trim() === '') &&
-    (draft.defaultAltitudeFtMsl === '' || draft.defaultAltitudeFtMsl === '2500') &&
+    (draft.defaultAltitudeFtMsl === '' ||
+      draft.defaultAltitudeFtMsl === String(DEFAULT_PLANNING_ALTITUDE_FT_MSL)) &&
     draft.legAltitudePlans.length === 0 &&
     draft.sectorStopPlans.every((stop) =>
       [
@@ -251,7 +427,16 @@ export function parsePerformanceInputDraft(
 
   const fields = [
     ['massKg', derivedMassKg === undefined ? draft.massKg : String(derivedMassKg), 'Aircraft mass', null, null],
-    ['defaultAltitudeFtMsl', draft.defaultAltitudeFtMsl, 'Default altitude', 0, MAX_SUPPORTED_PLANNING_ALTITUDE_FT],
+    [
+      'defaultAltitudeFtMsl',
+      resolveDefaultValue(
+        draft.defaultAltitudeFtMsl,
+        DEFAULT_PLANNING_ALTITUDE_FT_MSL,
+      ),
+      'Default altitude',
+      0,
+      MAX_SUPPORTED_PLANNING_ALTITUDE_FT,
+    ],
     [
       'departureElevationFtMsl',
       resolveDefaultValue(

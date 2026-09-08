@@ -14,12 +14,6 @@ type DetailStatus =
   | { readonly kind: 'unavailable' }
   | { readonly kind: 'error' };
 
-function formatPosition(
-  position: AeronauticalPointFeature['position'],
-): string {
-  return `${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)}`;
-}
-
 function formatMetres(value: number | null): string {
   return value === null ? '—' : `${value.toFixed(0)} m`;
 }
@@ -75,16 +69,13 @@ export function AerodromeInfoPopup({
   const details =
     detailStatus.kind === 'available' ? detailStatus.details : null;
   const displayName = details?.name ?? feature.name;
-  const displayPosition = details?.arpPosition ?? feature.position;
-  const dataSet = feature.ref.dataset;
-
   return (
     <StableMapPopup
       position={feature.position}
-      closeButton={false}
       closeOnClick={false}
       autoClose={false}
       className="aerodrome-info-popup"
+      eventHandlers={{ remove: onClose }}
     >
       <div className="aerodrome-info-popup__heading">
         <p className="eyebrow">Aerodrome</p>
@@ -93,9 +84,7 @@ export function AerodromeInfoPopup({
       </div>
 
       <dl className="aerodrome-info-popup__facts">
-        <div><dt>ARP</dt><dd>{formatPosition(displayPosition)}</dd></div>
         <div><dt>Elevation</dt><dd>{details?.elevationFt === null || details === null ? '—' : `${details.elevationFt.toFixed(0)} ft MSL`}</dd></div>
-        <div><dt>Dataset</dt><dd>{dataSet.sourceName}{dataSet.airacCycle === null ? '' : ` · ${dataSet.airacCycle}`}</dd></div>
       </dl>
 
       {detailStatus.kind === 'loading' ? (
@@ -140,11 +129,6 @@ export function AerodromeInfoPopup({
 
       <CommunicationServiceList repository={repository} featureId={feature.ref.featureId} />
 
-      <div className="map-popup-actions map-popup-actions--two">
-        <button type="button" className="button" onClick={onClose}>
-          Close <kbd>Esc</kbd>
-        </button>
-      </div>
     </StableMapPopup>
   );
 }

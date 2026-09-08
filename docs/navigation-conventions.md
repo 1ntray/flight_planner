@@ -101,9 +101,16 @@ They are calculation contracts rather than display preferences.
 
 ## Forecast wind selection
 
-- Open-Meteo is an optional input source. The request explicitly selects the
-  ECMWF IFS 0.25° upper-air feed with `models=ecmwf_ifs025`. Manual wind remains
-  the route-wide fallback and supplies the preliminary timing estimate.
+- Open-Meteo is an optional input source. A plan selects either ECMWF IFS 0.25°
+  (`models=ecmwf_ifs025`) or DWD ICON-EU (`models=icon_eu`) for the whole
+  route. Both use pressure-level winds and actual geopotential heights. The
+  selected model is included in the forecast context, so switching model makes
+  a previously loaded result stale rather than relabelling or reusing it.
+- A manual per-leg wind is stored by the adjacent real waypoint IDs. It takes
+  precedence over a forecast sample for that exact leg, is retained across
+  forecast refreshes/model switches, and is removed rather than guessed when a
+  route edit no longer preserves the same adjacency. The route-wide manual wind
+  remains the final fallback and supplies the preliminary timing estimate.
 - Forecast data is fetched only after an explicit **Load forecast winds** or
   refresh action. Editing the route, departure time, altitude, aircraft, or
   other planning inputs makes the loaded result stale; stale samples are not
@@ -134,7 +141,9 @@ They are calculation contracts rather than display preferences.
   resolver; they are not passed into the summary navigation route's
   one-override-per-leg interface.
 - A forecast failure is not a navigation-calculation failure. The UI reports
-  the failure and continues to calculate with manual wind.
+  the failure and continues with per-leg manual winds where present, then the
+  route-wide manual fallback. It never falls back from ICON-EU to ECMWF (or the
+  reverse) without an explicit model selection and load.
 - Each network request has a 20-second timeout. Provider errors, rate limits,
   and timeouts are reported without triggering automatic retries.
 - Responses are cached in memory for ten minutes by their full request URL.

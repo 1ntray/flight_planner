@@ -3,9 +3,13 @@
 ## Document boundary
 
 The exported format is a versioned JSON document. Version 9 contains the route,
-navigation inputs including magnetic-variation mode and manual fallback, the complete selected aircraft-definition
+navigation inputs including magnetic-variation mode, selected wind forecast
+model, per-leg manual winds, and manual fallback, the complete selected aircraft-definition
 snapshot, optional performance and operational inputs, and the forecast
-preference. Versions 1 through 7 are validated and explicitly migrated on load.
+preference. It also stores compact airport and loading-default override flags,
+so a blank standard field stays blank after restoring the resolved calculation
+values.
+Versions 1 through 7 are validated and explicitly migrated on load.
 
 ```ts
 interface FlightPlanningDocumentV9 {
@@ -14,7 +18,9 @@ interface FlightPlanningDocumentV9 {
   planningInputs: RoutePlanningInputs;
   aircraftDefinition: AircraftDefinition;
   performanceInputs: AircraftPerformancePlanInputs | null;
+  performanceInputOverrides?: PerformanceInputOverrides | null;
   operationalInputs: OperationalPlanningInputs | null;
+  operationalInputOverrides?: OperationalInputOverrides | null;
   useForecastWinds: boolean;
 }
 ```
@@ -69,7 +75,10 @@ document contract as file import/export; local storage is a transport, not a
 second domain model.
 
 Changes to a valid document are saved after a short debounce. A temporarily
-invalid form draft never replaces the last valid saved document. An untouched
+invalid form draft never replaces the last valid saved document. The override
+flags record only whether an airport or loading fallback was changed, never raw
+form text.
+An untouched
 new session is not written merely because the application opened, and a restored
 document is not needlessly rewritten.
 
@@ -89,7 +98,7 @@ The document does not store:
 
 - calculated legs or navlog rows,
 - expanded route geometry,
-- forecast wind responses or retrieval state,
+- forecast wind responses, retrieval state, or provider cache,
 - Leaflet layer visibility or viewport,
 - selected points, popup state, or drag state.
 - map corridor visibility or other map presentation preferences.
@@ -115,7 +124,9 @@ protects:
 - aircraft identity, revision, phase values, and climb-model coefficients,
 - fuel capacities/arms, loading stations/limits, and operational inputs,
 - unique altitude plans associated only with adjacent real-waypoint legs,
-- the forecast preference boolean and magnetic-variation mode/manual value.
+- the forecast preference boolean, selected supported forecast model,
+  magnetic-variation mode/manual value, and unique manual-wind overrides that
+  refer only to adjacent real-waypoint legs.
 
 Unknown top-level and nested fields are ignored when a validated normalized
 document is constructed. Schema-one documents migrate without inventing

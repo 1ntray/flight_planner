@@ -89,12 +89,17 @@ export type {
   LegacyAircraftPerformancePlanInputsV3,
   LegacyAircraftPerformanceProfileV2,
   LegacyFlightPlanV3,
+  OperationalInputOverrides,
+  PerformanceInputOverrides,
+  SectorStopPerformanceInputOverrides,
 } from './flightPlanningDocument';
 export type {
   NavigationParameters,
   NavigationPlanInputs,
   MagneticVariationMode,
+  ManualLegWindOverride,
   RoutePlanningInputs,
+  WindForecastModelId,
   Wind,
 } from './navigation';
 export type { Position } from './position';

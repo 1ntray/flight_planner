@@ -1,12 +1,15 @@
 import type { FlightPlanningDocument } from '../../domain';
+import type { AeronauticalDataRepository } from '../../aeronautical';
+import type { CommunicationPreferences } from '../../calculations';
 import { ShortcutReference } from '../interaction/ShortcutReference';
 import { CollapsibleSection } from './CollapsibleSection';
 import { NavigationLog } from '../navigation/NavigationLog';
 import type { NavigationLogProps } from '../navigation/NavigationLog';
 import { FlightPlanFileControls } from '../persistence/FlightPlanFileControls';
 import type { LocalDraftStatus } from '../persistence/FlightPlanFileControls';
+import { FrequencyPreferencesPanel } from '../settings/FrequencyPreferencesPanel';
 
-export type PlannerSidebarTab = 'planning' | 'shortcuts';
+export type PlannerSidebarTab = 'planning' | 'settings' | 'shortcuts';
 
 export interface PlannerSidebarProps {
   activeTab: PlannerSidebarTab;
@@ -15,6 +18,9 @@ export interface PlannerSidebarProps {
   planningDocument: FlightPlanningDocument | null;
   localDraftStatus: LocalDraftStatus;
   navigationLogProps: Omit<NavigationLogProps, 'section'>;
+  aeronauticalRepository: AeronauticalDataRepository;
+  communicationPreferences: CommunicationPreferences;
+  onCommunicationPreferencesChange: (preferences: CommunicationPreferences) => void;
   onActiveTabChange: (tab: PlannerSidebarTab) => void;
   onClearRoute: () => void;
   onImport: (document: FlightPlanningDocument) => void;
@@ -28,6 +34,9 @@ export function PlannerSidebar({
   planningDocument,
   localDraftStatus,
   navigationLogProps,
+  aeronauticalRepository,
+  communicationPreferences,
+  onCommunicationPreferencesChange,
   onActiveTabChange,
   onClearRoute,
   onImport,
@@ -49,6 +58,17 @@ export function PlannerSidebar({
       </div>
 
       <div className="sidebar-tabs" role="tablist" aria-label="Planner panels">
+        <button
+          type="button"
+          role="tab"
+          id="settings-tab"
+          aria-selected={activeTab === 'settings'}
+          aria-controls="settings-panel"
+          className={activeTab === 'settings' ? 'sidebar-tabs__tab sidebar-tabs__tab--active' : 'sidebar-tabs__tab'}
+          onClick={() => onActiveTabChange('settings')}
+        >
+          Settings
+        </button>
         <button
           type="button"
           role="tab"
@@ -98,6 +118,14 @@ export function PlannerSidebar({
             </CollapsibleSection>
 
             <NavigationLog section="controls" {...navigationLogProps} />
+          </div>
+        ) : activeTab === 'settings' ? (
+          <div id="settings-panel" role="tabpanel" aria-labelledby="settings-tab">
+            <FrequencyPreferencesPanel
+              repository={aeronauticalRepository}
+              preferences={communicationPreferences}
+              onChange={onCommunicationPreferencesChange}
+            />
           </div>
         ) : (
           <div id="shortcuts-panel" role="tabpanel" aria-labelledby="shortcuts-tab">

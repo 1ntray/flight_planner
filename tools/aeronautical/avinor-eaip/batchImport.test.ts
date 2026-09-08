@@ -122,7 +122,8 @@ describe('Avinor eAIP AD 2 batch importer', () => {
     )).toBe(true);
     expect(result.dataset.atsServiceAreas.length).toBeGreaterThan(0);
     expect(result.dataset.communicationServices.find(
-      ({ id }) => id === 'communication:enr21:bardufoss-tma:approach',
+      ({ id }) => id ===
+        'communication:enr21:bardufoss-tma:approach:bardufoss-approach-radar',
     )?.frequencies.map(({ valueMHz }) => valueMHz)).toEqual([
       '118.805', '125.855', '275.300', '397.375',
     ]);

@@ -1,5 +1,10 @@
 import { normalizeTrackDeg } from '../calculations';
-import type { Wind } from '../domain';
+import type { Wind, WindForecastModelId } from '../domain';
+import {
+  DEFAULT_WIND_FORECAST_MODEL,
+  getWindForecastModel,
+  OPEN_METEO_PRESSURE_LEVELS,
+} from './forecastModels';
 import type { ForecastLegWind, WeatherSampleRequest } from './types';
 
 export const FEET_TO_METERS = 0.3048;
@@ -20,31 +25,11 @@ export interface OpenMeteoPressureLevel {
   approximateAltitudeMeters: number;
 }
 
-export const OPEN_METEO_PRESSURE_LEVELS: readonly OpenMeteoPressureLevel[] = [
-  { pressureHpa: 1000, approximateAltitudeMeters: 110 },
-  { pressureHpa: 975, approximateAltitudeMeters: 320 },
-  { pressureHpa: 950, approximateAltitudeMeters: 500 },
-  { pressureHpa: 925, approximateAltitudeMeters: 800 },
-  { pressureHpa: 900, approximateAltitudeMeters: 1000 },
-  { pressureHpa: 850, approximateAltitudeMeters: 1500 },
-  { pressureHpa: 800, approximateAltitudeMeters: 1900 },
-  { pressureHpa: 700, approximateAltitudeMeters: 3000 },
-  { pressureHpa: 600, approximateAltitudeMeters: 4200 },
-  { pressureHpa: 500, approximateAltitudeMeters: 5600 },
-  { pressureHpa: 400, approximateAltitudeMeters: 7200 },
-  { pressureHpa: 300, approximateAltitudeMeters: 9200 },
-  { pressureHpa: 250, approximateAltitudeMeters: 10400 },
-  { pressureHpa: 200, approximateAltitudeMeters: 11800 },
-  { pressureHpa: 150, approximateAltitudeMeters: 13600 },
-  { pressureHpa: 100, approximateAltitudeMeters: 15800 },
-  { pressureHpa: 70, approximateAltitudeMeters: 17700 },
-  { pressureHpa: 50, approximateAltitudeMeters: 19300 },
-  { pressureHpa: 30, approximateAltitudeMeters: 22000 },
-];
+export { OPEN_METEO_PRESSURE_LEVELS } from './forecastModels';
 
 export interface OpenMeteoForecastRequest {
   url: string;
-  model: typeof OPEN_METEO_FORECAST_MODEL;
+  model: WindForecastModelId;
   pressureLevels: readonly OpenMeteoPressureLevel[];
 }
 
@@ -126,6 +111,7 @@ export function interpolateWindVectors(
 
 export function selectPressureLevelsForAltitude(
   altitudeFtMsl: number,
+  availableLevels: readonly OpenMeteoPressureLevel[] = OPEN_METEO_PRESSURE_LEVELS,
 ): readonly OpenMeteoPressureLevel[] {
   requireFinite(altitudeFtMsl, 'Planned altitude');
 
@@ -134,22 +120,22 @@ export function selectPressureLevelsForAltitude(
   }
 
   const altitudeMetersMsl = altitudeFtMsl * FEET_TO_METERS;
-  const firstHigherIndex = OPEN_METEO_PRESSURE_LEVELS.findIndex(
+  const firstHigherIndex = availableLevels.findIndex(
     (level) => level.approximateAltitudeMeters >= altitudeMetersMsl,
   );
   const lowerBracketIndex =
     firstHigherIndex === -1
-      ? OPEN_METEO_PRESSURE_LEVELS.length - 1
+      ? availableLevels.length - 1
       : Math.max(0, firstHigherIndex - 1);
   let startIndex = Math.max(0, lowerBracketIndex - 1);
   let endIndex = Math.min(
-    OPEN_METEO_PRESSURE_LEVELS.length,
+    availableLevels.length,
     startIndex + PRESSURE_LEVEL_COUNT,
   );
 
   startIndex = Math.max(0, endIndex - PRESSURE_LEVEL_COUNT);
 
-  return OPEN_METEO_PRESSURE_LEVELS.slice(startIndex, endIndex);
+  return availableLevels.slice(startIndex, endIndex);
 }
 
 function formatHourUtc(timestampUtcMs: number): string {
@@ -158,6 +144,7 @@ function formatHourUtc(timestampUtcMs: number): string {
 
 export function buildOpenMeteoForecastRequest(
   requests: readonly WeatherSampleRequest[],
+  modelId: WindForecastModelId = DEFAULT_WIND_FORECAST_MODEL,
 ): OpenMeteoForecastRequest {
   if (requests.length === 0) {
     throw new RangeError('At least one weather sample request is required');
@@ -170,14 +157,15 @@ export function buildOpenMeteoForecastRequest(
     requireFinite(request.altitudeFtMsl, 'Weather sampling altitude');
   }
 
+  const model = getWindForecastModel(modelId);
   const selectedPressureValues = new Set(
     requests.flatMap((request) =>
-      selectPressureLevelsForAltitude(request.altitudeFtMsl).map(
+      selectPressureLevelsForAltitude(request.altitudeFtMsl, model.pressureLevels).map(
         ({ pressureHpa }) => pressureHpa,
       ),
     ),
   );
-  const pressureLevels = OPEN_METEO_PRESSURE_LEVELS.filter(({ pressureHpa }) =>
+  const pressureLevels = model.pressureLevels.filter(({ pressureHpa }) =>
     selectedPressureValues.has(pressureHpa),
   );
   const hourlyVariables = pressureLevels.flatMap(({ pressureHpa }) => [
@@ -203,7 +191,7 @@ export function buildOpenMeteoForecastRequest(
     requests.map((request) => request.position.longitude.toFixed(6)).join(','),
   );
   url.searchParams.set('hourly', hourlyVariables.join(','));
-  url.searchParams.set('models', OPEN_METEO_FORECAST_MODEL);
+  url.searchParams.set('models', model.openMeteoModel);
   url.searchParams.set('wind_speed_unit', 'kn');
   url.searchParams.set('timeformat', 'unixtime');
   url.searchParams.set('timezone', 'GMT');
@@ -213,7 +201,7 @@ export function buildOpenMeteoForecastRequest(
 
   return {
     url: url.toString(),
-    model: OPEN_METEO_FORECAST_MODEL,
+    model: model.id,
     pressureLevels,
   };
 }
@@ -425,7 +413,9 @@ function parseLocationForecast(
   request: WeatherSampleRequest,
   pressureLevels: readonly OpenMeteoPressureLevel[],
   metadata: OpenMeteoForecastMetadata,
+  modelId: WindForecastModelId,
 ): ForecastLegWind {
+  const model = getWindForecastModel(modelId);
   const location = asRecord(value, 'Open-Meteo location forecast');
   const hourly = asRecord(location.hourly, 'Open-Meteo hourly forecast');
   const times = asNumberArray(hourly.time, 'Open-Meteo hourly time');
@@ -443,8 +433,10 @@ function parseLocationForecast(
     fromId: request.fromId,
     toId: request.toId,
     source: 'forecast',
-    provider: OPEN_METEO_FORECAST_PROVIDER,
-    model: OPEN_METEO_FORECAST_MODEL,
+    provider: model.provider,
+    providerLabel: model.providerLabel,
+    model: model.id,
+    modelLabel: model.label,
     retrievedAtUtcMs: metadata.retrievedAtUtcMs,
     wind: vertical.wind,
     sampledPosition: request.position,
@@ -463,6 +455,7 @@ export function parseOpenMeteoForecast(
   requests: readonly WeatherSampleRequest[],
   pressureLevels: readonly OpenMeteoPressureLevel[],
   metadata: OpenMeteoForecastMetadata,
+  modelId: WindForecastModelId = DEFAULT_WIND_FORECAST_MODEL,
 ): ForecastLegWind[] {
   requireFinite(metadata.retrievedAtUtcMs, 'Forecast retrieval time');
   const locations = Array.isArray(value) ? value : [value];
@@ -479,6 +472,7 @@ export function parseOpenMeteoForecast(
       request,
       pressureLevels,
       metadata,
+      modelId,
     ),
   );
 }

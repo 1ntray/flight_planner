@@ -9,7 +9,7 @@ working draft, interval-integrated climb/cruise/descent performance,
 multi-sector stop-duration scheduling, operational fuel planning, and
 registration-specific mass and balance, OFP-aligned navlogs, multi-transition
 legs, detailed aerodrome information, and bounded calculation recovery for
-MVP 0.20.
+MVP 0.21.
 
 ## Development
 
@@ -43,7 +43,7 @@ pnpm test
 pnpm build
 ```
 
-See [`docs/mvp-0.20.md`](docs/mvp-0.20.md) for current scope and
+See [`docs/mvp-0.21.md`](docs/mvp-0.21.md) for current scope and
 [`docs/conventions.md`](docs/conventions.md) for project conventions. Aviation
 calculation definitions are recorded in
 [`docs/navigation-conventions.md`](docs/navigation-conventions.md).
@@ -51,5 +51,7 @@ Aircraft constants, formulas, and phase integration are recorded in
 [`docs/aircraft-performance.md`](docs/aircraft-performance.md).
 Aeronautical data and anchoring contracts are recorded in
 [`docs/aeronautical-data.md`](docs/aeronautical-data.md).
+The human-gated Avinor edition workflow is documented in
+[`docs/airac-updates.md`](docs/airac-updates.md).
 The saved-document contract is recorded in
 [`docs/flight-plan-persistence.md`](docs/flight-plan-persistence.md).

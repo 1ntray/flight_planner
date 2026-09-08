@@ -5,10 +5,11 @@ import type {
   CalculatedNavigationRoute,
   LegWindOverride,
 } from '../../calculations';
-import type { FlightPlan, NavigationPlanInputs } from '../../domain';
+import type { FlightPlan, ManualLegWindOverride, NavigationPlanInputs, WindForecastModelId } from '../../domain';
 import {
   buildWeatherSampleRequests,
-  fetchOpenMeteoLegWinds,
+  createEffectiveLegWinds,
+  getWindForecastProvider,
   weatherSampleRequestsMatch,
 } from '../../weather';
 import type { ForecastLegWind } from '../../weather';
@@ -28,6 +29,8 @@ export interface UseOpenMeteoRouteWindsInput {
   planning: NavigationPlanInputs | null;
   preliminaryRoute: CalculatedNavigationRoute;
   requestKey: number;
+  model: WindForecastModelId;
+  manualOverrides?: readonly ManualLegWindOverride[];
 }
 
 export interface UseOpenMeteoRouteWindsResult {
@@ -44,18 +47,26 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
 }
 
-export function useOpenMeteoRouteWinds({
+export function useForecastRouteWinds({
   enabled,
   flightPlan,
   planning,
   preliminaryRoute,
   requestKey,
+  model,
+  manualOverrides = [],
 }: UseOpenMeteoRouteWindsInput): UseOpenMeteoRouteWindsResult {
   const [storedState, setStoredState] = useState<StoredForecastState>({
     status: 'idle',
   });
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeContextKeyRef = useRef<string | null>(null);
+  const forecastPlanningContext = planning === null
+    ? null
+    : (() => {
+        const { manualLegWindOverrides: _manualLegWindOverrides, ...rest } = planning;
+        return rest;
+      })();
   const contextKey = useMemo(
     () => {
       if (!enabled || requestKey <= 0) {
@@ -63,7 +74,8 @@ export function useOpenMeteoRouteWinds({
       }
 
       return JSON.stringify({
-        planning,
+        model,
+        planning: forecastPlanningContext,
         waypoints: flightPlan.waypoints.map(({ id, position }) => ({
           id,
           position,
@@ -71,7 +83,7 @@ export function useOpenMeteoRouteWinds({
         legShapes: flightPlan.legShapes,
       });
     },
-    [enabled, flightPlan, planning, requestKey],
+    [enabled, flightPlan, forecastPlanningContext, model, requestKey],
   );
   const canLoad = planning !== null && preliminaryRoute.legs.length > 0;
 
@@ -116,14 +128,16 @@ export function useOpenMeteoRouteWinds({
 
     void (async () => {
       try {
-        let winds = await fetchOpenMeteoLegWinds(
+        const provider = getWindForecastProvider(model);
+        let winds = await provider.fetchWinds(
+          model,
           initialRequests,
           abortController.signal,
         );
         const firstForecastRoute = calculateNavigationRoute({
           flightPlan,
           planning,
-          legWinds: winds,
+          legWinds: createEffectiveLegWinds(winds, manualOverrides),
         });
         const refinedRequests = buildWeatherSampleRequests(
           firstForecastRoute,
@@ -135,7 +149,8 @@ export function useOpenMeteoRouteWinds({
           refinedRequests.length > 0 &&
           !weatherSampleRequestsMatch(initialRequests, refinedRequests)
         ) {
-          winds = await fetchOpenMeteoLegWinds(
+          winds = await provider.fetchWinds(
+            model,
             refinedRequests,
             abortController.signal,
           );
@@ -149,7 +164,7 @@ export function useOpenMeteoRouteWinds({
         setStoredState({
           status: 'success',
           contextKey,
-          winds,
+          winds: [...winds],
           refined,
         });
       } catch (error) {
@@ -188,3 +203,6 @@ export function useOpenMeteoRouteWinds({
     canLoad,
   };
 }
+
+/** @deprecated Use useForecastRouteWinds; retained for existing integrations. */
+export const useOpenMeteoRouteWinds = useForecastRouteWinds;

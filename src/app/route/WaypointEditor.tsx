@@ -61,13 +61,7 @@ export function WaypointEditor({
   return (
     <form className="waypoint-editor" onSubmit={submitRename}>
       <div className="waypoint-editor__heading">
-        <div>
-          <p className="eyebrow">Selected waypoint</p>
-          <h3>{waypoint.name}</h3>
-        </div>
-        <span className="waypoint-editor__kind">
-          {waypoint.anchor === undefined ? 'Free' : 'Anchored'}
-        </span>
+        <h3>{waypoint.name}</h3>
       </div>
 
       <label htmlFor="selected-waypoint-name">Navlog name</label>
@@ -80,32 +74,22 @@ export function WaypointEditor({
           value={draftName}
           maxLength={MAX_WAYPOINT_NAME_LENGTH}
           aria-invalid={validationMessage !== null}
-          aria-describedby="selected-waypoint-name-help"
+          aria-describedby={
+            validationMessage === null ? undefined : 'selected-waypoint-name-help'
+          }
           onChange={(event) => setDraftName(event.target.value)}
         />
-        <button
-          type="submit"
-          className="button"
-          disabled={validationMessage !== null || !hasChanged}
-        >
-          Save name
-        </button>
       </div>
 
-      <p
-        id="selected-waypoint-name-help"
-        className={
-          validationMessage === null
-            ? 'waypoint-editor__help'
-            : 'waypoint-editor__error'
-        }
-        aria-live="polite"
-      >
-        {validationMessage ??
-          (waypoint.anchor === undefined
-            ? `Up to ${MAX_WAYPOINT_NAME_LENGTH} characters.`
-            : `Coordinate locked to published ${waypoint.anchor.publishedIdentifier}; renaming preserves the anchor.`)}
-      </p>
+      {validationMessage === null ? null : (
+        <p
+          id="selected-waypoint-name-help"
+          className="waypoint-editor__error"
+          aria-live="polite"
+        >
+          {validationMessage}
+        </p>
+      )}
     </form>
   );
 }
