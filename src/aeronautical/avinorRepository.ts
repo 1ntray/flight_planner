@@ -1,4 +1,4 @@
-import normalizedAvinorDataset from './data/avinor-eaip-2026-06-11.json';
+import normalizedAvinorDataset from './data/avinor-eaip-2026-09-03.json';
 import { createNormalizedAeronauticalRepository } from './normalizedDataset';
 import type { NormalizedAeronauticalDataset } from './normalizedDataset';
 
