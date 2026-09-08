@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import type {
   CalculatedNavigationRoute,
@@ -8,15 +8,12 @@ import type {
   CalculatedSectorOperationalFlightPlan,
   WindAdjustedLegResult,
 } from '../../calculations';
-import { calculatePositionAlongGeometry } from '../../calculations';
 import type {
   AlternatePlanningInputs,
   LegAltitudePlan,
-  ManualLegWindOverride,
   Waypoint,
 } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
-import { createSampledWindResolver } from '../../weather';
 import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
 import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
 import {
@@ -55,127 +52,10 @@ export interface RouteTableProps {
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
   communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
-  manualLegWindOverrides?: readonly ManualLegWindOverride[];
-  onManualLegWindOverridesChange?: (
-    overrides: readonly ManualLegWindOverride[],
-  ) => void;
 }
 
 function legKey(fromId: string, toId: string): string {
   return `${fromId}\0${toId}`;
-}
-
-function ManualLegWindEditor({
-  route,
-  waypoints,
-  forecastWinds,
-  performanceRoute,
-  overrides,
-  onChange,
-}: {
-  route: CalculatedNavigationRoute;
-  waypoints: readonly Waypoint[];
-  forecastWinds: readonly ForecastLegWind[];
-  performanceRoute: CalculatedPerformanceRoute | null | undefined;
-  overrides: readonly ManualLegWindOverride[];
-  onChange: (overrides: readonly ManualLegWindOverride[]) => void;
-}) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [direction, setDirection] = useState('');
-  const [speed, setSpeed] = useState('');
-  const overridesByLeg = new Map(overrides.map((override) => [
-    legKey(override.fromWaypointId, override.toWaypointId), override,
-  ]));
-  const forecastsByLeg = new Map<string, ForecastLegWind[]>();
-  for (const forecast of forecastWinds) {
-    const key = legKey(forecast.fromId, forecast.toId);
-    forecastsByLeg.set(key, [...(forecastsByLeg.get(key) ?? []), forecast]);
-  }
-  const performanceByLeg = new Map(
-    performanceRoute?.status === 'ok'
-      ? performanceRoute.legs.map((leg) => [legKey(leg.fromId, leg.toId), leg])
-      : [],
-  );
-  const startEditing = (key: string, override: ManualLegWindOverride | undefined, fallback: { directionFromTrueDeg: number; speedKt: number } | null) => {
-    setEditingKey(key);
-    setDirection(String(Math.round(override?.wind.directionFromTrueDeg ?? fallback?.directionFromTrueDeg ?? 0)));
-    setSpeed(String(Math.round(override?.wind.speedKt ?? fallback?.speedKt ?? 0)));
-  };
-  if (route.legs.length === 0) return null;
-  return (
-    <section className="route-table__manual-winds" aria-label="Per-leg wind overrides">
-      <h4>Per-leg wind overrides</h4>
-      <p>Manual wind is true direction FROM and takes precedence over the selected forecast.</p>
-      <ul>
-        {route.legs.map((leg, index) => {
-          const key = legKey(leg.fromId, leg.toId);
-          const override = overridesByLeg.get(key);
-          const forecasts = forecastsByLeg.get(key) ?? [];
-          const performanceLeg = performanceByLeg.get(key);
-          const effectiveSummary = performanceLeg === undefined
-            ? null
-            : calculatePerformanceLegNavigationSummary(performanceLeg);
-          const forecastSummary = performanceLeg === undefined || forecasts.length === 0
-            ? null
-            : (() => {
-                const resolveForecastWind = createSampledWindResolver(
-                  forecasts,
-                  { directionFromTrueDeg: 0, speedKt: 0 },
-                );
-                return calculatePerformanceLegNavigationSummary({
-                  ...performanceLeg,
-                  steps: performanceLeg.steps.map((step) => ({
-                    ...step,
-                    wind: resolveForecastWind({
-                      fromWaypointId: performanceLeg.fromId,
-                      toWaypointId: performanceLeg.toId,
-                      position: calculatePositionAlongGeometry(
-                        performanceLeg.geometry,
-                        (step.startDistanceFromLegNm + step.endDistanceFromLegNm) / 2,
-                      ).position,
-                      timeUtcMs: (step.startTimeUtcMs + step.endTimeUtcMs) / 2,
-                      altitudeFtMsl: step.representativeAltitudeFtMsl,
-                    }),
-                  })),
-                });
-              })();
-          const forecastWind = forecastSummary?.wind ?? forecasts[0]?.wind ?? null;
-          const effectiveWind = override?.wind ?? effectiveSummary?.wind ?? leg.wind;
-          const isEditing = editingKey === key;
-          return <li key={key}>
-            <strong>{waypoints[index]?.name ?? leg.fromId} → {waypoints[index + 1]?.name ?? leg.toId}</strong>{' '}
-            <span>Effective {override === undefined ? 'forecast / fallback' : 'manual'}: {effectiveWind === null ? '—' : `${Math.round(effectiveWind.directionFromTrueDeg).toString().padStart(3, '0')}°T / ${Math.round(effectiveWind.speedKt)} kt`}</span>
-            {forecastWind === null ? null : <small> Forecast: {forecasts[0]!.modelLabel} {forecastSummary === null ? 'sample' : 'representative'} {Math.round(forecastWind.directionFromTrueDeg).toString().padStart(3, '0')}°T / {Math.round(forecastWind.speedKt)} kt{forecastSummary === null ? '' : ` from ${forecasts.length} sample${forecasts.length === 1 ? '' : 's'}`}.</small>}
-            {isEditing ? (
-              <form onSubmit={(event) => {
-                event.preventDefault();
-                const parsedDirection = Number(direction);
-                const parsedSpeed = Number(speed);
-                if (!Number.isFinite(parsedDirection) || !Number.isFinite(parsedSpeed) || parsedSpeed < 0) return;
-                const next = overrides.filter((item) => legKey(item.fromWaypointId, item.toWaypointId) !== key);
-                onChange([...next, {
-                  fromWaypointId: leg.fromId,
-                  toWaypointId: leg.toId,
-                  wind: { directionFromTrueDeg: ((parsedDirection % 360) + 360) % 360, speedKt: parsedSpeed },
-                }]);
-                setEditingKey(null);
-              }}>
-                <label>Direction <input aria-label={`${waypoints[index]?.name ?? leg.fromId} to ${waypoints[index + 1]?.name ?? leg.toId} manual wind direction`} type="number" value={direction} onChange={(event) => setDirection(event.currentTarget.value)} autoFocus /> °T</label>
-                <label>Speed <input aria-label={`${waypoints[index]?.name ?? leg.fromId} to ${waypoints[index + 1]?.name ?? leg.toId} manual wind speed`} type="number" min="0" value={speed} onChange={(event) => setSpeed(event.currentTarget.value)} /> kt</label>
-                <button className="button" type="submit">Apply manual wind</button>
-                <button className="button" type="button" onClick={() => setEditingKey(null)}>Cancel</button>
-              </form>
-            ) : (
-              <>
-                <button className="button" type="button" onClick={() => startEditing(key, override, effectiveWind)}>Edit manually</button>
-                {override === undefined ? null : <button className="button" type="button" onClick={() => onChange(overrides.filter((item) => legKey(item.fromWaypointId, item.toWaypointId) !== key))}>Use forecast</button>}
-              </>
-            )}
-          </li>;
-        })}
-      </ul>
-    </section>
-  );
 }
 
 function getNoSolutionMessage(result: WindAdjustedLegResult): string | null {
@@ -417,8 +297,6 @@ export function RouteTable({
   forecastWinds = [],
   legAltitudePlans = [],
   communicationChangesByLeg = new Map(),
-  manualLegWindOverrides = [],
-  onManualLegWindOverridesChange,
 }: RouteTableProps) {
   const waypointNames = useMemo(
     () =>
@@ -686,16 +564,6 @@ export function RouteTable({
             </tr>
           </tfoot>
         </table>
-      )}
-      {onManualLegWindOverridesChange === undefined ? null : (
-        <ManualLegWindEditor
-          route={route}
-          waypoints={waypoints}
-          forecastWinds={forecastWinds}
-          performanceRoute={performanceRoute}
-          overrides={manualLegWindOverrides}
-          onChange={onManualLegWindOverridesChange}
-        />
       )}
     </div>
   );

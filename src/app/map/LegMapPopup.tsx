@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
-import type { LegAltitudePlan, Waypoint } from '../../domain';
+import type {
+  LegAltitudePlan,
+  ManualLegWindOverride,
+  Waypoint,
+  Wind,
+} from '../../domain';
+import { LegWindFields } from '../navigation/LegWindFields';
+import type { LegWindDefault } from '../navigation/legWindOverrideState';
 import {
   formatLegAltitudeDraft,
   parseLegAltitudeDraft,
@@ -14,14 +21,18 @@ export interface LegMapPopupProps {
   fromWaypoint: Waypoint;
   toWaypoint: Waypoint;
   plan: LegAltitudePlan | undefined;
+  manualWindOverride: ManualLegWindOverride | undefined;
+  defaultWind: LegWindDefault;
   defaultAltitudeFtMsl: string;
   isArrivalLeg: boolean;
   altitudeFocusRequest: number;
   msaFocusRequest: number;
+  windFocusRequest: number;
   onInsertWaypoint: () => void;
   onSetAltitude: (altitudeFtMsl: number | null) => void;
   onSetMinimumSafeAltitude: (minimumSafeAltitudeFtMsl: number | null) => void;
   onSetEndAltitude: (altitudeFtMsl: number | null) => void;
+  onSetManualWind: (wind: Wind | null) => void;
   onPlaceAltitudeTarget: () => void;
   onPlaceEndAltitudeTarget: () => void;
   onResetAltitudeTarget: () => void;
@@ -34,14 +45,18 @@ export function LegMapPopup({
   fromWaypoint,
   toWaypoint,
   plan,
+  manualWindOverride,
+  defaultWind,
   defaultAltitudeFtMsl,
   isArrivalLeg,
   altitudeFocusRequest,
   msaFocusRequest,
+  windFocusRequest,
   onInsertWaypoint,
   onSetAltitude,
   onSetMinimumSafeAltitude,
   onSetEndAltitude,
+  onSetManualWind,
   onPlaceAltitudeTarget,
   onPlaceEndAltitudeTarget,
   onResetAltitudeTarget,
@@ -255,6 +270,14 @@ export function LegMapPopup({
       <p className="leg-map-popup__target">
         End-altitude target: {endTargetDistance === null ? 'automatic' : `${endTargetDistance.toFixed(1)} NM`}
       </p>
+      <LegWindFields
+        fromName={fromWaypoint.name}
+        toName={toWaypoint.name}
+        override={manualWindOverride}
+        defaultWind={defaultWind}
+        focusRequest={windFocusRequest}
+        onChange={onSetManualWind}
+      />
       <div className="leg-map-popup__target-actions">
         <button
           type="button"

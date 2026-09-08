@@ -111,6 +111,11 @@ They are calculation contracts rather than display preferences.
   forecast refreshes/model switches, and is removed rather than guessed when a
   route edit no longer preserves the same adjacency. The route-wide manual wind
   remains the final fallback and supplies the preliminary timing estimate.
+- Per-leg editors leave both fields blank when no override exists. Their grey
+  default identifies and displays either the applicable loaded forecast or the
+  route-wide manual wind; only entering both direction and speed creates an
+  override. These inputs live with leg editing and the altitude schedule rather
+  than inside the navlog.
 - Forecast data is fetched only after an explicit **Load forecast winds** or
   refresh action. Editing the route, departure time, altitude, aircraft, or
   other planning inputs makes the loaded result stale; stale samples are not

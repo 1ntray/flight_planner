@@ -27,6 +27,8 @@ describe('planner keyboard shortcuts', () => {
       .toBe('edit-altitude');
     expect(resolvePlannerShortcut({ key: 'm', editing: false, selection: legSelection, tool: selectTool }))
       .toBe('edit-msa');
+    expect(resolvePlannerShortcut({ key: 'w', editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('edit-wind');
     expect(resolvePlannerShortcut({ key: 'Delete', editing: false, selection: legSelection, tool: selectTool }))
       .toBeNull();
     expect(resolvePlannerShortcut({
@@ -55,8 +57,10 @@ describe('planner keyboard shortcuts', () => {
   });
 
   it('supports global mode, help, and cancel commands', () => {
-    expect(resolvePlannerShortcut({ key: 'w', editing: false, selection: null, tool: selectTool }))
+    expect(resolvePlannerShortcut({ key: 'r', editing: false, selection: null, tool: selectTool }))
       .toBe('toggle-add-waypoint');
+    expect(resolvePlannerShortcut({ key: 'w', editing: false, selection: null, tool: selectTool }))
+      .toBeNull();
     expect(resolvePlannerShortcut({ key: '?', editing: false, selection: null, tool: selectTool }))
       .toBe('show-shortcuts');
     expect(resolvePlannerShortcut({ key: 'Escape', editing: false, selection: null, tool: selectTool }))
@@ -76,6 +80,8 @@ describe('planner keyboard shortcuts', () => {
       .toBe('start-altitude-mode');
     expect(resolvePlannerShortcut({ key: 'm', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
       .toBe('start-msa-mode');
+    expect(resolvePlannerShortcut({ key: 'w', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
+      .toBe('start-wind-mode');
     expect(resolvePlannerShortcut({ key: 'p', shiftKey: true, editing: false, selection: legSelection, tool: selectTool }))
       .toBe('place-end-altitude-target');
     expect(resolvePlannerShortcut({ key: 't', editing: false, selection: legSelection, tool: selectTool }))

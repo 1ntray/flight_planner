@@ -66,17 +66,20 @@ an ordered route. Renaming changes neither the stable waypoint ID nor geometry.
 An anchored waypoint may be renamed without detachment; its published
 identifier remains available in the separate anchor snapshot.
 
-In Add waypoint mode, visible aeronautical source markers are intentionally
-above existing route markers. This allows the same aerodrome or reporting point
-to be selected repeatedly for separate anchored waypoints at its published
-WGS84 coordinate. Clicking an existing real route waypoint also creates a new
-waypoint at that exact stored coordinate; it preserves the source anchor when
-the clicked waypoint is anchored.
+In Add waypoint mode, visible aeronautical point markers can be selected
+repeatedly to create separate anchored waypoints at the published WGS84
+coordinate. In Select/Edit mode, route-waypoint markers remain selectable even
+where they share a position with an aerodrome or reporting point. Clicking an
+existing real route waypoint in Add waypoint mode also creates a new waypoint
+at that exact stored coordinate; it preserves the source anchor when the
+clicked waypoint is anchored.
 
 ## Map
 
 - Select/Edit is the default map tool. Empty-map clicks do not mutate the route
   unless explicit Add waypoint mode is active.
+- `R` toggles Add waypoint (route-entry) mode. With a leg selected, `W` focuses
+  its wind override and `Shift+W` starts sequential wind entry.
 - Add waypoint and altitude-target placement are mutually exclusive tools.
   Altitude placement cannot create a waypoint, and Escape returns to Select/Edit.
 - Waypoint, shaping-point, and leg selection are transient UI state. A selected
@@ -87,6 +90,11 @@ the clicked waypoint is anchored.
 - Map-popup form text is transient UI state until its documented commit action.
   Leg altitude commits on blur or Enter, preventing partial numeric input from
   repeatedly updating planning calculations.
+- Per-leg manual wind is edited from the selected-leg map popup, the Altitude
+  schedule, or sequential wind entry. The navlog displays the effective wind
+  but is not an input surface. Blank wind fields show the loaded forecast when
+  applicable, otherwise the route-wide manual wind, without storing a second
+  value.
 - Planning altitudes above 60,000 ft are rejected before route integration.
 - MSA is an optional, manual ft-MSL value attached to an adjacent real-waypoint
   leg. The selected-leg 1 NM corridor is a WGS84 visual aid around shaped
@@ -134,8 +142,8 @@ the clicked waypoint is anchored.
   dataset.
 - ATS service areas are separate, data-only coverage volumes. They associate a
   published unit/service/frequency with WGS84 lateral geometry and semantic
-  vertical limits for future frequency selection, but are not regulatory
-  airspace, map features, or waypoint anchors.
+  vertical limits for automatic route-frequency selection, but are not
+  regulatory airspace, map features, or waypoint anchors.
 - Airspace vertical limits retain published semantics such as GND, altitude,
   flight level, and UNL. Map render polygons may be derived, while detailed
   source geometry and provenance remain available for verification.

@@ -1,4 +1,4 @@
-import type { AircraftDefinition, FlightPlan, ManualLegWindOverride } from '../../domain';
+import type { AircraftDefinition, FlightPlan, Wind } from '../../domain';
 import { SectorRouteTables } from '../route/SectorRouteTables';
 import { CollapsibleSection } from '../layout/CollapsibleSection';
 import type { NavigationInputDraft } from './navigationInput';
@@ -17,6 +17,7 @@ import { OperationalPlanningInputs } from './OperationalPlanningInputs';
 import type { PlanningCalculations } from './usePlanningCalculations';
 import type { CommunicationChange } from '../../calculations';
 import { formatPerformanceRouteFailureLeg } from './performanceRouteFormatting';
+import type { LegWindDefault } from './legWindOverrideState';
 import {
   formatForecastSourceLabel,
   formatForecastRetrievalTime,
@@ -61,8 +62,11 @@ export interface NavigationLogProps {
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   onLoadForecastWinds: () => void;
-  onManualLegWindOverridesChange: (
-    overrides: readonly ManualLegWindOverride[],
+  legWindDefaults: ReadonlyMap<string, LegWindDefault>;
+  onManualLegWindChange: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    wind: Wind | null,
   ) => void;
   onChooseAlternateByIcao: (icaoIdentifier: string) => Promise<string | null>;
   altitudePlacementLeg: AltitudePlacementLeg | null;
@@ -86,7 +90,8 @@ export function NavigationLog({
   onOperationalDraftChange,
   onUseForecastWindsChange,
   onLoadForecastWinds,
-  onManualLegWindOverridesChange,
+  legWindDefaults,
+  onManualLegWindChange,
   onChooseAlternateByIcao,
   altitudePlacementLeg,
   onAltitudePlacementLegChange,
@@ -442,9 +447,12 @@ export function NavigationLog({
       <LegAltitudeControls
         flightPlan={flightPlan}
         draft={performanceDraft}
+        manualWindOverrides={draft.manualLegWindOverrides}
+        legWindDefaults={legWindDefaults}
         placementLeg={altitudePlacementLeg}
         onDraftChange={onPerformanceDraftChange}
         onPlacementLegChange={onAltitudePlacementLegChange}
+        onManualLegWindChange={onManualLegWindChange}
       />
       </CollapsibleSection>
 
@@ -483,8 +491,6 @@ export function NavigationLog({
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }
-        manualLegWindOverrides={draft.manualLegWindOverrides}
-        onManualLegWindOverridesChange={onManualLegWindOverridesChange}
         legAltitudePlans={performanceDraft.legAltitudePlans}
         communicationChangesByLeg={communicationChangesByLeg}
       />

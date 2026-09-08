@@ -9,7 +9,7 @@ snapshot, optional performance and operational inputs, and the forecast
 preference. It also stores compact airport and loading-default override flags,
 so a blank standard field stays blank after restoring the resolved calculation
 values.
-Versions 1 through 7 are validated and explicitly migrated on load.
+Versions 1 through 8 are validated and explicitly migrated on load.
 
 ```ts
 interface FlightPlanningDocumentV9 {

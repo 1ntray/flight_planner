@@ -1,5 +1,10 @@
 # MVP 0.21
 
+> Historical milestone record. This document preserves the MVP 0.21 scope;
+> [`current-state.md`](current-state.md) is the authoritative description of
+> the current application. Factual references below have been updated where
+> they describe the active checked-in data or runtime behaviour.
+
 ## Goal
 
 MVP 0.21 turns the planner's map into a more complete VFR planning workspace.
@@ -20,11 +25,17 @@ shortcut reference make the available operations discoverable without relying
 on map popups alone.
 
 Sequential entry workflows are available for waypoint names, planned
-altitudes, and minimum safe altitudes. Text-field edits do not continuously
+altitudes, minimum safe altitudes, and manual per-leg winds. Text-field edits do not continuously
 commit partial numeric values: altitude and MSA values are committed at the
 defined field boundary so route calculations are not repeatedly invoked for
 each typed character. Planner shortcuts remain disabled while a form control
 or editable element has focus.
+
+Per-leg manual wind overrides are edited in the selected-leg map popup or the
+right-side Altitude schedule, not in the navlog. Blank fields display the
+effective loaded-forecast or route-wide manual default in grey. `R` toggles Add
+waypoint mode, `W` focuses wind for the selected leg, and `Shift+W` starts the
+sequential wind editor.
 
 Waypoint insertion, shaping-point movement, and altitude-target editing retain
 the active route-editing context where appropriate. Canonical route input is
@@ -66,19 +77,19 @@ not coupled to the displayed map projection.
 
 ## Structured aeronautical data
 
-The default `AeronauticalDataRepository` loads a normalized local Avinor eAIP
-dataset for the edition effective 11 June 2026. The browser neither parses eAIP
-HTML nor contacts Avinor during normal startup. The generated dataset currently
-contains:
+The default `AeronauticalDataRepository` loads the normalized local Avinor eAIP
+dataset `avinor-eaip-2026-09-03`, effective 3 September 2026 (AIP AMDT 05/2026).
+The browser neither parses eAIP HTML nor contacts Avinor during normal startup.
+The active dataset contains:
 
 - 53 AD 2 aerodromes with ARP, elevation, runway information, and standard
   declared distances where published;
-- 206 rendered airspace volumes, including 96 TMA, 38 CTA, and 20 TIA volumes;
-- 38 data-only Polaris ACC service-area volumes with resolved WGS84 geometry;
-- 19 ATS units and 223 communication services containing 487 source frequency
+- 206 rendered airspace volumes: 19 CTR, 33 TIZ, 96 TMA, 20 TIA, and 38 CTA;
+- 37 data-only Polaris ACC service-area volumes with resolved WGS84 geometry;
+- 19 ATS units and 219 communication services containing 477 source frequency
   assignments; and
-- 218 reporting points with published WGS84 coordinates, covering 23
-  aerodromes.
+- 218 reporting points carried forward from separately reviewed VAC coordinate
+  material, covering 23 aerodromes.
 
 Detailed aerodrome, airspace, communication, and reporting-point concepts
 remain separate normalized domain types. Frequencies belong to communication
@@ -133,13 +144,12 @@ or chart artwork.
 
 ## Known data limitations
 
-The current edition contains 26 ENR 2.1 TMA/CTA volumes and one ENR 2.2 TIA
-volume whose boundaries refer semantically to a national border. They are
-reported but not rendered because no authoritative boundary resolver has yet
-been integrated; the importer does not replace the border with a guessed
-straight segment. Nine of the 38 Polaris service-area volumes have the same
-limitation. Their published definitions and frequencies are retained with
-unresolved geometry rather than being assigned an approximate query polygon.
+The active import resolves WGS84 render/query geometry for all 206 airspace
+volumes and all 37 Polaris service-area volumes, including the
+border-referenced areas. The importer still does not invent geometry: future
+source features that require unsupported arcs, coast references, or other
+unresolvable semantics must remain explicit import errors until an authoritative
+resolver is available.
 
 Avinor publishes 47 VAC PDFs for 46 of the imported aerodromes. Twenty-three
 aerodromes provide machine-readable reporting-point coordinate tables. Another

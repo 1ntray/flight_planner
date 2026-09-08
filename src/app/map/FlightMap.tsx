@@ -26,7 +26,9 @@ import type {
   Position,
   RouteShapingPoint,
   LegAltitudePlan,
+  ManualLegWindOverride,
   Waypoint,
+  Wind,
 } from '../../domain';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import { AeronauticalLayerControl } from './AeronauticalLayerControl';
@@ -71,6 +73,11 @@ import { MapToolControl } from './MapToolControl';
 import { WaypointMapPopup } from './WaypointMapPopup';
 import { ShapingPointMapPopup } from './ShapingPointMapPopup';
 import { LegMapPopup } from './LegMapPopup';
+import {
+  findManualLegWindOverride,
+  legWindKey,
+} from '../navigation/legWindOverrideState';
+import type { LegWindDefault } from '../navigation/legWindOverrideState';
 import { AerodromeInfoPopup } from './AerodromeInfoPopup';
 import { MsaCorridor } from './MsaCorridor';
 import { findReportingPointShapingAttachmentTarget } from './aeronauticalWaypointAttachment';
@@ -463,9 +470,12 @@ export interface FlightMapProps {
   selection: MapSelection | null;
   tool: MapTool;
   altitudePlans: readonly LegAltitudePlan[];
+  manualWindOverrides: readonly ManualLegWindOverride[];
+  legWindDefaults: ReadonlyMap<string, LegWindDefault>;
   defaultAltitudeFtMsl: string;
   altitudeFocusRequest: number;
   msaFocusRequest: number;
+  windFocusRequest: number;
   waypointNameFocusRequest: number;
   batchEntryActive?: boolean;
   autoShowMsaCorridor?: boolean;
@@ -511,6 +521,11 @@ export interface FlightMapProps {
     toWaypointId: string,
     altitudeFtMsl: number | null,
   ) => void;
+  onSetLegManualWind: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    wind: Wind | null,
+  ) => void;
   onResetAltitudeTarget: (
     fromWaypointId: string,
     toWaypointId: string,
@@ -532,9 +547,12 @@ export function FlightMap({
   selection,
   tool,
   altitudePlans,
+  manualWindOverrides,
+  legWindDefaults,
   defaultAltitudeFtMsl,
   altitudeFocusRequest,
   msaFocusRequest,
+  windFocusRequest,
   waypointNameFocusRequest,
   batchEntryActive = false,
   autoShowMsaCorridor = false,
@@ -562,6 +580,7 @@ export function FlightMap({
   onSetLegAltitude,
   onSetLegMinimumSafeAltitude,
   onSetLegEndAltitude,
+  onSetLegManualWind,
   onResetAltitudeTarget,
   onSetAltitudeTarget,
   onUndo,
@@ -671,6 +690,19 @@ export function FlightMap({
           plan.fromWaypointId === selectedLeg.candidate.fromWaypointId &&
           plan.toWaypointId === selectedLeg.candidate.toWaypointId,
       );
+  const selectedLegManualWindOverride = selectedLeg === null
+    ? undefined
+    : findManualLegWindOverride(
+        manualWindOverrides,
+        selectedLeg.candidate.fromWaypointId,
+        selectedLeg.candidate.toWaypointId,
+      );
+  const selectedLegDefaultWind = selectedLeg === null
+    ? undefined
+    : legWindDefaults.get(legWindKey(
+        selectedLeg.candidate.fromWaypointId,
+        selectedLeg.candidate.toWaypointId,
+      ));
   const selectedDisplayLeg = selectedLeg === null
     ? undefined
     : routeLegs.find(
@@ -1076,16 +1108,20 @@ export function FlightMap({
         suppressSelectionPopups ||
         selectedLeg === null ||
         selectedLegFrom === undefined ||
-        selectedLegTo === undefined ? null : (
+        selectedLegTo === undefined ||
+        selectedLegDefaultWind === undefined ? null : (
           <LegMapPopup
             selection={selectedLeg}
             fromWaypoint={selectedLegFrom}
             toWaypoint={selectedLegTo}
             plan={selectedLegPlan}
+            manualWindOverride={selectedLegManualWindOverride}
+            defaultWind={selectedLegDefaultWind}
             defaultAltitudeFtMsl={defaultAltitudeFtMsl}
             isArrivalLeg={selectedLegIsArrivalLeg}
             altitudeFocusRequest={altitudeFocusRequest}
             msaFocusRequest={msaFocusRequest}
+            windFocusRequest={windFocusRequest}
             onInsertWaypoint={() => onInsertWaypoint(selectedLeg.candidate)}
             onSetAltitude={(altitudeFtMsl) =>
               onSetLegAltitude(
@@ -1106,6 +1142,13 @@ export function FlightMap({
                 selectedLeg.candidate.fromWaypointId,
                 selectedLeg.candidate.toWaypointId,
                 altitudeFtMsl,
+              )
+            }
+            onSetManualWind={(wind) =>
+              onSetLegManualWind(
+                selectedLeg.candidate.fromWaypointId,
+                selectedLeg.candidate.toWaypointId,
+                wind,
               )
             }
             onPlaceAltitudeTarget={() =>

@@ -75,8 +75,8 @@ export function MapToolControl({
         type="button"
         className={`button${tool.kind === 'add-waypoint' ? ' button--active' : ''}`}
         aria-pressed={tool.kind === 'add-waypoint'}
-        aria-keyshortcuts="W"
-        title="Add waypoints (W)"
+        aria-keyshortcuts="R"
+        title="Add waypoints (R)"
         onClick={() =>
           onToolChange(
             tool.kind === 'add-waypoint'
@@ -86,7 +86,7 @@ export function MapToolControl({
         }
       >
         Add waypoint
-        <kbd>W</kbd>
+        <kbd>R</kbd>
       </button>
       {tool.kind === 'place-altitude-target' ? (
         <div className="map-tool-control__placement" role="status">

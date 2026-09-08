@@ -1,15 +1,13 @@
 # Flight Planner
 
-Browser-based flight planning with an interactive waypoint map and a timed,
-altitude-aware, wind-adjusted navigation log, route shaping, magnetic
-directions, a storage-neutral aeronautical-layer/waypoint-anchoring boundary,
-real-waypoint insertion into existing route geometry, and selected-waypoint
-renaming, versioned JSON flight-plan import/export, and a validated local
-working draft, interval-integrated climb/cruise/descent performance,
-multi-sector stop-duration scheduling, operational fuel planning, and
-registration-specific mass and balance, OFP-aligned navlogs, multi-transition
-legs, detailed aerodrome information, and bounded calculation recovery for
-MVP 0.21.
+Browser-based VFR flight planning with an interactive waypoint map, an
+OFP-oriented navigation log, WGS84 route calculations, altitude-aware
+performance, forecast or manual winds, local AIRAC-versioned Avinor eAIP data,
+operational fuel planning, and registration-specific mass and balance.
+
+Flight Planner is a planning aid. It does not replace current AIP, NOTAM,
+METAR/TAF, runway-performance data, or a pilot's required operational briefing
+and judgement.
 
 ## Development
 
@@ -53,15 +51,27 @@ pnpm test
 pnpm build
 ```
 
-See [`docs/mvp-0.21.md`](docs/mvp-0.21.md) for current scope and
-[`docs/conventions.md`](docs/conventions.md) for project conventions. Aviation
-calculation definitions are recorded in
-[`docs/navigation-conventions.md`](docs/navigation-conventions.md).
-Aircraft constants, formulas, and phase integration are recorded in
-[`docs/aircraft-performance.md`](docs/aircraft-performance.md).
-Aeronautical data and anchoring contracts are recorded in
-[`docs/aeronautical-data.md`](docs/aeronautical-data.md).
-The human-gated Avinor edition workflow is documented in
-[`docs/airac-updates.md`](docs/airac-updates.md).
-The saved-document contract is recorded in
-[`docs/flight-plan-persistence.md`](docs/flight-plan-persistence.md).
+## Documentation
+
+[`docs/current-state.md`](docs/current-state.md) is the authoritative overview
+of current capabilities and boundaries. [`docs/v1-roadmap.md`](docs/v1-roadmap.md)
+sets out the remaining path to a useful 1.0 release.
+
+Detailed contracts and operational boundaries:
+
+- [`docs/conventions.md`](docs/conventions.md) — project architecture and UI
+  state rules.
+- [`docs/navigation-conventions.md`](docs/navigation-conventions.md) — WGS84,
+  wind, magnetic, timing, and forecast conventions.
+- [`docs/aircraft-performance.md`](docs/aircraft-performance.md) — aircraft
+  constants, phase integration, MSA, patterns, and operational calculations.
+- [`docs/aeronautical-data.md`](docs/aeronautical-data.md) — aeronautical data,
+  anchoring, frequency planning, and importer contracts.
+- [`docs/airac-updates.md`](docs/airac-updates.md) — the human-gated Avinor
+  AIRAC update workflow.
+- [`docs/flight-plan-persistence.md`](docs/flight-plan-persistence.md) — saved
+  document and local-working-draft contract.
+
+The `docs/mvp-*.md` files are milestone records. In particular,
+[`docs/mvp-0.21.md`](docs/mvp-0.21.md) records the MVP 0.21 scope; it is not the
+primary current-capabilities reference.

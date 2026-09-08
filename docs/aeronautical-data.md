@@ -59,9 +59,9 @@ into aerodrome or airspace metadata.
 Published ACC sector coverage is represented separately as `AtsServiceArea`.
 Each volume references its ATS unit and communication service, retains WGS84
 lateral geometry plus semantic vertical limits, and is queryable without being
-rendered as regulatory airspace. This allows future route-frequency selection
-to distinguish Polaris sectors instead of treating the broad CTA as if it had
-one frequency.
+rendered as regulatory airspace. The current communication planner uses these
+areas to select geographically and vertically relevant Polaris services rather
+than treating the broad CTA as if it had one frequency.
 
 ## Airspace and vertical limits
 
@@ -146,8 +146,10 @@ popup section may compose one or more dedicated, time-aware operational-data
 providers alongside the published aeronautical details without coupling either
 data source to route geometry or anchor persistence.
 In explicit Add waypoint mode, point clicks add one anchored waypoint at the
-published coordinate. Area features remain information-only and cannot add a
-waypoint in any mode.
+published coordinate. Clicking an area in that mode instead adds one **free**
+waypoint at the clicked WGS84 coordinate; it does not turn the area into an
+anchor or open its information popup. Outside Add waypoint mode, area features
+remain information-only.
 
 Layer visibility is presentation state, independent of the `FlightPlan`.
 Aerodromes, reporting points, navaids/designated points, and airspace have
@@ -159,20 +161,24 @@ use spatial indexing and appropriate caching for large datasets.
 
 ## Current repository configuration
 
-The default repository loads a local normalized Avinor eAIP dataset for the AD
-2 aerodromes in the selected edition, effective 11 June 2026. The browser
-never parses eAIP HTML and never contacts Avinor when the planner starts. Each
-aerodrome is exposed as a normal aerodrome point, so the existing overlay and
-waypoint-anchor behavior is unchanged. The same import now includes published
-AD 2.17 ATS airspace and AD 2.18 communication facilities for all 53 imported
-AD 2 aerodromes, machine-readable TMA/CTA volumes from ENR 2.1, and TIA plus
-Polaris ACC sectorization from ENR 2.2. Multiple
-published volumes remain separate features with their own vertical limits; for
-example, all three Bardufoss TMA volumes are retained at lower limits of 4500,
-5500, and 6500 FT AMSL. Polaris sectorization is stored as data-only ATS service
-coverage rather than map airspace. The dataset also contains 218 unique reporting points
-whose coordinates are printed in the selected edition's VAC PDFs, covering 23
-aerodromes. They remain usable with any chart layer hidden.
+The default repository loads the local normalized Avinor eAIP dataset
+`avinor-eaip-2026-09-03`, effective **3 September 2026** (AIP AMDT 05/2026).
+The browser never parses eAIP HTML and never contacts Avinor when the planner
+starts. Each aerodrome is exposed as a normal aerodrome point, so overlay and
+waypoint-anchor behaviour is unchanged.
+
+The active dataset contains 53 AD 2 aerodromes, 206 rendered airspace volumes
+(19 CTR, 33 TIZ, 96 TMA, 20 TIA, and 38 CTA), 37 resolved Polaris ACC
+service-area volumes, 19 ATS units, 219 communication services, 477 published
+frequency assignments, and 218 reporting points. It includes published AD 2.17
+ATS airspace and AD 2.18 communication facilities, ENR 2.1 TMA/CTA volumes,
+and ENR 2.2 TIA and Polaris sectorization. Multiple published volumes remain
+separate features with their own vertical limits; for example, all three
+Bardufoss TMA volumes retain lower limits of 4500, 5500, and 6500 FT AMSL.
+Polaris sectorization remains data-only service coverage rather than map
+airspace. The reporting-point coordinates are carried forward from the
+separately reviewed VAC input, retain their original provenance, and remain
+usable with any chart layer hidden.
 
 During development only, adding `?aeroDemo=1` to the local URL enables a small
 synthetic dataset around the initial map view. Every source label and feature
@@ -214,10 +220,11 @@ Arcs and coast references remain explicit importer errors until an authoritative
 resolver exists for them.
 
 The configured edition produces 206 rendered airspace volumes: 96 TMA, 38 CTA,
-20 TIA, and 52 AD 2 CTR/TIZ volumes. All 38 Polaris ACC service-area volumes
-and their sector frequencies have resolved WGS84 query geometry. This includes
-the complete border-referenced northern CTA, all three Kirkenes TMA volumes,
-and the border-referenced southern service sectors.
+20 TIA, 19 CTR, and 33 TIZ. All 206 volumes have resolved WGS84 render
+geometry. The edition contains 37 Polaris ACC service-area volumes, all with
+resolved WGS84 query geometry and associated sector frequencies. This includes
+the border-referenced northern CTA, all three Kirkenes TMA volumes, and the
+border-referenced southern service sectors.
 
 The ENR 2.1 Polaris CTA frequency aggregate is retained for source traceability
 but is not associated with every CTA polygon. Runtime selection uses the ENR
@@ -290,14 +297,15 @@ unavailable; malformed required coordinates, limits, classes, or frequencies
 are explicit import errors or warnings according to whether the affected
 source section is required for the core aerodrome record.
 
-Nationwide reporting-point input is stored in the edition-specific prepared
+Nationwide reporting-point input is stored in the separately reviewed prepared
 file `tools/aeronautical/avinor-eaip/prepared/vac-reporting-points-2026-06-11.json`.
-It records each VAC source URL and only name/coordinate pairs printed as text
-in the source PDF. The importer supports multiple pairs on one extracted text
-line and deduplicates a point printed on more than one VAC page while retaining
-both source references.
+It is intentionally carried forward by the 2026-09-03 eAIP update rather than
+being relabelled as current-edition VAC material. It records each VAC source
+URL and only name/coordinate pairs printed as text in the source PDF. The
+importer supports multiple pairs on one extracted text line and deduplicates a
+point printed on more than one VAC page while retaining both source references.
 
-The selected edition publishes 47 VAC PDFs for 46 aerodromes. Twenty-three
+The carried-forward VAC review covers 47 PDFs for 46 aerodromes. Twenty-three
 aerodromes provide 218 unique machine-readable published coordinates. Another
 23 VACs do not contain a published coordinate table, and seven AD 2 aerodromes
 publish no VAC. These 30 cases are explicit import-report warnings. No

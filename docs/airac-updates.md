@@ -18,6 +18,11 @@ The browser does not run discovery, parse eAIP HTML, or contact Avinor. Saved
 flight plans continue to hold coordinate and compact provenance snapshots, so
 an approved repository update cannot silently move an existing route.
 
+At the current main revision, the approved selectors point to
+`avinor-eaip-2026-09-03`, effective 3 September 2026 (AIP AMDT 05/2026). The
+versioned dataset and its import/change reports are review artefacts for that
+specific approval, not live data retrieved by the browser.
+
 ## Local commands
 
 ### One-click Windows tool

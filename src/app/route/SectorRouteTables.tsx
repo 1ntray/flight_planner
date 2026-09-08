@@ -12,7 +12,6 @@ import type {
   AircraftDefinition,
   FlightPlan,
   LegAltitudePlan,
-  ManualLegWindOverride,
   OperationalPlanningInputs,
 } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
@@ -32,10 +31,6 @@ export interface SectorRouteTablesProps {
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
   communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
-  manualLegWindOverrides?: readonly ManualLegWindOverride[];
-  onManualLegWindOverridesChange?: (
-    overrides: readonly ManualLegWindOverride[],
-  ) => void;
 }
 
 function sectorNavigationRoute(
@@ -100,8 +95,6 @@ export function SectorRouteTables({
   forecastWinds = [],
   legAltitudePlans = [],
   communicationChangesByLeg = new Map(),
-  manualLegWindOverrides = [],
-  onManualLegWindOverridesChange,
 }: SectorRouteTablesProps) {
   const sectors = useMemo(
     () => deriveFlightPlanSectors(flightPlan),
@@ -183,10 +176,6 @@ export function SectorRouteTables({
           forecastWinds={forecastWinds}
           legAltitudePlans={legAltitudePlans}
           communicationChangesByLeg={communicationChangesByLeg}
-          manualLegWindOverrides={manualLegWindOverrides}
-          {...(onManualLegWindOverridesChange === undefined
-            ? {}
-            : { onManualLegWindOverridesChange })}
           {...(operationalSector === undefined ? {} : { operationalSector })}
         />
         {operationalSector === undefined || operationalInputs === null ? null : (
@@ -259,10 +248,6 @@ export function SectorRouteTables({
               forecastWinds={forecastWinds}
               legAltitudePlans={legAltitudePlans}
               communicationChangesByLeg={communicationChangesByLeg}
-              manualLegWindOverrides={manualLegWindOverrides}
-              {...(onManualLegWindOverridesChange === undefined
-                ? {}
-                : { onManualLegWindOverridesChange })}
               {...(operationalSector === undefined ? {} : { operationalSector })}
             />
             {operationalSector === undefined || operationalInputs === null ? null : (

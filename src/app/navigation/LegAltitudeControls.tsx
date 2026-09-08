@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 
 import { calculateRoute, deriveFlightPlanSectors } from '../../calculations';
-import type { FlightPlan } from '../../domain';
+import type {
+  FlightPlan,
+  ManualLegWindOverride,
+  Wind,
+} from '../../domain';
 import {
   setLegAltitudeOverride,
   setLegMinimumSafeAltitude,
@@ -15,15 +19,27 @@ import {
   DEFAULT_PLANNING_ALTITUDE_FT_MSL,
 } from './performanceInput';
 import type { PerformanceInputDraft } from './performanceInput';
+import { LegWindFields } from './LegWindFields';
+import {
+  findManualLegWindOverride,
+} from './legWindOverrideState';
+import type { LegWindDefault } from './legWindOverrideState';
 
 export type { AltitudePlacementLeg } from './altitudePlanState';
 
 export interface LegAltitudeControlsProps {
   flightPlan: FlightPlan;
   draft: PerformanceInputDraft;
+  manualWindOverrides: readonly ManualLegWindOverride[];
+  legWindDefaults: ReadonlyMap<string, LegWindDefault>;
   placementLeg: AltitudePlacementLeg | null;
   onDraftChange: (draft: PerformanceInputDraft) => void;
   onPlacementLegChange: (leg: AltitudePlacementLeg | null) => void;
+  onManualLegWindChange: (
+    fromWaypointId: string,
+    toWaypointId: string,
+    wind: Wind | null,
+  ) => void;
 }
 
 function legKey(fromId: string, toId: string): string {
@@ -33,9 +49,12 @@ function legKey(fromId: string, toId: string): string {
 export function LegAltitudeControls({
   flightPlan,
   draft,
+  manualWindOverrides,
+  legWindDefaults,
   placementLeg,
   onDraftChange,
   onPlacementLegChange,
+  onManualLegWindChange,
 }: LegAltitudeControlsProps) {
   const legs = useMemo(() => calculateRoute(flightPlan), [flightPlan]);
   const waypointNames = useMemo(
@@ -73,13 +92,14 @@ export function LegAltitudeControls({
   }
 
   return (
-    <section className="leg-altitude-controls" aria-label="Leg altitude and MSA plan">
+    <section className="leg-altitude-controls" aria-label="Leg altitude, MSA, and wind plan">
       <div>
-        <p className="eyebrow">Altitude & MSA schedule</p>
+        <p className="eyebrow">Altitude, MSA & wind schedule</p>
         <p className="plan-file-controls__description">
           Blank altitude uses the global value. Target distance is measured
           along shaped WGS84 geometry from FROM. MSA is entered manually in ft
-          MSL after assessing the 1 NM route corridor.
+          MSL after assessing the 1 NM route corridor. Blank wind fields use
+          the indicated route-wide manual or loaded forecast wind.
         </p>
       </div>
 
@@ -102,8 +122,15 @@ export function LegAltitudeControls({
       </label>
 
       {legs.map((leg) => {
-        const plan = plans.get(legKey(leg.fromId, leg.toId));
-        const isArrivalLeg = arrivalLegKeys.has(legKey(leg.fromId, leg.toId));
+        const key = legKey(leg.fromId, leg.toId);
+        const plan = plans.get(key);
+        const isArrivalLeg = arrivalLegKeys.has(key);
+        const manualWindOverride = findManualLegWindOverride(
+          manualWindOverrides,
+          leg.fromId,
+          leg.toId,
+        );
+        const defaultWind = legWindDefaults.get(key);
         const placementDistance =
           plan?.targetPlacement?.mode === 'distance-along-leg'
             ? plan.targetPlacement.distanceFromStartNm
@@ -333,6 +360,17 @@ export function LegAltitudeControls({
                 {choosingEndOnMap ? 'Cancel map pick' : 'Choose on map'}
               </button>
             </div>
+            {defaultWind === undefined ? null : (
+              <LegWindFields
+                fromName={waypointNames.get(leg.fromId) ?? leg.fromId}
+                toName={waypointNames.get(leg.toId) ?? leg.toId}
+                override={manualWindOverride}
+                defaultWind={defaultWind}
+                onChange={(wind) =>
+                  onManualLegWindChange(leg.fromId, leg.toId, wind)
+                }
+              />
+            )}
           </article>
         );
       })}

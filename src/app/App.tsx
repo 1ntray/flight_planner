@@ -10,6 +10,7 @@ import type {
   Position,
   RouteShapingPoint,
   Waypoint,
+  Wind,
 } from '../domain';
 import {
   FLIGHT_PLANNING_DOCUMENT_SCHEMA_VERSION,
@@ -82,6 +83,7 @@ import type { LocalDraftStatus } from './persistence/FlightPlanFileControls';
 import { usePlannerShortcuts } from './interaction/usePlannerShortcuts';
 import type { PlannerShortcutAction } from './interaction/plannerShortcuts';
 import { BatchEntryBar } from './interaction/BatchEntryBar';
+import { BatchWindEntryBar } from './interaction/BatchWindEntryBar';
 import { CommandPalette } from './interaction/CommandPalette';
 import { usePlanningHistory } from './interaction/usePlanningHistory';
 import {
@@ -91,6 +93,12 @@ import {
 import { PlannerSidebar } from './layout/PlannerSidebar';
 import type { PlannerSidebarTab } from './layout/PlannerSidebar';
 import { NavlogDock } from './layout/NavlogDock';
+import {
+  createLegWindDefaults,
+  findManualLegWindOverride,
+  legWindKey,
+  setManualLegWindOverride,
+} from './navigation/legWindOverrideState';
 import {
   appendAnchoredWaypointToFlightPlan,
   appendWaypointToFlightPlan,
@@ -147,7 +155,8 @@ const EMPTY_ENDPOINT_AERODROME_ELEVATIONS: EndpointAerodromeElevations = {
 type BatchEntryMode =
   | { readonly kind: 'naming'; readonly index: number }
   | { readonly kind: 'altitude'; readonly index: number }
-  | { readonly kind: 'msa'; readonly index: number };
+  | { readonly kind: 'msa'; readonly index: number }
+  | { readonly kind: 'wind'; readonly index: number };
 
 function getEndpointAerodromeReference(
   waypoint: Waypoint | undefined,
@@ -311,6 +320,7 @@ export function App() {
     );
   const [altitudeFocusRequest, setAltitudeFocusRequest] = useState(0);
   const [msaFocusRequest, setMsaFocusRequest] = useState(0);
+  const [windFocusRequest, setWindFocusRequest] = useState(0);
   const [waypointNameFocusRequest, setWaypointNameFocusRequest] = useState(0);
   const [batchEntryMode, setBatchEntryMode] = useState<BatchEntryMode | null>(
     null,
@@ -540,6 +550,29 @@ export function App() {
     useForecastWinds,
     forecastRequestKey,
   });
+  const legWindDefaults = useMemo(() => {
+    const globalManualWind = parsedPlanningInputs.status === 'valid'
+      ? parsedPlanningInputs.value.wind
+      : { directionFromTrueDeg: 0, speedKt: 0 };
+    const legs = flightPlan.waypoints.slice(1).map((to, index) => ({
+      fromId: flightPlan.waypoints[index]!.id,
+      toId: to.id,
+    }));
+    return createLegWindDefaults(
+      legs,
+      globalManualWind,
+      useForecastWinds && calculations.forecast.status.status === 'success',
+      calculations.forecast.winds,
+      calculations.performanceRoute,
+    );
+  }, [
+    calculations.forecast.status.status,
+    calculations.forecast.winds,
+    calculations.performanceRoute,
+    flightPlan.waypoints,
+    parsedPlanningInputs,
+    useForecastWinds,
+  ]);
   const communicationPlan = useCommunicationPlan(
     aeronauticalRepository,
     calculations.performanceRoute,
@@ -1155,6 +1188,24 @@ export function App() {
     },
     [],
   );
+  const setLegManualWind = useCallback(
+    (
+      fromWaypointId: string,
+      toWaypointId: string,
+      wind: Wind | null,
+    ) => {
+      setNavigationInputDraft((currentDraft) => ({
+        ...currentDraft,
+        manualLegWindOverrides: setManualLegWindOverride(
+          currentDraft.manualLegWindOverrides,
+          fromWaypointId,
+          toWaypointId,
+          wind,
+        ),
+      }));
+    },
+    [],
+  );
   const resetAltitudeTarget = useCallback(
     (
       fromWaypointId: string,
@@ -1252,6 +1303,21 @@ export function App() {
     setMapTool({ kind: 'select' });
     setBatchEntryMode({ kind: 'msa', index });
   }, [flightPlan, mapSelection]);
+  const startBatchWind = useCallback(() => {
+    const legCount = flightPlan.waypoints.length - 1;
+    if (legCount <= 0) return;
+    const selectedIndex = mapSelection?.kind === 'leg'
+      ? flightPlan.waypoints.findIndex(
+          (waypoint) => waypoint.id === mapSelection.candidate.fromWaypointId,
+        )
+      : -1;
+    const index = selectedIndex < 0 ? 0 : selectedIndex;
+    const legSelection = selectRouteLegAt(flightPlan, index);
+    if (legSelection === null) return;
+    setMapSelection(legSelection);
+    setMapTool({ kind: 'select' });
+    setBatchEntryMode({ kind: 'wind', index });
+  }, [flightPlan, mapSelection]);
   const moveBatchEntry = useCallback(
     (direction: -1 | 1) => {
       setBatchEntryMode((current) => {
@@ -1323,8 +1389,17 @@ export function App() {
             setMsaFocusRequest((current) => current + 1);
           }
           break;
+        case 'edit-wind':
+          if (mapSelection?.kind === 'leg') {
+            setMapTool({ kind: 'select' });
+            setWindFocusRequest((current) => current + 1);
+          }
+          break;
         case 'start-msa-mode':
           startBatchMsa();
+          break;
+        case 'start-wind-mode':
+          startBatchWind();
           break;
         case 'place-altitude-target':
           if (mapSelection?.kind === 'leg') {
@@ -1428,6 +1503,7 @@ export function App() {
       resetAltitudeTarget,
       selectedWaypoint,
       startBatchMsa,
+      startBatchWind,
       selectedWaypointCanBeSectorBoundary,
       toggleWaypointSectorBoundary,
       startBatchAltitude,
@@ -1458,12 +1534,8 @@ export function App() {
       setUseForecastWinds(true);
       setForecastRequestKey((current) => current + 1);
     },
-    onManualLegWindOverridesChange: (manualLegWindOverrides) => {
-      setNavigationInputDraft((current) => ({
-        ...current,
-        manualLegWindOverrides,
-      }));
-    },
+    legWindDefaults,
+    onManualLegWindChange: setLegManualWind,
     onChooseAlternateByIcao: chooseAlternateAerodromeByIcao,
     altitudePlacementLeg,
     onAltitudePlacementLegChange: setAltitudePlacementLeg,
@@ -1479,7 +1551,7 @@ export function App() {
           <h1>Flight Planner</h1>
         </div>
         <p className="app-instructions">
-          Select is the safe default. Press W to add waypoints, E to edit route
+          Select is the safe default. Press R to add waypoints, E to edit route
           geometry, or ? to see every shortcut.
         </p>
       </header>
@@ -1498,6 +1570,9 @@ export function App() {
             }
             altitudeFocusRequest={altitudeFocusRequest}
             msaFocusRequest={msaFocusRequest}
+            windFocusRequest={windFocusRequest}
+            manualWindOverrides={navigationInputDraft.manualLegWindOverrides}
+            legWindDefaults={legWindDefaults}
             waypointNameFocusRequest={waypointNameFocusRequest}
             batchEntryActive={batchEntryMode !== null}
             autoShowMsaCorridor={batchEntryMode?.kind === 'msa'}
@@ -1531,6 +1606,7 @@ export function App() {
             onSetLegAltitude={setLegAltitude}
             onSetLegMinimumSafeAltitude={setLegMinimumSafeAltitude}
             onSetLegEndAltitude={setLegEndAltitude}
+            onSetLegManualWind={setLegManualWind}
             onResetAltitudeTarget={resetAltitudeTarget}
             onSetAltitudeTarget={setAltitudeTarget}
             onUndo={planningHistory.undo}
@@ -1637,6 +1713,31 @@ export function App() {
               />
             );
           })() : null}
+          {batchEntryMode?.kind === 'wind' ? (() => {
+            const from = flightPlan.waypoints[batchEntryMode.index];
+            const to = flightPlan.waypoints[batchEntryMode.index + 1];
+            if (from === undefined || to === undefined) return null;
+            const override = findManualLegWindOverride(
+              navigationInputDraft.manualLegWindOverrides,
+              from.id,
+              to.id,
+            );
+            const defaultWind = legWindDefaults.get(legWindKey(from.id, to.id));
+            if (defaultWind === undefined) return null;
+            return (
+              <BatchWindEntryBar
+                itemLabel={`${batchEntryMode.index + 1} of ${flightPlan.waypoints.length - 1} · ${from.name} → ${to.name}`}
+                initialWind={override?.wind ?? null}
+                defaultWind={defaultWind}
+                onCommit={(wind) => {
+                  setLegManualWind(from.id, to.id, wind);
+                  return null;
+                }}
+                onMove={moveBatchEntry}
+                onClose={() => setBatchEntryMode(null)}
+              />
+            );
+          })() : null}
         </section>
 
         <PlannerSidebar
@@ -1665,9 +1766,11 @@ export function App() {
           commands={[
             { id: 'select-mode', label: 'Select mode', shortcut: 'V' },
             { id: 'toggle-edit-route', label: 'Toggle Edit route mode', shortcut: 'E' },
-            { id: 'toggle-add-waypoint', label: 'Toggle Add waypoint mode', shortcut: 'W' },
+            { id: 'toggle-add-waypoint', label: 'Toggle Add waypoint mode', shortcut: 'R' },
             { id: 'start-naming-mode', label: 'Sequential waypoint naming', shortcut: 'Shift+N' },
             { id: 'start-altitude-mode', label: 'Sequential altitude entry', shortcut: 'Shift+A' },
+            { id: 'start-msa-mode', label: 'Sequential MSA entry', shortcut: 'Shift+M' },
+            { id: 'start-wind-mode', label: 'Sequential wind entry', shortcut: 'Shift+W' },
             { id: 'toggle-landing', label: 'Toggle intermediate landing', shortcut: 'L' },
             { id: 'undo', label: 'Undo', shortcut: 'Ctrl/Cmd+Z' },
             { id: 'redo', label: 'Redo', shortcut: 'Ctrl/Cmd+Shift+Z' },
