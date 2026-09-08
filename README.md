@@ -35,6 +35,16 @@ The stop utility only terminates the recorded process after confirming its
 process ID and start time. It will not blindly terminate an unrelated
 application.
 
+### One-click AIRAC update
+
+After dependencies have been installed, double-click `update-airac.cmd`. It
+checks for a newer Avinor edition and asks before changing files. When approved,
+it imports and validates the complete candidate, runs TypeScript, all tests,
+and the production build, then opens the generated change report in Notepad.
+
+The updater never commits, pushes, merges, or contacts Avinor from the browser.
+The resulting candidate still requires review before it is committed or merged.
+
 ## Verification
 
 ```sh

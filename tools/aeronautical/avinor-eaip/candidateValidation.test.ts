@@ -1,49 +1,45 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
-import datasetJson from '../../../src/aeronautical/data/avinor-eaip-2026-06-11.json';
 import type { NormalizedAeronauticalDataset } from '../../../src/aeronautical/normalizedDataset';
-import importReportJson from '../../../data/aeronautical/import-reports/avinor-eaip-2026-06-11-aerodromes.json';
 import { NORWAY_EAIP_EDITION } from './edition';
 import type { AvinorEaipImportReport } from './importPipeline';
 import { validateAiracCandidate } from './candidateValidation';
 
-const sourceDataset = datasetJson as unknown as NormalizedAeronauticalDataset;
-const sourceReport = importReportJson as unknown as AvinorEaipImportReport;
-const { revisionId: _sourceRevision, ...metadataWithoutRevision } =
-  sourceDataset.metadata;
-const dataset: NormalizedAeronauticalDataset = {
-  ...sourceDataset,
-  metadata: {
-    ...metadataWithoutRevision,
-    datasetId: NORWAY_EAIP_EDITION.datasetId,
-    editionLabel: NORWAY_EAIP_EDITION.editionLabel,
-    airacCycle: NORWAY_EAIP_EDITION.airacCycle,
-    effectiveFromUtc: NORWAY_EAIP_EDITION.effectiveFromUtc,
-    ...(NORWAY_EAIP_EDITION.revisionId === undefined
-      ? {}
-      : { revisionId: NORWAY_EAIP_EDITION.revisionId }),
-  },
-};
-const report: AvinorEaipImportReport = {
-  ...sourceReport,
-  editionLabel: NORWAY_EAIP_EDITION.editionLabel,
-  effectiveFromUtc: NORWAY_EAIP_EDITION.effectiveFromUtc,
-  sourceIndexUrl: NORWAY_EAIP_EDITION.indexUrl,
-  sourceEnr21Url: NORWAY_EAIP_EDITION.enr21Url,
-  sourceEnr22Url: NORWAY_EAIP_EDITION.enr22Url,
-};
+function readJson<T>(url: URL): T {
+  return JSON.parse(readFileSync(url, 'utf8')) as T;
+}
+
+const dataset = readJson<NormalizedAeronauticalDataset>(new URL(
+  `../../../src/aeronautical/data/${NORWAY_EAIP_EDITION.datasetId}.json`,
+  import.meta.url,
+));
+const report = readJson<AvinorEaipImportReport>(new URL(
+  `../../../data/aeronautical/import-reports/${NORWAY_EAIP_EDITION.datasetId}-aerodromes.json`,
+  import.meta.url,
+));
+const repositorySource = readFileSync(new URL(
+  '../../../src/aeronautical/avinorRepository.ts',
+  import.meta.url,
+), 'utf8');
 
 describe('validateAiracCandidate', () => {
   it('accepts the complete approved artifact set', () => {
     expect(() => validateAiracCandidate(NORWAY_EAIP_EDITION, dataset, report))
       .not.toThrow();
+    expect(repositorySource).toContain(
+      `./data/${NORWAY_EAIP_EDITION.datasetId}.json`,
+    );
   });
 
   it('rejects partial imports', () => {
     expect(() => validateAiracCandidate(NORWAY_EAIP_EDITION, dataset, {
       ...report,
       importedAerodromes: report.importedAerodromes.slice(1),
-    })).toThrow(/imported 52\/53/);
+    })).toThrow(
+      `imported ${report.importedAerodromes.length - 1}/${report.discoveredAerodromeCount}`,
+    );
   });
 
   it('rejects duplicate stable feature IDs', () => {

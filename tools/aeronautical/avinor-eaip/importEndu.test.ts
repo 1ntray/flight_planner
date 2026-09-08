@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import type { AerodromeDetails } from '../../../src/domain';
-import { ENDU_EAIP_EDITION } from './edition';
+import { FIXTURE_ENDU_EDITION_2026_06_11 } from './fixtureEdition';
 import { importEnduEaip } from './importEndu';
 import { parseCompactDmsPosition } from './parseCoordinate';
 import { AvinorEaipImportError } from './types';
@@ -12,7 +12,7 @@ import { AvinorEaipImportError } from './types';
 const fixturePath = fileURLToPath(new URL('./fixtures/endu.html', import.meta.url));
 const fixture = readFileSync(fixturePath, 'utf8');
 const config = {
-  ...ENDU_EAIP_EDITION,
+  ...FIXTURE_ENDU_EDITION_2026_06_11,
   retrievedAtUtc: '2026-08-29T08:00:00.000Z',
   importedAtUtc: '2026-08-29T08:05:00.000Z',
 };
@@ -154,7 +154,7 @@ describe('Avinor ENDU eAIP importer', () => {
       editionLabel: '2026-06-11-AIRAC',
       retrievedAtUtc: '2026-08-29T08:00:00.000Z',
       importedAtUtc: '2026-08-29T08:05:00.000Z',
-      sourceReference: ENDU_EAIP_EDITION.sourceUrl,
+      sourceReference: FIXTURE_ENDU_EDITION_2026_06_11.sourceUrl,
     });
     expect(details?.sourceReferences.map((source) => source.aipSection)).toEqual(
       ['AD 2.1', 'AD 2.2', 'AD 2.12', 'AD 2.13'],

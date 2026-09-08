@@ -3,11 +3,11 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { NORWAY_EAIP_EDITION } from './edition';
 import {
   compareAvinorEaipEditions,
   parseAvinorEaipEditionHistory,
 } from './editionDiscovery';
+import { FIXTURE_EAIP_EDITION_2026_06_11 } from './fixtureEdition';
 
 const fixture = readFileSync(fileURLToPath(
   new URL('./fixtures/edition-history.html', import.meta.url),
@@ -43,10 +43,16 @@ describe('Avinor eAIP edition discovery', () => {
       currentOnly,
       historyUrl.replace('/Index/155/', '/Index/154/'),
     );
-    expect(compareAvinorEaipEditions(NORWAY_EAIP_EDITION, current).status)
+    expect(compareAvinorEaipEditions(
+      FIXTURE_EAIP_EDITION_2026_06_11,
+      current,
+    ).status)
       .toBe('current');
     const newer = parseAvinorEaipEditionHistory(fixture, historyUrl);
-    expect(compareAvinorEaipEditions(NORWAY_EAIP_EDITION, newer).status)
+    expect(compareAvinorEaipEditions(
+      FIXTURE_EAIP_EDITION_2026_06_11,
+      newer,
+    ).status)
       .toBe('update-available');
   });
 

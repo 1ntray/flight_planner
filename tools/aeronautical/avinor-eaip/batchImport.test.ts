@@ -7,7 +7,7 @@ import {
   discoverAd2Aerodromes,
   importAvinorEaipAerodromes,
 } from './batchImport';
-import { NORWAY_EAIP_EDITION } from './edition';
+import { FIXTURE_EAIP_EDITION_2026_06_11 } from './fixtureEdition';
 
 const indexPath = fileURLToPath(new URL('./fixtures/ad-1.3.html', import.meta.url));
 const enduPath = fileURLToPath(new URL('./fixtures/endu.html', import.meta.url));
@@ -25,7 +25,7 @@ const timestamps = {
 describe('Avinor eAIP AD 2 batch importer', () => {
   it('discovers AD 2 aerodromes and deliberately excludes AD 3 heliports', () => {
     expect(
-      discoverAd2Aerodromes(indexFixture, NORWAY_EAIP_EDITION.indexUrl),
+      discoverAd2Aerodromes(indexFixture, FIXTURE_EAIP_EDITION_2026_06_11.indexUrl),
     ).toEqual([
       {
         sourceAerodrome: 'ENDU',
@@ -48,7 +48,10 @@ describe('Avinor eAIP AD 2 batch importer', () => {
       </table>`;
 
     expect(
-      discoverAd2Aerodromes(semanticIndex, NORWAY_EAIP_EDITION.indexUrl),
+      discoverAd2Aerodromes(
+        semanticIndex,
+        FIXTURE_EAIP_EDITION_2026_06_11.indexUrl,
+      ),
     ).toEqual([
       {
         sourceAerodrome: 'ENAT',
@@ -72,7 +75,7 @@ describe('Avinor eAIP AD 2 batch importer', () => {
           html: enduFixture.replaceAll('ENDU', 'ENTC').replaceAll('BARDUFOSS', 'TROMSO'),
         },
       ],
-      NORWAY_EAIP_EDITION,
+      FIXTURE_EAIP_EDITION_2026_06_11,
       timestamps,
     );
 
@@ -90,7 +93,9 @@ describe('Avinor eAIP AD 2 batch importer', () => {
       (feature) => feature.geometryType === 'area' && feature.areaKind === 'ctr',
     )).toHaveLength(2);
     expect(result.dataset.communicationServices.length).toBeGreaterThan(0);
-    expect(result.dataset.metadata.sourceReference).toBe(NORWAY_EAIP_EDITION.indexUrl);
+    expect(result.dataset.metadata.sourceReference).toBe(
+      FIXTURE_EAIP_EDITION_2026_06_11.indexUrl,
+    );
     expect(result.failures).toEqual([]);
   });
 
@@ -101,7 +106,7 @@ describe('Avinor eAIP AD 2 batch importer', () => {
         sourceUrl: 'https://example.test/EN-AD-2.ENDU-en-GB.html',
         html: enduFixture,
       }],
-      NORWAY_EAIP_EDITION,
+      FIXTURE_EAIP_EDITION_2026_06_11,
       timestamps,
       {
         sourceUrl: 'https://example.test/EN-ENR-2.1-en-GB.html',
@@ -153,7 +158,7 @@ describe('Avinor eAIP AD 2 batch importer', () => {
           html: enduFixture.replaceAll('ENDU', 'ENTC').replaceAll('BARDUFOSS', 'TROMSO'),
         },
       ],
-      NORWAY_EAIP_EDITION,
+      FIXTURE_EAIP_EDITION_2026_06_11,
       timestamps,
     );
 

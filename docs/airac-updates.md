@@ -20,6 +20,20 @@ an approved repository update cannot silently move an existing route.
 
 ## Local commands
 
+### One-click Windows tool
+
+Double-click `update-airac.cmd` in the project folder. The guided tool checks
+for a newer edition, asks before writing, imports and validates the complete
+candidate, runs the TypeScript compiler, all tests, and the production build,
+and opens the generated Markdown change report in Notepad.
+
+It calls the checked-in Node tools directly, so it does not require entering
+pnpm commands manually. It never commits, pushes, opens a pull request, or
+merges anything. The local candidate remains subject to the same human review
+as an automated update pull request.
+
+### Command line
+
 Check Avinor's publication history without changing repository files:
 
 ```sh
