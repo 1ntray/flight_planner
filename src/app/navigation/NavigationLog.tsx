@@ -62,6 +62,10 @@ export interface NavigationLogProps {
   onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   onUseForecastWindsChange: (enabled: boolean) => void;
   onLoadForecastWinds: () => void;
+  onEffectivePlanningEnvironmentChange?: (
+    waypointId: string,
+    override: { readonly qnhHpa?: number; readonly isaDeviationC?: number } | null,
+  ) => void;
   legWindDefaults: ReadonlyMap<string, LegWindDefault>;
   onManualLegWindChange: (
     fromWaypointId: string,
@@ -90,6 +94,7 @@ export function NavigationLog({
   onOperationalDraftChange,
   onUseForecastWindsChange,
   onLoadForecastWinds,
+  onEffectivePlanningEnvironmentChange,
   legWindDefaults,
   onManualLegWindChange,
   onChooseAlternateByIcao,
@@ -113,6 +118,21 @@ export function NavigationLog({
     resumeCalculations,
     forecast,
   } = calculations;
+  const airportPlannedTimes = new Map<string, number>();
+  const firstWaypoint = flightPlan.waypoints[0];
+  if (firstWaypoint !== undefined && calculatedRoute.departureTimeUtcMs !== null) {
+    airportPlannedTimes.set(firstWaypoint.id, calculatedRoute.departureTimeUtcMs);
+  }
+  if (performanceRoute?.status === 'ok') {
+    for (const sector of performanceRoute.sectors) {
+      airportPlannedTimes.set(sector.toWaypointId, sector.estimatedArrivalTimeUtcMs);
+    }
+  } else {
+    const finalWaypoint = flightPlan.waypoints.at(-1);
+    if (finalWaypoint !== undefined && calculatedRoute.estimatedArrivalTimeUtcMs !== null) {
+      airportPlannedTimes.set(finalWaypoint.id, calculatedRoute.estimatedArrivalTimeUtcMs);
+    }
+  }
 
   const updateDraft = <Field extends keyof NavigationInputDraft>(
     field: Field,
@@ -434,6 +454,10 @@ export function NavigationLog({
         draft={performanceDraft}
         operationalDraft={operationalDraft}
         defaults={performanceInputDefaults}
+        plannedTimeUtcMsByWaypointId={airportPlannedTimes}
+        {...(onEffectivePlanningEnvironmentChange === undefined
+          ? {}
+          : { onEffectivePlanningEnvironmentChange })}
         onDraftChange={onPerformanceDraftChange}
         onOperationalDraftChange={onOperationalDraftChange}
       />

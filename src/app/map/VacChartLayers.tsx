@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pane, TileLayer, useMapEvents } from 'react-leaflet';
 import type { AeronauticalDataRepository } from '../../aeronautical';
-import { validateVacChartManifest } from '../../aeronautical';
 import type { VacChartManifest, Wgs84Bounds } from '../../domain';
+import { filterRenderableVacCharts, resolveVacTileUrlTemplate } from './vacChartLayer';
 
 export interface VacChartLayersProps {
   repository: AeronauticalDataRepository;
@@ -39,7 +39,7 @@ export function VacChartLayers({ repository, visible, opacity }: VacChartLayersP
     void repository.queryVacCharts({ bounds: viewport.bounds }, { signal: controller.signal })
       .then((result) => {
         if (!controller.signal.aborted) {
-          setCharts(result.filter((chart) => viewport.zoom >= chart.minimumZoom && validateVacChartManifest(chart).length === 0));
+          setCharts(filterRenderableVacCharts(result, visible, viewport.zoom));
         }
       })
       .catch(() => {
@@ -55,7 +55,7 @@ export function VacChartLayers({ repository, visible, opacity }: VacChartLayersP
         <TileLayer
           key={chart.id}
           pane="vac-charts"
-          url={chart.tileUrlTemplate}
+          url={resolveVacTileUrlTemplate(chart.tileUrlTemplate, import.meta.env.BASE_URL)}
           minZoom={chart.minimumZoom}
           maxNativeZoom={chart.maximumZoom}
           maxZoom={18}

@@ -70,6 +70,8 @@ Detailed contracts and operational boundaries:
   constants, phase integration, MSA, patterns, and operational calculations.
 - [`docs/aeronautical-data.md`](docs/aeronautical-data.md) — aeronautical data,
   anchoring, frequency planning, and importer contracts.
+- [`docs/vac-chart-preparation.md`](docs/vac-chart-preparation.md) — offline VAC
+  georeferencing, validation, static tiles, and approval boundaries.
 - [`docs/airac-updates.md`](docs/airac-updates.md) — the human-gated Avinor
   AIRAC update workflow.
 - [`docs/flight-plan-persistence.md`](docs/flight-plan-persistence.md) — saved

@@ -108,6 +108,7 @@ describe('AIRAC dataset comparison', () => {
     const markdown = renderAiracChangeReport(comparison);
     expect(markdown).toContain('# AIRAC update: 2026-06-11-AIRAC → 2026-09-03-AIRAC');
     expect(markdown).toContain('| Communication services | 1 | 1 |');
+    expect(markdown).toContain('| VAC chart manifests | 0 | 0 |');
     expect(markdown).toContain('- eAIP warnings: 1');
     expect(markdown).toContain('Merging this pull request is the human approval boundary');
     expect(renderAiracChangeReport(comparison)).toBe(markdown);

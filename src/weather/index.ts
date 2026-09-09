@@ -28,6 +28,30 @@ export type {
 } from './openMeteoForecast';
 export type { ForecastLegWind, WeatherSampleRequest } from './types';
 export {
+  MANUAL_AIRPORT_WEATHER_SELECTION,
+  buildLocationforecastUrl,
+  deriveIsaDeviationC,
+  extractCurrentTafmetarTac,
+  fetchAirportOperationalWeather,
+  parseMetarTac,
+  parseTafTac,
+  resolveEffectiveAirportPlanningEnvironment,
+  resolveTafWind,
+  selectSurfaceForecast,
+} from './airportOperationalWeather';
+export type {
+  AirportOperationalWeather,
+  AirportWeatherProduct,
+  AirportWeatherRequest,
+  AirportWeatherSelection,
+  AirportWind,
+  EffectiveAirportPlanningEnvironment,
+  MetarReport,
+  SurfaceForecast,
+  TafReport,
+  TafWindResolution,
+} from './airportOperationalWeather';
+export {
   buildPerformanceWeatherSampleRequests,
   buildWeatherSampleRequests,
   createEffectiveLegWinds,

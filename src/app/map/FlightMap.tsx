@@ -32,6 +32,7 @@ import type {
 } from '../../domain';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import { AeronauticalLayerControl } from './AeronauticalLayerControl';
+import { RouteLayerControl } from './RouteLayerControl';
 import { ArcGisExportTileLayer } from './ArcGisExportTileLayer';
 import type { BaseMapLoadStatus } from './ArcGisExportTileLayer';
 import { BaseMapControl } from './BaseMapControl';
@@ -47,6 +48,8 @@ import type {
   AeronauticalLayerId,
   AirspaceCategoryId,
 } from './aeronauticalLayerConfig';
+import { DEFAULT_ROUTE_LAYER_VISIBILITY } from './routeLayerConfig';
+import type { RouteLayerId } from './routeLayerConfig';
 import { getChromiumRasterSeamClassName } from './rasterTileSeamWorkaround';
 import {
   buildRouteDisplayLegs,
@@ -605,6 +608,9 @@ export function FlightMap({
     useState<AeronauticalLoadStatus>('idle');
   const [aeronauticalLayerVisibility, setAeronauticalLayerVisibility] =
     useState(DEFAULT_AERONAUTICAL_LAYER_VISIBILITY);
+  const [routeLayerVisibility, setRouteLayerVisibility] = useState(
+    DEFAULT_ROUTE_LAYER_VISIBILITY,
+  );
   const [airspaceCategoryVisibility, setAirspaceCategoryVisibility] =
     useState(DEFAULT_AIRSPACE_CATEGORY_VISIBILITY);
   const [vacChartsVisible, setVacChartsVisible] = useState(false);
@@ -794,6 +800,15 @@ export function FlightMap({
     },
     [],
   );
+  const updateRouteLayerVisibility = useCallback(
+    (layerId: RouteLayerId, visible: boolean) => {
+      setRouteLayerVisibility((current) => ({
+        ...current,
+        [layerId]: visible,
+      }));
+    },
+    [],
+  );
   const selectBaseMap = useCallback(
     (nextId: BaseMapId) => {
       if (nextId === 'avinor-icao' && !icaoTermsAccepted) {
@@ -966,23 +981,27 @@ export function FlightMap({
           <MsaCorridor geometry={selectedLegGeometry} />
         ) : null}
 
-        <Pane name="route-lines" style={{ zIndex: 500 }}>
-          <RouteLines
-            legs={routeLegs}
-          interactionEnabled={
-            routeLineInteraction?.mode !== 'shaping' &&
-            tool.kind !== 'select-alternate-aerodrome'
-          }
-            tool={tool}
-            selectedLeg={selectedLeg}
-            onBeginInteraction={beginRouteLineInteraction}
-            onSelectLeg={selectMapLegFromClick}
-            onInsertWaypoint={onInsertWaypoint}
-            onSetAltitudeTarget={onSetAltitudeTarget}
-          />
-        </Pane>
+        {!routeLayerVisibility.route || !routeLayerVisibility.legs ? null : (
+          <Pane name="route-lines" style={{ zIndex: 500 }}>
+            <RouteLines
+              legs={routeLegs}
+              interactionEnabled={
+                routeLineInteraction?.mode !== 'shaping' &&
+                tool.kind !== 'select-alternate-aerodrome'
+              }
+              tool={tool}
+              selectedLeg={selectedLeg}
+              onBeginInteraction={beginRouteLineInteraction}
+              onSelectLeg={selectMapLegFromClick}
+              onInsertWaypoint={onInsertWaypoint}
+              onSetAltitudeTarget={onSetAltitudeTarget}
+            />
+          </Pane>
+        )}
 
-        {alternateWaypoint === undefined ||
+        {!routeLayerVisibility.route ||
+        !routeLayerVisibility.waypoints ||
+        alternateWaypoint === undefined ||
         flightPlan.waypoints.length === 0 ? null : (
           <Pane name="alternate-route" style={{ zIndex: 490 }}>
             <Polyline
@@ -1008,15 +1027,28 @@ export function FlightMap({
               pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#704887', fillOpacity: 1 }}
               interactive={false}
             >
-              <Tooltip pane="tooltipPane" permanent direction="top" className="waypoint-label">
-                ALT {alternateWaypoint.name}
-              </Tooltip>
+              {!routeLayerVisibility['waypoint-names'] ? null : (
+                <Tooltip pane="tooltipPane" permanent direction="top" className="waypoint-label">
+                  ALT {alternateWaypoint.name}
+                </Tooltip>
+              )}
             </CircleMarker>
           </Pane>
         )}
 
         <RoutePointMarkers
           flightPlan={flightPlan}
+          showWaypoints={
+            routeLayerVisibility.route && routeLayerVisibility.waypoints
+          }
+          showWaypointNames={
+            routeLayerVisibility.route &&
+            routeLayerVisibility['waypoint-names']
+          }
+          showShapingPoints={
+            routeLayerVisibility.route &&
+            routeLayerVisibility['shaping-points']
+          }
           selectedRoutePoint={selection}
           draggedPoint={draggedPoint}
           pendingShapingPoint={pendingShapingPoint}
@@ -1045,17 +1077,24 @@ export function FlightMap({
           />
         )}
         <PerformancePhaseMarkers
+          visible={
+            routeLayerVisibility.route &&
+            routeLayerVisibility['flight-phases']
+          }
           flightPlan={flightPlan}
           performanceRoute={performanceRoute}
           altitudePlans={altitudePlans}
         />
-        <AltitudeTargetMarkers
-          flightPlan={flightPlan}
-          plans={altitudePlans}
-          performanceRoute={performanceRoute}
-          geometryEditingEnabled={tool.kind === 'edit-route'}
-          onSetTargetDistance={onSetAltitudeTarget}
-        />
+        {!routeLayerVisibility.route ||
+        !routeLayerVisibility['altitude-targets'] ? null : (
+          <AltitudeTargetMarkers
+            flightPlan={flightPlan}
+            plans={altitudePlans}
+            performanceRoute={performanceRoute}
+            geometryEditingEnabled={tool.kind === 'edit-route'}
+            onSetTargetDistance={onSetAltitudeTarget}
+          />
+        )}
 
         {tool.kind !== 'select' ||
         suppressSelectionPopups ||
@@ -1205,6 +1244,10 @@ export function FlightMap({
           onSelect={selectBaseMap}
           onAcceptTerms={acceptIcaoTerms}
           onCancelTerms={() => setIcaoTermsPromptOpen(false)}
+        />
+        <RouteLayerControl
+          visibility={routeLayerVisibility}
+          onVisibilityChange={updateRouteLayerVisibility}
         />
         <AeronauticalLayerControl
           dataset={aeronauticalDataset}

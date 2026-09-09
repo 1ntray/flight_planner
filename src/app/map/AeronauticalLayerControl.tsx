@@ -102,17 +102,17 @@ export function AeronauticalLayerControl({
         <span>VAC charts</span>
         <small>prepared tiles</small>
       </label>
-      <label>
+      <label className="aeronautical-layer-control__opacity">
         <span>VAC opacity</span>
         <input
           type="range"
-          min="0.2"
+          min="0"
           max="1"
           step="0.05"
           value={vacOpacity}
           disabled={!vacVisible}
           aria-label="VAC chart opacity"
-          onChange={(event) => onVacOpacityChange(Number(event.currentTarget.value))}
+          onInput={(event) => onVacOpacityChange(Number(event.currentTarget.value))}
         />
         <small>{Math.round(vacOpacity * 100)}%</small>
       </label>

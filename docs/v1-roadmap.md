@@ -19,20 +19,7 @@ subject to authoritative aircraft, aerodrome, and operational source material.
 **Why first:** reliable boundaries and reproducible review are prerequisites
 for trusting later operational features.
 
-### 2. Airport operational weather inputs
-
-Add a dedicated, time-aware airport operational-data boundary for:
-
-- METAR and TAF display with source, observation/issue time, validity, and
-  unavailable/error state;
-- pilot review of QNH, OAT/ISA, wind, and relevant surface environment; and
-- clear separation between fetched operational data, pilot-entered planning
-  overrides, AIRAC data, and saved flight-plan inputs.
-
-Do not make a weather feed silently rewrite route, performance, or persisted
-inputs. Preserve explicit load/refresh behaviour and source provenance.
-
-### 3. Takeoff and landing runway performance
+### 2. Takeoff and landing runway performance
 
 Implement runway-specific Zlin planning calculations only after verified source
 data and rules are available. The feature should combine selected runway,
@@ -43,7 +30,7 @@ results rather than guessed margins.
 This closes the largest operational gap between the existing enroute/performance
 planning and airport operations.
 
-### 4. Validate against manually prepared real flight plans
+### 3. Validate against manually prepared real flight plans
 
 Prepare a small controlled set of real, manually checked Zlin planning examples.
 Compare route geometry, headings, timing, altitude transitions, fuel, patterns,
@@ -52,6 +39,21 @@ Record assumptions and expected tolerances so discrepancies become regression
 tests rather than anecdotal observations.
 
 ## Nice-to-have before 1.0
+
+## Completed V1 groundwork
+
+### Airport operational weather
+
+Airport planning now has a separate MET Norway operational-weather boundary.
+The airport panel explicitly loads Tafmetar METAR/TAF and Locationforecast 2.0
+surface data, retains raw TAC, resolves deterministic TAF wind at planned UTC
+time, and exposes ambiguity for pilot review. Wind, pressure, and
+temperature/ISA choices are independent; manual planning inputs remain the
+persisted fallback. Fetched reports, parsed data, and caches are runtime-only.
+
+The next major V1 operational feature is therefore runway-specific takeoff and
+landing performance, using this explicit effective planning environment as an
+input rather than coupling calculations to a weather provider.
 
 ### Zlin OFP PDF generation
 
@@ -85,10 +87,12 @@ and validation against the existing wind conventions.
 
 ### Further operational-data layers
 
-Potential later work includes richer airport information, validated VAC raster
-preparation, and carefully scoped NOTAM presentation. These require independent
-source, update, and safety decisions; they must not be treated as automatic
-interpretation or route mutation.
+Potential later work includes extending the validated VAC preparation pipeline
+beyond the current ENDU proof of concept, deriving graphical-only reporting
+points through a separate reviewed workflow, richer airport information, and
+carefully scoped NOTAM presentation. These require independent source, update,
+and safety decisions; they must not be treated as automatic interpretation or
+route mutation.
 
 ## Explicitly out of V1 scope
 

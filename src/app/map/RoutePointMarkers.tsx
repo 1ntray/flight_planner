@@ -100,6 +100,9 @@ const selectedAnchoredShapingPointIcon = divIcon({
 
 export interface RoutePointMarkersProps {
   flightPlan: FlightPlan;
+  showWaypoints: boolean;
+  showWaypointNames: boolean;
+  showShapingPoints: boolean;
   selectedRoutePoint: MapSelection | null;
   draggedPoint: DraggedRoutePointPosition | null;
   pendingShapingPoint: PendingRouteShapingPoint | null;
@@ -151,6 +154,9 @@ function anchoredWaypointSourceFeature(
 
 export function RoutePointMarkers({
   flightPlan,
+  showWaypoints,
+  showWaypointNames,
+  showShapingPoints,
   selectedRoutePoint,
   draggedPoint,
   pendingShapingPoint,
@@ -181,7 +187,7 @@ export function RoutePointMarkers({
 
   return (
     <>
-      {flightPlan.waypoints.map((waypoint) => {
+      {!showWaypoints ? null : flightPlan.waypoints.map((waypoint) => {
         const displayPosition = getRoutePointDisplayPosition(
           waypoint.id,
           waypoint.position,
@@ -302,7 +308,7 @@ export function RoutePointMarkers({
                   }),
             }}
           >
-            <Tooltip
+            {!showWaypointNames ? null : <Tooltip
               pane="tooltipPane"
               className="waypoint-label"
               direction="top"
@@ -311,13 +317,13 @@ export function RoutePointMarkers({
               permanent
             >
               {waypoint.name}
-              {isAnchored ? ' · anchored' : ''}
-            </Tooltip>
+              {isAnchored ? <span className="waypoint-label__anchor" role="img" aria-label="anchored"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="2.75" r="1.35" /><path d="M8 4.5v8.25M4.25 7.5h7.5M2.5 10.5c.45 2.1 2.35 3.75 5.5 3.75s5.05-1.65 5.5-3.75M2.5 10.5l1.7 1.35M2.5 10.5l.6-2.05M13.5 10.5l-1.7 1.35M13.5 10.5l-.6-2.05" /></svg></span> : null}
+            </Tooltip>}
           </Marker>
         );
       })}
 
-      {flightPlan.legShapes.flatMap((shape) =>
+      {!showShapingPoints ? null : flightPlan.legShapes.flatMap((shape) =>
         shape.points.map((point) => {
           const displayPosition = getRoutePointDisplayPosition(
             point.id,
@@ -393,7 +399,7 @@ export function RoutePointMarkers({
         }),
       )}
 
-      {pendingShapingPoint === null ? null : (
+      {!showShapingPoints || pendingShapingPoint === null ? null : (
         <Marker
           position={[
             pendingShapingPoint.point.position.latitude,

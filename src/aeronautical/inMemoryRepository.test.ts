@@ -217,6 +217,8 @@ describe('InMemoryAeronauticalRepository', () => {
       .resolves.toEqual([vacChart]);
     await expect(repository.queryVacCharts({ bounds: { south: 60, west: 10, north: 61, east: 11 } }))
       .resolves.toEqual([]);
+    await expect(repository.queryVacCharts({ aerodromeFeatureIds: ['missing-aerodrome'] }))
+      .resolves.toEqual([]);
   });
 
   it('honours an aborted query without returning stale features', async () => {

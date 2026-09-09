@@ -4,6 +4,7 @@ import {
 } from '../../../src/aeronautical/normalizedDataset';
 import type { AvinorEaipBatchEditionConfig } from './types';
 import type { AvinorEaipImportReport } from './importPipeline';
+import { validateProductionVacChartManifest } from '../../../src/aeronautical/vacManifest';
 
 function duplicateIds(values: readonly string[]): readonly string[] {
   const seen = new Set<string>();
@@ -73,6 +74,12 @@ export function validateAiracCandidate(
     'Candidate features',
     dataset.features.map(({ ref }) => ref.featureId),
   );
+  for (const chart of dataset.vacCharts) {
+    const errors = validateProductionVacChartManifest(chart);
+    if (errors.length > 0) {
+      throw new Error(`Candidate VAC chart ${chart.id} is invalid:\n- ${errors.join('\n- ')}`);
+    }
+  }
   requireNoDuplicateIds(
     'Candidate feature details',
     dataset.featureDetails.map(({ ref }) => ref.featureId),

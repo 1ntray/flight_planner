@@ -8,15 +8,17 @@ complete current product.
 For detailed rules, see [project conventions](conventions.md), [navigation
 conventions](navigation-conventions.md), [aircraft performance](aircraft-performance.md),
 [aeronautical data](aeronautical-data.md), [AIRAC updates](airac-updates.md),
-and [flight-plan persistence](flight-plan-persistence.md).
+[VAC preparation](vac-chart-preparation.md), and [flight-plan
+persistence](flight-plan-persistence.md).
 
 ## Product purpose and safety boundary
 
 Flight Planner is a browser-based VFR planning aid centred on an interactive
 map and an OFP-oriented navigation log. It helps prepare route, altitude, wind,
 fuel, loading, and communication planning data. It is not an operational
-briefing system and does not replace current AIP, NOTAM, METAR/TAF, runway
-performance data, or pilot judgement.
+briefing system and does not replace current AIP, NOTAM, runway-performance
+data, or pilot judgement. Airport weather is source data for explicit pilot
+review and selection, not a go/no-go decision.
 
 Published aeronautical data and fetched weather are distinct sources. Neither
 changes a saved route coordinate or silently becomes a new planning input.
@@ -46,6 +48,13 @@ use pixels, Leaflet measurements, tile coordinates, or the map projection.
 Kartverket Norgeskart topo and the Avinor ICAO 1:500 000 chart are optional
 base maps; the latter is server-rendered into Web Mercator tiles and requires a
 session acknowledgement.
+
+The optional VAC layer contains one offline-prepared, independently validated
+chart: Avinor AD 2 ENDU 6-1. It is stored as local EPSG:3857 XYZ tiles and
+loads only near Bardufoss at the configured zoom. Its source hash, fit points,
+holdout residuals, thresholds, chart date, and source references remain in the
+normalized manifest and preparation report. VAC pixels remain
+presentation-only.
 
 The checked-in browser repository is Avinor eAIP avinor-eaip-2026-09-03,
 effective 3 September 2026, revision **AIP AMDT 05/2026**. It contains:
@@ -136,10 +145,31 @@ stale forecast data is not applied. Forecast failures leave planning available.
 Effective wind precedence is: manual wind for the adjacent real waypoint pair,
 then a valid loaded forecast sample, then the route-wide manual wind fallback.
 
-The selected forecast model and manual per-leg winds are persisted as planning
-inputs. Fetched forecast responses, provider cache, retrieval state, and live
-weather are runtime-only and are never persisted. METAR, TAF, NOTAM, and
-airport surface/weather products are not yet integrated.
+The selected upper-air forecast model and manual per-leg winds are persisted as
+planning inputs. Fetched forecast responses, provider cache, retrieval state,
+and live weather are runtime-only and are never persisted.
+
+Airport operational weather is a separate MET Norway provider boundary, not an
+AIRAC or upper-air-wind feature. The airport panel explicitly loads METAR/TAF
+from Tafmetar and surface model data from Locationforecast 2.0. It retains raw
+TAC and parses only observation time, report type/AUTO/COR, wind, temperature,
+and QNH. TAF wind is resolved against the airport's planned UTC context;
+TEMPO, PROB, BECMG, and variable-wind ambiguity is shown rather than reduced to
+a deterministic value. Locationforecast temperature and model MSL pressure are
+linearly interpolated; wind is vector-interpolated. Forecast MSL pressure is
+not labelled as observed QNH.
+
+Wind, pressure, and temperature/ISA source selection is independent. Manual
+values remain the saved editable defaults. A pilot may select METAR or TAF wind
+(where deterministic), METAR QNH or forecast pressure, and METAR or forecast
+temperature; temperature is converted to ISA deviation using aerodrome
+elevation before performance calculations. Selecting unavailable data requires
+review and never silently changes the selected source. Browser requests are
+explicit load/refresh operations with cancellation, request de-duplication,
+and short in-memory caching; no polling occurs. Weather attribution is shown
+as MET Norway. Live data and source selections are runtime-only; reopening a
+saved plan starts from the persisted manual planning values and makes no
+weather request.
 
 Per-leg wind overrides are entered from the selected-leg map popup, the
 Altitude schedule, or the sequential wind workflow. Empty fields show the
@@ -213,10 +243,13 @@ typecheck, pnpm test, and pnpm build.
 
 ## Known limitations
 
-- No airport METAR, TAF, NOTAM, runway-state, or live airspace-status feed.
+- No NOTAM, runway-state, or live airspace-status feed. Airport METAR/TAF and
+  numerical surface forecast are explicit-load planning-review data, not a
+  briefing or go/no-go service.
 - No takeoff or landing runway-performance calculation.
 - No PDF OFP generation; the on-screen navlog is OFP-oriented.
 - No automatic terrain/obstacle scan or terrain-derived MSA.
-- No validated VAC raster is active; graphical-only reporting points are not
-  inferred.
+- Only ENDU has a validated VAC raster; other VAC overlays and
+  graphical-only reporting points remain unavailable until separately
+  prepared and reviewed.
 - No cloud sync, flight-plan submission, or autonomous operational decisions.

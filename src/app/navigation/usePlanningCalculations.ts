@@ -127,6 +127,8 @@ export interface UsePlanningCalculationsInput {
   operationalDraft: OperationalInputDraft;
   useForecastWinds: boolean;
   forecastRequestKey: number;
+  /** Runtime-only selected airport-weather values; manual draft values remain canonical persistence. */
+  airportWeatherOverrides?: ReadonlyMap<string, { readonly qnhHpa?: number; readonly isaDeviationC?: number }>;
 }
 
 /** Central React orchestration for derived route, performance, and weather data. */
@@ -139,6 +141,7 @@ export function usePlanningCalculations({
   operationalDraft,
   useForecastWinds,
   forecastRequestKey,
+  airportWeatherOverrides = new Map(),
 }: UsePlanningCalculationsInput): PlanningCalculations {
   const [calculationRecovery, setCalculationRecovery] =
     useState<CalculationBreadcrumb | null>(
@@ -189,7 +192,7 @@ export function usePlanningCalculations({
     },
     [aircraftDefinition, parsedOperational],
   );
-  const parsedPerformance = useMemo(
+  const parsedPerformanceManual = useMemo(
     () => parsePerformanceInputDraft(
       performanceDraft,
       flightPlan.sectorBoundaryWaypointIds ?? [],
@@ -203,6 +206,27 @@ export function usePlanningCalculations({
       performanceInputDefaults,
     ],
   );
+  const parsedPerformance = useMemo(() => {
+    if (parsedPerformanceManual.status !== 'valid' || airportWeatherOverrides.size === 0) {
+      return parsedPerformanceManual;
+    }
+    const departure = flightPlan.waypoints[0];
+    const destination = flightPlan.waypoints.at(-1);
+    const override = (waypointId: string | undefined, weather: { qnhHpa: number; isaDeviationC: number }) => {
+      const value = waypointId === undefined ? undefined : airportWeatherOverrides.get(waypointId);
+      return { qnhHpa: value?.qnhHpa ?? weather.qnhHpa, isaDeviationC: value?.isaDeviationC ?? weather.isaDeviationC };
+    };
+    const sectorStopPlans = parsedPerformanceManual.value.sectorStopPlans?.map((stop) => ({ ...stop, weather: override(stop.waypointId, stop.weather) }));
+    return {
+      status: 'valid' as const,
+      value: {
+        ...parsedPerformanceManual.value,
+        departureWeather: override(departure?.id, parsedPerformanceManual.value.departureWeather),
+        destinationWeather: override(destination?.id, parsedPerformanceManual.value.destinationWeather),
+        ...(sectorStopPlans === undefined ? {} : { sectorStopPlans }),
+      },
+    };
+  }, [airportWeatherOverrides, flightPlan.waypoints, parsedPerformanceManual]);
   const legacyPlanning = useMemo(() => {
     if (
       calculationsSuspended ||

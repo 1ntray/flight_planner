@@ -16,5 +16,5 @@ export type {
   CommunicationServiceQuery,
   VacChartQuery,
 } from './repository';
-export { validateVacChartManifest } from './vacManifest';
+export { validateProductionVacChartManifest, validateVacChartManifest } from './vacManifest';
 export type { NormalizedAeronauticalDataset } from './normalizedDataset';

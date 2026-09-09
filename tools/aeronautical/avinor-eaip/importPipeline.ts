@@ -350,7 +350,7 @@ function countFeatures(
   };
 }
 
-function approvedSupplementalFeatures(
+export function approvedSupplementalFeatures(
   approved: NormalizedAeronauticalDataset,
 ): {
   features: readonly AeronauticalFeature[];

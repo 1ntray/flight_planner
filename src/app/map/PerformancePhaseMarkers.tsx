@@ -29,17 +29,21 @@ function boundaryIcon(
 }
 
 export interface PerformancePhaseMarkersProps {
+  visible: boolean;
   flightPlan: FlightPlan;
   performanceRoute: CalculatedPerformanceRoute | null;
   altitudePlans: readonly LegAltitudePlan[];
 }
 
 export function PerformancePhaseMarkers({
+  visible,
   flightPlan,
   performanceRoute,
   altitudePlans,
 }: PerformancePhaseMarkersProps) {
   const map = useMap();
+  if (!visible) return null;
+
   const legs = calculateRoute(flightPlan);
   const boundaries = derivePerformancePhaseBoundaries(performanceRoute);
 

@@ -98148,5 +98148,127 @@
       ]
     }
   ],
-  "vacCharts": []
+  "vacCharts": [
+    {
+      "id": "vac:ENDU:2026-05-14",
+      "aerodromeFeatureId": "aerodrome:ENDU",
+      "title": "Bardufoss Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourcePdfSha256": "f93dd046804a5e00cf2b8a5baa76d5e5a4083a077fa6ff2429e2e88930e9b966",
+      "tileUrlTemplate": "aeronautical/vac/endu/2026-05-14-f93dd046-r2/{z}/{x}/{y}.png",
+      "targetCrs": "EPSG:3857",
+      "bounds": {
+        "west": 17.6633243,
+        "east": 19.2605861,
+        "south": 68.7646366,
+        "north": 69.4243212
+      },
+      "minimumZoom": 9,
+      "maximumZoom": 13,
+      "defaultOpacity": 0.75,
+      "groundControlPoints": [
+        {
+          "label": "FINNSNES",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 1284.25,
+          "pixelY": 2637.4833333333345,
+          "latitude": 69.24027777777778,
+          "longitude": 17.965
+        },
+        {
+          "label": "ROSSVOLL",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 4110.8,
+          "pixelY": 3396.495,
+          "latitude": 69.17833333333334,
+          "longitude": 18.5
+        },
+        {
+          "label": "TAKVATN",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 6978.683333333334,
+          "pixelY": 4226.4383333333335,
+          "latitude": 69.10972222222222,
+          "longitude": 19.03888888888889
+        },
+        {
+          "label": "TILLERMO",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 7733.666666666668,
+          "pixelY": 5851.421666666668,
+          "latitude": 68.99555555555555,
+          "longitude": 19.161944444444444
+        },
+        {
+          "label": "SODA",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 6682.150000000001,
+          "pixelY": 6846.383333333333,
+          "latitude": 68.9325,
+          "longitude": 18.95
+        },
+        {
+          "label": "SAFT",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 5234.85,
+          "pixelY": 6471.855000000001,
+          "latitude": 68.96416666666667,
+          "longitude": 18.68
+        },
+        {
+          "label": "SARA",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 4348.6,
+          "pixelY": 5896.45,
+          "latitude": 69.00694444444444,
+          "longitude": 18.518055555555556
+        },
+        {
+          "label": "GOMPEN",
+          "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+          "pixelX": 1295.4666666666667,
+          "pixelY": 5397.611666666667,
+          "latitude": 69.05194444444444,
+          "longitude": 17.941666666666666
+        }
+      ],
+      "validation": {
+        "residualRmsPixels": 0.04255288731161405,
+        "maximumResidualPixels": 0.05567495968213432,
+        "residualRmsMeters": 0.6450859378263575,
+        "maximumResidualMeters": 0.9879072967674994,
+        "fitPointCount": 8,
+        "validationPointCount": 9,
+        "qualityThresholds": {
+          "maximumRmsMeters": 100,
+          "maximumErrorMeters": 200
+        }
+      },
+      "sourceReferences": [
+        {
+          "sourceType": "vac-pdf",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENDU 6-1",
+          "aipSection": "AD 2 ENDU 6-1",
+          "sourcePage": "1",
+          "publishedIdentifier": "ENDU VAC",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623256.pdf"
+        },
+        {
+          "sourceType": "eAIP-html",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "AD 2 ENDU",
+          "aipSection": "AD 2.24",
+          "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENDU-en-GB.html"
+        },
+        {
+          "sourceType": "prepared-vac",
+          "sourceAerodrome": "ENDU",
+          "sourceDocument": "ENDU VAC preparation report",
+          "aipSection": "AD 2 ENDU 6-1",
+          "sourceReference": "data/aeronautical/vac/ENDU-2026-05-14-f93dd046-r2-preparation.json"
+        }
+      ]
+    }
+  ]
 }

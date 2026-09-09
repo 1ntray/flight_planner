@@ -334,6 +334,8 @@ export function App() {
     initialPlanningState.useForecastWinds,
   );
   const [forecastRequestKey, setForecastRequestKey] = useState(0);
+  // Live MET Norway values are intentionally not part of the saved plan.
+  const [airportWeatherOverrides, setAirportWeatherOverrides] = useState<ReadonlyMap<string, { readonly qnhHpa?: number; readonly isaDeviationC?: number }>>(new Map());
   const [performanceInputDraft, setPerformanceInputDraft] =
     useState<PerformanceInputDraft>(
       initialPlanningState.performanceInputDraft,
@@ -549,6 +551,7 @@ export function App() {
     operationalDraft: operationalInputDraft,
     useForecastWinds,
     forecastRequestKey,
+    airportWeatherOverrides,
   });
   const legWindDefaults = useMemo(() => {
     const globalManualWind = parsedPlanningInputs.status === 'valid'
@@ -1533,6 +1536,16 @@ export function App() {
     onLoadForecastWinds: () => {
       setUseForecastWinds(true);
       setForecastRequestKey((current) => current + 1);
+    },
+    onEffectivePlanningEnvironmentChange: (waypointId: string, override: { readonly qnhHpa?: number; readonly isaDeviationC?: number } | null) => {
+      setAirportWeatherOverrides((current) => {
+        const previous = current.get(waypointId);
+        if (override === null && previous === undefined) return current;
+        if (override !== null && previous?.qnhHpa === override.qnhHpa && previous?.isaDeviationC === override.isaDeviationC) return current;
+        const next = new Map(current);
+        if (override === null) next.delete(waypointId); else next.set(waypointId, override);
+        return next;
+      });
     },
     legWindDefaults,
     onManualLegWindChange: setLegManualWind,

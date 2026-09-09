@@ -148,7 +148,9 @@ clicked waypoint is anchored.
   flight level, and UNL. Map render polygons may be derived, while detailed
   source geometry and provenance remain available for verification.
 - VAC rasters are offline-prepared, AIRAC-versioned presentation layers in
-  EPSG:3857. Reporting points remain independent WGS84 repository features.
+  EPSG:3857. Production manifests must retain the exact source hash, reviewed
+  fit points, independent WGS84 holdout residuals, and passing error
+  thresholds. Reporting points remain independent WGS84 repository features.
 - A free waypoint may be dropped onto a visible aeronautical point to anchor it.
   The screen-space hit radius is only a map interaction aid: the commit stores
   the feature's published WGS84 coordinate and compact source provenance in the

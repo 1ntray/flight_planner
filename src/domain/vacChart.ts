@@ -4,6 +4,8 @@ import type {
 } from './aeronautical';
 
 export interface VacChartGroundControlPoint {
+  readonly label?: string;
+  readonly reviewNote?: string;
   readonly pixelX: number;
   readonly pixelY: number;
   readonly latitude: number;
@@ -26,6 +28,14 @@ export interface VacChartManifest {
   readonly validation?: {
     readonly residualRmsPixels: number;
     readonly maximumResidualPixels: number;
+    readonly residualRmsMeters?: number;
+    readonly maximumResidualMeters?: number;
+    readonly fitPointCount?: number;
+    readonly validationPointCount?: number;
+    readonly qualityThresholds?: {
+      readonly maximumRmsMeters: number;
+      readonly maximumErrorMeters: number;
+    };
   };
   readonly sourceReferences: readonly AeronauticalSourceReference[];
 }
