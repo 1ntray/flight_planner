@@ -1,5 +1,10 @@
 import { divIcon, DomEvent } from 'leaflet';
-import type { LatLngTuple, LeafletMouseEvent, Path as LeafletPath } from 'leaflet';
+import type {
+  LatLngTuple,
+  LeafletEvent,
+  LeafletMouseEvent,
+  Path as LeafletPath,
+} from 'leaflet';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Marker,
@@ -117,6 +122,26 @@ function clearAirspacePathFocus(event: LeafletMouseEvent): void {
 
   element.blur();
   window.requestAnimationFrame(() => element.blur());
+}
+
+/**
+ * Keep information-only SVG paths out of the browser focus order. Chromium
+ * can otherwise paint a focus rectangle between pointer press and the click
+ * handler, before clearAirspacePathFocus has a chance to blur it.
+ */
+function makeAirspacePathNonFocusable(event: LeafletEvent): void {
+  const element = (event.target as LeafletPath).getElement();
+  if (element === null) return;
+
+  element.setAttribute('tabindex', '-1');
+  element.setAttribute('focusable', 'false');
+}
+
+function preventAirspacePathFocus(event: LeafletMouseEvent): void {
+  // Prevent the native pointer action that gives the SVG path focus. This
+  // still permits Leaflet's subsequent click event to open its information.
+  event.originalEvent.preventDefault();
+  clearAirspacePathFocus(event);
 }
 
 function pointerPosition(event: LeafletMouseEvent): Position {
@@ -320,6 +345,8 @@ export function AeronauticalLayers({
               weight: 2,
             }}
             eventHandlers={{
+              add: makeAirspacePathNonFocusable,
+              mousedown: preventAirspacePathFocus,
               mouseover: updateHoveredAirspaces,
               mousemove: updateHoveredAirspaces,
               // Moving between overlapping SVG paths also raises mouseout. Use
