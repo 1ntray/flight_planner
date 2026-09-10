@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { VacChartManifest } from '../../domain';
-import { filterRenderableVacCharts, resolveVacTileUrlTemplate } from './vacChartLayer';
+import {
+  filterRenderableVacCharts,
+  resolveVacTileUrlTemplate,
+  vacDisplayMinimumZoom,
+} from './vacChartLayer';
 
 const chart: VacChartManifest = {
   id: 'vac:test',
@@ -42,10 +46,12 @@ describe('VAC runtime layer selection', () => {
       .toBe('/absolute/{z}/{x}/{y}.png');
   });
 
-  it('loads only visible, validated charts at or above their minimum zoom', () => {
+  it('loads only visible, validated charts from one zoom below native detail', () => {
     const { validation: _validation, ...unvalidatedChart } = chart;
     expect(filterRenderableVacCharts([chart], false, 12)).toEqual([]);
-    expect(filterRenderableVacCharts([chart], true, 8)).toEqual([]);
+    expect(vacDisplayMinimumZoom(chart)).toBe(8);
+    expect(filterRenderableVacCharts([chart], true, 7)).toEqual([]);
+    expect(filterRenderableVacCharts([chart], true, 8)).toEqual([chart]);
     expect(filterRenderableVacCharts([chart], true, 9)).toEqual([chart]);
     expect(filterRenderableVacCharts([unvalidatedChart], true, 12)).toEqual([]);
   });
