@@ -31,23 +31,22 @@ The proof-of-concept config also requires the fit points to span at least 40%
 of the cropped chart in both pixel dimensions. This is a simple distribution
 guard, not a substitute for human review of the point layout.
 
-The reviewed set currently contains 42 charts for 41 aerodromes: ENAL, ENAN,
-ENAT, ENBL, ENBO, ENBR (two charts), ENBS, ENBV, ENCN, ENDU, ENEV, ENFL, ENGK,
-ENGM, ENHD, ENHF, ENHK, ENHV, ENKB, ENKR, ENLK, ENMH, ENML, ENNA, ENNM, ENOV,
-ENRE, ENRM, ENRO, ENRS, ENSD, ENSG, ENSH, ENSK, ENSO, ENSS, ENST, ENTC, ENVA,
+The reviewed set contains all 47 VAC charts published for 46 aerodromes in AD
+2.24 of the approved edition: ENAL, ENAN, ENAT, ENBL, ENBN, ENBO, ENBR (two
+charts), ENBS, ENBV, ENCN, ENDU, ENEV, ENFL, ENGK, ENGM, ENHD, ENHF, ENHK,
+ENHV, ENKB, ENKR, ENLK, ENMH, ENML, ENMS, ENNA, ENNM, ENNO, ENOV, ENRA, ENRE,
+ENRM, ENRO, ENRS, ENSD, ENSG, ENSH, ENSK, ENSO, ENSR, ENSS, ENST, ENTC, ENVA,
 ENVD and ENZV. The checked-in source edition is the Avinor eAIP Index/155
 edition effective 3 September 2026; each chart retains its own published chart
-date. Charts with no reliable published control points, or that fail the
-independent quality gate, remain unavailable rather than being georeferenced
-by guesswork.
+date. Seven imported AD 2 aerodromes publish no VAC in that edition.
 
-ENRA is currently excluded because its candidate georeferencing failed the
-declared residual limits. ENNO is excluded because its chart does not expose a
-complete machine-readable labelled graticule. The older checked-in source
-references for ENBN, ENMS and ENSR no longer resolve and must be refreshed from
-an authoritative edition before preparation. These exclusions are explicit;
-the preparation pipeline does not infer replacement source files or control
-coordinates.
+ENBN, ENMS, ENNO, ENRA and ENSR were prepared from refreshed source references
+discovered in that exact edition. ENRA's duplicated vector strokes and ENNO's
+character-separated graticule labels are normalized only in the offline
+graticule extractor before the ordinary independent holdout gate is applied;
+no control coordinate is guessed and no quality threshold is relaxed. A future
+chart with no reliable published control or a failing residual remains
+unavailable rather than being georeferenced by visual approximation.
 
 The current preparation revision renders each vector PDF at 1200 DPI, warps it
 once to EPSG:3857, and publishes one quality-controlled WebP image per chart.
@@ -66,6 +65,25 @@ ENSH and ENSK to be prepared without visually guessing geographic positions.
 This numerical result verifies the reviewed control-point mapping and fitted
 chart transformation. It does not make the chart current operational
 information and does not replace visual comparison against the source chart.
+
+## Source-edition verification
+
+Before preparing or reviewing charts, confirm the configured eAIP edition is
+still the newest published edition and then compare the active chart references
+with that pin:
+
+```sh
+pnpm aero:check-update
+pnpm aero:verify:vac-sources
+```
+
+The VAC source checker reads semantic AD 2.24 chart entries from the pinned
+edition and compares exact PDF URLs. Generated numeric PDF identifiers are
+treated as opaque references, not as stable identities that can be carried to
+a later edition. A missing published chart or a stale active URL fails the
+check. Use `pnpm aero:verify:vac-sources -- --write-report` to refresh
+`data/aeronautical/vac-source-verification-2026-09-03.json` after an approved
+activation. The report verifies source identity, not chart alignment.
 
 ## Local preparation
 
@@ -153,7 +171,7 @@ a VAC requires a new reviewed preparation configuration and source identity.
 Add a reviewed configuration under `tools/aeronautical/vac/prepared/` and
 register it in the CLI. Reporting-point controls are kept in
 `national-vac-controls-2026-09-03.json`; reviewed graticule models are kept in
-`graticule-vac-controls-2026-09-03.json`, with their factory in `national.ts`.
+the versioned graticule control catalogs, with their factory in `national.ts`.
 The offline `extractVacGraticule.py` helper can create a review candidate from
 a vector VAC PDF but never publishes or activates it. Fit
 points must cover the chart frame and validation points must be independent.

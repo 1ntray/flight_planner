@@ -113,6 +113,15 @@ circuit at 36 L/h). Pattern time and fuel update intermediate and accumulated
 OFP values, fuel remaining, landing loading, and the onward sector's UTC
 departure/weather sampling. A full-stop refuel occurs after the pattern row.
 
+For every sector ending at an anchored aerodrome, operational planning also
+enables a three-minute visual-arrival allowance by default. It is appended to
+the final inbound leg as airborne time and fuel at the selected aircraft's
+cruise fuel flow, so it affects ETA, trip fuel, fuel remaining, and landing
+loading without creating another route or OFP row. The Airport panel displays
+the corresponding litres and permits the pilot to disable the allowance for a
+specific landing. Older saved plans retain the enabled default when the flag is
+absent.
+
 Trip fuel includes every route sector and planned pattern through its current
 fuel-planning horizon. A full-stop with an explicit departure fuel-onboard
 target ends that horizon after its arrival pattern: the preceding sector plans

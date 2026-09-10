@@ -87,6 +87,19 @@ The eAIP updater carries the currently approved versions forward unchanged with
 their original feature provenance and records this explicitly in the import and
 change reports. It does not relabel them as belonging to the new eAIP edition.
 
+For the currently pinned edition, the separate VAC source check is:
+
+```sh
+pnpm aero:verify:vac-sources
+```
+
+Add `-- --write-report` to refresh the checked-in JSON verification report.
+The command discovers semantic “Visual Approach Chart - ICAO” entries from
+each aerodrome's AD 2.24 section and requires exact source-URL agreement with
+the active manifests. A missing published chart or a stale active reference
+returns a non-zero exit. It does not download PDFs, prepare rasters, update the
+edition pin, or activate data; those remain separate reviewed actions.
+
 ## Change report
 
 Each candidate gets

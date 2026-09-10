@@ -49,14 +49,17 @@ Kartverket Norgeskart topo and the Avinor ICAO 1:500 000 chart are optional
 base maps; the latter is server-rendered into Web Mercator tiles and requires a
 session acknowledgement.
 
-The optional VAC layer contains 42 offline-prepared, independently validated
-charts for 41 aerodromes. All active charts are compact, high-resolution,
+The optional VAC layer contains all 47 charts published for 46 aerodromes in
+AD 2.24 of the approved edition (ENBR has separate runway charts). All active
+charts are offline-prepared, independently validated, high-resolution,
 pre-warped EPSG:3857 WebP images. Charts load only near their aerodrome and at
-the configured zoom.
+the configured zoom, and the layer control applies opacity directly to every
+visible chart.
 Source hashes, fit points, holdout residuals, thresholds, chart dates, and
 source references remain in the normalized manifests and preparation reports.
-VAC pixels remain presentation-only; charts without enough reliable control
-points are deliberately not exposed.
+The current source-verification report matches every active VAC PDF reference
+exactly to the pinned Avinor edition. VAC pixels remain presentation-only; a
+future chart without enough reliable controls will not be exposed.
 
 The checked-in browser repository is Avinor eAIP avinor-eaip-2026-09-03,
 effective 3 September 2026, revision **AIP AMDT 05/2026**. It contains:
@@ -88,7 +91,10 @@ Discovery does not activate data. The local one-click updater and the weekly
 GitHub workflow can prepare a reviewed candidate, but neither merges it.
 Reviewing and merging the generated change is the approval boundary. VAC
 reporting-point material is a separate review stream and is carried forward
-with its original provenance until it is independently refreshed.
+with its original provenance until it is independently refreshed. VAC source
+verification is also separate: `pnpm aero:verify:vac-sources` compares the
+active chart manifests with the exact AD 2.24 links of the pinned edition but
+does not download, prepare, or activate a chart.
 
 ## Reporting points and route shaping
 
@@ -152,11 +158,14 @@ planning inputs. Fetched forecast responses, provider cache, retrieval state,
 and live weather are runtime-only and are never persisted.
 
 Airport operational weather is a separate MET Norway provider boundary, not an
-AIRAC or upper-air-wind feature. The airport panel explicitly loads METAR/TAF
-from Tafmetar and surface model data from Locationforecast 2.0. It retains raw
-TAC and parses only observation time, report type/AUTO/COR, wind, temperature,
-and QNH. TAF wind is resolved against the airport's planned UTC context;
-TEMPO, PROB, BECMG, and variable-wind ambiguity is shown rather than reduced to
+AIRAC or upper-air-wind feature. One explicit route-weather action loads each
+eligible anchored departure, destination, and intermediate landing in sequence
+to avoid a request burst. It retrieves METAR/TAF from Tafmetar and surface
+model data from Locationforecast 2.0, while refresh is a separate deliberate
+action. It retains raw TAC and parses only observation time, report
+type/AUTO/COR, wind, temperature, and QNH. TAF wind is resolved against the
+airport's planned UTC context; TEMPO, PROB, BECMG, and variable-wind ambiguity
+is shown rather than reduced to
 a deterministic value. Locationforecast temperature and model MSL pressure are
 linearly interpolated; wind is vector-interpolated. Forecast MSL pressure is
 not labelled as observed QNH.
@@ -168,15 +177,19 @@ temperature; temperature is converted to ISA deviation using aerodrome
 elevation before performance calculations. Selecting unavailable data requires
 review and never silently changes the selected source. Browser requests are
 explicit load/refresh operations with cancellation, request de-duplication,
-and short in-memory caching; no polling occurs. Weather attribution is shown
-as MET Norway. Live data and source selections are runtime-only; reopening a
-saved plan starts from the persisted manual planning values and makes no
-weather request.
+and short in-memory caching; no polling occurs. A material planned-time change
+marks loaded airport weather stale so it cannot continue as a calculation
+input until refreshed. Weather attribution is shown as MET Norway. Live data
+and source selections are runtime-only; reopening a saved plan starts from the
+persisted manual planning values and makes no weather request.
 
 Per-leg wind overrides are entered from the selected-leg map popup, the
 Altitude schedule, or the sequential wind workflow. Empty fields show the
 effective loaded forecast or route-wide manual wind as a labelled grey default;
-the navigation log remains output-only for wind.
+the navigation log remains output-only for wind. In sequential entry, Tab and
+Shift+Tab move between direction and speed without committing; Enter saves and
+advances to the next leg, while Shift+Enter saves and returns to the previous
+leg.
 
 ## Frequency planning
 
@@ -209,6 +222,12 @@ airport-to-airport OFP pattern row without creating a route leg. A full-stop
 refuel target resets the remaining trip-fuel horizon after that airport, so
 preceding requirements do not include later sectors.
 
+An anchored aerodrome landing also has a default three-minute visual-arrival
+allowance. It is added to the inbound leg's airborne time and cruise-flow fuel,
+participates in operational totals and loading, and can be disabled separately
+for each landing in the Airport panel. It is planning input, not an extra route
+leg or waypoint.
+
 An optional alternate is an aerodrome snapshot selected from the repository.
 Its calculated navigation line uses its planned altitude, but alternate
 distance, time, and fuel requirements are pilot-entered. The alternate row is
@@ -229,8 +248,8 @@ Export/import and the browser working draft use validated schema version 9
 documents. The document stores semantic route, anchor/provenance snapshots,
 navigation inputs (including selected forecast model and manual per-leg winds),
 aircraft snapshot, performance inputs and override flags, operational inputs
-and override flags, and the forecast-enabled preference. It migrates versions
-1 through 8.
+and override flags (including per-aerodrome arrival-buffer choices), and the
+forecast-enabled preference. It migrates versions 1 through 8.
 
 Calculated legs, geometry expansions, OFP rows, forecast responses, layer and
 viewport state, selections, drag state, and raw text-field drafts are excluded.
@@ -251,7 +270,8 @@ typecheck, pnpm test, and pnpm build.
 - No takeoff or landing runway-performance calculation.
 - No PDF OFP generation; the on-screen navlog is OFP-oriented.
 - No automatic terrain/obstacle scan or terrain-derived MSA.
-- VAC coverage remains limited to 42 separately prepared and reviewed charts
-  for 41 aerodromes. Charts whose current source or reliable controls are
-  unavailable, or which fail the independent validation gate, remain excluded.
+- The approved edition's 47 published VAC charts are covered, but they remain
+  static, reviewed presentation assets. A later chart edition is unavailable
+  until its exact source and georeferencing pass the separate preparation and
+  human-review gate.
 - No cloud sync, flight-plan submission, or autonomous operational decisions.

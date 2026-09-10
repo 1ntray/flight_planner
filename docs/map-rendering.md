@@ -48,6 +48,21 @@ Base-map selection changes only the imagery below the existing layers. Route,
 waypoint, aeronautical overlay, magnetic, wind, and performance values remain
 WGS84 domain data and calculations.
 
+## VAC overlays
+
+VAC charts are optional overlays above either base map, not base maps or
+structured aeronautical geometry. The approved repository exposes 47
+independently validated EPSG:3857 WebP charts for 46 aerodromes. The map queries
+the repository for charts intersecting the current WGS84 viewport and renders
+only those whose configured minimum zoom has been reached, so the national set
+is never loaded globally.
+
+The layer control's opacity value is passed directly to each Leaflet
+`ImageOverlay` (and to the retained legacy `TileLayer` path), so changing it
+updates every currently rendered chart consistently. Visibility and opacity
+are presentation-only session state and do not alter VAC manifests, route
+geometry, reporting points, or navigation calculations.
+
 ## Raster tile seam investigation
 
 The Kartverket topo layer uses Leaflet's standard raster `TileLayer` with 256 px

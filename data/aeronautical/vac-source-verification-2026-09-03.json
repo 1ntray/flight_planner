@@ -4,42 +4,11 @@
   "datasetId": "avinor-eaip-2026-09-03",
   "editionLabel": "2026-09-03-AIRAC",
   "effectiveFromUtc": "2026-09-03T00:00:00Z",
-  "verifiedAtUtc": "2026-09-10T10:02:22.542Z",
+  "verifiedAtUtc": "2026-09-10T10:30:29.653Z",
   "publishedCount": 47,
-  "activeCount": 42,
-  "matchedCount": 42,
-  "missingPublished": [
-    {
-      "icao": "ENBN",
-      "title": "Visual Approach Chart - ICAO",
-      "aipPage": "AD 2 ENBN 6 - 1",
-      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643887.pdf"
-    },
-    {
-      "icao": "ENMS",
-      "title": "Visual Approach Chart - ICAO",
-      "aipPage": "AD 2 ENMS 6 - 1",
-      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643752.pdf"
-    },
-    {
-      "icao": "ENNO",
-      "title": "Visual Approach Chart - ICAO",
-      "aipPage": "AD 2 ENNO 6 - 1",
-      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623141.pdf"
-    },
-    {
-      "icao": "ENRA",
-      "title": "Visual Approach Chart - ICAO",
-      "aipPage": "AD 2 ENRA 6 - 1",
-      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638724.pdf"
-    },
-    {
-      "icao": "ENSR",
-      "title": "Visual Approach Chart - ICAO",
-      "aipPage": "AD 2 ENSR 6 - 1",
-      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643749.pdf"
-    }
-  ],
+  "activeCount": 47,
+  "matchedCount": 47,
+  "missingPublished": [],
   "staleActive": [],
   "published": [
     {

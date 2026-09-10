@@ -88,10 +88,12 @@ and validation against the existing wind conventions.
 ### Further operational-data layers
 
 Potential later work includes extending the validated VAC preparation pipeline
-beyond the current ENDU proof of concept, deriving graphical-only reporting
-points through a separate reviewed workflow, richer airport information, and
-carefully scoped NOTAM presentation. These require independent source, update,
-and safety decisions; they must not be treated as automatic interpretation or
+to later reviewed chart editions, deriving graphical-only reporting points
+through a separate reviewed workflow, richer airport information, and carefully
+scoped NOTAM presentation. The current pinned edition already has 47 validated
+VAC overlays for all 46 aerodromes that publish them. Later source editions and
+structured point derivation still require independent source, update, and
+safety decisions; they must not be treated as automatic interpretation or
 route mutation.
 
 ## Explicitly out of V1 scope

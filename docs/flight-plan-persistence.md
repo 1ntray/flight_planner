@@ -53,9 +53,12 @@ states, OFP rows, warnings, and requirement totals are recalculated. The
 alternate navigation line remains derived; it is not used to overwrite the
 pilot-entered alternate requirement.
 
-Optional per-airport pattern plans contain only a landing waypoint ID and a
-whole-number circuit count. They are input, while their OFP rows, elapsed time,
-fuel, loading effects, and refuelling horizons remain derived.
+Optional per-airport pattern plans contain a landing waypoint ID, a
+whole-number circuit count, and an optional arrival-buffer flag. Omission keeps
+the default three-minute visual-arrival allowance enabled; `false` records the
+pilot's decision to disable it for that landing. Pattern OFP rows, arrival
+allowance time/fuel, elapsed time, loading effects, and refuelling horizons
+remain derived.
 
 `aircraftDefinition` includes identity and revision metadata plus all phase
 speeds, fuel flows, descent rate, and climb-rate coefficients used by the
@@ -99,8 +102,10 @@ The document does not store:
 - calculated legs or navlog rows,
 - expanded route geometry,
 - forecast wind responses, retrieval state, or provider cache,
+- airport METAR/TAF/Locationforecast responses, runtime source selections, or
+  weather request/cache state,
 - Leaflet layer visibility or viewport,
-- selected points, popup state, or drag state.
+- selected points, popup state, or drag state,
 - map corridor visibility or other map presentation preferences.
 
 These values are recalculated or recreated after import. The forecast-source

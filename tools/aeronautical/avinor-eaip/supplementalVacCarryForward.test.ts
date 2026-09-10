@@ -12,7 +12,7 @@ const approved = JSON.parse(readFileSync(new URL(
 describe('approved VAC carry-forward', () => {
   it('preserves the exact independently reviewed chart manifest and provenance', () => {
     const carried = approvedSupplementalFeatures(approved);
-    expect(approved.vacCharts).toHaveLength(42);
+    expect(approved.vacCharts).toHaveLength(47);
     expect(carried.vacCharts).toEqual(approved.vacCharts);
     const endu = carried.vacCharts.find(({ id }) => id === 'vac:ENDU:2026-05-14');
     expect(endu).toMatchObject({

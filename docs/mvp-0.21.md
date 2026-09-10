@@ -158,10 +158,11 @@ the selected edition. Graphical-only reporting points remain unavailable until
 a separately validated georeferenced-VAC workflow can record them with
 `derived-from-georeferenced-vac` provenance.
 
-VAC runtime support, visibility controls, opacity controls, and manifest
-validation exist, but no VAC raster is enabled in the production dataset yet.
-No chart will be published as a positioned overlay until its offline
-georeferencing and alignment have been independently validated.
+The current approved dataset now exposes 47 independently validated VAC
+rasters for all 46 aerodromes that publish them in the pinned edition. They use
+the runtime visibility, zoom-threshold, and opacity controls introduced around
+this milestone. Each chart was enabled only after its offline georeferencing,
+source identity, and independent alignment checks passed.
 
 ## Persistence and architecture boundaries
 
@@ -191,9 +192,12 @@ checks.
 
 ## Deliberately excluded
 
-MVP 0.21 does not add live NOTAM, METAR, TAF, runway-state, or airspace-status
-feeds. It does not calculate terrain or obstacle clearance, infer graphical
-reporting-point coordinates, render an unvalidated VAC overlay, or replace the
-pilot's obligation to verify current operational information. AIRAC discovery
-is build-time automation only: it can prepare a candidate pull request, but it
-cannot activate or merge an edition without human review.
+MVP 0.21 did not originally add operational weather. The current application
+now provides explicit-load MET Norway METAR/TAF and surface-model data through
+the separate runtime boundary documented in `current-state.md`; it still has no
+live NOTAM, runway-state, or airspace-status feed. It does not calculate terrain
+or obstacle clearance, infer graphical reporting-point coordinates, render an
+unvalidated VAC overlay, or replace the pilot's obligation to verify current
+operational information. AIRAC discovery is build-time automation only: it can
+prepare a candidate pull request, but it cannot activate or merge an edition
+without human review.

@@ -323,14 +323,23 @@ fit control points, independent validation residuals and source provenance.
 Production validation requires the declared error thresholds to pass before
 the repository can expose a chart.
 
-The approved dataset contains 42 validated rasters for 41 aerodromes. They are
-rendered once at high resolution, warped by GDAL, and stored as compact WebP
-images. Charts without sufficient point-coordinate controls use separately
-reviewed published graticule controls with deterministic held-out tick
-validation. Every chart retains its source hash, chart date, control points,
-independent holdout results, and provenance. Leaflet loads charts only near
-their aerodrome and at
-their configured minimum zoom, with the existing VAC visibility and opacity
-controls. Charts lacking reliable controls remain unavailable. VAC remains a
-presentation overlay and has no effect on route/navigation calculations or
-independent WGS84 reporting-point features.
+The approved dataset contains all 47 VAC charts published for 46 aerodromes in
+AD 2.24 of the pinned 2026-09-03 edition; ENBR has separate charts for runways
+17 and 35. They are rendered once at high resolution, warped by GDAL, and
+stored as compact WebP images. Charts without sufficient point-coordinate
+controls use separately reviewed published graticule controls with
+deterministic held-out tick validation. Every chart retains its source hash,
+chart date, control points, independent holdout results, and provenance.
+
+`pnpm aero:verify:vac-sources` reads the semantic AD 2.24 chart rows for the
+pinned edition and compares their exact PDF URLs with the active manifests.
+The checked-in verification report records 47 exact matches and no missing or
+stale active references. This verifies source identity only; it neither
+downloads nor activates charts and does not replace the georeferencing quality
+gate or human review.
+
+Leaflet loads charts only near their aerodrome and at their configured minimum
+zoom, with the VAC visibility and opacity controls. A future chart lacking
+reliable controls remains unavailable. VAC remains a presentation overlay and
+has no effect on route/navigation calculations or independent WGS84
+reporting-point features.

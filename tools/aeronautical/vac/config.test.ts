@@ -15,7 +15,7 @@ describe('VAC preparation config', () => {
   });
 
   it('accepts every reviewed national image preparation config', () => {
-    expect(NATIONAL_VAC_PREPARATIONS).toHaveLength(41);
+    expect(NATIONAL_VAC_PREPARATIONS).toHaveLength(46);
     for (const config of NATIONAL_VAC_PREPARATIONS) {
       expect(validateVacPreparationConfig(config)).toBe(config);
       expect(config.outputFormat).toBe('webp-image');

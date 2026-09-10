@@ -131,7 +131,7 @@ function clearAirspacePathFocus(event: LeafletMouseEvent): void {
  */
 function makeAirspacePathNonFocusable(event: LeafletEvent): void {
   const element = (event.target as LeafletPath).getElement();
-  if (element === null) return;
+  if (element == null) return;
 
   element.setAttribute('tabindex', '-1');
   element.setAttribute('focusable', 'false');

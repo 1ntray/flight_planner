@@ -80,6 +80,10 @@ clicked waypoint is anchored.
   unless explicit Add waypoint mode is active.
 - `R` toggles Add waypoint (route-entry) mode. With a leg selected, `W` focuses
   its wind override and `Shift+W` starts sequential wind entry.
+- Sequential wind entry uses Tab and Shift+Tab only to move between direction
+  and speed. Enter commits both fields and advances one leg; Shift+Enter commits
+  and returns one leg. Empty fields remove the override and retain the labelled
+  forecast or route-wide manual default.
 - Add waypoint and altitude-target placement are mutually exclusive tools.
   Altitude placement cannot create a waypoint, and Escape returns to Select/Edit.
 - Waypoint, shaping-point, and leg selection are transient UI state. A selected
@@ -90,6 +94,9 @@ clicked waypoint is anchored.
 - Map-popup form text is transient UI state until its documented commit action.
   Leg altitude commits on blur or Enter, preventing partial numeric input from
   repeatedly updating planning calculations.
+- Opening a waypoint popup does not focus or select its name field. Only the
+  explicit `N` shortcut requests name editing, so Delete and other planner
+  shortcuts remain available during ordinary selection.
 - Per-leg manual wind is edited from the selected-leg map popup, the Altitude
   schedule, or sequential wind entry. The navlog displays the effective wind
   but is not an input surface. Blank wind fields show the loaded forecast when
@@ -114,6 +121,14 @@ clicked waypoint is anchored.
   without reopening it. Selected waypoint and shaping-point popups use the same
   temporary drag position as their markers, while canonical coordinates still
   commit only on `dragend`.
+- Information popups are single-active UI state. Opening another airspace or
+  aerodrome replaces the previous information popup; an empty-map click, the
+  close control, or Escape closes it. Placement uses one bounded pan after open
+  with Leaflet's repeating auto-pan disabled, preventing map-move/render loops
+  when a popup is close to a map edge.
+- The leg popup keeps automatic and manual target-placement actions in aligned
+  pairs. Add waypoint is a separate bottom action rather than part of the
+  altitude-target grid; closing remains the normal Leaflet popup control.
 - Base-map sources are isolated in `src/app/map/baseMapSource.ts`. Base-map
   selection is local presentation state in `FlightMap`; it is not part of the
   flight plan or calculation inputs.
@@ -150,7 +165,9 @@ clicked waypoint is anchored.
 - VAC rasters are offline-prepared, AIRAC-versioned presentation layers in
   EPSG:3857. Production manifests must retain the exact source hash, reviewed
   fit points, independent WGS84 holdout residuals, and passing error
-  thresholds. Reporting points remain independent WGS84 repository features.
+  thresholds. The opacity control changes each rendered VAC overlay directly;
+  it never changes route or feature geometry. Reporting points remain
+  independent WGS84 repository features.
 - A free waypoint may be dropped onto a visible aeronautical point to anchor it.
   The screen-space hit radius is only a map interaction aid: the commit stores
   the feature's published WGS84 coordinate and compact source provenance in the

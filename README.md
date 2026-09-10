@@ -3,6 +3,7 @@
 Browser-based VFR flight planning with an interactive waypoint map, an
 OFP-oriented navigation log, WGS84 route calculations, altitude-aware
 performance, forecast or manual winds, local AIRAC-versioned Avinor eAIP data,
+reviewable MET Norway airport weather, validated offline VAC overlays,
 operational fuel planning, and registration-specific mass and balance.
 
 Flight Planner is a planning aid. It does not replace current AIP, NOTAM,
