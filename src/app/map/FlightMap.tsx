@@ -210,7 +210,7 @@ function RouteLines({
     const isSelected =
       selectedLeg?.candidate.fromWaypointId === leg.fromWaypointId &&
       selectedLeg.candidate.toWaypointId === leg.toWaypointId;
-    if (isSelected || leg.sharedSectorIndices.length <= 1) {
+    if (isSelected) {
       return (
         <Polyline
           key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}`}
@@ -225,22 +225,37 @@ function RouteLines({
       );
     }
 
-    const stripeCount = leg.sharedSectorIndices.length;
-    return leg.sharedSectorIndices.map((sectorIndex, stripeIndex) => (
-      <Polyline
-        key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}:sector:${sectorIndex}`}
-        positions={leg.positions}
-        pathOptions={{
-          color: getRouteSectorColor(sectorIndex),
-          weight: 4,
-          lineCap: 'butt',
-          dashArray: `${ROUTE_SHARED_COLOUR_STRIPE_PIXELS} ${
-            ROUTE_SHARED_COLOUR_STRIPE_PIXELS * (stripeCount - 1)
-          }`,
-          dashOffset: String(-ROUTE_SHARED_COLOUR_STRIPE_PIXELS * stripeIndex),
-        }}
-      />
-    ));
+    return leg.segments.flatMap((segment) => {
+      if (segment.sharedSectorIndices.length <= 1) {
+        return (
+          <Polyline
+            key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}:segment:${segment.segmentIndex}`}
+            positions={segment.positions}
+            pathOptions={{
+              color: getRouteSectorColor(leg.sectorIndex),
+              weight: 4,
+            }}
+          />
+        );
+      }
+
+      const stripeCount = segment.sharedSectorIndices.length;
+      return segment.sharedSectorIndices.map((sectorIndex, stripeIndex) => (
+        <Polyline
+          key={`visible:${leg.fromWaypointId}:${leg.toWaypointId}:segment:${segment.segmentIndex}:sector:${sectorIndex}`}
+          positions={segment.positions}
+          pathOptions={{
+            color: getRouteSectorColor(sectorIndex),
+            weight: 4,
+            lineCap: 'butt',
+            dashArray: `${ROUTE_SHARED_COLOUR_STRIPE_PIXELS} ${
+              ROUTE_SHARED_COLOUR_STRIPE_PIXELS * (stripeCount - 1)
+            }`,
+            dashOffset: String(-ROUTE_SHARED_COLOUR_STRIPE_PIXELS * stripeIndex),
+          }}
+        />
+      ));
+    });
   };
 
   return (

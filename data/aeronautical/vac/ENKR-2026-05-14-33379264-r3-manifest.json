@@ -1,0 +1,113 @@
+{
+  "id": "vac:ENKR:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENKR",
+  "title": "KIRKENES / Høybuktmoen Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "33379264c12ce603def6b1d56e403382869ce06db84c6560a7f830092f802566",
+  "imageUrl": "aeronautical/vac/enkr/2026-05-14-33379264-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 29.0052723,
+    "east": 30.6129641,
+    "south": 69.4107372,
+    "north": 70.0258868
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "BØKFJORD FYR",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5453.116666666668,
+      "pixelY": 1344.1333333333323,
+      "latitude": 69.8775,
+      "longitude": 30.176111111111112
+    },
+    {
+      "label": "JARFJORDBOTN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7148.733333333335,
+      "pixelY": 4712.3,
+      "latitude": 69.66861111111112,
+      "longitude": 30.308611111111112
+    },
+    {
+      "label": "KJØFJORDEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3320.955555555556,
+      "pixelY": 2581.633333333333,
+      "latitude": 69.83888888888889,
+      "longitude": 29.78611111111111
+    },
+    {
+      "label": "LANGFJORDEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5122.361111111111,
+      "pixelY": 6044.200000000001,
+      "latitude": 69.6236111111111,
+      "longitude": 29.935277777777777
+    },
+    {
+      "label": "STEINSKJERET",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3938.7777777777783,
+      "pixelY": 4017.6000000000004,
+      "latitude": 69.75138888888888,
+      "longitude": 29.82777777777778
+    },
+    {
+      "label": "STRØMMEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4716.4111111111115,
+      "pixelY": 4883.688888888889,
+      "latitude": 69.69305555555556,
+      "longitude": 29.916944444444447
+    },
+    {
+      "label": "ØVRE NEIDEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 193.4438888888892,
+      "pixelY": 6285.455555555556,
+      "latitude": 69.6763888888889,
+      "longitude": 29.14527777777778
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.10691749846702743,
+    "maximumResidualPixels": 0.13700354391855593,
+    "residualRmsMeters": 0.6365414383190958,
+    "maximumResidualMeters": 0.8664898261002311,
+    "fitPointCount": 7,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENKR",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENKR 6-1",
+      "aipSection": "AD 2 ENKR 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENKR VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623127.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENKR",
+      "sourceDocument": "AD 2 ENKR",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENKR-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENKR",
+      "sourceDocument": "ENKR VAC preparation report",
+      "aipSection": "AD 2 ENKR 6-1",
+      "sourceReference": "data/aeronautical/vac/ENKR-2026-05-14-33379264-r3-preparation.json"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "id": "vac:ENGK:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENGK",
+  "title": "ARENDAL / Gullknapp Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "e783876161242b59eab343d9e1e5419f498230719525248ef38217bb785cf717",
+  "imageUrl": "aeronautical/vac/engk/2026-05-14-e7838761-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 8.1834777,
+    "east": 9.1281946,
+    "south": 58.2461538,
+    "north": 58.8114315
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "FLOSTA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 6436.672222222223,
+      "pixelY": 4859.622222222223,
+      "latitude": 58.52861111111111,
+      "longitude": 8.934444444444445
+    },
+    {
+      "label": "JOMÅS",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3717.5333333333338,
+      "pixelY": 3411.3833333333323,
+      "latitude": 58.59638888888889,
+      "longitude": 8.624722222222223
+    },
+    {
+      "label": "MJÅVATN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2445.9722222222226,
+      "pixelY": 4332.822222222223,
+      "latitude": 58.53722222222222,
+      "longitude": 8.496388888888887
+    },
+    {
+      "label": "NESVERK",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5814.033333333335,
+      "pixelY": 3078.7111111111117,
+      "latitude": 58.62638888888889,
+      "longitude": 8.849166666666667
+    },
+    {
+      "label": "RYKENE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3541.9611111111117,
+      "pixelY": 6712.138888888889,
+      "latitude": 58.40833333333333,
+      "longitude": 8.639722222222222
+    },
+    {
+      "label": "UGLEBU",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4666.822222222222,
+      "pixelY": 5348.211111111111,
+      "latitude": 58.49166666666667,
+      "longitude": 8.747499999999999
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.009394081071827463,
+    "maximumResidualPixels": 0.013267092836128426,
+    "residualRmsMeters": 0.15790437934524484,
+    "maximumResidualMeters": 0.19568973099662043,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENGK",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENGK 6-1",
+      "aipSection": "AD 2 ENGK 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENGK VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623258.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENGK",
+      "sourceDocument": "AD 2 ENGK",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENGK-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENGK",
+      "sourceDocument": "ENGK VAC preparation report",
+      "aipSection": "AD 2 ENGK 6-1",
+      "sourceReference": "data/aeronautical/vac/ENGK-2026-05-14-e7838761-r3-preparation.json"
+    }
+  ]
+}

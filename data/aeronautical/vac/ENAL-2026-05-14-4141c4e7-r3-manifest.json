@@ -1,0 +1,153 @@
+{
+  "id": "vac:ENAL:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENAL",
+  "title": "ÅLESUND / Vigra Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "4141c4e7cb14858ad943c3caf15c1efd5eb7a5305f65d98b47a15cf7562bcacc",
+  "imageUrl": "aeronautical/vac/enal/2026-05-14-4141c4e7-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 5.4454049,
+    "east": 6.6341773,
+    "south": 62.2428553,
+    "north": 62.8627041
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "AUSTNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5736.150000000001,
+      "pixelY": 3559.666666666667,
+      "latitude": 62.63194444444444,
+      "longitude": 6.262222222222222
+    },
+    {
+      "label": "BRANDAL",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3307.8777777777786,
+      "pixelY": 6991.2555555555555,
+      "latitude": 62.405833333333334,
+      "longitude": 6.008333333333334
+    },
+    {
+      "label": "DRYNA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7691.511111111111,
+      "pixelY": 3657.8666666666677,
+      "latitude": 62.64194444444444,
+      "longitude": 6.519444444444445
+    },
+    {
+      "label": "FLØ",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1865.3777777777782,
+      "pixelY": 7018.405555555555,
+      "latitude": 62.391666666666666,
+      "longitude": 5.822222222222222
+    },
+    {
+      "label": "GJØSUND",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4411.027777777778,
+      "pixelY": 4970.294444444445,
+      "latitude": 62.53638888888889,
+      "longitude": 6.1147222222222215
+    },
+    {
+      "label": "GODØY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3619.9944444444445,
+      "pixelY": 6025.738888888887,
+      "latitude": 62.46638888888889,
+      "longitude": 6.031111111111111
+    },
+    {
+      "label": "GRYTA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 6028.677777777779,
+      "pixelY": 5277.844444444444,
+      "latitude": 62.53111111111111,
+      "longitude": 6.3308333333333335
+    },
+    {
+      "label": "INNHOLMEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4641.2222222222235,
+      "pixelY": 3489.238888888888,
+      "latitude": 62.62722222222222,
+      "longitude": 6.118055555555555
+    },
+    {
+      "label": "KJÆRSTAD",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5337.122222222223,
+      "pixelY": 3920.73888888889,
+      "latitude": 62.606944444444444,
+      "longitude": 6.216666666666667
+    },
+    {
+      "label": "RUNDE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 102.5538888888891,
+      "pixelY": 6354.811111111112,
+      "latitude": 62.41638888888889,
+      "longitude": 5.581666666666666
+    },
+    {
+      "label": "RØRVIK",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4252.13888888889,
+      "pixelY": 4390.516666666667,
+      "latitude": 62.569722222222225,
+      "longitude": 6.083611111111111
+    },
+    {
+      "label": "SYKKYLVEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7697.494444444446,
+      "pixelY": 7734.0666666666675,
+      "latitude": 62.39694444444444,
+      "longitude": 6.59
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 1.9141089640594684,
+    "maximumResidualPixels": 2.0112547686031,
+    "residualRmsMeters": 12.789459547495863,
+    "maximumResidualMeters": 13.639583383248253,
+    "fitPointCount": 12,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENAL",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENAL 6-1",
+      "aipSection": "AD 2 ENAL 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENAL VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623091.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENAL",
+      "sourceDocument": "AD 2 ENAL",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENAL-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENAL",
+      "sourceDocument": "ENAL VAC preparation report",
+      "aipSection": "AD 2 ENAL 6-1",
+      "sourceReference": "data/aeronautical/vac/ENAL-2026-05-14-4141c4e7-r3-preparation.json"
+    }
+  ]
+}

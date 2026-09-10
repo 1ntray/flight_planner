@@ -240,6 +240,31 @@ describe('flight-planning document persistence', () => {
     )).toEqual(operationalDocument);
   });
 
+  it('round-trips an explicit disabled arrival buffer', () => {
+    const operationalDocument: FlightPlanningDocument = {
+      ...document,
+      operationalInputs: {
+        fuelOnboardLitres: 224,
+        leftSeatMassKg: 82,
+        rightSeatMassKg: 74,
+        baggageMassKg: 12,
+        extraFuelLitres: 18,
+        finalReserveLitres: 36,
+        sectorOperations: [],
+        patternPlans: [{
+          waypointId: 'B',
+          patternCount: 0,
+          arrivalBufferEnabled: false,
+        }],
+        alternate: null,
+      },
+    };
+
+    expect(parseFlightPlanningDocumentJson(
+      serializeFlightPlanningDocument(operationalDocument),
+    )).toEqual(operationalDocument);
+  });
+
   it('serializes only versioned input data rather than calculated output', () => {
     const serialized = JSON.parse(
       serializeFlightPlanningDocument(document),

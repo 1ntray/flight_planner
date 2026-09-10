@@ -100,7 +100,7 @@ export function AeronauticalLayerControl({
       <label>
         <input type="checkbox" checked={vacVisible} onChange={(event) => onVacVisibilityChange(event.currentTarget.checked)} />
         <span>VAC charts</span>
-        <small>prepared tiles</small>
+        <small>offline prepared</small>
       </label>
       <label className="aeronautical-layer-control__opacity">
         <span>VAC opacity</span>

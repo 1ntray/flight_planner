@@ -1,0 +1,185 @@
+{
+  "id": "vac:ENHV:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENHV",
+  "title": "HONNINGSVÅG / Valan Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "182c442b88e2484c89822779d4ef80bf2590bcb8584198ec39e739a693c75b3d",
+  "imageUrl": "aeronautical/vac/enhv/2026-05-14-182c442b-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 25.4004247,
+    "east": 26.4910681,
+    "south": 70.8114357,
+    "north": 71.2088656
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "GRATICULE-GRID-1-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": -0.33333333333325754,
+      "pixelY": 0.11666666666587844,
+      "latitude": 71.208863512994,
+      "longitude": 25.585822969994
+    },
+    {
+      "label": "GRATICULE-GRID-1-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2613.9222222222224,
+      "pixelY": 0.11666666666587844,
+      "latitude": 71.19094277929,
+      "longitude": 25.88812171596455
+    },
+    {
+      "label": "GRATICULE-GRID-1-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5228.177777777779,
+      "pixelY": 0.11666666666587844,
+      "latitude": 71.173022045586,
+      "longitude": 26.189866563276887
+    },
+    {
+      "label": "GRATICULE-GRID-1-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7842.433333333334,
+      "pixelY": 0.11666666666587844,
+      "latitude": 71.155101311882,
+      "longitude": 26.491057511931
+    },
+    {
+      "label": "GRATICULE-GRID-2-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": -0.33333333333325754,
+      "pixelY": 3076.438888888889,
+      "latitude": 71.09409044276033,
+      "longitude": 25.524010345131664
+    },
+    {
+      "label": "GRATICULE-GRID-2-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2613.9222222222224,
+      "pixelY": 3076.438888888889,
+      "latitude": 71.07624379030521,
+      "longitude": 25.82465139347855
+    },
+    {
+      "label": "GRATICULE-GRID-2-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5228.177777777779,
+      "pixelY": 3076.438888888889,
+      "latitude": 71.05839713785011,
+      "longitude": 26.12473854316722
+    },
+    {
+      "label": "GRATICULE-GRID-2-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7842.433333333334,
+      "pixelY": 3076.438888888889,
+      "latitude": 71.040550485395,
+      "longitude": 26.424271794197665
+    },
+    {
+      "label": "GRATICULE-GRID-3-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": -0.33333333333325754,
+      "pixelY": 6152.761111111111,
+      "latitude": 70.97931617996133,
+      "longitude": 25.46219772026933
+    },
+    {
+      "label": "GRATICULE-GRID-3-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2613.9222222222224,
+      "pixelY": 6152.761111111111,
+      "latitude": 70.96154360875511,
+      "longitude": 25.76118107099255
+    },
+    {
+      "label": "GRATICULE-GRID-3-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5228.177777777779,
+      "pixelY": 6152.761111111111,
+      "latitude": 70.94377103754888,
+      "longitude": 26.05961052305755
+    },
+    {
+      "label": "GRATICULE-GRID-3-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7842.433333333334,
+      "pixelY": 6152.761111111111,
+      "latitude": 70.92599846634268,
+      "longitude": 26.357486076464333
+    },
+    {
+      "label": "GRATICULE-GRID-4-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": -0.33333333333325754,
+      "pixelY": 9229.083333333334,
+      "latitude": 70.86454072459699,
+      "longitude": 25.400385095407
+    },
+    {
+      "label": "GRATICULE-GRID-4-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2613.9222222222224,
+      "pixelY": 9229.083333333334,
+      "latitude": 70.84684223463965,
+      "longitude": 25.69771074850655
+    },
+    {
+      "label": "GRATICULE-GRID-4-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5228.177777777779,
+      "pixelY": 9229.083333333334,
+      "latitude": 70.82914374468233,
+      "longitude": 25.99448250294789
+    },
+    {
+      "label": "GRATICULE-GRID-4-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7842.433333333334,
+      "pixelY": 9229.083333333334,
+      "latitude": 70.811445254725,
+      "longitude": 26.290700358731
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 1.0579138026739836,
+    "maximumResidualPixels": 1.3032349297630885,
+    "residualRmsMeters": 4.463477988353853,
+    "maximumResidualMeters": 5.830495430772155,
+    "fitPointCount": 16,
+    "validationPointCount": 8,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENHV",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENHV 6-1",
+      "aipSection": "AD 2 ENHV 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENHV VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623123.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENHV",
+      "sourceDocument": "AD 2 ENHV",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENHV-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENHV",
+      "sourceDocument": "ENHV VAC preparation report",
+      "aipSection": "AD 2 ENHV 6-1",
+      "sourceReference": "data/aeronautical/vac/ENHV-2026-05-14-182c442b-r3-preparation.json"
+    }
+  ]
+}

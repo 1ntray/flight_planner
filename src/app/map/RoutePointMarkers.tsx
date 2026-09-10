@@ -13,6 +13,7 @@ import {
   findRouteWaypointSnapTarget,
 } from './aeronauticalWaypointAttachment';
 import {
+  buildRouteDisplayLegs,
   getRoutePointDisplayPosition,
   ROUTE_SECTOR_COLORS,
 } from './routeDisplay';
@@ -27,45 +28,92 @@ type WaypointSourceShape = 'aerodrome' | 'reporting-point' | null;
 
 const waypointIcons = new Map<string, ReturnType<typeof divIcon>>();
 
-function waypointIcon(
-  sourceShape: WaypointSourceShape,
-  sectorIndices: readonly number[],
-  selected: boolean,
-): ReturnType<typeof divIcon> {
-  const uniqueSectorIndices = [
+function uniqueSectorIndices(sectorIndices: readonly number[]): number[] {
+  return [
     ...new Set(
       sectorIndices.map(
         (sectorIndex) => sectorIndex % ROUTE_SECTOR_COLORS.length,
       ),
     ),
   ];
-  const colors = uniqueSectorIndices.map(
+}
+
+function sectorColors(sectorIndices: readonly number[]): string[] {
+  return uniqueSectorIndices(sectorIndices).map(
     (sectorIndex) => ROUTE_SECTOR_COLORS[sectorIndex]!,
   );
+}
+
+function sectorFill(colors: readonly string[]): string {
+  if (colors.length === 1) return colors[0]!;
+  if (colors.length === 2) {
+    return `linear-gradient(90deg, ${colors[0]} 0 50%, ${colors[1]} 50% 100%)`;
+  }
+
+  return `conic-gradient(${colors
+    .map((color, index) => {
+      const start = (index / colors.length) * 100;
+      const end = ((index + 1) / colors.length) * 100;
+      return `${color} ${start}% ${end}%`;
+    })
+    .join(', ')})`;
+}
+
+/**
+ * Uses an SVG rather than a clipped rectangular element. CSS clipping leaves
+ * the element's shadow and pseudo-element bounds visible in some Leaflet/
+ * Chromium combinations, especially where markers overlap.
+ */
+function reportingPointMarkerSvg(
+  sectorIndices: readonly number[],
+  size: number,
+  selected: boolean,
+  markerKind: 'waypoint' | 'shaping-point',
+): string {
+  const normalizedSectorIndices = uniqueSectorIndices(sectorIndices);
+  const colors = sectorColors(normalizedSectorIndices);
+  const gradientId = `route-${markerKind}-reporting-${normalizedSectorIndices.join('-')}`;
   const fill =
-    colors.length === 1
-      ? colors[0]!
-      : colors.length === 2
-        ? `linear-gradient(90deg, ${colors[0]} 0 50%, ${colors[1]} 50% 100%)`
-        : `conic-gradient(${colors
-            .map((color, index) => {
-              const start = (index / colors.length) * 100;
-              const end = ((index + 1) / colors.length) * 100;
-              return `${color} ${start}% ${end}%`;
-            })
-            .join(', ')})`;
-  const key = `${sourceShape ?? 'free'}:${uniqueSectorIndices.join(',')}:${selected}`;
+    colors.length === 1 ? colors[0]! : `url(#${gradientId})`;
+  const gradient =
+    colors.length <= 1
+      ? ''
+      : `<defs><linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="0">${colors
+          .map((color, index) => {
+            const start = (index / colors.length) * 100;
+            const end = ((index + 1) / colors.length) * 100;
+            return `<stop offset="${start}%" stop-color="${color}" /><stop offset="${end}%" stop-color="${color}" />`;
+          })
+          .join('')}</linearGradient></defs>`;
+
+  return `<svg class="route-reporting-point-marker${
+    selected ? ' route-reporting-point-marker--selected' : ''
+  }" width="${size}" height="${size}" viewBox="0 0 32 30" aria-hidden="true">${gradient}<path d="M16 2.5 29 26.5H3Z" fill="${fill}" stroke="${
+    selected ? '#fff4b5' : '#ffffff'
+  }" stroke-width="3" stroke-linejoin="round" /><circle cx="16" cy="18" r="3" fill="#ffffff" /></svg>`;
+}
+
+function waypointIcon(
+  sourceShape: WaypointSourceShape,
+  sectorIndices: readonly number[],
+  selected: boolean,
+): ReturnType<typeof divIcon> {
+  const normalizedSectorIndices = uniqueSectorIndices(sectorIndices);
+  const fill = sectorFill(sectorColors(normalizedSectorIndices));
+  const key = `${sourceShape ?? 'free'}:${normalizedSectorIndices.join(',')}:${selected}`;
   const existing = waypointIcons.get(key);
   if (existing !== undefined) return existing;
 
   const icon = divIcon({
     className: 'waypoint-marker-icon',
-    html: `<span class="${[
-      'waypoint-marker',
-      ...(sourceShape === null ? [] : ['waypoint-marker--anchored']),
-      ...(sourceShape === null ? [] : [`waypoint-marker--source-${sourceShape}`]),
-      ...(selected ? ['waypoint-marker--selected'] : []),
-    ].join(' ')}" style="--waypoint-marker-fill: ${fill}"></span>`,
+    html: sourceShape === 'reporting-point'
+      ? reportingPointMarkerSvg(normalizedSectorIndices, 26, selected, 'waypoint')
+      : `<span class="${[
+          'waypoint-marker',
+          ...(sourceShape === null ? [] : ['waypoint-marker--anchored']),
+          ...(sourceShape === null ? [] : [`waypoint-marker--source-${sourceShape}`]),
+          ...(selected ? ['waypoint-marker--selected'] : []),
+        ].join(' ')}" style="--waypoint-marker-fill: ${fill}"></span>`,
     iconAnchor: [13, 13],
     iconSize: [26, 26],
   });
@@ -73,30 +121,38 @@ function waypointIcon(
   return icon;
 }
 
-const shapingPointIcon = divIcon({
-  className: 'route-shaping-marker',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
+const shapingPointIcons = new Map<string, ReturnType<typeof divIcon>>();
 
-const selectedShapingPointIcon = divIcon({
-  className: 'route-shaping-marker route-shaping-marker--selected',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
+function shapingPointIcon(
+  anchoredToReportingPoint: boolean,
+  sectorIndices: readonly number[],
+  selected: boolean,
+): ReturnType<typeof divIcon> {
+  const normalizedSectorIndices = uniqueSectorIndices(sectorIndices);
+  const fill = sectorFill(sectorColors(normalizedSectorIndices));
+  const key = `${anchoredToReportingPoint}:${normalizedSectorIndices.join(',')}:${selected}`;
+  const existing = shapingPointIcons.get(key);
+  if (existing !== undefined) return existing;
 
-const anchoredShapingPointIcon = divIcon({
-  className: 'route-shaping-marker route-shaping-marker--anchored',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
-
-const selectedAnchoredShapingPointIcon = divIcon({
-  className:
-    'route-shaping-marker route-shaping-marker--anchored route-shaping-marker--selected',
-  iconAnchor: [8, 8],
-  iconSize: [16, 16],
-});
+  const icon = divIcon({
+    className: 'route-shaping-marker-icon',
+    html: anchoredToReportingPoint
+      ? reportingPointMarkerSvg(
+          normalizedSectorIndices,
+          18,
+          selected,
+          'shaping-point',
+        )
+      : `<span class="${[
+          'route-shaping-marker',
+          ...(selected ? ['route-shaping-marker--selected'] : []),
+        ].join(' ')}" style="--route-shaping-marker-fill: ${fill}"></span>`,
+    iconAnchor: [9, 9],
+    iconSize: [18, 18],
+  });
+  shapingPointIcons.set(key, icon);
+  return icon;
+}
 
 export interface RoutePointMarkersProps {
   flightPlan: FlightPlan;
@@ -124,6 +180,24 @@ export interface RoutePointMarkersProps {
 function markerPosition(marker: LeafletMarker): Position {
   const position = marker.getLatLng();
   return { latitude: position.lat, longitude: position.lng };
+}
+
+function routeLegKey(fromWaypointId: string, toWaypointId: string): string {
+  return `${fromWaypointId}\u0000${toWaypointId}`;
+}
+
+function reportingPointAnchorKey(
+  point: FlightPlan['legShapes'][number]['points'][number],
+): string | null {
+  const anchor = point.anchor;
+  if (anchor?.feature.featureKind !== 'reporting-point') return null;
+
+  return [
+    anchor.feature.dataset.datasetId,
+    anchor.feature.featureKind,
+    anchor.feature.featureId,
+    anchor.feature.featureVersionId ?? '',
+  ].join('\u0000');
 }
 
 function anchoredWaypointSourceFeature(
@@ -173,6 +247,28 @@ export function RoutePointMarkers({
   onSelectRoutePoint,
 }: RoutePointMarkersProps) {
   const map = useMap();
+  const sectorIndexByLegKey = new Map(
+    buildRouteDisplayLegs(flightPlan, null, null).map((leg) => [
+      routeLegKey(leg.fromWaypointId, leg.toWaypointId),
+      leg.sectorIndex,
+    ]),
+  );
+  const sectorIndicesByReportingPointAnchor = new Map<string, number[]>();
+  flightPlan.legShapes.forEach((shape) => {
+    const sectorIndex = sectorIndexByLegKey.get(
+      routeLegKey(shape.fromWaypointId, shape.toWaypointId),
+    ) ?? 0;
+    shape.points.forEach((point) => {
+      const anchorKey = reportingPointAnchorKey(point);
+      if (anchorKey === null) return;
+
+      const sectorIndices = sectorIndicesByReportingPointAnchor.get(anchorKey) ?? [];
+      if (!sectorIndices.includes(sectorIndex)) {
+        sectorIndices.push(sectorIndex);
+        sectorIndicesByReportingPointAnchor.set(anchorKey, sectorIndices);
+      }
+    });
+  });
   let currentSectorIndex = 0;
   const sectorIndexByWaypointId = new Map<string, number>();
   flightPlan.waypoints.forEach((waypoint, index) => {
@@ -340,24 +436,27 @@ export function RoutePointMarkers({
           const isSelected =
             selectedRoutePoint?.kind === 'shaping-point' &&
             selectedRoutePoint.id === point.id;
-          const isAnchored = point.anchor !== undefined;
+          const reportingPointAnchor = reportingPointAnchorKey(point);
+          const sectorIndex =
+            sectorIndexByLegKey.get(
+              routeLegKey(shape.fromWaypointId, shape.toWaypointId),
+            ) ?? 0;
+          const sharedSectorIndices = reportingPointAnchor === null
+            ? [sectorIndex]
+            : sectorIndicesByReportingPointAnchor.get(reportingPointAnchor) ?? [sectorIndex];
 
           return (
             <Marker
               key={point.id}
               position={[displayPosition.latitude, displayPosition.longitude]}
-              icon={
-                isAnchored
-                  ? isSelected
-                    ? selectedAnchoredShapingPointIcon
-                    : anchoredShapingPointIcon
-                  : isSelected
-                    ? selectedShapingPointIcon
-                    : shapingPointIcon
-              }
+              icon={shapingPointIcon(
+                reportingPointAnchor !== null,
+                sharedSectorIndices,
+                isSelected,
+              )}
               draggable={geometryEditingEnabled}
               bubblingMouseEvents={false}
-              title={isAnchored
+              title={point.anchor !== undefined
                 ? `Route shaping point — attached to ${point.anchor!.publishedIdentifier}`
                 : 'Route shaping point'}
               alt="Route shaping point"
@@ -405,7 +504,18 @@ export function RoutePointMarkers({
             pendingShapingPoint.point.position.latitude,
             pendingShapingPoint.point.position.longitude,
           ]}
-          icon={selectedShapingPointIcon}
+          icon={shapingPointIcon(
+            false,
+            [
+              sectorIndexByLegKey.get(
+                routeLegKey(
+                  pendingShapingPoint.fromWaypointId,
+                  pendingShapingPoint.toWaypointId,
+                ),
+              ) ?? 0,
+            ],
+            true,
+          )}
           interactive={false}
         />
       )}

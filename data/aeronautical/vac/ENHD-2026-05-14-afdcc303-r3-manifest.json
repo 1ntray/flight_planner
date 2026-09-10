@@ -1,0 +1,145 @@
+{
+  "id": "vac:ENHD:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENHD",
+  "title": "HAUGESUND / Karmøy Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "afdcc303e03963b5446b5d353c8b9d454c9ed646efa51154ce617c336fd2af55",
+  "imageUrl": "aeronautical/vac/enhd/2026-05-14-afdcc303-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 4.7685286,
+    "east": 5.7802911,
+    "south": 58.993752,
+    "north": 59.5778755
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "BOKN ØST",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5379.205555555557,
+      "pixelY": 5340.933333333334,
+      "latitude": 59.2575,
+      "longitude": 5.449166666666667
+    },
+    {
+      "label": "BRIDGE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4266.85,
+      "pixelY": 3098.688888888889,
+      "latitude": 59.37444444444444,
+      "longitude": 5.2908333333333335
+    },
+    {
+      "label": "GRINDE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5906.6388888888905,
+      "pixelY": 2340.1388888888887,
+      "latitude": 59.43055555555555,
+      "longitude": 5.459444444444444
+    },
+    {
+      "label": "KVITSØY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4449.627777777779,
+      "pixelY": 8658.88888888889,
+      "latitude": 59.06333333333333,
+      "longitude": 5.4
+    },
+    {
+      "label": "RYVARDEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4079.000000000001,
+      "pixelY": 352.7888888888883,
+      "latitude": 59.52722222222222,
+      "longitude": 5.2252777777777775
+    },
+    {
+      "label": "RØKSUND",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4790.272222222223,
+      "pixelY": 3916.622222222223,
+      "latitude": 59.33277777777778,
+      "longitude": 5.361666666666666
+    },
+    {
+      "label": "SKJOLD",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7343.833333333336,
+      "pixelY": 2580.872222222223,
+      "latitude": 59.42861111111111,
+      "longitude": 5.621944444444445
+    },
+    {
+      "label": "SKUDE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2915.4888888888895,
+      "pixelY": 6902.166666666668,
+      "latitude": 59.14944444444444,
+      "longitude": 5.204166666666667
+    },
+    {
+      "label": "SVEIO",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5699.900000000001,
+      "pixelY": 131.76666666666688,
+      "latitude": 59.55305555555555,
+      "longitude": 5.401111111111112
+    },
+    {
+      "label": "UTSIRA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 508.0416666666672,
+      "pixelY": 3740.2333333333336,
+      "latitude": 59.306666666666665,
+      "longitude": 4.888055555555555
+    },
+    {
+      "label": "VEA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3243.772222222223,
+      "pixelY": 4331.238888888889,
+      "latitude": 59.29666666666667,
+      "longitude": 5.198333333333333
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.013942872610602222,
+    "maximumResidualPixels": 0.016504497249982045,
+    "residualRmsMeters": 0.08017264569640203,
+    "maximumResidualMeters": 0.10629005746318286,
+    "fitPointCount": 11,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENHD",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENHD 6-1",
+      "aipSection": "AD 2 ENHD 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENHD VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623089.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENHD",
+      "sourceDocument": "AD 2 ENHD",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENHD-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENHD",
+      "sourceDocument": "ENHD VAC preparation report",
+      "aipSection": "AD 2 ENHD 6-1",
+      "sourceReference": "data/aeronautical/vac/ENHD-2026-05-14-afdcc303-r3-preparation.json"
+    }
+  ]
+}

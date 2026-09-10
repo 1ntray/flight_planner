@@ -1,0 +1,97 @@
+{
+  "id": "vac:ENOV:2026-06-11",
+  "aerodromeFeatureId": "aerodrome:ENOV",
+  "title": "ØRSTA-VOLDA / Hovden Visual Approach Chart - ICAO",
+  "chartDate": "2026-06-11",
+  "sourcePdfSha256": "8344ca91229cd822b3df3139e0f5ccc1b61428e658dc1145ded84e7abf7a906a",
+  "imageUrl": "aeronautical/vac/enov/2026-06-11-8344ca91-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 5.5033811,
+    "east": 6.4224532,
+    "south": 61.9474086,
+    "north": 62.4329491
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "DIMNA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2897.177777777778,
+      "pixelY": 1720.4555555555562,
+      "latitude": 62.31777777777778,
+      "longitude": 5.819166666666667
+    },
+    {
+      "label": "KILE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4543.622222222223,
+      "pixelY": 7405.9611111111135,
+      "latitude": 62.06194444444444,
+      "longitude": 6.0649999999999995
+    },
+    {
+      "label": "LARSNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 313.61833333333357,
+      "pixelY": 3846.5555555555557,
+      "latitude": 62.20055555555556,
+      "longitude": 5.590277777777778
+    },
+    {
+      "label": "LØVIK",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3504.6388888888896,
+      "pixelY": 6479.222222222224,
+      "latitude": 62.09861111111111,
+      "longitude": 5.948055555555555
+    },
+    {
+      "label": "RJÅNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4144.983333333334,
+      "pixelY": 3383.9444444444443,
+      "latitude": 62.24805555555556,
+      "longitude": 5.9686111111111115
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 13.381372641300311,
+    "maximumResidualPixels": 14.966406155374854,
+    "residualRmsMeters": 71.07174605894356,
+    "maximumResidualMeters": 79.5187291256063,
+    "fitPointCount": 5,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENOV",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENOV 6-1",
+      "aipSection": "AD 2 ENOV 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENOV VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638672.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENOV",
+      "sourceDocument": "AD 2 ENOV",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENOV-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENOV",
+      "sourceDocument": "ENOV VAC preparation report",
+      "aipSection": "AD 2 ENOV 6-1",
+      "sourceReference": "data/aeronautical/vac/ENOV-2026-06-11-8344ca91-r3-preparation.json"
+    }
+  ]
+}

@@ -92,6 +92,43 @@ describe('calculatePerformanceRoute', () => {
     }
   });
 
+  it('adds a non-geometric arrival buffer to time and fuel only', () => {
+    const baseline = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+    });
+    const buffered = calculatePerformanceRoute({
+      flightPlan: longLeg,
+      navigation,
+      performance,
+      profile: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
+      arrivalBufferSecondsByWaypointId: { B: 180 },
+    });
+
+    expect(baseline.status).toBe('ok');
+    expect(buffered.status).toBe('ok');
+    if (baseline.status === 'ok' && buffered.status === 'ok') {
+      const baselineLeg = baseline.legs[0]!;
+      const bufferedLeg = buffered.legs[0]!;
+
+      expect(bufferedLeg.distanceNm).toBeCloseTo(baselineLeg.distanceNm, 12);
+      expect(bufferedLeg.effectiveGroundSpeedKt).toBeCloseTo(
+        baselineLeg.effectiveGroundSpeedKt!,
+        12,
+      );
+      expect(bufferedLeg.arrivalBufferSeconds).toBe(180);
+      expect(bufferedLeg.arrivalBufferFuelLitres).toBeCloseTo(1.8, 12);
+      expect(bufferedLeg.eetSeconds).toBeCloseTo(baselineLeg.eetSeconds + 180, 12);
+      expect(bufferedLeg.fuelLitres).toBeCloseTo(baselineLeg.fuelLitres + 1.8, 12);
+      expect(buffered.estimatedArrivalTimeUtcMs).toBeCloseTo(
+        baseline.estimatedArrivalTimeUtcMs + 180_000,
+        9,
+      );
+    }
+  });
+
   it('applies an arrival schedule delay before an onward sector', () => {
     const sectorRoute: FlightPlan = {
       waypoints: [

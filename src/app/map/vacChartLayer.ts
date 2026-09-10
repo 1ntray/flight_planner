@@ -7,6 +7,8 @@ export function resolveVacTileUrlTemplate(template: string, baseUrl: string): st
   return `${normalizedBase}${template.replace(/^\.\//, '')}`;
 }
 
+export const resolveVacAssetUrl = resolveVacTileUrlTemplate;
+
 export function filterRenderableVacCharts(
   charts: readonly VacChartManifest[],
   visible: boolean,

@@ -49,12 +49,14 @@ Kartverket Norgeskart topo and the Avinor ICAO 1:500 000 chart are optional
 base maps; the latter is server-rendered into Web Mercator tiles and requires a
 session acknowledgement.
 
-The optional VAC layer contains one offline-prepared, independently validated
-chart: Avinor AD 2 ENDU 6-1. It is stored as local EPSG:3857 XYZ tiles and
-loads only near Bardufoss at the configured zoom. Its source hash, fit points,
-holdout residuals, thresholds, chart date, and source references remain in the
-normalized manifest and preparation report. VAC pixels remain
-presentation-only.
+The optional VAC layer contains 42 offline-prepared, independently validated
+charts for 41 aerodromes. All active charts are compact, high-resolution,
+pre-warped EPSG:3857 WebP images. Charts load only near their aerodrome and at
+the configured zoom.
+Source hashes, fit points, holdout residuals, thresholds, chart dates, and
+source references remain in the normalized manifests and preparation reports.
+VAC pixels remain presentation-only; charts without enough reliable control
+points are deliberately not exposed.
 
 The checked-in browser repository is Avinor eAIP avinor-eaip-2026-09-03,
 effective 3 September 2026, revision **AIP AMDT 05/2026**. It contains:
@@ -249,7 +251,7 @@ typecheck, pnpm test, and pnpm build.
 - No takeoff or landing runway-performance calculation.
 - No PDF OFP generation; the on-screen navlog is OFP-oriented.
 - No automatic terrain/obstacle scan or terrain-derived MSA.
-- Only ENDU has a validated VAC raster; other VAC overlays and
-  graphical-only reporting points remain unavailable until separately
-  prepared and reviewed.
+- VAC coverage remains limited to 42 separately prepared and reviewed charts
+  for 41 aerodromes. Charts whose current source or reliable controls are
+  unavailable, or which fail the independent validation gate, remain excluded.
 - No cloud sync, flight-plan submission, or autonomous operational decisions.

@@ -1,0 +1,114 @@
+{
+  "charts": [
+    {
+      "icao": "ENAT", "title": "Alta Visual Approach Chart - ICAO", "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623095.pdf",
+      "sourcePdfSha256": "bf8bd26f94087c2b384d9d26603523aeaf2d494468f0d2f6ec3ddfd7a42d1e03", "page": 1,
+      "cropPdfPoints": { "left": 63.6094, "top": 130.543, "right": 534.296, "bottom": 684.56 },
+      "transformOrder": 2, "minimumControlSpanFraction": 0.95,
+      "graticuleControl": {
+        "method": "published-edge-graticule-second-order", "longitudeFitTickCount": 164, "latitudeFitTickCount": 64,
+        "longitudeCoefficients": [22.746562941247, 1.424480058257, -0.20864288955, -0.00502138822, -0.036978727372],
+        "latitudeCoefficients": [70.344296292701, -0.066631338884, -0.564057076384, 0.001268058699, -0.000002645052],
+        "validationTicks": [
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 180.982, "sourcePointY": 684.56, "value": 22.8833333333 },
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 419.324, "sourcePointY": 684.56, "value": 23.5833333333 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 180.502, "sourcePointY": 130.543, "value": 23.1 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 412.604, "sourcePointY": 130.543, "value": 23.8 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.6094, "sourcePointY": 272.168, "value": 70.2 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.6094, "sourcePointY": 550.617, "value": 69.9166666667 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.296, "sourcePointY": 272.648, "value": 70.1333333333 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.296, "sourcePointY": 551.577, "value": 69.85 }
+        ]
+      }
+    },
+    {
+      "icao": "ENNA", "title": "Lakselv Visual Approach Chart - ICAO", "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623137.pdf",
+      "sourcePdfSha256": "b09d9d15c14af5e33fe9e85ae529e1cf3b096d07db1fe6b841c4b60325612e12", "page": 1,
+      "cropPdfPoints": { "left": 63.3109, "top": 130.327, "right": 534.238, "bottom": 684.424 },
+      "transformOrder": 2, "minimumControlSpanFraction": 0.95,
+      "graticuleControl": {
+        "method": "published-edge-graticule-second-order", "longitudeFitTickCount": 163, "latitudeFitTickCount": 64,
+        "longitudeCoefficients": [24.404106578024, 1.423279823088, -0.253746616386, -0.005729152876, -0.036568239122],
+        "latitudeCoefficients": [70.404715055279, -0.079603708755, -0.561827441293, 0.001546890361, -0.000014850696],
+        "validationTicks": [
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 182.123, "sourcePointY": 684.424, "value": 24.5 },
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 415.246, "sourcePointY": 684.424, "value": 25.1833333333 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 183.383, "sourcePointY": 130.327, "value": 24.7666666667 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 415.966, "sourcePointY": 130.327, "value": 25.4666666667 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.3109, "sourcePointY": 266.421, "value": 70.2666666667 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.3109, "sourcePointY": 545.81, "value": 69.9833333333 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.238, "sourcePointY": 270.561, "value": 70.1833333333 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.238, "sourcePointY": 550.67, "value": 69.9 }
+        ]
+      }
+    },
+    {
+      "icao": "ENLK", "title": "Leknes Visual Approach Chart - ICAO", "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623129.pdf",
+      "sourcePdfSha256": "51b8b05ee9a77b37423bba0699ea7255029554c8e50b6df31f5ee338c2661b5e", "page": 1,
+      "cropPdfPoints": { "left": 63.2504, "top": 130.544, "right": 533.9364, "bottom": 684.56 },
+      "transformOrder": 2, "minimumControlSpanFraction": 0.95,
+      "graticuleControl": {
+        "method": "published-edge-graticule-second-order", "longitudeFitTickCount": 91, "latitudeFitTickCount": 38,
+        "longitudeCoefficients": [13.211008310232, 0.805228896025, 0.027077518344, 0.000119932521, -0.012217314779],
+        "latitudeCoefficients": [68.320043061273, 0.006657912102, -0.350400299825, -0.000034740938, -0.000013778042],
+        "validationTicks": [
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 189.023, "sourcePointY": 684.56, "value": 13.45 },
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 406.724, "sourcePointY": 684.56, "value": 13.8166666667 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 183.503, "sourcePointY": 130.544, "value": 13.4166666667 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 407.444, "sourcePointY": 130.544, "value": 13.8 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.2504, "sourcePointY": 267.608, "value": 68.2333333333 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.2504, "sourcePointY": 531.174, "value": 68.0666666667 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 533.9364, "sourcePointY": 278.169, "value": 68.2333333333 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 533.9364, "sourcePointY": 541.736, "value": 68.0666666667 }
+        ]
+      }
+    },
+    {
+      "icao": "ENSK", "title": "Stokmarknes Visual Approach Chart - ICAO", "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623165.pdf",
+      "sourcePdfSha256": "9ae0a6564e75ffed1c958410daabb29ccd91d2ee19b3df3e1522e6d2683423a8", "page": 1,
+      "cropPdfPoints": { "left": 63.2816, "top": 130.533, "right": 533.7236, "bottom": 684.259 },
+      "transformOrder": 2, "minimumControlSpanFraction": 0.95,
+      "graticuleControl": {
+        "method": "published-edge-graticule-second-order", "longitudeFitTickCount": 93, "latitudeFitTickCount": 38,
+        "longitudeCoefficients": [14.679423502716, 0.819933504738, 0.004941449662, -0.000046349199, -0.012648493946],
+        "latitudeCoefficients": [68.723812240887, -0.000432626051, -0.350438302737, -0.000006276536, -0.000011949289],
+        "validationTicks": [
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 188.917, "sourcePointY": 684.259, "value": 14.9 },
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 412.347, "sourcePointY": 684.259, "value": 15.2833333333 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 180.277, "sourcePointY": 130.533, "value": 14.8833333333 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 409.767, "sourcePointY": 130.533, "value": 15.2833333333 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.2816, "sourcePointY": 273.465, "value": 68.6333333333 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.2816, "sourcePointY": 536.827, "value": 68.4666666667 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 533.7236, "sourcePointY": 272.806, "value": 68.6333333333 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 533.7236, "sourcePointY": 536.167, "value": 68.4666666667 }
+        ]
+      }
+    },
+    {
+      "icao": "ENSH", "title": "Svolvær Visual Approach Chart - ICAO", "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623163.pdf",
+      "sourcePdfSha256": "441a2af0a4b7c65e8e08e526338f1d14df39ddb8a4a720d15aaf789d90868922", "page": 1,
+      "cropPdfPoints": { "left": 63.8508, "top": 131.022, "right": 534.5378, "bottom": 685.04 },
+      "transformOrder": 2, "minimumControlSpanFraction": 0.95,
+      "graticuleControl": {
+        "method": "published-edge-graticule-second-order", "longitudeFitTickCount": 92, "latitudeFitTickCount": 38,
+        "longitudeCoefficients": [14.254925968059, 0.808320646326, 0.011351291916, 0.000190955196, -0.012295414399],
+        "latitudeCoefficients": [68.40441681041, 0.001680534176, -0.350444035183, -0.000053047886, -0.000051588446],
+        "validationTicks": [
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 182.423, "sourcePointY": 685.04, "value": 14.4666666667 },
+          { "edge": "bottom", "axis": "longitude", "sourcePointX": 409.004, "sourcePointY": 685.04, "value": 14.85 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 187.223, "sourcePointY": 131.022, "value": 14.4666666667 },
+          { "edge": "top", "axis": "longitude", "sourcePointX": 410.204, "sourcePointY": 131.022, "value": 14.85 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.8508, "sourcePointY": 269.767, "value": 68.3166666667 },
+          { "edge": "left", "axis": "latitude", "sourcePointX": 63.8508, "sourcePointY": 533.093, "value": 68.15 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.5378, "sourcePointY": 272.407, "value": 68.3166666667 },
+          { "edge": "right", "axis": "latitude", "sourcePointX": 534.5378, "sourcePointY": 535.734, "value": 68.15 }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "id": "vac:ENSO:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENSO",
+  "title": "STORD / Sørstokken Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "6bb2792cf209be5a388883f0ffd9849d8551aaee192e66d37fe3d2053db77aa4",
+  "imageUrl": "aeronautical/vac/enso/2026-05-14-6bb2792c-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 4.937568,
+    "east": 5.8939439,
+    "south": 59.5065431,
+    "north": 60.0509381
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "HISKJO",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1084.7888888888892,
+      "pixelY": 5228.4222222222215,
+      "latitude": 59.725,
+      "longitude": 5.133333333333334
+    },
+    {
+      "label": "ROMSA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 6788.294444444446,
+      "pixelY": 6851.983333333334,
+      "latitude": 59.68333333333333,
+      "longitude": 5.75
+    },
+    {
+      "label": "SANDVIKVÅG",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3523.772222222222,
+      "pixelY": 664.2666666666673,
+      "latitude": 59.983333333333334,
+      "longitude": 5.316666666666666
+    },
+    {
+      "label": "SELBJØRN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1451.094444444445,
+      "pixelY": 672.4666666666653,
+      "latitude": 59.96666666666667,
+      "longitude": 5.1
+    },
+    {
+      "label": "SVEIO",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3139.988888888889,
+      "pixelY": 8811.83888888889,
+      "latitude": 59.55305555555555,
+      "longitude": 5.401111111111112
+    },
+    {
+      "label": "VIKEBYGD",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4654.294444444446,
+      "pixelY": 8295.016666666666,
+      "latitude": 59.59166666666667,
+      "longitude": 5.55
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.021199311872199582,
+    "maximumResidualPixels": 0.022735322674192916,
+    "residualRmsMeters": 0.3298758262800477,
+    "maximumResidualMeters": 0.4105234734528818,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENSO",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENSO 6-1",
+      "aipSection": "AD 2 ENSO 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENSO VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623167.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENSO",
+      "sourceDocument": "AD 2 ENSO",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENSO-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENSO",
+      "sourceDocument": "ENSO VAC preparation report",
+      "aipSection": "AD 2 ENSO 6-1",
+      "sourceReference": "data/aeronautical/vac/ENSO-2026-05-14-6bb2792c-r3-preparation.json"
+    }
+  ]
+}

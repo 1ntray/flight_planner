@@ -235,7 +235,22 @@ function product<T>(value: T | undefined, message: string, retrievedAtUtcMs: num
 function settledMessage(result: PromiseSettledResult<unknown>, fallback: string): string { return result.status === 'rejected' && result.reason instanceof Error ? result.reason.message : fallback; }
 export function buildLocationforecastUrl(request: AirportWeatherRequest): string { const params = new URLSearchParams({ lat: request.position.latitude.toFixed(4), lon: request.position.longitude.toFixed(4), altitude: String(Math.round(request.elevationFtMsl * 0.3048)) }); return `https://api.met.no/weatherapi/locationforecast/2.0/compact?${params}`; }
 
+/**
+ * The surface forecast is selected for a particular planned visit, not merely
+ * for the physical aerodrome. Include that time in the runtime cache key so a
+ * later visit to the same aerodrome cannot receive an earlier visit's sample.
+ */
+export function buildAirportWeatherRequestKey(request: AirportWeatherRequest): string {
+  return [
+    request.icaoIdentifier,
+    request.position.latitude.toFixed(4),
+    request.position.longitude.toFixed(4),
+    Math.round(request.elevationFtMsl),
+    request.plannedTimeUtcMs,
+  ].join(':');
+}
+
 export async function fetchAirportOperationalWeather(request: AirportWeatherRequest, signal: AbortSignal, refresh = false): Promise<AirportOperationalWeather> {
-  const key = `${request.icaoIdentifier}:${request.position.latitude.toFixed(4)}:${request.position.longitude.toFixed(4)}:${Math.round(request.elevationFtMsl)}`; const now = Date.now(); const cached = cache.get(key); if (!refresh && cached !== undefined && cached.expiresAtUtcMs > now) return cached.value; const existing = inFlight.get(key); if (existing !== undefined) return existing;
+  const key = buildAirportWeatherRequestKey(request); const now = Date.now(); const cached = cache.get(key); if (!refresh && cached !== undefined && cached.expiresAtUtcMs > now) return cached.value; const existing = inFlight.get(key); if (existing !== undefined) return existing;
   const promise = (async () => { const [tafmetarResult, forecastResult] = await Promise.allSettled([fetch(`https://api.met.no/weatherapi/tafmetar/1.0/tafmetar.xml?icao=${encodeURIComponent(request.icaoIdentifier)}`, { signal }).then(async (response) => { if (!response.ok) throw new Error(`METAR/TAF HTTP ${response.status}`); return response.text(); }), fetch(buildLocationforecastUrl(request), { signal }).then(async (response) => { if (!response.ok) throw new Error(`Locationforecast HTTP ${response.status}`); return response.json() as Promise<unknown>; })]); const retrievedAtUtcMs = Date.now(); const xml = tafmetarResult.status === 'fulfilled' ? tafmetarResult.value : undefined; const tac = xml === undefined ? {} : extractCurrentTafmetarTac(xml, retrievedAtUtcMs); const result: AirportOperationalWeather = { request, metar: xml === undefined ? { status: 'error', message: settledMessage(tafmetarResult, 'METAR request failed') } : product(tac.metarTac === undefined ? undefined : parseMetarTac(tac.metarTac, retrievedAtUtcMs), 'No usable current METAR.', retrievedAtUtcMs), taf: xml === undefined ? { status: 'error', message: settledMessage(tafmetarResult, 'TAF request failed') } : product(tac.tafTac === undefined ? undefined : parseTafTac(tac.tafTac, retrievedAtUtcMs), 'No usable current TAF.', retrievedAtUtcMs), forecast: forecastResult.status === 'fulfilled' ? product(selectSurfaceForecast(forecastResult.value, request.plannedTimeUtcMs), 'Forecast unavailable at planned time.', retrievedAtUtcMs) : { status: 'error', message: settledMessage(forecastResult, 'Forecast request failed') } }; cache.set(key, { expiresAtUtcMs: retrievedAtUtcMs + WEATHER_CACHE_MS, value: result }); return result; })(); inFlight.set(key, promise); try { return await promise; } finally { inFlight.delete(key); }
 }

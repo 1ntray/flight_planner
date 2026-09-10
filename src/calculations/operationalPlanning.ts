@@ -20,6 +20,7 @@ import type {
 
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
+const STANDARD_ARRIVAL_BUFFER_SECONDS = 3 * SECONDS_PER_MINUTE;
 const MASS_CONVERGENCE_TOLERANCE_KG = 1e-7;
 const MAX_MASS_CONVERGENCE_ITERATIONS = 12;
 const FUEL_TOLERANCE_LITRES = 1e-9;
@@ -31,6 +32,33 @@ function patternArrivalDelaySeconds(
     (operational.patternPlans ?? [])
       .filter((plan) => plan.patternCount > 0)
       .map((plan) => [plan.waypointId, plan.patternCount * 5 * SECONDS_PER_MINUTE]),
+  );
+}
+
+function arrivalBufferSecondsByWaypointId(
+  flightPlan: FlightPlan,
+  operational: OperationalPlanningInputs,
+): Readonly<Record<string, number>> {
+  const landingWaypointIds = new Set([
+    ...(flightPlan.sectorBoundaryWaypointIds ?? []),
+    ...(flightPlan.waypoints.at(-1) === undefined
+      ? []
+      : [flightPlan.waypoints.at(-1)!.id]),
+  ]);
+  const patternPlansByWaypointId = new Map(
+    (operational.patternPlans ?? []).map((plan) => [plan.waypointId, plan]),
+  );
+
+  return Object.fromEntries(
+    flightPlan.waypoints
+      .slice(1)
+      .filter(
+        (waypoint) =>
+          landingWaypointIds.has(waypoint.id) &&
+          waypoint.anchor?.feature.featureKind === 'aerodrome' &&
+          patternPlansByWaypointId.get(waypoint.id)?.arrivalBufferEnabled !== false,
+      )
+      .map((waypoint) => [waypoint.id, STANDARD_ARRIVAL_BUFFER_SECONDS]),
   );
 }
 
@@ -346,6 +374,24 @@ function calculateMinimumFlight(
       consumedLitres += step.fuelLitres;
       elapsedSeconds += step.durationSeconds;
     }
+
+    if (
+      leg.arrivalBufferFuelLitres > 0 &&
+      consumedLitres + leg.arrivalBufferFuelLitres >= fuelToBurnLitres
+    ) {
+      const fraction =
+        (fuelToBurnLitres - consumedLitres) / leg.arrivalBufferFuelLitres;
+      return {
+        status: 'reachable',
+        timeMinutes:
+          (elapsedSeconds + fraction * leg.arrivalBufferSeconds) /
+          SECONDS_PER_MINUTE,
+        requiredFuelRemainingLitres,
+      };
+    }
+
+    consumedLitres += leg.arrivalBufferFuelLitres;
+    elapsedSeconds += leg.arrivalBufferSeconds;
   }
 
   if (
@@ -888,6 +934,10 @@ export function calculateOperationalFlightPlan(
       profile: input.aircraft.performance,
       sectorMassesKg,
       arrivalDelaySecondsByWaypointId: patternArrivalDelaySeconds(input.operational),
+      arrivalBufferSecondsByWaypointId: arrivalBufferSecondsByWaypointId(
+        input.flightPlan,
+        input.operational,
+      ),
       ...(input.resolveWind === undefined ? {} : { resolveWind: input.resolveWind }),
     });
     if (result.status === 'no-solution') {

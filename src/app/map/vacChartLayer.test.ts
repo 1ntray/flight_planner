@@ -36,7 +36,7 @@ const chart: VacChartManifest = {
 
 describe('VAC runtime layer selection', () => {
   it('resolves repository-relative tile paths beneath the Vite base path', () => {
-    expect(resolveVacTileUrlTemplate(chart.tileUrlTemplate, '/flight_planner/'))
+    expect(resolveVacTileUrlTemplate(chart.tileUrlTemplate!, '/flight_planner/'))
       .toBe('/flight_planner/aeronautical/vac/test/{z}/{x}/{y}.png');
     expect(resolveVacTileUrlTemplate('/absolute/{z}/{x}/{y}.png', '/flight_planner/'))
       .toBe('/absolute/{z}/{x}/{y}.png');

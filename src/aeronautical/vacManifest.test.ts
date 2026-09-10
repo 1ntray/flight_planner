@@ -24,6 +24,15 @@ describe('VAC chart manifest validation', () => {
     expect(validateVacChartManifest(manifest)).toEqual([]);
   });
 
+  it('accepts exactly one compact prewarped image source', () => {
+    const { tileUrlTemplate: _tiles, ...withoutTiles } = manifest;
+    expect(validateVacChartManifest({ ...withoutTiles, imageUrl: '/vac/endu/chart.webp' })).toEqual([]);
+    expect(validateVacChartManifest({ ...manifest, imageUrl: '/vac/endu/chart.webp' }))
+      .toContain('VAC manifest must contain exactly one raster source');
+    expect(validateVacChartManifest(withoutTiles))
+      .toContain('VAC manifest must contain exactly one raster source');
+  });
+
   it('rejects an untraceable or malformed runtime tile definition', () => {
     expect(validateVacChartManifest({
       ...manifest, tileUrlTemplate: '/vac/endu.png', defaultOpacity: 2, groundControlPoints: [],

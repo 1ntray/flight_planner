@@ -18,7 +18,10 @@ export interface VacChartManifest {
   readonly title: string;
   readonly chartDate: string;
   readonly sourcePdfSha256?: string;
-  readonly tileUrlTemplate: string;
+  /** One prewarped Web Mercator image, preferred for compact national coverage. */
+  readonly imageUrl?: string;
+  /** Legacy/prepared XYZ pyramid. Exactly one raster source must be present. */
+  readonly tileUrlTemplate?: string;
   readonly targetCrs: 'EPSG:3857';
   readonly bounds: Wgs84Bounds;
   readonly minimumZoom: number;

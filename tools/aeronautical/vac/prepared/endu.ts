@@ -19,7 +19,7 @@ const point = (
  */
 export const ENDU_VAC_PREPARATION: VacPreparationConfig = {
   configVersion: 1,
-  preparationRevision: 2,
+  preparationRevision: 3,
   id: 'vac:ENDU:2026-05-14',
   icao: 'ENDU',
   aerodromeFeatureId: 'aerodrome:ENDU',
@@ -34,6 +34,8 @@ export const ENDU_VAC_PREPARATION: VacPreparationConfig = {
   minimumZoom: 9,
   maximumZoom: 13,
   defaultOpacity: 0.75,
+  outputFormat: 'webp-image',
+  webpQuality: 92,
   qualityThresholds: { maximumRmsMeters: 100, maximumErrorMeters: 200 },
   fitPoints: [
     point('FINNSNES', 140.655, 288.809, '691425N', '0175754E'),

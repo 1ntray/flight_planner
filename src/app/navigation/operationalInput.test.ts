@@ -149,4 +149,26 @@ describe('operational input parsing', () => {
       value: { patternPlans: [] },
     });
   });
+
+  it('persists only an explicit disabled arrival buffer', () => {
+    const disabled = parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      patternPlans: [{
+        waypointId: 'DEST',
+        patternCount: '',
+        arrivalBufferEnabled: false,
+      }],
+    }, PROJECT_AIRCRAFT_DEFINITION, [], ['DEST']);
+
+    expect(disabled).toMatchObject({
+      status: 'valid',
+      value: {
+        patternPlans: [{
+          waypointId: 'DEST',
+          patternCount: 0,
+          arrivalBufferEnabled: false,
+        }],
+      },
+    });
+  });
 });

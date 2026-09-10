@@ -1,0 +1,140 @@
+{
+  "reportVersion": 1,
+  "preparationTool": {
+    "name": "flight-planner-vac-preparer",
+    "version": 1
+  },
+  "configVersion": 1,
+  "preparationRevision": 3,
+  "chartId": "vac:ENKB:2026-05-14",
+  "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623125.pdf",
+  "sourcePdfFilename": "623125.pdf",
+  "sourcePdfSha256": "efe5d5d06eb2ffa8c92a07043ac7b2ee60cdde582ae61f7d8c7ca425b465cfcf",
+  "retrievedAtUtc": "2026-09-09T18:41:55.768Z",
+  "preparedAtUtc": "2026-09-09T18:42:36.177Z",
+  "sourcePage": 1,
+  "renderDpi": 1200,
+  "cropPixels": {
+    "left": 1051,
+    "top": 2175,
+    "width": 7843,
+    "height": 9229
+  },
+  "tools": {
+    "pdftoppm": "pdftoppm version 26.07.0",
+    "gdal_translate": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalwarp": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdaltransform": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalinfo": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdal": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12"
+  },
+  "targetCrs": "EPSG:3857",
+  "transform": "second-order polynomial (6 fit points; 2 independent holdouts)",
+  "bounds": {
+    "west": 7.103961,
+    "east": 8.3061685,
+    "south": 62.7915536,
+    "north": 63.4115948
+  },
+  "assetCount": 1,
+  "assetBytes": 3117794,
+  "assetUrl": "aeronautical/vac/enkb/2026-05-14-efe5d5d0-r3/chart.webp",
+  "outputAssetPath": "public/aeronautical/vac/enkb/2026-05-14-efe5d5d0-r3/chart.webp",
+  "validation": {
+    "residualRmsPixels": 2.6193047851533287,
+    "maximumResidualPixels": 3.695363830539957,
+    "residualRmsMeters": 9.058793309258519,
+    "maximumResidualMeters": 12.769105989074113,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "residuals": [
+      {
+        "label": "HALSA",
+        "horizontalErrorMeters": 12.769105989074113,
+        "pixelError": 3.695363830539957,
+        "predictedLatitude": 63.0677574267837,
+        "predictedLongitude": 8.22885967063052
+      },
+      {
+        "label": "HESTESKJÆR",
+        "horizontalErrorMeters": 1.0360524501807,
+        "pixelError": 0.2565175919723747,
+        "predictedLatitude": 63.0847201824462,
+        "predictedLongitude": 7.49140889442097
+      }
+    ]
+  },
+  "fitPoints": [
+    {
+      "label": "EDØY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7332.083333333336,
+      "pixelY": 1997.1388888888896,
+      "latitude": 63.28583333333333,
+      "longitude": 8.131666666666668
+    },
+    {
+      "label": "KVALVÅG",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5201.955555555556,
+      "pixelY": 5276.638888888889,
+      "latitude": 63.07055555555556,
+      "longitude": 7.891388888888889
+    },
+    {
+      "label": "KVERNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3812.977777777779,
+      "pixelY": 6185.855555555556,
+      "latitude": 63.00527777777778,
+      "longitude": 7.717777777777778
+    },
+    {
+      "label": "KVITHOLM",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 308.6266666666668,
+      "pixelY": 5478.488888888889,
+      "latitude": 63.02333333333333,
+      "longitude": 7.234444444444445
+    },
+    {
+      "label": "MOY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5151.038888888889,
+      "pixelY": 3616.2,
+      "latitude": 63.17194444444444,
+      "longitude": 7.859444444444444
+    },
+    {
+      "label": "STAVNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3608.4722222222226,
+      "pixelY": 4375.555555555557,
+      "latitude": 63.11472222222223,
+      "longitude": 7.662222222222223
+    }
+  ],
+  "validationPoints": [
+    {
+      "label": "HALSA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7663.194444444445,
+      "pixelY": 5589.038888888889,
+      "latitude": 63.06777777777778,
+      "longitude": 8.22861111111111
+    },
+    {
+      "label": "HESTESKJÆR",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2305.116666666667,
+      "pixelY": 4714.083333333333,
+      "latitude": 63.084722222222226,
+      "longitude": 7.491388888888889
+    }
+  ],
+  "thresholds": {
+    "maximumRmsMeters": 100,
+    "maximumErrorMeters": 200
+  },
+  "passed": true
+}

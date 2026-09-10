@@ -1,0 +1,113 @@
+{
+  "id": "vac:ENAN:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENAN",
+  "title": "ANDØYA / Andenes Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "af0181940560c1a6e91a6b7d7bd6f17c5a7cc6156dbec5efb913c2af90202bc8",
+  "imageUrl": "aeronautical/vac/enan/2026-05-14-af018194-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 15.6580895,
+    "east": 16.8364194,
+    "south": 68.9394703,
+    "north": 69.4294733
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "DVERBERG",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2157.488888888889,
+      "pixelY": 5962.977777777777,
+      "latitude": 69.11666666666666,
+      "longitude": 15.97888888888889
+    },
+    {
+      "label": "GRØTAVÆR",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4194.044444444446,
+      "pixelY": 8959.005555555557,
+      "latitude": 68.95833333333334,
+      "longitude": 16.267777777777777
+    },
+    {
+      "label": "NORDMJELE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 122.9872222222225,
+      "pixelY": 5671.250000000001,
+      "latitude": 69.13333333333334,
+      "longitude": 15.681666666666667
+    },
+    {
+      "label": "STORVATNET",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2627.2277777777786,
+      "pixelY": 2921.9222222222234,
+      "latitude": 69.275,
+      "longitude": 16.05527777777778
+    },
+    {
+      "label": "VIKAN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3373.083333333333,
+      "pixelY": 2397.5055555555546,
+      "latitude": 69.30166666666666,
+      "longitude": 16.166666666666668
+    },
+    {
+      "label": "ØRJA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7671.72777777778,
+      "pixelY": 2964.083333333333,
+      "latitude": 69.26666666666667,
+      "longitude": 16.798333333333336
+    },
+    {
+      "label": "ÅSE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1221.6944444444448,
+      "pixelY": 7360.383333333333,
+      "latitude": 69.04444444444444,
+      "longitude": 15.839166666666667
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.07164149785952323,
+    "maximumResidualPixels": 0.09977434037561687,
+    "residualRmsMeters": 0.822787643726538,
+    "maximumResidualMeters": 1.0562018736905476,
+    "fitPointCount": 7,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENAN",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENAN 6-1",
+      "aipSection": "AD 2 ENAN 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENAN VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623093.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENAN",
+      "sourceDocument": "AD 2 ENAN",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENAN-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENAN",
+      "sourceDocument": "ENAN VAC preparation report",
+      "aipSection": "AD 2 ENAN 6-1",
+      "sourceReference": "data/aeronautical/vac/ENAN-2026-05-14-af018194-r3-preparation.json"
+    }
+  ]
+}

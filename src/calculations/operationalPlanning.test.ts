@@ -29,6 +29,33 @@ const flightPlan: FlightPlan = {
   sectorBoundaryWaypointIds: ['B', 'C'],
 };
 
+const flightPlanWithAerodromeStop: FlightPlan = {
+  ...flightPlan,
+  waypoints: flightPlan.waypoints.map((waypoint) =>
+    waypoint.id !== 'B'
+      ? waypoint
+      : {
+          ...waypoint,
+          anchor: {
+            kind: 'aeronautical-feature',
+            feature: {
+              dataset: {
+                datasetId: 'test-airac',
+                providerId: 'test-provider',
+                sourceName: 'Test data',
+                airacCycle: '2608',
+                effectiveFromUtc: '2026-08-06T00:00:00Z',
+                effectiveToUtc: '2026-09-03T00:00:00Z',
+              },
+              featureId: 'aerodrome-b',
+              featureKind: 'aerodrome',
+            },
+            publishedIdentifier: 'ENEV',
+          },
+        },
+  ),
+};
+
 const navigation: RoutePlanningInputs = {
   departureTimeUtcMs: Date.UTC(2026, 7, 29, 8),
   magneticVariationDegEast: 0,
@@ -286,6 +313,64 @@ describe('operational planning', () => {
       expect(first.landingLoading.fuel.totalLitres).toBeCloseTo(
         first.rows[0]!.estimatedFuelRemainingLitres - 6,
         9,
+      );
+    }
+  });
+
+  it('adds the default arrival buffer to an aerodrome inbound leg only', () => {
+    const disabled = calculateOperationalFlightPlan({
+      flightPlan: flightPlanWithAerodromeStop,
+      navigation,
+      performance,
+      aircraft: PROJECT_AIRCRAFT_DEFINITION,
+      operational: operational({
+        patternPlans: [{
+          waypointId: 'B',
+          patternCount: 0,
+          arrivalBufferEnabled: false,
+        }],
+      }),
+    });
+    const buffered = calculateOperationalFlightPlan({
+      flightPlan: flightPlanWithAerodromeStop,
+      navigation,
+      performance,
+      aircraft: PROJECT_AIRCRAFT_DEFINITION,
+      operational: operational(),
+    });
+
+    expect(disabled.status).toBe('ok');
+    expect(buffered.status).toBe('ok');
+    if (disabled.status === 'ok' && buffered.status === 'ok') {
+      const disabledInboundLeg = disabled.performanceRoute.legs[0]!;
+      const bufferedInboundLeg = buffered.performanceRoute.legs[0]!;
+
+      expect(bufferedInboundLeg.distanceNm).toBeCloseTo(
+        disabledInboundLeg.distanceNm,
+        12,
+      );
+      expect(bufferedInboundLeg.arrivalBufferSeconds).toBe(180);
+      expect(bufferedInboundLeg.arrivalBufferFuelLitres).toBeCloseTo(1.8, 12);
+      expect(
+        buffered.performanceRoute.legs
+          .slice(1)
+          .every((leg) => leg.arrivalBufferSeconds === 0),
+      ).toBe(true);
+      expect(bufferedInboundLeg.eetSeconds).toBeCloseTo(
+        disabledInboundLeg.eetSeconds + 180,
+        12,
+      );
+      expect(bufferedInboundLeg.fuelLitres).toBeCloseTo(
+        disabledInboundLeg.fuelLitres + 1.8,
+        12,
+      );
+      expect(buffered.sectors[0]!.rows[0]!.intermediate.airborneSeconds).toBeCloseTo(
+        disabled.sectors[0]!.rows[0]!.intermediate.airborneSeconds + 180,
+        12,
+      );
+      expect(buffered.sectors[0]!.rows[0]!.intermediate.airborneFuelLitres).toBeCloseTo(
+        disabled.sectors[0]!.rows[0]!.intermediate.airborneFuelLitres + 1.8,
+        12,
       );
     }
   });

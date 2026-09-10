@@ -72,6 +72,7 @@ describe('route display geometry', () => {
     expect(display[0]?.segments).toEqual([
       {
         segmentIndex: 0,
+        sharedSectorIndices: [0],
         startRef: { kind: 'waypoint', id: 'stable-a' },
         endRef: { kind: 'shaping-point', id: 'shape-1' },
         startPosition: { latitude: 69, longitude: 18 },
@@ -83,6 +84,7 @@ describe('route display geometry', () => {
       },
       {
         segmentIndex: 1,
+        sharedSectorIndices: [0],
         startRef: { kind: 'shaping-point', id: 'shape-1' },
         endRef: { kind: 'waypoint', id: 'stable-b' },
         startPosition: { latitude: 69.1, longitude: 18.15 },
@@ -235,6 +237,60 @@ describe('route display geometry', () => {
     expect(display.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
       [0],
       [1],
+    ]);
+  });
+
+  it('shares stripes only for the matching part of diverging shaped legs', () => {
+    const display = buildRouteDisplayLegs({
+      waypoints: [
+        {
+          id: 'a-1',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+        {
+          id: 'b-1',
+          name: 'B',
+          position: { latitude: 69.2, longitude: 18.5 },
+        },
+        {
+          id: 'a-2',
+          name: 'A',
+          position: { latitude: 69, longitude: 18 },
+        },
+        {
+          id: 'c-1',
+          name: 'C',
+          position: { latitude: 69.3, longitude: 18.7 },
+        },
+      ],
+      legShapes: [
+        {
+          fromWaypointId: 'a-1',
+          toWaypointId: 'b-1',
+          points: [
+            { id: 'shared-1', position: { latitude: 69.1, longitude: 18.2 } },
+          ],
+        },
+        {
+          fromWaypointId: 'a-2',
+          toWaypointId: 'c-1',
+          points: [
+            { id: 'shared-2', position: { latitude: 69.1, longitude: 18.2 } },
+          ],
+        },
+      ],
+      sectorBoundaryWaypointIds: ['b-1', 'a-2'],
+    }, null, null);
+
+    expect(display.map(({ sectorIndex }) => sectorIndex)).toEqual([0, 1, 2]);
+    expect(display[0]?.segments.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
+      [0, 2],
+      [0],
+    ]);
+    expect(display[2]?.segments.map(({ sharedSectorIndices }) => sharedSectorIndices)).toEqual([
+      [0, 2],
+      [2],
     ]);
   });
 });

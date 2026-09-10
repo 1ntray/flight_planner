@@ -46,6 +46,11 @@ export interface AerodromePatternPlan {
   readonly waypointId: string;
   /** Whole circuits. Each circuit's time and fuel are derived from the aircraft profile. */
   readonly patternCount: number;
+  /**
+   * A three-minute visual-arrival allowance is enabled when omitted, so plans
+   * saved before this option was introduced retain the operational default.
+   */
+  readonly arrivalBufferEnabled?: boolean;
 }
 
 export interface AlternatePlanningInputs {

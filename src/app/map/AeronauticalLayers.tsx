@@ -1,5 +1,5 @@
 import { divIcon, DomEvent } from 'leaflet';
-import type { LatLngTuple, LeafletMouseEvent } from 'leaflet';
+import type { LatLngTuple, LeafletMouseEvent, Path as LeafletPath } from 'leaflet';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Marker,
@@ -100,6 +100,23 @@ function areaPositions(feature: AeronauticalAreaFeature): LatLngTuple[][][] {
 
 function stopMapClick(event: LeafletMouseEvent): void {
   DomEvent.stopPropagation(event.originalEvent);
+}
+
+/**
+ * Airspace is an information layer, not a keyboard-operated map control.
+ * Chromium can retain focus on the SVG path after a click and paint its
+ * rectangular native focus indicator around the path's entire bounds. Remove
+ * that focus explicitly as well as styling it away: browser focus timing is
+ * not identical in development and a deployed document.
+ */
+function clearAirspacePathFocus(event: LeafletMouseEvent): void {
+  const element = (event.target as LeafletPath).getElement() as
+    | (HTMLElement & { blur: () => void })
+    | undefined;
+  if (element === undefined) return;
+
+  element.blur();
+  window.requestAnimationFrame(() => element.blur());
 }
 
 function pointerPosition(event: LeafletMouseEvent): Position {
@@ -311,6 +328,7 @@ export function AeronauticalLayers({
               mouseout: updateHoveredAirspaces,
               click: (event) => {
                 stopMapClick(event);
+                clearAirspacePathFocus(event);
                 const position = pointerPosition(event);
                 if (anchoringEnabled) {
                   // Area overlays are information-only. In Add waypoint mode,

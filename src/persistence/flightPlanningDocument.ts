@@ -1420,7 +1420,19 @@ function requireOperationalInputs(
     if (!Number.isInteger(patternCount)) {
       throw new RangeError(`${patternPath}.patternCount must be a whole number`);
     }
-    return { waypointId, patternCount };
+    if (
+      plan.arrivalBufferEnabled !== undefined &&
+      typeof plan.arrivalBufferEnabled !== 'boolean'
+    ) {
+      throw new RangeError(`${patternPath}.arrivalBufferEnabled must be a boolean`);
+    }
+    return {
+      waypointId,
+      patternCount,
+      ...(plan.arrivalBufferEnabled === false
+        ? { arrivalBufferEnabled: false }
+        : {}),
+    };
   });
 
   let alternate: OperationalPlanningInputs['alternate'];

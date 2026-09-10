@@ -252,6 +252,10 @@ export function AirportInputs({
     : operationalDraft.patternPlans.find(
         (candidate) => candidate.waypointId === active.waypointId,
       ) ?? createEmptyAerodromePatternInputDraft(active.waypointId);
+  const hasAerodromeArrival =
+    pattern !== null &&
+    waypoint?.anchor?.feature.featureKind === 'aerodrome';
+  const arrivalBufferEnabled = pattern?.arrivalBufferEnabled ?? true;
   const defaultElevation = active.key === 'departure'
     ? defaults.departureElevationFtMsl
     : active.key === 'destination'
@@ -383,6 +387,23 @@ export function AirportInputs({
     });
   };
 
+  const updateArrivalBuffer = (enabled: boolean) => {
+    const updated: AerodromePatternInputDraft = {
+      ...pattern!,
+      arrivalBufferEnabled: enabled,
+    };
+    onOperationalDraftChange({
+      ...operationalDraft,
+      patternPlans: operationalDraft.patternPlans.some(
+        (candidate) => candidate.waypointId === active.waypointId,
+      )
+        ? operationalDraft.patternPlans.map((candidate) =>
+            candidate.waypointId === active.waypointId ? updated : candidate,
+          )
+        : [...operationalDraft.patternPlans, updated],
+    });
+  };
+
   return (
     <section className="airport-inputs" aria-label="Airport planning inputs">
       <div className="airport-inputs__tabs" role="tablist" aria-label="Route airports">
@@ -452,6 +473,19 @@ export function AirportInputs({
           step="1"
           onChange={updatePattern}
         />}
+        {!hasAerodromeArrival ? null : (
+          <label className="airport-inputs__arrival-buffer">
+            <span>Arrival buffer</span>
+            <span className="airport-inputs__arrival-buffer-control">
+              <input
+                type="checkbox"
+                checked={arrivalBufferEnabled}
+                onChange={(event) => updateArrivalBuffer(event.currentTarget.checked)}
+              />
+              <span>Include 3 min / {(3 / 60 * aircraft.performance.cruise.fuelFlowLph).toFixed(1)} L</span>
+            </span>
+          </label>
+        )}
         {pattern === null || Number(pattern.patternCount) <= 0 ? null : (
           <p className="navigation-inputs__scope">
             {Number(pattern.patternCount) * 5} min and {(

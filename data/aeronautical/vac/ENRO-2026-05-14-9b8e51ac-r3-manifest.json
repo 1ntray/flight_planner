@@ -1,0 +1,105 @@
+{
+  "id": "vac:ENRO:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENRO",
+  "title": "RØROS Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "9b8e51ac274781ebbed15ff5e3563d97f40efc1eb6b53b7f2ca86bd43089533d",
+  "imageUrl": "aeronautical/vac/enro/2026-05-14-9b8e51ac-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 10.7287054,
+    "east": 11.958726,
+    "south": 62.2614466,
+    "north": 62.9170664
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "NARBUVOLL",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4962.027777777779,
+      "pixelY": 9022.45,
+      "latitude": 62.34916666666667,
+      "longitude": 11.465555555555556
+    },
+    {
+      "label": "OS",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3276.672222222222,
+      "pixelY": 6502.127777777778,
+      "latitude": 62.49861111111111,
+      "longitude": 11.2225
+    },
+    {
+      "label": "STORWARTZ",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5696.93888888889,
+      "pixelY": 4506.305555555557,
+      "latitude": 62.63,
+      "longitude": 11.530833333333334
+    },
+    {
+      "label": "SÆTERSJØEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3089.0444444444447,
+      "pixelY": 5409.1611111111115,
+      "latitude": 62.56527777777777,
+      "longitude": 11.18888888888889
+    },
+    {
+      "label": "TOLGA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1468.2833333333338,
+      "pixelY": 7858.2555555555555,
+      "latitude": 62.40833333333333,
+      "longitude": 10.992777777777777
+    },
+    {
+      "label": "ÅLEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4147.7444444444445,
+      "pixelY": 958.583333333333,
+      "latitude": 62.843333333333334,
+      "longitude": 11.296111111111111
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.02881491707399483,
+    "maximumResidualPixels": 0.03592433343247682,
+    "residualRmsMeters": 0.2366930698804143,
+    "maximumResidualMeters": 0.27940985626535464,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENRO",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENRO 6-1",
+      "aipSection": "AD 2 ENRO 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENRO VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623155.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENRO",
+      "sourceDocument": "AD 2 ENRO",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENRO-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENRO",
+      "sourceDocument": "ENRO VAC preparation report",
+      "aipSection": "AD 2 ENRO 6-1",
+      "sourceReference": "data/aeronautical/vac/ENRO-2026-05-14-9b8e51ac-r3-preparation.json"
+    }
+  ]
+}

@@ -89,6 +89,10 @@ export interface CalculatedPerformanceLeg extends CalculatedLeg {
   readonly steps: readonly CalculatedPerformanceStep[];
   readonly eetSeconds: number;
   readonly fuelLitres: number;
+  /** Non-geometric visual-arrival allowance included in this inbound leg. */
+  readonly arrivalBufferSeconds: number;
+  /** Fuel for the arrival buffer at the aircraft's cruise fuel flow. */
+  readonly arrivalBufferFuelLitres: number;
   readonly effectiveGroundSpeedKt: number | null;
   readonly startTimeUtcMs: number;
   readonly endTimeUtcMs: number;
@@ -153,6 +157,11 @@ export interface PerformanceRouteCalculationInput {
    * The performance engine treats this as a schedule delay only.
    */
   readonly arrivalDelaySecondsByWaypointId?: Readonly<Record<string, number>>;
+  /**
+   * Non-geometric visual-arrival allowance included in the inbound leg to an
+   * aerodrome. This changes time and fuel, but never route distance.
+   */
+  readonly arrivalBufferSecondsByWaypointId?: Readonly<Record<string, number>>;
   /**
    * Derived takeoff masses for sequential sectors. This is calculation input,
    * never persisted editable plan state. Each sector still uses one constant
@@ -477,6 +486,7 @@ function calculateSingleSectorPerformanceRoute({
   performance,
   profile,
   resolveWind = () => navigation.wind,
+  arrivalBufferSecondsByWaypointId,
   workBudget,
 }: BudgetedPerformanceRouteCalculationInput): CalculatedSingleSectorPerformanceRoute {
   requireFinite(performance.massKg, 'Aircraft mass');
@@ -867,14 +877,25 @@ function calculateSingleSectorPerformanceRoute({
 
     steps.push(...remainingCruise.steps);
     currentTimeUtcMs = remainingCruise.endTimeUtcMs;
-    const eetSeconds = steps.reduce(
+    const calculatedEetSeconds = steps.reduce(
       (total, step) => total + step.durationSeconds,
       0,
     );
-    const fuelLitres = steps.reduce(
+    const calculatedFuelLitres = steps.reduce(
       (total, step) => total + step.fuelLitres,
       0,
     );
+    const arrivalBufferSeconds = isFinalLeg
+      ? arrivalBufferSecondsByWaypointId?.[leg.toId] ?? 0
+      : 0;
+    if (!Number.isFinite(arrivalBufferSeconds) || arrivalBufferSeconds < 0) {
+      throw new RangeError('Arrival buffer must be a finite non-negative duration');
+    }
+    const arrivalBufferFuelLitres =
+      arrivalBufferSeconds / 3600 * profile.cruise.fuelFlowLph;
+    const eetSeconds = calculatedEetSeconds + arrivalBufferSeconds;
+    const fuelLitres = calculatedFuelLitres + arrivalBufferFuelLitres;
+    currentTimeUtcMs += arrivalBufferSeconds * 1000;
 
     calculatedLegs.push({
       ...leg,
@@ -885,8 +906,12 @@ function calculateSingleSectorPerformanceRoute({
       steps,
       eetSeconds,
       fuelLitres,
+      arrivalBufferSeconds,
+      arrivalBufferFuelLitres,
       effectiveGroundSpeedKt:
-        eetSeconds === 0 ? null : leg.distanceNm / (eetSeconds / 3600),
+        calculatedEetSeconds === 0
+          ? null
+          : leg.distanceNm / (calculatedEetSeconds / 3600),
       startTimeUtcMs: legStartTimeUtcMs,
       endTimeUtcMs: currentTimeUtcMs,
     });

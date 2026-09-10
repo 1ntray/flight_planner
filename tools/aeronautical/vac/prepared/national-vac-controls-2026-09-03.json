@@ -1,0 +1,1385 @@
+{
+  "schemaVersion": 1,
+  "sourceEdition": "2026-09-03-AIRAC",
+  "extractionMethod": "Published VAC coordinate table matched geometrically to vector reporting-point triangle centroids; reviewed configurations retain independent holdouts.",
+  "charts": [
+    {
+      "icao": "ENAL",
+      "title": "ÅLESUND / Vigra Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623091.pdf",
+      "sourcePdfSha256": "4141c4e7cb14858ad943c3caf15c1efd5eb7a5305f65d98b47a15cf7562bcacc",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.669500000000006,
+        "top": 130.86599999999999,
+        "right": 534.2365,
+        "bottom": 684.604
+      },
+      "points": [
+        {
+          "name": "ASPØY",
+          "latitudeDms": "622833N",
+          "longitudeDms": "0060828E",
+          "sourcePointX": 331.97,
+          "sourcePointY": 490.13100000000003
+        },
+        {
+          "name": "AUSTNES",
+          "latitudeDms": "623755N",
+          "longitudeDms": "0061544E",
+          "sourcePointX": 407.829,
+          "sourcePointY": 344.44
+        },
+        {
+          "name": "BRANDAL",
+          "latitudeDms": "622421N",
+          "longitudeDms": "0060030E",
+          "sourcePointX": 262.1326666666667,
+          "sourcePointY": 550.3353333333333
+        },
+        {
+          "name": "DRYNA",
+          "latitudeDms": "623831N",
+          "longitudeDms": "0063110E",
+          "sourcePointX": 525.1506666666667,
+          "sourcePointY": 350.33200000000005
+        },
+        {
+          "name": "FJØRTOFT",
+          "latitudeDms": "624119N",
+          "longitudeDms": "0062330E",
+          "sourcePointX": 473.7093333333333,
+          "sourcePointY": 296.8406666666666
+        },
+        {
+          "name": "FLØ",
+          "latitudeDms": "622330N",
+          "longitudeDms": "0054920E",
+          "sourcePointX": 175.58266666666668,
+          "sourcePointY": 551.9643333333332
+        },
+        {
+          "name": "GJØSUND",
+          "latitudeDms": "623211N",
+          "longitudeDms": "0060653E",
+          "sourcePointX": 328.32166666666666,
+          "sourcePointY": 429.07766666666663
+        },
+        {
+          "name": "GODØY",
+          "latitudeDms": "622759N",
+          "longitudeDms": "0060152E",
+          "sourcePointX": 280.85966666666667,
+          "sourcePointY": 492.4043333333332
+        },
+        {
+          "name": "GRYTA",
+          "latitudeDms": "623152N",
+          "longitudeDms": "0061951E",
+          "sourcePointX": 425.3806666666667,
+          "sourcePointY": 447.5306666666666
+        },
+        {
+          "name": "INNHOLMEN",
+          "latitudeDms": "623738N",
+          "longitudeDms": "0060705E",
+          "sourcePointX": 342.1333333333334,
+          "sourcePointY": 340.2143333333333
+        },
+        {
+          "name": "KJÆRSTAD",
+          "latitudeDms": "623625N",
+          "longitudeDms": "0061300E",
+          "sourcePointX": 383.88733333333334,
+          "sourcePointY": 366.1043333333334
+        },
+        {
+          "name": "RUNDE",
+          "latitudeDms": "622459N",
+          "longitudeDms": "0053454E",
+          "sourcePointX": 69.81323333333334,
+          "sourcePointY": 512.1486666666667
+        },
+        {
+          "name": "RØRVIK",
+          "latitudeDms": "623411N",
+          "longitudeDms": "0060501E",
+          "sourcePointX": 318.78833333333336,
+          "sourcePointY": 394.291
+        },
+        {
+          "name": "SYKKYLVEN",
+          "latitudeDms": "622349N",
+          "longitudeDms": "0063524E",
+          "sourcePointX": 525.5096666666667,
+          "sourcePointY": 594.904
+        }
+      ]
+    },
+    {
+      "icao": "ENAN",
+      "title": "ANDØYA / Andenes Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623093.pdf",
+      "sourcePdfSha256": "af0181940560c1a6e91a6b7d7bd6f17c5a7cc6156dbec5efb913c2af90202bc8",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 62.80270000000001,
+        "top": 130.50699999999995,
+        "right": 533.3687,
+        "bottom": 684.245
+      },
+      "points": [
+        {
+          "name": "BLEIK",
+          "latitudeDms": "691615N",
+          "longitudeDms": "0155739E",
+          "sourcePointX": 182.09000000000003,
+          "sourcePointY": 311.23599999999993
+        },
+        {
+          "name": "DVERBERG",
+          "latitudeDms": "690700N",
+          "longitudeDms": "0155844E",
+          "sourcePointX": 192.26933333333332,
+          "sourcePointY": 488.2786666666666
+        },
+        {
+          "name": "GRØTAVÆR",
+          "latitudeDms": "685730N",
+          "longitudeDms": "0161604E",
+          "sourcePointX": 314.46266666666673,
+          "sourcePointY": 668.0403333333334
+        },
+        {
+          "name": "MELØYVÆR",
+          "latitudeDms": "690358N",
+          "longitudeDms": "0163334E",
+          "sourcePointX": 431.74100000000004,
+          "sourcePointY": 541.438
+        },
+        {
+          "name": "NORDMJELE",
+          "latitudeDms": "690800N",
+          "longitudeDms": "0154054E",
+          "sourcePointX": 70.19923333333334,
+          "sourcePointY": 470.77500000000003
+        },
+        {
+          "name": "STORVATNET",
+          "latitudeDms": "691630N",
+          "longitudeDms": "0160319E",
+          "sourcePointX": 220.4536666666667,
+          "sourcePointY": 305.8153333333334
+        },
+        {
+          "name": "VIKAN",
+          "latitudeDms": "691806N",
+          "longitudeDms": "0161000E",
+          "sourcePointX": 265.205,
+          "sourcePointY": 274.35033333333325
+        },
+        {
+          "name": "ØRJA",
+          "latitudeDms": "691600N",
+          "longitudeDms": "0164754E",
+          "sourcePointX": 523.1236666666667,
+          "sourcePointY": 308.34499999999997
+        },
+        {
+          "name": "ÅSE",
+          "latitudeDms": "690240N",
+          "longitudeDms": "0155021E",
+          "sourcePointX": 136.12166666666667,
+          "sourcePointY": 572.1229999999999
+        }
+      ]
+    },
+    {
+      "icao": "ENBO",
+      "title": "BODØ Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623101.pdf",
+      "sourcePdfSha256": "88082c8a6a956fb35f2bbbdb2b5a3c01321c1aef736875ae5a615ac0ba0db471",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.9395,
+        "top": 130.50699999999995,
+        "right": 534.5065000000001,
+        "bottom": 684.245
+      },
+      "points": [
+        {
+          "name": "BJØRNØY LIGHT",
+          "latitudeDms": "672509N",
+          "longitudeDms": "0142540E",
+          "sourcePointX": 316.43,
+          "sourcePointY": 296.308
+        },
+        {
+          "name": "CUTTY",
+          "latitudeDms": "671510N",
+          "longitudeDms": "0145555E",
+          "sourcePointX": 504.6566666666667,
+          "sourcePointY": 459.04799999999994
+        },
+        {
+          "name": "HJARTØY",
+          "latitudeDms": "671714N",
+          "longitudeDms": "0141730E",
+          "sourcePointX": 264.1033333333333,
+          "sourcePointY": 424.05699999999996
+        },
+        {
+          "name": "KVALNES",
+          "latitudeDms": "671415N",
+          "longitudeDms": "0144937E",
+          "sourcePointX": 465.1036666666667,
+          "sourcePointY": 473.825
+        },
+        {
+          "name": "LANDEGO WEST",
+          "latitudeDms": "672321N",
+          "longitudeDms": "0141232E",
+          "sourcePointX": 234.2636666666667,
+          "sourcePointY": 324.5733333333333
+        },
+        {
+          "name": "MÅRNES",
+          "latitudeDms": "670900N",
+          "longitudeDms": "0140500E",
+          "sourcePointX": 183.85733333333334,
+          "sourcePointY": 556.4303333333334
+        },
+        {
+          "name": "SALTSTRAUMEN",
+          "latitudeDms": "671400N",
+          "longitudeDms": "0143810E",
+          "sourcePointX": 393.224,
+          "sourcePointY": 477.5663333333334
+        },
+        {
+          "name": "SEINES",
+          "latitudeDms": "671257N",
+          "longitudeDms": "0142250E",
+          "sourcePointX": 296.81333333333333,
+          "sourcePointY": 493.8153333333333
+        },
+        {
+          "name": "SKÅNLAND",
+          "latitudeDms": "671022N",
+          "longitudeDms": "0142008E",
+          "sourcePointX": 279.40500000000003,
+          "sourcePointY": 535.4999999999999
+        },
+        {
+          "name": "TWINS",
+          "latitudeDms": "670900N",
+          "longitudeDms": "0135715E",
+          "sourcePointX": 135.04833333333332,
+          "sourcePointY": 555.66
+        },
+        {
+          "name": "VOKKY",
+          "latitudeDms": "672610N",
+          "longitudeDms": "0135827E",
+          "sourcePointX": 147.19933333333336,
+          "sourcePointY": 277.6513333333333
+        }
+      ]
+    },
+    {
+      "icao": "ENCN",
+      "title": "KRISTIANSAND / Kjevik Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623260.pdf",
+      "sourcePdfSha256": "21c337f8493ab65c6f1ac27301625b61fd31d4d2eb0817f5e0eb8d34e19bdefe",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.6711,
+        "top": 130.534,
+        "right": 534.1141000000001,
+        "bottom": 684.262
+      },
+      "points": [
+        {
+          "name": "GREIPSTAD",
+          "latitudeDms": "580846N",
+          "longitudeDms": "0075021E",
+          "sourcePointX": 143.42966666666666,
+          "sourcePointY": 459.2083333333333
+        },
+        {
+          "name": "GRØNNINGEN",
+          "latitudeDms": "580445N",
+          "longitudeDms": "0080520E",
+          "sourcePointX": 286.535,
+          "sourcePointY": 551.6076666666667
+        },
+        {
+          "name": "HØVÅG",
+          "latitudeDms": "581008N",
+          "longitudeDms": "0081405E",
+          "sourcePointX": 385.22900000000004,
+          "sourcePointY": 457.9666666666667
+        },
+        {
+          "name": "NYLAND",
+          "latitudeDms": "581322N",
+          "longitudeDms": "0081747E",
+          "sourcePointX": 428.657,
+          "sourcePointY": 400.0586666666666
+        },
+        {
+          "name": "RAMSELIA",
+          "latitudeDms": "582048N",
+          "longitudeDms": "0080735E",
+          "sourcePointX": 340.60100000000006,
+          "sourcePointY": 247.97399999999996
+        },
+        {
+          "name": "RCF E",
+          "latitudeDms": "581140N",
+          "longitudeDms": "0080639E",
+          "sourcePointX": 313.358,
+          "sourcePointY": 421.1193333333333
+        },
+        {
+          "name": "RCF W",
+          "latitudeDms": "581249N",
+          "longitudeDms": "0080333E",
+          "sourcePointX": 284.427,
+          "sourcePointY": 395.9826666666666
+        },
+        {
+          "name": "STEMMANE",
+          "latitudeDms": "581026N",
+          "longitudeDms": "0080751E",
+          "sourcePointX": 323.029,
+          "sourcePointY": 445.86966666666666
+        },
+        {
+          "name": "VENNESLA",
+          "latitudeDms": "581600N",
+          "longitudeDms": "0075800E",
+          "sourcePointX": 234.96833333333333,
+          "sourcePointY": 329.4916666666667
+        },
+        {
+          "name": "ÅLEFJÆR",
+          "latitudeDms": "581358N",
+          "longitudeDms": "0080140E",
+          "sourcePointX": 267.76233333333334,
+          "sourcePointY": 372.0973333333333
+        }
+      ]
+    },
+    {
+      "icao": "ENEV",
+      "title": "HARSTAD/NARVIK / Evenes Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623113.pdf",
+      "sourcePdfSha256": "eb3ac203d7c341a92625115c50e185fa0e90b8a35c136252e16f74b9980f9a8b",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.60940000000001,
+        "top": 130.543,
+        "right": 534.296,
+        "bottom": 684.56
+      },
+      "points": [
+        {
+          "name": "BERGET",
+          "latitudeDms": "682358N",
+          "longitudeDms": "0165022E",
+          "sourcePointX": 396.6603333333333,
+          "sourcePointY": 541.4663333333333
+        },
+        {
+          "name": "BREIVIKA",
+          "latitudeDms": "684451N",
+          "longitudeDms": "0163349E",
+          "sourcePointX": 269.6893333333333,
+          "sourcePointY": 144.635
+        },
+        {
+          "name": "FINNVIK",
+          "latitudeDms": "682256N",
+          "longitudeDms": "0162414E",
+          "sourcePointX": 212.66366666666667,
+          "sourcePointY": 566.119
+        },
+        {
+          "name": "FJELLDAL",
+          "latitudeDms": "683340N",
+          "longitudeDms": "0163155E",
+          "sourcePointX": 261.8226666666667,
+          "sourcePointY": 359.2086666666666
+        },
+        {
+          "name": "FORRA",
+          "latitudeDms": "682720N",
+          "longitudeDms": "0170045E",
+          "sourcePointX": 467.8296666666667,
+          "sourcePointY": 474.695
+        },
+        {
+          "name": "KILBOTN",
+          "latitudeDms": "684300N",
+          "longitudeDms": "0163220E",
+          "sourcePointX": 260.26933333333335,
+          "sourcePointY": 180.336
+        },
+        {
+          "name": "KONGSVIKA",
+          "latitudeDms": "683349N",
+          "longitudeDms": "0161454E",
+          "sourcePointX": 142.50700000000003,
+          "sourcePointY": 359.0286666666666
+        },
+        {
+          "name": "OSVATNET",
+          "latitudeDms": "682950N",
+          "longitudeDms": "0165000E",
+          "sourcePointX": 390.7283333333333,
+          "sourcePointY": 429.1713333333333
+        },
+        {
+          "name": "SKARSTAD",
+          "latitudeDms": "682220N",
+          "longitudeDms": "0161630E",
+          "sourcePointX": 158.27433333333335,
+          "sourcePointY": 578.801
+        },
+        {
+          "name": "SKOGØY",
+          "latitudeDms": "682942N",
+          "longitudeDms": "0165824E",
+          "sourcePointX": 449.83400000000006,
+          "sourcePointY": 429.89900000000006
+        },
+        {
+          "name": "TOVIK",
+          "latitudeDms": "684050N",
+          "longitudeDms": "0165205E",
+          "sourcePointX": 398.96900000000005,
+          "sourcePointY": 218.02800000000002
+        },
+        {
+          "name": "ØYVATNET",
+          "latitudeDms": "683651N",
+          "longitudeDms": "0164541E",
+          "sourcePointX": 356.54733333333337,
+          "sourcePointY": 295.649
+        }
+      ]
+    },
+    {
+      "icao": "ENGK",
+      "title": "ARENDAL / Gullknapp Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623258.pdf",
+      "sourcePdfSha256": "e783876161242b59eab343d9e1e5419f498230719525248ef38217bb785cf717",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 64.1211,
+        "top": 130.534,
+        "right": 534.5641,
+        "bottom": 684.262
+      },
+      "points": [
+        {
+          "name": "EIVINDSTAD",
+          "latitudeDms": "583235N",
+          "longitudeDms": "0084027E",
+          "sourcePointX": 308.97133333333335,
+          "sourcePointY": 393.76233333333334
+        },
+        {
+          "name": "FLOSTA",
+          "latitudeDms": "583143N",
+          "longitudeDms": "0085604E",
+          "sourcePointX": 450.3403333333334,
+          "sourcePointY": 422.13733333333334
+        },
+        {
+          "name": "GALTESUND",
+          "latitudeDms": "582617N",
+          "longitudeDms": "0084707E",
+          "sourcePointX": 359.67800000000005,
+          "sourcePointY": 509.6276666666666
+        },
+        {
+          "name": "JOMÅS",
+          "latitudeDms": "583547N",
+          "longitudeDms": "0083729E",
+          "sourcePointX": 287.192,
+          "sourcePointY": 335.24299999999994
+        },
+        {
+          "name": "MJÅVATN",
+          "latitudeDms": "583214N",
+          "longitudeDms": "0082947E",
+          "sourcePointX": 210.89833333333334,
+          "sourcePointY": 390.52933333333334
+        },
+        {
+          "name": "NESVERK",
+          "latitudeDms": "583735N",
+          "longitudeDms": "0085057E",
+          "sourcePointX": 412.982,
+          "sourcePointY": 315.28266666666667
+        },
+        {
+          "name": "RYKENE",
+          "latitudeDms": "582430N",
+          "longitudeDms": "0083823E",
+          "sourcePointX": 276.65766666666667,
+          "sourcePointY": 533.2883333333333
+        },
+        {
+          "name": "UGLEBU",
+          "latitudeDms": "582930N",
+          "longitudeDms": "0084451E",
+          "sourcePointX": 344.1493333333333,
+          "sourcePointY": 451.45266666666663
+        }
+      ]
+    },
+    {
+      "icao": "ENGM",
+      "title": "OSLO / Gardermoen Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623422.pdf",
+      "sourcePdfSha256": "5f046c6bfbaa09e79d251be493e21bcdd902d81684ebc78ffc87f02c8a5da71d",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 62.01090000000001,
+        "top": 130.50699999999995,
+        "right": 532.5769,
+        "bottom": 684.245
+      },
+      "points": [
+        {
+          "name": "COZIP",
+          "latitudeDms": "601716N",
+          "longitudeDms": "0111433E",
+          "sourcePointX": 373.377,
+          "sourcePointY": 298.2563333333333
+        },
+        {
+          "name": "EXLOF",
+          "latitudeDms": "600414N",
+          "longitudeDms": "0110700E",
+          "sourcePointX": 294.2583333333334,
+          "sourcePointY": 522.6483333333334
+        },
+        {
+          "name": "MIDWO",
+          "latitudeDms": "600554N",
+          "longitudeDms": "0105717E",
+          "sourcePointX": 210.97866666666667,
+          "sourcePointY": 488.5986666666666
+        },
+        {
+          "name": "NANNESTAD",
+          "latitudeDms": "601303N",
+          "longitudeDms": "0105815E",
+          "sourcePointX": 227.14466666666667,
+          "sourcePointY": 363.7803333333333
+        },
+        {
+          "name": "NORDKISA",
+          "latitudeDms": "601105N",
+          "longitudeDms": "0111550E",
+          "sourcePointX": 378.4313333333334,
+          "sourcePointY": 407.257
+        },
+        {
+          "name": "RÅSJØEN",
+          "latitudeDms": "601230N",
+          "longitudeDms": "0104810E",
+          "sourcePointX": 138.66766666666666,
+          "sourcePointY": 367.92699999999996
+        },
+        {
+          "name": "VORMSUND",
+          "latitudeDms": "600918N",
+          "longitudeDms": "0112505E",
+          "sourcePointX": 457.4393333333334,
+          "sourcePointY": 442.979
+        },
+        {
+          "name": "YOMME",
+          "latitudeDms": "601916N",
+          "longitudeDms": "0110458E",
+          "sourcePointX": 292.14933333333335,
+          "sourcePointY": 258.395
+        }
+      ]
+    },
+    {
+      "icao": "ENHD",
+      "title": "HAUGESUND / Karmøy Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623089.pdf",
+      "sourcePdfSha256": "afdcc303e03963b5446b5d353c8b9d454c9ed646efa51154ce617c336fd2af55",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.4895,
+        "top": 130.327,
+        "right": 534.416,
+        "bottom": 684.424
+      },
+      "points": [
+        {
+          "name": "BOKN VEST",
+          "latitudeDms": "591000N",
+          "longitudeDms": "0052300E",
+          "sourcePointX": 337.189,
+          "sourcePointY": 540.5756666666667
+        },
+        {
+          "name": "BOKN ØST",
+          "latitudeDms": "591527N",
+          "longitudeDms": "0052657E",
+          "sourcePointX": 386.2323333333334,
+          "sourcePointY": 450.776
+        },
+        {
+          "name": "BRIDGE",
+          "latitudeDms": "592228N",
+          "longitudeDms": "0051727E",
+          "sourcePointX": 319.491,
+          "sourcePointY": 316.24133333333333
+        },
+        {
+          "name": "GRINDE",
+          "latitudeDms": "592550N",
+          "longitudeDms": "0052734E",
+          "sourcePointX": 417.8783333333334,
+          "sourcePointY": 270.7283333333333
+        },
+        {
+          "name": "HAUGESUND",
+          "latitudeDms": "592414N",
+          "longitudeDms": "0051403E",
+          "sourcePointX": 293.8376666666667,
+          "sourcePointY": 281.02366666666666
+        },
+        {
+          "name": "KVITSØY",
+          "latitudeDms": "590348N",
+          "longitudeDms": "0052400E",
+          "sourcePointX": 330.4576666666667,
+          "sourcePointY": 649.8533333333334
+        },
+        {
+          "name": "RYVARDEN",
+          "latitudeDms": "593138N",
+          "longitudeDms": "0051331E",
+          "sourcePointX": 308.22,
+          "sourcePointY": 151.48733333333328
+        },
+        {
+          "name": "RØKSUND",
+          "latitudeDms": "591958N",
+          "longitudeDms": "0052142E",
+          "sourcePointX": 350.89633333333336,
+          "sourcePointY": 365.31733333333335
+        },
+        {
+          "name": "SKJOLD",
+          "latitudeDms": "592543N",
+          "longitudeDms": "0053719E",
+          "sourcePointX": 504.11000000000007,
+          "sourcePointY": 285.17233333333337
+        },
+        {
+          "name": "SKUDE",
+          "latitudeDms": "590858N",
+          "longitudeDms": "0051215E",
+          "sourcePointX": 238.40933333333336,
+          "sourcePointY": 544.45
+        },
+        {
+          "name": "SVEIO",
+          "latitudeDms": "593311N",
+          "longitudeDms": "0052404E",
+          "sourcePointX": 405.474,
+          "sourcePointY": 138.226
+        },
+        {
+          "name": "UTSIRA",
+          "latitudeDms": "591824N",
+          "longitudeDms": "0045317E",
+          "sourcePointX": 93.96250000000002,
+          "sourcePointY": 354.734
+        },
+        {
+          "name": "VEA",
+          "latitudeDms": "591748N",
+          "longitudeDms": "0051154E",
+          "sourcePointX": 258.10633333333334,
+          "sourcePointY": 390.1943333333333
+        }
+      ]
+    },
+    {
+      "icao": "ENKB",
+      "title": "KRISTIANSUND / Kvernberget Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623125.pdf",
+      "sourcePdfSha256": "efe5d5d06eb2ffa8c92a07043ac7b2ee60cdde582ae61f7d8c7ca425b465cfcf",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.07340000000001,
+        "top": 130.50700000000006,
+        "right": 533.6394,
+        "bottom": 684.2429999999999
+      },
+      "points": [
+        {
+          "name": "EDØY",
+          "latitudeDms": "631709N",
+          "longitudeDms": "0080754E",
+          "sourcePointX": 502.98500000000007,
+          "sourcePointY": 250.32833333333335
+        },
+        {
+          "name": "HALSA",
+          "latitudeDms": "630404N",
+          "longitudeDms": "0081343E",
+          "sourcePointX": 522.8516666666667,
+          "sourcePointY": 465.84233333333333
+        },
+        {
+          "name": "HESTESKJÆR",
+          "latitudeDms": "630505N",
+          "longitudeDms": "0072929E",
+          "sourcePointX": 201.367,
+          "sourcePointY": 413.34499999999997
+        },
+        {
+          "name": "KVALVÅG",
+          "latitudeDms": "630414N",
+          "longitudeDms": "0075329E",
+          "sourcePointX": 375.17733333333337,
+          "sourcePointY": 447.0983333333333
+        },
+        {
+          "name": "KVERNES",
+          "latitudeDms": "630019N",
+          "longitudeDms": "0074304E",
+          "sourcePointX": 291.8386666666667,
+          "sourcePointY": 501.6513333333333
+        },
+        {
+          "name": "KVITHOLM",
+          "latitudeDms": "630124N",
+          "longitudeDms": "0071404E",
+          "sourcePointX": 81.5776,
+          "sourcePointY": 459.2093333333333
+        },
+        {
+          "name": "MOY",
+          "latitudeDms": "631019N",
+          "longitudeDms": "0075134E",
+          "sourcePointX": 372.1223333333333,
+          "sourcePointY": 347.472
+        },
+        {
+          "name": "STAVNES",
+          "latitudeDms": "630653N",
+          "longitudeDms": "0073944E",
+          "sourcePointX": 279.5683333333333,
+          "sourcePointY": 393.03333333333336
+        }
+      ]
+    },
+    {
+      "icao": "ENKR",
+      "title": "KIRKENES / Høybuktmoen Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623127.pdf",
+      "sourcePdfSha256": "33379264c12ce603def6b1d56e403382869ce06db84c6560a7f830092f802566",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.5793,
+        "top": 130.50699999999995,
+        "right": 534.1463,
+        "bottom": 684.245
+      },
+      "points": [
+        {
+          "name": "BUGØYFJORD",
+          "latitudeDms": "695132N",
+          "longitudeDms": "0292256E",
+          "sourcePointX": 114.78000000000002,
+          "sourcePointY": 299.7953333333333
+        },
+        {
+          "name": "BØKFJORD FYR",
+          "latitudeDms": "695239N",
+          "longitudeDms": "0301034E",
+          "sourcePointX": 390.78700000000003,
+          "sourcePointY": 211.1479999999999
+        },
+        {
+          "name": "JARFJORDBOTN",
+          "latitudeDms": "694007N",
+          "longitudeDms": "0301831E",
+          "sourcePointX": 492.52400000000006,
+          "sourcePointY": 413.238
+        },
+        {
+          "name": "JERESTAN",
+          "latitudeDms": "694758N",
+          "longitudeDms": "0293158E",
+          "sourcePointX": 182.96866666666668,
+          "sourcePointY": 347.96999999999997
+        },
+        {
+          "name": "KJØFJORDEN",
+          "latitudeDms": "695020N",
+          "longitudeDms": "0294710E",
+          "sourcePointX": 262.8573333333334,
+          "sourcePointY": 285.39799999999997
+        },
+        {
+          "name": "LANGFJORDEN",
+          "latitudeDms": "693725N",
+          "longitudeDms": "0295607E",
+          "sourcePointX": 370.94166666666666,
+          "sourcePointY": 493.152
+        },
+        {
+          "name": "STEINSKJERET",
+          "latitudeDms": "694505N",
+          "longitudeDms": "0294940E",
+          "sourcePointX": 299.9266666666667,
+          "sourcePointY": 371.556
+        },
+        {
+          "name": "STRØMMEN",
+          "latitudeDms": "694135N",
+          "longitudeDms": "0295501E",
+          "sourcePointX": 346.5846666666667,
+          "sourcePointY": 423.5213333333333
+        },
+        {
+          "name": "ØVRE NEIDEN",
+          "latitudeDms": "694035N",
+          "longitudeDms": "0290843E",
+          "sourcePointX": 75.20663333333334,
+          "sourcePointY": 507.6273333333333
+        }
+      ]
+    },
+    {
+      "icao": "ENOV",
+      "title": "ØRSTA-VOLDA / Hovden Visual Approach Chart - ICAO",
+      "chartDate": "2026-06-11",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638672.pdf",
+      "sourcePdfSha256": "8344ca91229cd822b3df3139e0f5ccc1b61428e658dc1145ded84e7abf7a906a",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.6711,
+        "top": 130.534,
+        "right": 534.1141000000001,
+        "bottom": 684.262
+      },
+      "transformOrder": 1,
+      "minimumControlSpanFraction": 0.3,
+      "points": [
+        {
+          "name": "BONDALSEIDET",
+          "latitudeDms": "620937N",
+          "longitudeDms": "0061759E",
+          "sourcePointX": 491.1123333333334,
+          "sourcePointY": 470.4693333333333
+        },
+        {
+          "name": "DIMNA",
+          "latitudeDms": "621904N",
+          "longitudeDms": "0054909E",
+          "sourcePointX": 237.49066666666667,
+          "sourcePointY": 233.78733333333335
+        },
+        {
+          "name": "HØYDAL",
+          "latitudeDms": "620421N",
+          "longitudeDms": "0061248E",
+          "sourcePointX": 425.38300000000004,
+          "sourcePointY": 573.6993333333334
+        },
+        {
+          "name": "KILE",
+          "latitudeDms": "620343N",
+          "longitudeDms": "0060354E",
+          "sourcePointX": 336.2773333333334,
+          "sourcePointY": 574.9176666666667
+        },
+        {
+          "name": "LARSNES",
+          "latitudeDms": "621202N",
+          "longitudeDms": "0053525E",
+          "sourcePointX": 82.47710000000001,
+          "sourcePointY": 361.3533333333333
+        },
+        {
+          "name": "LØVIK",
+          "latitudeDms": "620555N",
+          "longitudeDms": "0055653E",
+          "sourcePointX": 273.93833333333333,
+          "sourcePointY": 519.3133333333334
+        },
+        {
+          "name": "RJÅNES",
+          "latitudeDms": "621453N",
+          "longitudeDms": "0055807E",
+          "sourcePointX": 312.359,
+          "sourcePointY": 333.59666666666664
+        }
+      ]
+    },
+    {
+      "icao": "ENRE",
+      "title": "LANDSØRKJE / Rena Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623149.pdf",
+      "sourcePdfSha256": "7f57fb8972ef8d3168865d07ca3cc2f86d3bfc17bd6493bbe99f85330c5eb2a6",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.6102,
+        "top": 130.54399999999998,
+        "right": 534.2962,
+        "bottom": 684.56
+      },
+      "points": [
+        {
+          "name": "DEISJØEN",
+          "latitudeDms": "611359N",
+          "longitudeDms": "0113359E",
+          "sourcePointX": 416.17333333333335,
+          "sourcePointY": 320.149
+        },
+        {
+          "name": "DESE",
+          "latitudeDms": "611803N",
+          "longitudeDms": "0112728E",
+          "sourcePointX": 354.74533333333335,
+          "sourcePointY": 231.07199999999997
+        },
+        {
+          "name": "KLETTEN",
+          "latitudeDms": "611303N",
+          "longitudeDms": "0111849E",
+          "sourcePointX": 261.29966666666667,
+          "sourcePointY": 331.3936666666666
+        },
+        {
+          "name": "OPPHUS",
+          "latitudeDms": "611950N",
+          "longitudeDms": "0111532E",
+          "sourcePointX": 236.179,
+          "sourcePointY": 186.82233333333332
+        },
+        {
+          "name": "RYSSJØEN",
+          "latitudeDms": "610446N",
+          "longitudeDms": "0113452E",
+          "sourcePointX": 414.9843333333334,
+          "sourcePointY": 514.511
+        },
+        {
+          "name": "SKRAMSTADSETRA",
+          "latitudeDms": "610816N",
+          "longitudeDms": "0111133E",
+          "sourcePointX": 181.73433333333332,
+          "sourcePointY": 427.7663333333333
+        },
+        {
+          "name": "STEINVIKA",
+          "latitudeDms": "611533N",
+          "longitudeDms": "0111912E",
+          "sourcePointX": 268.15200000000004,
+          "sourcePointY": 279.0276666666667
+        },
+        {
+          "name": "ØKSNA",
+          "latitudeDms": "605903N",
+          "longitudeDms": "0112730E",
+          "sourcePointX": 333.41966666666667,
+          "sourcePointY": 630.7669999999999
+        },
+        {
+          "name": "ØSTERSJØEN",
+          "latitudeDms": "610653N",
+          "longitudeDms": "0112709E",
+          "sourcePointX": 338.78000000000003,
+          "sourcePointY": 465.79699999999997
+        },
+        {
+          "name": "ÅSTA",
+          "latitudeDms": "610436N",
+          "longitudeDms": "0112047E",
+          "sourcePointX": 271.3066666666667,
+          "sourcePointY": 510.25399999999996
+        }
+      ]
+    },
+    {
+      "icao": "ENRO",
+      "title": "RØROS Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623155.pdf",
+      "sourcePdfSha256": "9b8e51ac274781ebbed15ff5e3563d97f40efc1eb6b53b7f2ca86bd43089533d",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 42.794900000000005,
+        "top": 102.87199999999996,
+        "right": 560.2739,
+        "bottom": 711.922
+      },
+      "points": [
+        {
+          "name": "GLÅMOS",
+          "latitudeDms": "624032N",
+          "longitudeDms": "0112557E",
+          "sourcePointX": 343.112,
+          "sourcePointY": 326.66666666666663
+        },
+        {
+          "name": "NARBUVOLL",
+          "latitudeDms": "622057N",
+          "longitudeDms": "0112756E",
+          "sourcePointX": 340.5016666666667,
+          "sourcePointY": 644.247
+        },
+        {
+          "name": "NESVOLL",
+          "latitudeDms": "624535N",
+          "longitudeDms": "0112045E",
+          "sourcePointX": 309.0886666666667,
+          "sourcePointY": 242.81733333333332
+        },
+        {
+          "name": "OS",
+          "latitudeDms": "622955N",
+          "longitudeDms": "0111321E",
+          "sourcePointX": 239.3803333333333,
+          "sourcePointY": 493.0276666666666
+        },
+        {
+          "name": "STORWARTZ",
+          "latitudeDms": "623748N",
+          "longitudeDms": "0113151E",
+          "sourcePointX": 384.59633333333335,
+          "sourcePointY": 373.27833333333336
+        },
+        {
+          "name": "SÆTERSJØEN",
+          "latitudeDms": "623355N",
+          "longitudeDms": "0111120E",
+          "sourcePointX": 228.12266666666667,
+          "sourcePointY": 427.44966666666664
+        },
+        {
+          "name": "TOLGA",
+          "latitudeDms": "622430N",
+          "longitudeDms": "0105934E",
+          "sourcePointX": 130.877,
+          "sourcePointY": 574.3953333333333
+        },
+        {
+          "name": "ÅLEN",
+          "latitudeDms": "625036N",
+          "longitudeDms": "0111746E",
+          "sourcePointX": 291.64466666666664,
+          "sourcePointY": 160.41499999999996
+        }
+      ]
+    },
+    {
+      "icao": "ENSO",
+      "title": "STORD / Sørstokken Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623167.pdf",
+      "sourcePdfSha256": "6bb2792cf209be5a388883f0ffd9849d8551aaee192e66d37fe3d2053db77aa4",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 64.0906,
+        "top": 130.54399999999998,
+        "right": 534.7776,
+        "bottom": 684.56
+      },
+      "points": [
+        {
+          "name": "BUANES",
+          "latitudeDms": "593600N",
+          "longitudeDms": "0051900E",
+          "sourcePointX": 212.21033333333335,
+          "sourcePointY": 599.6686666666666
+        },
+        {
+          "name": "HISKJO",
+          "latitudeDms": "594330N",
+          "longitudeDms": "0050800E",
+          "sourcePointX": 129.16733333333335,
+          "sourcePointY": 444.2653333333333
+        },
+        {
+          "name": "HUGLO",
+          "latitudeDms": "595200N",
+          "longitudeDms": "0053300E",
+          "sourcePointX": 387.61733333333336,
+          "sourcePointY": 320.20666666666665
+        },
+        {
+          "name": "ROMSA",
+          "latitudeDms": "594100N",
+          "longitudeDms": "0054500E",
+          "sourcePointX": 471.3776666666667,
+          "sourcePointY": 541.679
+        },
+        {
+          "name": "SANDVIKVÅG",
+          "latitudeDms": "595900N",
+          "longitudeDms": "0051900E",
+          "sourcePointX": 275.5063333333333,
+          "sourcePointY": 170.41600000000003
+        },
+        {
+          "name": "SELBJØRN",
+          "latitudeDms": "595800N",
+          "longitudeDms": "0050600E",
+          "sourcePointX": 151.14566666666667,
+          "sourcePointY": 170.9079999999999
+        },
+        {
+          "name": "SVEIO",
+          "latitudeDms": "593311N",
+          "longitudeDms": "0052404E",
+          "sourcePointX": 252.47933333333333,
+          "sourcePointY": 659.2703333333333
+        },
+        {
+          "name": "VIKEBYGD",
+          "latitudeDms": "593530N",
+          "longitudeDms": "0053300E",
+          "sourcePointX": 343.33766666666673,
+          "sourcePointY": 628.261
+        }
+      ]
+    },
+    {
+      "icao": "ENTC",
+      "title": "TROMSØ / Langnes Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623173.pdf",
+      "sourcePdfSha256": "864c552dba14af7f1fefbef08344728a1b7f3f45ea1a84d6ad2275ca8a45be64",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 62.898,
+        "top": 130.54399999999998,
+        "right": 533.585,
+        "bottom": 684.56
+      },
+      "points": [
+        {
+          "name": "ANSNES",
+          "latitudeDms": "693006N",
+          "longitudeDms": "0182540E",
+          "sourcePointX": 143.942,
+          "sourcePointY": 594.7926666666666
+        },
+        {
+          "name": "BERG",
+          "latitudeDms": "693418N",
+          "longitudeDms": "0185633E",
+          "sourcePointX": 314.7796666666667,
+          "sourcePointY": 516.236
+        },
+        {
+          "name": "BREIVIKA",
+          "latitudeDms": "694030N",
+          "longitudeDms": "0185855E",
+          "sourcePointX": 321.613,
+          "sourcePointY": 415.01
+        },
+        {
+          "name": "ERSFJORD",
+          "latitudeDms": "694215N",
+          "longitudeDms": "0182519E",
+          "sourcePointX": 130.929,
+          "sourcePointY": 398.1453333333333
+        },
+        {
+          "name": "HÅKØYA",
+          "latitudeDms": "694000N",
+          "longitudeDms": "0184925E",
+          "sourcePointX": 268.6646666666667,
+          "sourcePointY": 426.5253333333333
+        },
+        {
+          "name": "MOVIKVANN",
+          "latitudeDms": "694255N",
+          "longitudeDms": "0190909E",
+          "sourcePointX": 376.522,
+          "sourcePointY": 372.06166666666667
+        },
+        {
+          "name": "MUSVÆR",
+          "latitudeDms": "695306N",
+          "longitudeDms": "0183442E",
+          "sourcePointX": 173.364,
+          "sourcePointY": 219.43200000000002
+        },
+        {
+          "name": "NIPØYA",
+          "latitudeDms": "694920N",
+          "longitudeDms": "0192903E",
+          "sourcePointX": 480.60100000000006,
+          "sourcePointY": 260.335
+        },
+        {
+          "name": "RAKNES",
+          "latitudeDms": "694950N",
+          "longitudeDms": "0185744E",
+          "sourcePointX": 305.1383333333333,
+          "sourcePointY": 264.3676666666666
+        },
+        {
+          "name": "REMMAN",
+          "latitudeDms": "694603N",
+          "longitudeDms": "0190302E",
+          "sourcePointX": 338.80866666666674,
+          "sourcePointY": 323.6579999999999
+        },
+        {
+          "name": "RYA",
+          "latitudeDms": "693330N",
+          "longitudeDms": "0184255E",
+          "sourcePointX": 238.477,
+          "sourcePointY": 534.0236666666666
+        },
+        {
+          "name": "SELNES",
+          "latitudeDms": "692624N",
+          "longitudeDms": "0185955E",
+          "sourcePointX": 342.18700000000007,
+          "sourcePointY": 642.868
+        },
+        {
+          "name": "TØNSNES",
+          "latitudeDms": "694355N",
+          "longitudeDms": "0190535E",
+          "sourcePointX": 355.4096666666667,
+          "sourcePointY": 357.23033333333325
+        }
+      ]
+    },
+    {
+      "icao": "ENZV",
+      "title": "STAVANGER / Sola Visual Approach Chart - ICAO",
+      "chartDate": "2026-05-14",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623189.pdf",
+      "sourcePdfSha256": "a8f3a51b5d2913e6e562eee105d0b1533922381339036003794cbe69f9ce3b87",
+      "page": 1,
+      "cropPdfPoints": {
+        "left": 63.3703,
+        "top": 130.30399999999997,
+        "right": 534.538,
+        "bottom": 684.8
+      },
+      "points": [
+        {
+          "name": "BRYNE",
+          "latitudeDms": "584428N",
+          "longitudeDms": "0054055E",
+          "sourcePointX": 310.69866666666667,
+          "sourcePointY": 554.4350000000001
+        },
+        {
+          "name": "FLATHOLMEN",
+          "latitudeDms": "585530N",
+          "longitudeDms": "0053300E",
+          "sourcePointX": 269.76366666666667,
+          "sourcePointY": 367.568
+        },
+        {
+          "name": "FORUS",
+          "latitudeDms": "585358N",
+          "longitudeDms": "0054225E",
+          "sourcePointX": 344.646,
+          "sourcePointY": 403.31866666666673
+        },
+        {
+          "name": "KVITSØY",
+          "latitudeDms": "590348N",
+          "longitudeDms": "0052400E",
+          "sourcePointX": 214.25833333333335,
+          "sourcePointY": 223.30933333333326
+        },
+        {
+          "name": "LUTSIVANN",
+          "latitudeDms": "585212N",
+          "longitudeDms": "0054914E",
+          "sourcePointX": 397.4756666666667,
+          "sourcePointY": 439.65599999999995
+        },
+        {
+          "name": "REVE",
+          "latitudeDms": "584458N",
+          "longitudeDms": "0052855E",
+          "sourcePointX": 211.48866666666666,
+          "sourcePointY": 532.158
+        },
+        {
+          "name": "SANDNES",
+          "latitudeDms": "585058N",
+          "longitudeDms": "0054425E",
+          "sourcePointX": 354.56200000000007,
+          "sourcePointY": 453.924
+        },
+        {
+          "name": "STAVANGER",
+          "latitudeDms": "585800N",
+          "longitudeDms": "0054533E",
+          "sourcePointX": 379.7816666666667,
+          "sourcePointY": 342.055
+        },
+        {
+          "name": "TUNGENES",
+          "latitudeDms": "590210N",
+          "longitudeDms": "0053455E",
+          "sourcePointX": 300.954,
+          "sourcePointY": 262.57899999999995
+        },
+        {
+          "name": "VARHAUG",
+          "latitudeDms": "583738N",
+          "longitudeDms": "0053742E",
+          "sourcePointX": 268.29133333333334,
+          "sourcePointY": 660.605
+        },
+        {
+          "name": "VIGDEL",
+          "latitudeDms": "585058N",
+          "longitudeDms": "0053255E",
+          "sourcePointX": 258.6766666666667,
+          "sourcePointY": 440.405
+        },
+        {
+          "name": "ÅLGÅRD",
+          "latitudeDms": "584558N",
+          "longitudeDms": "0055055E",
+          "sourcePointX": 397.6806666666667,
+          "sourcePointY": 541.9209999999999
+        }
+      ]
+    }
+  ]
+}

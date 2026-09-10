@@ -1,0 +1,105 @@
+{
+  "id": "vac:ENKB:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENKB",
+  "title": "KRISTIANSUND / Kvernberget Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "efe5d5d06eb2ffa8c92a07043ac7b2ee60cdde582ae61f7d8c7ca425b465cfcf",
+  "imageUrl": "aeronautical/vac/enkb/2026-05-14-efe5d5d0-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 7.103961,
+    "east": 8.3061685,
+    "south": 62.7915536,
+    "north": 63.4115948
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "EDØY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 7332.083333333336,
+      "pixelY": 1997.1388888888896,
+      "latitude": 63.28583333333333,
+      "longitude": 8.131666666666668
+    },
+    {
+      "label": "KVALVÅG",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5201.955555555556,
+      "pixelY": 5276.638888888889,
+      "latitude": 63.07055555555556,
+      "longitude": 7.891388888888889
+    },
+    {
+      "label": "KVERNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3812.977777777779,
+      "pixelY": 6185.855555555556,
+      "latitude": 63.00527777777778,
+      "longitude": 7.717777777777778
+    },
+    {
+      "label": "KVITHOLM",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 308.6266666666668,
+      "pixelY": 5478.488888888889,
+      "latitude": 63.02333333333333,
+      "longitude": 7.234444444444445
+    },
+    {
+      "label": "MOY",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5151.038888888889,
+      "pixelY": 3616.2,
+      "latitude": 63.17194444444444,
+      "longitude": 7.859444444444444
+    },
+    {
+      "label": "STAVNES",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3608.4722222222226,
+      "pixelY": 4375.555555555557,
+      "latitude": 63.11472222222223,
+      "longitude": 7.662222222222223
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 2.6193047851533287,
+    "maximumResidualPixels": 3.695363830539957,
+    "residualRmsMeters": 9.058793309258519,
+    "maximumResidualMeters": 12.769105989074113,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENKB",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENKB 6-1",
+      "aipSection": "AD 2 ENKB 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENKB VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623125.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENKB",
+      "sourceDocument": "AD 2 ENKB",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENKB-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENKB",
+      "sourceDocument": "ENKB VAC preparation report",
+      "aipSection": "AD 2 ENKB 6-1",
+      "sourceReference": "data/aeronautical/vac/ENKB-2026-05-14-efe5d5d0-r3-preparation.json"
+    }
+  ]
+}

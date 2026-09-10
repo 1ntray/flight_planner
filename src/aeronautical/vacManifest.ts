@@ -11,7 +11,10 @@ export function validateVacChartManifest(manifest: VacChartManifest): readonly s
   if (!Number.isFinite(manifest.defaultOpacity) || manifest.defaultOpacity < 0 || manifest.defaultOpacity > 1) errors.push('VAC defaultOpacity must be between 0 and 1');
   if (![manifest.bounds.south, manifest.bounds.west, manifest.bounds.north, manifest.bounds.east].every(Number.isFinite) || manifest.bounds.south < -90 || manifest.bounds.north > 90 || manifest.bounds.south >= manifest.bounds.north) errors.push('VAC bounds must contain valid ordered WGS84 latitudes');
   if (manifest.bounds.west < -180 || manifest.bounds.east > 180 || manifest.bounds.west >= manifest.bounds.east) errors.push('VAC bounds must contain valid ordered WGS84 longitudes');
-  if (!manifest.tileUrlTemplate.includes('{z}') || !manifest.tileUrlTemplate.includes('{x}') || !manifest.tileUrlTemplate.includes('{y}')) {
+  const hasImage = typeof manifest.imageUrl === 'string' && manifest.imageUrl.trim().length > 0;
+  const hasTiles = typeof manifest.tileUrlTemplate === 'string' && manifest.tileUrlTemplate.trim().length > 0;
+  if (hasImage === hasTiles) errors.push('VAC manifest must contain exactly one raster source');
+  if (hasTiles && (!manifest.tileUrlTemplate!.includes('{z}') || !manifest.tileUrlTemplate!.includes('{x}') || !manifest.tileUrlTemplate!.includes('{y}'))) {
     errors.push('VAC tile URL must contain {z}, {x}, and {y}');
   }
   if (manifest.groundControlPoints.length < 4) errors.push('VAC preparation must retain at least four ground-control points');

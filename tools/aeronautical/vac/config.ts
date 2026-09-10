@@ -21,8 +21,22 @@ function validatePoint(point: VacPreparationPoint, label: string): void {
   if (!Number.isFinite(point.sourcePointX) || !Number.isFinite(point.sourcePointY)) {
     throw new Error(`${label} requires finite PDF point coordinates`);
   }
-  parsePublishedDms(point.publishedLatitude);
-  parsePublishedDms(point.publishedLongitude);
+  const hasPublishedPair = point.publishedLatitude !== undefined || point.publishedLongitude !== undefined;
+  const hasDecimalPair = point.latitude !== undefined || point.longitude !== undefined;
+  if (hasPublishedPair === hasDecimalPair) {
+    throw new Error(`${label} requires exactly one published DMS pair or reviewed decimal pair`);
+  }
+  if (hasPublishedPair) {
+    if (point.publishedLatitude === undefined || point.publishedLongitude === undefined) {
+      throw new Error(`${label} requires both published DMS coordinates`);
+    }
+    parsePublishedDms(point.publishedLatitude);
+    parsePublishedDms(point.publishedLongitude);
+  } else if (point.latitude === undefined || point.longitude === undefined ||
+      !Number.isFinite(point.latitude) || !Number.isFinite(point.longitude) ||
+      point.latitude < -90 || point.latitude > 90 || point.longitude < -180 || point.longitude > 180) {
+    throw new Error(`${label} requires a finite reviewed WGS84 coordinate pair`);
+  }
 }
 
 export function validateVacPreparationConfig(config: VacPreparationConfig): VacPreparationConfig {
@@ -42,6 +56,12 @@ export function validateVacPreparationConfig(config: VacPreparationConfig): VacP
   if (config.renderDpi < 72 || !Number.isInteger(config.renderDpi)) throw new Error('VAC renderDpi must be an integer of at least 72');
   if (config.minimumZoom > config.maximumZoom) throw new Error('VAC minimumZoom must not exceed maximumZoom');
   if (config.defaultOpacity < 0 || config.defaultOpacity > 1) throw new Error('VAC defaultOpacity must be between zero and one');
+  if (config.outputFormat !== undefined && !['xyz-tiles', 'webp-image'].includes(config.outputFormat)) {
+    throw new Error('VAC outputFormat must be xyz-tiles or webp-image');
+  }
+  if (config.webpQuality !== undefined && (!Number.isInteger(config.webpQuality) || config.webpQuality < 1 || config.webpQuality > 100)) {
+    throw new Error('VAC webpQuality must be an integer from 1 to 100');
+  }
   if (config.cropPdfPoints.left >= config.cropPdfPoints.right || config.cropPdfPoints.top >= config.cropPdfPoints.bottom) {
     throw new Error('VAC crop rectangle is invalid');
   }
@@ -49,9 +69,12 @@ export function validateVacPreparationConfig(config: VacPreparationConfig): VacP
   if (config.validationPoints.length < 2) throw new Error('VAC preparation requires at least two independent validation points');
   config.fitPoints.forEach((point, index) => validatePoint(point, `fitPoints[${index}]`));
   config.validationPoints.forEach((point, index) => validatePoint(point, `validationPoints[${index}]`));
+  // Reviewed JSON rounds PDF-point coordinates to six decimals. Permit only
+  // that sub-pixel serialization tolerance at the exact chart-frame edge.
+  const cropTolerance = 0.000001;
   for (const point of [...config.fitPoints, ...config.validationPoints]) {
-    if (point.sourcePointX < config.cropPdfPoints.left || point.sourcePointX > config.cropPdfPoints.right ||
-        point.sourcePointY < config.cropPdfPoints.top || point.sourcePointY > config.cropPdfPoints.bottom) {
+    if (point.sourcePointX < config.cropPdfPoints.left - cropTolerance || point.sourcePointX > config.cropPdfPoints.right + cropTolerance ||
+        point.sourcePointY < config.cropPdfPoints.top - cropTolerance || point.sourcePointY > config.cropPdfPoints.bottom + cropTolerance) {
       throw new Error(`VAC preparation point ${point.label} lies outside the configured chart crop`);
     }
   }
@@ -60,9 +83,13 @@ export function validateVacPreparationConfig(config: VacPreparationConfig): VacP
   if (overlap.length > 0) throw new Error(`Validation points must be independent of fit points: ${overlap.map(({ label }) => label).join(', ')}`);
   const fitWidth = Math.max(...config.fitPoints.map(({ sourcePointX }) => sourcePointX)) - Math.min(...config.fitPoints.map(({ sourcePointX }) => sourcePointX));
   const fitHeight = Math.max(...config.fitPoints.map(({ sourcePointY }) => sourcePointY)) - Math.min(...config.fitPoints.map(({ sourcePointY }) => sourcePointY));
-  if (fitWidth < (config.cropPdfPoints.right - config.cropPdfPoints.left) * 0.4 ||
-      fitHeight < (config.cropPdfPoints.bottom - config.cropPdfPoints.top) * 0.4) {
-    throw new Error('VAC fit points must span at least 40% of the chart crop in both dimensions');
+  const minimumSpan = config.minimumControlSpanFraction ?? 0.4;
+  if (!Number.isFinite(minimumSpan) || minimumSpan < 0.3 || minimumSpan > 1) {
+    throw new Error('VAC minimumControlSpanFraction must be between 0.3 and 1');
+  }
+  if (fitWidth < (config.cropPdfPoints.right - config.cropPdfPoints.left) * minimumSpan ||
+      fitHeight < (config.cropPdfPoints.bottom - config.cropPdfPoints.top) * minimumSpan) {
+    throw new Error(`VAC fit points must span at least ${Math.round(minimumSpan * 100)}% of the chart crop in both dimensions`);
   }
   if (config.qualityThresholds.maximumRmsMeters <= 0 || config.qualityThresholds.maximumErrorMeters <= 0) {
     throw new Error('VAC quality thresholds must be positive');

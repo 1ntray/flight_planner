@@ -59,6 +59,12 @@ export interface RouteDisplayLeg {
 
 export interface RouteDisplaySegment {
   segmentIndex: number;
+  /**
+   * Sector colours sharing this individual visible segment. A leg can diverge
+   * after a shared shaping point, so this intentionally differs from the
+   * whole-leg presentation metadata above.
+   */
+  sharedSectorIndices: readonly number[];
   startRef: RouteGeometryPointRef;
   endRef: RouteGeometryPointRef;
   startPosition: Position;
@@ -142,6 +148,16 @@ function hasSameDisplayedGeometry(
   );
 }
 
+function hasSameDisplayedSegmentGeometry(
+  first: RouteDisplaySegment,
+  second: RouteDisplaySegment,
+): boolean {
+  return (
+    positionsMatch(first.positions, second.positions) ||
+    positionsMatch(first.positions, [...second.positions].reverse())
+  );
+}
+
 function withSharedSectorIndices(
   legs: readonly Omit<RouteDisplayLeg, 'sharedSectorIndices'>[],
 ): RouteDisplayLeg[] {
@@ -154,6 +170,20 @@ function withSharedSectorIndices(
           .map((candidate) => candidate.sectorIndex),
       ),
     ],
+    segments: leg.segments.map((segment) => ({
+      ...segment,
+      sharedSectorIndices: [
+        ...new Set(
+          legs.flatMap((candidate) =>
+            candidate.segments
+              .filter((candidateSegment) =>
+                hasSameDisplayedSegmentGeometry(segment, candidateSegment),
+              )
+              .map(() => candidate.sectorIndex),
+          ),
+        ),
+      ],
+    })),
   }));
 }
 
@@ -211,6 +241,7 @@ export function buildRouteDisplayLegs(
 
         return {
           segmentIndex,
+          sharedSectorIndices: [sectorIndex],
           startRef: start.ref,
           endRef: end.ref,
           startPosition: start.position,

@@ -1,0 +1,310 @@
+{
+  "reportVersion": 1,
+  "preparationTool": {
+    "name": "flight-planner-vac-preparer",
+    "version": 1
+  },
+  "configVersion": 1,
+  "preparationRevision": 3,
+  "chartId": "vac:ENSH:2026-05-14",
+  "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623163.pdf",
+  "sourcePdfFilename": "623163.pdf",
+  "sourcePdfSha256": "441a2af0a4b7c65e8e08e526338f1d14df39ddb8a4a720d15aaf789d90868922",
+  "retrievedAtUtc": "2026-09-09T23:54:31.657Z",
+  "preparedAtUtc": "2026-09-09T23:55:04.737Z",
+  "sourcePage": 1,
+  "renderDpi": 1200,
+  "cropPixels": {
+    "left": 1064,
+    "top": 2184,
+    "width": 7845,
+    "height": 9233
+  },
+  "tools": {
+    "pdftoppm": "pdftoppm version 26.07.0",
+    "gdal_translate": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalwarp": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdaltransform": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalinfo": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdal": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12"
+  },
+  "targetCrs": "EPSG:3857",
+  "transform": "second-order polynomial (16 fit points; 8 independent holdouts)",
+  "bounds": {
+    "west": 14.2549078,
+    "east": 15.0634676,
+    "south": 68.0539186,
+    "north": 68.406086
+  },
+  "assetCount": 1,
+  "assetBytes": 1692368,
+  "assetUrl": "aeronautical/vac/ensh/2026-05-14-441a2af0-r3/chart.webp",
+  "outputAssetPath": "public/aeronautical/vac/ensh/2026-05-14-441a2af0-r3/chart.webp",
+  "validation": {
+    "residualRmsPixels": 1.1823417392957252,
+    "maximumResidualPixels": 1.615698284947242,
+    "residualRmsMeters": 5.070897586194624,
+    "maximumResidualMeters": 7.027373708385301,
+    "fitPointCount": 16,
+    "validationPointCount": 8,
+    "residuals": [
+      {
+        "label": "HELD-OUT-BOTTOM-LON-1",
+        "horizontalErrorMeters": 6.335954190982672,
+        "pixelError": 1.4493980603290872,
+        "predictedLatitude": 68.0543311707406,
+        "predictedLongitude": 14.4668185226619
+      },
+      {
+        "label": "HELD-OUT-BOTTOM-LON-2",
+        "horizontalErrorMeters": 4.279609211558849,
+        "pixelError": 1.0620915937658353,
+        "predictedLatitude": 68.0551146159425,
+        "predictedLongitude": 14.8501025743224
+      },
+      {
+        "label": "HELD-OUT-TOP-LON-3",
+        "horizontalErrorMeters": 5.838065514507796,
+        "pixelError": 1.3268511488692327,
+        "predictedLatitude": 68.4048572965654,
+        "predictedLongitude": 14.4668087475558
+      },
+      {
+        "label": "HELD-OUT-TOP-LON-4",
+        "horizontalErrorMeters": 7.027373708385301,
+        "pixelError": 1.615698284947242,
+        "predictedLatitude": 68.4056534247611,
+        "predictedLongitude": 14.8498289689818
+      },
+      {
+        "label": "HELD-OUT-LEFT-LAT-5",
+        "horizontalErrorMeters": 1.810030135171366,
+        "pixelError": 0.43243593394129337,
+        "predictedLatitude": 68.3166504390695,
+        "predictedLongitude": 14.2577687191271
+      },
+      {
+        "label": "HELD-OUT-LEFT-LAT-6",
+        "horizontalErrorMeters": 6.654983770360801,
+        "pixelError": 1.5751010266443013,
+        "predictedLatitude": 68.1500596657483,
+        "predictedLongitude": 14.2631640137017
+      },
+      {
+        "label": "HELD-OUT-RIGHT-LAT-7",
+        "horizontalErrorMeters": 2.151302906285982,
+        "pixelError": 0.5132137735200007,
+        "predictedLatitude": 68.3166473794252,
+        "predictedLongitude": 15.0631966330858
+      },
+      {
+        "label": "HELD-OUT-RIGHT-LAT-8",
+        "horizontalErrorMeters": 3.4047812948744136,
+        "pixelError": 0.8076603489992793,
+        "predictedLatitude": 68.1500305258181,
+        "predictedLongitude": 15.0627478878391
+      }
+    ]
+  },
+  "fitPoints": [
+    {
+      "label": "GRATICULE-GRID-1-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.40441681041,
+      "longitude": 14.254925968059
+    },
+    {
+      "label": "GRATICULE-GRID-1-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2615.1077777777773,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.40497698846866,
+      "longitude": 14.524387400745
+    },
+    {
+      "label": "GRATICULE-GRID-1-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5230.035555555555,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.40553716652734,
+      "longitude": 14.793891267919
+    },
+    {
+      "label": "GRATICULE-GRID-1-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7844.963333333333,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.406097344586,
+      "longitude": 15.063437569581001
+    },
+    {
+      "label": "GRATICULE-GRID-2-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": 3077.5777777777776,
+      "latitude": 68.2875963999661,
+      "longitude": 14.258709732031
+    },
+    {
+      "label": "GRATICULE-GRID-2-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2615.1077777777773,
+      "pixelY": 3077.5777777777776,
+      "latitude": 68.28815068381522,
+      "longitude": 14.526805007561556
+    },
+    {
+      "label": "GRATICULE-GRID-2-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5230.035555555555,
+      "pixelY": 3077.5777777777776,
+      "latitude": 68.28870496766433,
+      "longitude": 14.794942717580112
+    },
+    {
+      "label": "GRATICULE-GRID-2-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7844.963333333333,
+      "pixelY": 3077.5777777777776,
+      "latitude": 68.28925925151344,
+      "longitude": 15.063122862086669
+    },
+    {
+      "label": "GRATICULE-GRID-3-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": 6155.455555555556,
+      "latitude": 68.17076452542311,
+      "longitude": 14.262493496003
+    },
+    {
+      "label": "GRATICULE-GRID-3-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2615.1077777777773,
+      "pixelY": 6155.455555555556,
+      "latitude": 68.17131291506266,
+      "longitude": 14.529222614378112
+    },
+    {
+      "label": "GRATICULE-GRID-3-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5230.035555555555,
+      "pixelY": 6155.455555555556,
+      "latitude": 68.17186130470223,
+      "longitude": 14.79599416724122
+    },
+    {
+      "label": "GRATICULE-GRID-3-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7844.963333333333,
+      "pixelY": 6155.455555555556,
+      "latitude": 68.17240969434178,
+      "longitude": 15.062808154592334
+    },
+    {
+      "label": "GRATICULE-GRID-4-1",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.053921186781,
+      "longitude": 14.266277259975
+    },
+    {
+      "label": "GRATICULE-GRID-4-2",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 2615.1077777777773,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.054463682211,
+      "longitude": 14.531640221194667
+    },
+    {
+      "label": "GRATICULE-GRID-4-3",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 5230.035555555555,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.055006177641,
+      "longitude": 14.797045616902333
+    },
+    {
+      "label": "GRATICULE-GRID-4-4",
+      "reviewNote": "Coordinate pair calculated from independently fitted published VAC latitude and longitude graticule ticks.",
+      "pixelX": 7844.963333333333,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.055548673071,
+      "longitude": 15.062493447098001
+    }
+  ],
+  "validationPoints": [
+    {
+      "label": "HELD-OUT-BOTTOM-LON-1",
+      "reviewNote": "Longitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 1976.3833333333337,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.05433117182388,
+      "longitude": 14.4666666667
+    },
+    {
+      "label": "HELD-OUT-BOTTOM-LON-2",
+      "reviewNote": "Longitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 5752.7333333333345,
+      "pixelY": 9233.333333333334,
+      "latitude": 68.05511461702433,
+      "longitude": 14.85
+    },
+    {
+      "label": "HELD-OUT-TOP-LON-3",
+      "reviewNote": "Longitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 2056.3833333333337,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.40485729675967,
+      "longitude": 14.4666666667
+    },
+    {
+      "label": "HELD-OUT-TOP-LON-4",
+      "reviewNote": "Longitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 5772.733333333334,
+      "pixelY": -0.3000000000001819,
+      "latitude": 68.40565342495336,
+      "longitude": 14.85
+    },
+    {
+      "label": "HELD-OUT-LEFT-LAT-5",
+      "reviewNote": "Latitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": 2312.116666666667,
+      "latitude": 68.3166666667,
+      "longitude": 14.25776871864993
+    },
+    {
+      "label": "HELD-OUT-LEFT-LAT-6",
+      "reviewNote": "Latitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 0.18000000000006366,
+      "pixelY": 6700.883333333333,
+      "latitude": 68.15,
+      "longitude": 14.263164013198251
+    },
+    {
+      "label": "HELD-OUT-RIGHT-LAT-7",
+      "reviewNote": "Latitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 7844.963333333333,
+      "pixelY": 2356.116666666667,
+      "latitude": 68.3166666667,
+      "longitude": 15.063196630194088
+    },
+    {
+      "label": "HELD-OUT-RIGHT-LAT-8",
+      "reviewNote": "Latitude is a deterministically held-out published VAC graticule tick; the orthogonal coordinate is calculated from its independently fitted graticule.",
+      "pixelX": 7844.963333333333,
+      "pixelY": 6744.9000000000015,
+      "latitude": 68.15,
+      "longitude": 15.062747884952811
+    }
+  ],
+  "thresholds": {
+    "maximumRmsMeters": 100,
+    "maximumErrorMeters": 200
+  },
+  "passed": true
+}

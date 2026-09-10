@@ -1,0 +1,105 @@
+{
+  "id": "vac:ENGM:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENGM",
+  "title": "OSLO / Gardermoen Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "5f046c6bfbaa09e79d251be493e21bcdd902d81684ebc78ffc87f02c8a5da71d",
+  "imageUrl": "aeronautical/vac/engm/2026-05-14-5f046c6b-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 10.6268947,
+    "east": 11.5850371,
+    "south": 59.9032048,
+    "north": 60.4549758
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "EXLOF",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3870.3055555555566,
+      "pixelY": 6535.805555555558,
+      "latitude": 60.07055555555556,
+      "longitude": 11.116666666666667
+    },
+    {
+      "label": "NANNESTAD",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2751.7444444444445,
+      "pixelY": 3888.0055555555555,
+      "latitude": 60.2175,
+      "longitude": 10.970833333333333
+    },
+    {
+      "label": "NORDKISA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5273.18888888889,
+      "pixelY": 4612.616666666667,
+      "latitude": 60.18472222222222,
+      "longitude": 11.26388888888889
+    },
+    {
+      "label": "RÅSJØEN",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 1277.1277777777777,
+      "pixelY": 3957.116666666667,
+      "latitude": 60.208333333333336,
+      "longitude": 10.802777777777779
+    },
+    {
+      "label": "VORMSUND",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 6589.988888888891,
+      "pixelY": 5207.983333333334,
+      "latitude": 60.155,
+      "longitude": 11.418055555555554
+    },
+    {
+      "label": "YOMME",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3835.155555555556,
+      "pixelY": 2131.583333333333,
+      "latitude": 60.321111111111115,
+      "longitude": 11.082777777777778
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 2.7216397866318944,
+    "maximumResidualPixels": 3.724807596749442,
+    "residualRmsMeters": 17.380134842087923,
+    "maximumResidualMeters": 23.854826998199943,
+    "fitPointCount": 6,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENGM",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENGM 6-1",
+      "aipSection": "AD 2 ENGM 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENGM VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623422.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENGM",
+      "sourceDocument": "AD 2 ENGM",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENGM-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENGM",
+      "sourceDocument": "ENGM VAC preparation report",
+      "aipSection": "AD 2 ENGM 6-1",
+      "sourceReference": "data/aeronautical/vac/ENGM-2026-05-14-5f046c6b-r3-preparation.json"
+    }
+  ]
+}

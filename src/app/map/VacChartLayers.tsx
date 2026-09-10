@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Pane, TileLayer, useMapEvents } from 'react-leaflet';
+import { ImageOverlay, Pane, TileLayer, useMapEvents } from 'react-leaflet';
 import type { AeronauticalDataRepository } from '../../aeronautical';
 import type { VacChartManifest, Wgs84Bounds } from '../../domain';
-import { filterRenderableVacCharts, resolveVacTileUrlTemplate } from './vacChartLayer';
+import { filterRenderableVacCharts, resolveVacAssetUrl, resolveVacTileUrlTemplate } from './vacChartLayer';
 
 export interface VacChartLayersProps {
   repository: AeronauticalDataRepository;
@@ -15,7 +15,7 @@ function mapBounds(map: ReturnType<typeof useMapEvents>): Wgs84Bounds {
   return { south: bounds.getSouth(), west: bounds.getWest(), north: bounds.getNorth(), east: bounds.getEast() };
 }
 
-/** Renders only offline-prepared Web Mercator VAC tiles near the current viewport. */
+/** Renders only offline-prepared Web Mercator VAC rasters near the current viewport. */
 export function VacChartLayers({ repository, visible, opacity }: VacChartLayersProps) {
   const [viewport, setViewport] = useState<{ zoom: number; bounds: Wgs84Bounds }>(() => ({
     zoom: 0, bounds: { south: -90, west: -180, north: 90, east: 180 },
@@ -51,19 +51,33 @@ export function VacChartLayers({ repository, visible, opacity }: VacChartLayersP
   if (!visible || charts.length === 0) return null;
   return (
     <Pane name="vac-charts" style={{ zIndex: 325 }}>
-      {charts.map((chart) => (
-        <TileLayer
+      {charts.map((chart) => {
+        const bounds: [[number, number], [number, number]] = [
+          [chart.bounds.south, chart.bounds.west],
+          [chart.bounds.north, chart.bounds.east],
+        ];
+        if (chart.imageUrl !== undefined) {
+          return <ImageOverlay
+            key={chart.id}
+            pane="vac-charts"
+            url={resolveVacAssetUrl(chart.imageUrl, import.meta.env.BASE_URL)}
+            bounds={bounds}
+            opacity={opacity}
+            attribution="© Avinor"
+          />;
+        }
+        return <TileLayer
           key={chart.id}
           pane="vac-charts"
-          url={resolveVacTileUrlTemplate(chart.tileUrlTemplate, import.meta.env.BASE_URL)}
+          url={resolveVacTileUrlTemplate(chart.tileUrlTemplate!, import.meta.env.BASE_URL)}
           minZoom={chart.minimumZoom}
           maxNativeZoom={chart.maximumZoom}
           maxZoom={18}
           opacity={opacity}
-          bounds={[[chart.bounds.south, chart.bounds.west], [chart.bounds.north, chart.bounds.east]]}
+          bounds={bounds}
           attribution="© Avinor"
-        />
-      ))}
+        />;
+      })}
     </Pane>
   );
 }

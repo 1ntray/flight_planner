@@ -1,0 +1,121 @@
+{
+  "id": "vac:ENCN:2026-05-14",
+  "aerodromeFeatureId": "aerodrome:ENCN",
+  "title": "KRISTIANSAND / Kjevik Visual Approach Chart - ICAO",
+  "chartDate": "2026-05-14",
+  "sourcePdfSha256": "21c337f8493ab65c6f1ac27301625b61fd31d4d2eb0817f5e0eb8d34e19bdefe",
+  "imageUrl": "aeronautical/vac/encn/2026-05-14-21c337f8-r3/chart.webp",
+  "targetCrs": "EPSG:3857",
+  "bounds": {
+    "west": 7.6498138,
+    "east": 8.5145286,
+    "south": 57.9441309,
+    "north": 58.4651042
+  },
+  "minimumZoom": 9,
+  "maximumZoom": 13,
+  "defaultOpacity": 0.75,
+  "groundControlPoints": [
+    {
+      "label": "HØVÅG",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 5359.4833333333345,
+      "pixelY": 5456.777777777779,
+      "latitude": 58.16888888888889,
+      "longitude": 8.23472222222222
+    },
+    {
+      "label": "NYLAND",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 6083.283333333334,
+      "pixelY": 4491.644444444444,
+      "latitude": 58.22277777777778,
+      "longitude": 8.296388888888888
+    },
+    {
+      "label": "RAMSELIA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4615.683333333334,
+      "pixelY": 1956.8999999999996,
+      "latitude": 58.34666666666667,
+      "longitude": 8.12638888888889
+    },
+    {
+      "label": "RCF E",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4161.633333333334,
+      "pixelY": 4842.655555555556,
+      "latitude": 58.19444444444444,
+      "longitude": 8.110833333333334
+    },
+    {
+      "label": "RCF W",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3679.4500000000007,
+      "pixelY": 4423.711111111111,
+      "latitude": 58.21361111111111,
+      "longitude": 8.059166666666668
+    },
+    {
+      "label": "STEMMANE",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 4322.816666666667,
+      "pixelY": 5255.1611111111115,
+      "latitude": 58.17388888888889,
+      "longitude": 8.130833333333333
+    },
+    {
+      "label": "VENNESLA",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 2855.138888888889,
+      "pixelY": 3315.5277777777783,
+      "latitude": 58.266666666666666,
+      "longitude": 7.966666666666667
+    },
+    {
+      "label": "ÅLEFJÆR",
+      "reviewNote": "Published VAC coordinate table matched to the centroid of the corresponding vector reporting-point triangle; independently validated by held-out published points.",
+      "pixelX": 3401.705555555556,
+      "pixelY": 4025.6222222222223,
+      "latitude": 58.23277777777778,
+      "longitude": 8.027777777777779
+    }
+  ],
+  "validation": {
+    "residualRmsPixels": 0.08927605721312074,
+    "maximumResidualPixels": 0.11210669593041776,
+    "residualRmsMeters": 0.426303850538575,
+    "maximumResidualMeters": 0.4811382073895798,
+    "fitPointCount": 8,
+    "validationPointCount": 2,
+    "qualityThresholds": {
+      "maximumRmsMeters": 100,
+      "maximumErrorMeters": 200
+    }
+  },
+  "sourceReferences": [
+    {
+      "sourceType": "vac-pdf",
+      "sourceAerodrome": "ENCN",
+      "sourceDocument": "Visual Approach Chart - ICAO AD 2 ENCN 6-1",
+      "aipSection": "AD 2 ENCN 6-1",
+      "sourcePage": "1",
+      "publishedIdentifier": "ENCN VAC",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623260.pdf"
+    },
+    {
+      "sourceType": "eAIP-html",
+      "sourceAerodrome": "ENCN",
+      "sourceDocument": "AD 2 ENCN",
+      "aipSection": "AD 2.24",
+      "sourceReference": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/html/eAIP/EN-AD-2.ENCN-en-GB.html"
+    },
+    {
+      "sourceType": "prepared-vac",
+      "sourceAerodrome": "ENCN",
+      "sourceDocument": "ENCN VAC preparation report",
+      "aipSection": "AD 2 ENCN 6-1",
+      "sourceReference": "data/aeronautical/vac/ENCN-2026-05-14-21c337f8-r3-preparation.json"
+    }
+  ]
+}

@@ -30,11 +30,14 @@ requests newly exposed cells instead of redrawing the complete viewport.
 A narrowly scoped service worker caches successful Avinor tile responses in the
 browser's Cache Storage. Cache keys include the published effective date, old
 edition caches are removed when a new edition is first requested, and the
-current cache is bounded to 160 tiles. The worker does not cache application
-files, route data, or any non-Avinor requests. Because Avinor does not grant
-localhost CORS access, the cross-origin PNG responses are opaque to application
-JavaScript but can still be safely stored and returned to their original image
-requests.
+current cache is bounded to 160 tiles. A cached tile is shown immediately, then
+revalidated from Avinor in the background at most once per 24 hours. This keeps
+panning fast while allowing the live chart service to refresh within a bounded
+period; it does not discover or activate a new eAIP/AIRAC edition. The worker
+does not cache application files, route data, or any non-Avinor requests.
+Because Avinor does not grant localhost CORS access, the cross-origin PNG
+responses are opaque to application JavaScript but can still be safely stored
+and returned to their original image requests.
 
 Selecting the Avinor chart requires a one-session acknowledgement of its
 published terms. The acknowledgement and selected base map are not persisted.

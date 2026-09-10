@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildAirportWeatherRequestKey,
   buildLocationforecastUrl,
   deriveIsaDeviationC,
   extractCurrentTafmetarTac,
@@ -45,6 +46,19 @@ describe('time-aware TAF wind', () => {
 });
 
 describe('Locationforecast surface selection', () => {
+  it('keeps repeat visits to the same aerodrome distinct in the weather cache', () => {
+    const laterVisit = {
+      ...request,
+      airportKey: 'ENDU-return',
+      plannedTimeUtcMs: request.plannedTimeUtcMs + 90 * 60 * 1000,
+      context: 'destination' as const,
+    };
+
+    expect(buildAirportWeatherRequestKey(laterVisit)).not.toBe(
+      buildAirportWeatherRequestKey(request),
+    );
+  });
+
   it('constructs a ground-elevation, four-decimal request and interpolates wind vectors through north', () => {
     const url = new URL(buildLocationforecastUrl(request));
     expect(url.searchParams.get('lat')).toBe('69.2747');

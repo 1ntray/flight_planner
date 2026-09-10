@@ -5,8 +5,16 @@ export interface VacPreparationPoint {
   /** Pixel-independent coordinate in PDF points, measured from the top-left. */
   readonly sourcePointX: number;
   readonly sourcePointY: number;
-  readonly publishedLatitude: string;
-  readonly publishedLongitude: string;
+  /** Exact published DMS coordinate, when the chart publishes a point pair. */
+  readonly publishedLatitude?: string;
+  readonly publishedLongitude?: string;
+  /**
+   * Reviewed decimal coordinate calculated from the chart's published
+   * latitude/longitude graticule. This is never described as a published
+   * point coordinate in the preparation report.
+   */
+  readonly latitude?: number;
+  readonly longitude?: number;
   readonly reviewNote: string;
 }
 
@@ -28,7 +36,11 @@ export interface VacPreparationConfig {
   readonly minimumZoom: number;
   readonly maximumZoom: number;
   readonly defaultOpacity: number;
+  readonly outputFormat?: 'xyz-tiles' | 'webp-image';
+  readonly webpQuality?: number;
   readonly qualityThresholds: { readonly maximumRmsMeters: number; readonly maximumErrorMeters: number };
+  /** Minimum fit-point extent relative to the cropped chart in each dimension. */
+  readonly minimumControlSpanFraction?: number;
   readonly fitPoints: readonly VacPreparationPoint[];
   readonly validationPoints: readonly VacPreparationPoint[];
   readonly sourceReferences: readonly AeronauticalSourceReference[];
@@ -70,10 +82,10 @@ export interface VacPreparationReport {
   readonly targetCrs: 'EPSG:3857';
   readonly transform: string;
   readonly bounds: Wgs84Bounds;
-  readonly tileCount: number;
-  readonly tileBytes: number;
-  readonly tileUrlTemplate: string;
-  readonly outputTileDirectory: string;
+  readonly assetCount: number;
+  readonly assetBytes: number;
+  readonly assetUrl: string;
+  readonly outputAssetPath: string;
   readonly validation: VacValidationMetrics;
   readonly fitPoints: readonly VacChartGroundControlPoint[];
   readonly validationPoints: readonly VacChartGroundControlPoint[];

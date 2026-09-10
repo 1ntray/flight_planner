@@ -317,17 +317,20 @@ georeferenced-VAC workflow can mark it as `derived-from-georeferenced-vac`.
 ## VAC preparation boundary
 
 VAC PDFs remain presentation sources, not structured aeronautical geometry.
-`VacChartManifest` defines a pre-warped EPSG:3857 XYZ tile set, WGS84 bounds,
-zoom range, opacity, source hash, retained fit control points, independent
-validation residuals and source provenance. Production validation requires the
-declared error thresholds to pass before the repository can expose a chart.
+`VacChartManifest` defines a pre-warped EPSG:3857 raster (a compact image or
+legacy XYZ tile set), WGS84 bounds, zoom range, opacity, source hash, retained
+fit control points, independent validation residuals and source provenance.
+Production validation requires the declared error thresholds to pass before
+the repository can expose a chart.
 
-One validated proof-of-concept raster is active: Avinor AD 2 ENDU 6-1, chart
-date 14 May 2026. Eight published reporting points fit a second-order transform
-and nine separate published points validate it. The measured holdout result is
-0.6 m RMS and 1.0 m maximum error. The chart is rendered once at high
-resolution, warped by GDAL, and checked in as local Web Mercator XYZ tiles.
-Leaflet loads it only near Bardufoss and at its configured minimum zoom, with
-the existing VAC visibility and opacity controls. It remains a presentation
-overlay and has no effect on route/navigation calculations or independent
-WGS84 reporting-point features.
+The approved dataset contains 42 validated rasters for 41 aerodromes. They are
+rendered once at high resolution, warped by GDAL, and stored as compact WebP
+images. Charts without sufficient point-coordinate controls use separately
+reviewed published graticule controls with deterministic held-out tick
+validation. Every chart retains its source hash, chart date, control points,
+independent holdout results, and provenance. Leaflet loads charts only near
+their aerodrome and at
+their configured minimum zoom, with the existing VAC visibility and opacity
+controls. Charts lacking reliable controls remain unavailable. VAC remains a
+presentation overlay and has no effect on route/navigation calculations or
+independent WGS84 reporting-point features.

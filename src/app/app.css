@@ -39,7 +39,8 @@ button:focus-visible,
    than the actual outline and obscures the chart, so do not retain it. */
 .leaflet-interactive.aeronautical-airspace-path:focus,
 .leaflet-interactive.aeronautical-airspace-path:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .app-shell {
@@ -939,6 +940,24 @@ kbd {
   margin: 0;
 }
 
+.airport-inputs__arrival-buffer {
+  grid-column: 1 / -1;
+}
+
+.airport-inputs__arrival-buffer-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #394a60;
+  font-weight: 500;
+}
+
+.airport-inputs__arrival-buffer-control input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+
 .airport-inputs__weather-action {
   margin: 0;
 }
@@ -1293,6 +1312,16 @@ kbd {
   border: 0;
 }
 
+.route-reporting-point-marker {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 1px 4px rgb(0 0 0 / 42%));
+}
+
+.route-reporting-point-marker--selected {
+  filter: drop-shadow(0 0 2px #e08b28) drop-shadow(0 1px 4px rgb(0 0 0 / 42%));
+}
+
 .waypoint-marker::after {
   width: 5px;
   height: 5px;
@@ -1326,15 +1355,6 @@ kbd {
 
 .waypoint-marker--source-aerodrome {
   border-radius: 3px;
-}
-
-.waypoint-marker--source-reporting-point {
-  border-radius: 0;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-
-.waypoint-marker--source-reporting-point::after {
-  margin-top: 4px;
 }
 
 .waypoint-marker.waypoint-marker--selected {
@@ -2055,11 +2075,18 @@ kbd {
   background: #526175;
 }
 
+.route-shaping-marker-icon {
+  background: transparent;
+  border: 0;
+}
+
 .route-shaping-marker {
   display: grid;
+  width: 16px;
+  height: 16px;
   border: 2px solid #ffffff;
   border-radius: 50%;
-  background: #73a7c4;
+  background: var(--route-shaping-marker-fill);
   box-shadow: 0 1px 4px rgb(0 0 0 / 40%);
   place-items: center;
 }
@@ -2074,23 +2101,9 @@ kbd {
 
 .route-shaping-marker--selected {
   border-color: #fff4b5;
-  background: #d9823b;
   box-shadow:
     0 0 0 3px #e08b28,
     0 2px 6px rgb(0 0 0 / 42%);
-}
-
-.route-shaping-marker--anchored {
-  border-color: #fff0ce;
-  background: #b76716;
-  box-shadow:
-    0 0 0 3px rgb(183 103 22 / 30%),
-    0 1px 5px rgb(0 0 0 / 45%);
-}
-
-.route-shaping-marker--anchored.route-shaping-marker--selected {
-  border-color: #fff4b5;
-  background: #d9823b;
 }
 
 .route-line-hit-target {

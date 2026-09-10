@@ -25,7 +25,7 @@ export interface PreparedVacResult {
   readonly report: VacPreparationReport;
   readonly manifestPath: string;
   readonly reportPath: string;
-  readonly tileDirectory: string;
+  readonly assetPath: string;
   readonly activated: boolean;
 }
 
@@ -66,6 +66,12 @@ export function calculateCropPixelGeometry(config: VacPreparationConfig) {
 }
 
 function pointPosition(point: VacPreparationPoint): Position {
+  if (point.latitude !== undefined && point.longitude !== undefined) {
+    return { latitude: point.latitude, longitude: point.longitude };
+  }
+  if (point.publishedLatitude === undefined || point.publishedLongitude === undefined) {
+    throw new Error(`VAC preparation point ${point.label} has no coordinate pair`);
+  }
   return {
     latitude: parsePublishedDms(point.publishedLatitude),
     longitude: parsePublishedDms(point.publishedLongitude),
@@ -200,19 +206,35 @@ function renderMarkdownReport(report: VacPreparationReport): string {
     `- Gate: RMS <= ${report.thresholds.maximumRmsMeters} m; maximum <= ${report.thresholds.maximumErrorMeters} m\n` +
     `- Result: **${report.passed ? 'PASS' : 'FAIL'}**\n` +
     `- Bounds: ${report.bounds.south.toFixed(7)}, ${report.bounds.west.toFixed(7)} to ${report.bounds.north.toFixed(7)}, ${report.bounds.east.toFixed(7)}\n` +
-    `- Tiles: ${report.tileCount} files, ${report.tileBytes} bytes\n\n` +
-    `- Tile output: \`${report.outputTileDirectory}\`\n\n` +
+    `- Raster assets: ${report.assetCount} file(s), ${report.assetBytes} bytes\n\n` +
+    `- Raster output: \`${report.outputAssetPath}\`\n\n` +
     `## Fit control points\n\n| Point | Pixel X | Pixel Y | Latitude | Longitude |\n| --- | ---: | ---: | ---: | ---: |\n${controlRows}\n\n` +
     `## Independent validation residuals\n\n` +
     `| Holdout point | Pixel X | Pixel Y | Latitude | Longitude | Error (m) | Error (px) |\n| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n${rows}\n`;
 }
 
-async function activateManifest(manifest: VacChartManifest): Promise<void> {
-  const dataset = JSON.parse(await readFile(APPROVED_DATASET, 'utf8')) as NormalizedAeronauticalDataset;
-  if (!dataset.features.some(({ ref }) => ref.featureId === manifest.aerodromeFeatureId)) {
-    throw new Error(`Cannot activate VAC: dataset does not contain ${manifest.aerodromeFeatureId}`);
+async function publishFile(staged: string, destination: string): Promise<void> {
+  await mkdir(dirname(destination), { recursive: true });
+  try {
+    const [current, candidate] = await Promise.all([readFile(destination), readFile(staged)]);
+    if (sha256(current) !== sha256(candidate)) {
+      throw new Error(`Prepared VAC asset already exists with different contents: ${destination}`);
+    }
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    await rename(staged, destination);
   }
-  const nextCharts = [...dataset.vacCharts.filter(({ id }) => id !== manifest.id), manifest]
+}
+
+export async function activateVacManifests(manifests: readonly VacChartManifest[]): Promise<void> {
+  const dataset = JSON.parse(await readFile(APPROVED_DATASET, 'utf8')) as NormalizedAeronauticalDataset;
+  for (const manifest of manifests) {
+    if (!dataset.features.some(({ ref }) => ref.featureId === manifest.aerodromeFeatureId)) {
+      throw new Error(`Cannot activate VAC: dataset does not contain ${manifest.aerodromeFeatureId}`);
+    }
+  }
+  const replacementIds = new Set(manifests.map(({ id }) => id));
+  const nextCharts = [...dataset.vacCharts.filter(({ id }) => !replacementIds.has(id)), ...manifests]
     .sort((a, b) => a.id.localeCompare(b.id));
   await atomicWrite(APPROVED_DATASET, `${JSON.stringify({ ...dataset, vacCharts: nextCharts }, null, 2)}\n`);
 }
@@ -236,6 +258,7 @@ export async function prepareVac(
     const gcpVrt = join(stagingRoot, 'controlled.vrt');
     const warpedTiff = join(stagingRoot, 'warped-3857.tif');
     const stagedTiles = join(stagingRoot, 'tiles');
+    const stagedImage = join(stagingRoot, 'chart.webp');
     await writeFile(sourcePdf, source);
     await runCommand('pdftoppm', [
       '-f', String(config.page), '-l', String(config.page), '-singlefile',
@@ -271,24 +294,48 @@ export async function prepareVac(
     ]);
     const info = await runCommand('gdalinfo', ['-json', warpedTiff]);
     const bounds = parseWgs84Bounds(JSON.parse(info.stdout));
-    await runCommand('gdal', [
-      'raster', 'tile', '--tiling-scheme', 'WebMercatorQuad', '--convention', 'xyz',
-      '--min-zoom', String(config.minimumZoom), '--max-zoom', String(config.maximumZoom),
-      '--format', 'PNG', '--co', 'ZLEVEL=9', '--add-alpha', '--skip-blank',
-      '--webviewer', 'none', warpedTiff, stagedTiles,
-    ]);
-    const tileStats = await directoryStats(stagedTiles);
-    if (tileStats.count === 0) throw new Error('VAC preparation produced no tiles');
-
     const identity = `${config.chartDate}-${config.sourcePdfSha256.slice(0, 8)}-r${config.preparationRevision}`;
-    const relativeTiles = `aeronautical/vac/${config.icao.toLowerCase()}/${identity}`;
+    const outputFormat = config.outputFormat ?? 'xyz-tiles';
+    const relativeAssetRoot = `aeronautical/vac/${config.icao.toLowerCase()}/${identity}`;
+    let assetCount: number;
+    let assetBytes: number;
+    let assetUrl: string;
+    let outputAssetPath: string;
+    let stagedAssetPath: string;
+    if (outputFormat === 'webp-image') {
+      await runCommand('gdal_translate', [
+        '-of', 'WEBP', '-co', `QUALITY=${String(config.webpQuality ?? 92)}`, '-co', 'LOSSLESS=FALSE',
+        warpedTiff, stagedImage,
+      ]);
+      const image = await readFile(stagedImage);
+      if (image.byteLength === 0) throw new Error('VAC preparation produced an empty WebP image');
+      assetCount = 1;
+      assetBytes = image.byteLength;
+      assetUrl = `${relativeAssetRoot}/chart.webp`;
+      outputAssetPath = `public/${assetUrl}`;
+      stagedAssetPath = stagedImage;
+    } else {
+      await runCommand('gdal', [
+        'raster', 'tile', '--tiling-scheme', 'WebMercatorQuad', '--convention', 'xyz',
+        '--min-zoom', String(config.minimumZoom), '--max-zoom', String(config.maximumZoom),
+        '--format', 'PNG', '--co', 'ZLEVEL=9', '--add-alpha', '--skip-blank',
+        '--webviewer', 'none', warpedTiff, stagedTiles,
+      ]);
+      const tileStats = await directoryStats(stagedTiles);
+      if (tileStats.count === 0) throw new Error('VAC preparation produced no tiles');
+      assetCount = tileStats.count;
+      assetBytes = tileStats.bytes;
+      assetUrl = `${relativeAssetRoot}/{z}/{x}/{y}.png`;
+      outputAssetPath = `public/${relativeAssetRoot}`;
+      stagedAssetPath = stagedTiles;
+    }
     const manifest: VacChartManifest = {
       id: config.id,
       aerodromeFeatureId: config.aerodromeFeatureId,
       title: config.title,
       chartDate: config.chartDate,
       sourcePdfSha256: config.sourcePdfSha256,
-      tileUrlTemplate: `${relativeTiles}/{z}/{x}/{y}.png`,
+      ...(outputFormat === 'webp-image' ? { imageUrl: assetUrl } : { tileUrlTemplate: assetUrl }),
       targetCrs: 'EPSG:3857',
       bounds,
       minimumZoom: config.minimumZoom,
@@ -335,10 +382,10 @@ export async function prepareVac(
       targetCrs: 'EPSG:3857',
       transform: `second-order polynomial (${config.fitPoints.length} fit points; ${config.validationPoints.length} independent holdouts)`,
       bounds,
-      tileCount: tileStats.count,
-      tileBytes: tileStats.bytes,
-      tileUrlTemplate: manifest.tileUrlTemplate,
-      outputTileDirectory: `public/${relativeTiles}`,
+      assetCount,
+      assetBytes,
+      assetUrl,
+      outputAssetPath,
       validation: metrics,
       fitPoints: config.fitPoints.map((point) => retainedControlPoint(point, crop)),
       validationPoints: config.validationPoints.map((point) => retainedControlPoint(point, crop)),
@@ -346,15 +393,16 @@ export async function prepareVac(
       passed,
     };
 
-    const tileDirectory = resolve(ROOT, 'public', relativeTiles);
+    const publishedAssetPath = resolve(ROOT, outputAssetPath);
     const manifestPath = resolve(ROOT, `data/aeronautical/vac/${config.icao}-${identity}-manifest.json`);
     const reportPath = resolve(ROOT, `data/aeronautical/vac/${config.icao}-${identity}-preparation.json`);
-    await publishTileDirectory(stagedTiles, tileDirectory);
+    if (outputFormat === 'webp-image') await publishFile(stagedAssetPath, publishedAssetPath);
+    else await publishTileDirectory(stagedAssetPath, publishedAssetPath);
     await atomicWrite(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     await atomicWrite(reportPath, `${JSON.stringify(report, null, 2)}\n`);
     await atomicWrite(reportPath.replace(/\.json$/, '.md'), renderMarkdownReport(report));
-    if (options.activate) await activateManifest(manifest);
-    return { manifest, report, manifestPath, reportPath, tileDirectory, activated: options.activate };
+    if (options.activate) await activateVacManifests([manifest]);
+    return { manifest, report, manifestPath, reportPath, assetPath: publishedAssetPath, activated: options.activate };
   } finally {
     await rm(stagingRoot, { recursive: true, force: true });
   }

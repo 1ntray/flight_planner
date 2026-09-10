@@ -1,0 +1,261 @@
+{
+  "reportVersion": 1,
+  "preparationTool": {
+    "name": "flight-planner-vac-preparer",
+    "version": 1
+  },
+  "configVersion": 1,
+  "preparationRevision": 3,
+  "chartId": "vac:ENDU:2026-05-14",
+  "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623256.pdf",
+  "sourcePdfFilename": "623256.pdf",
+  "sourcePdfSha256": "f93dd046804a5e00cf2b8a5baa76d5e5a4083a077fa6ff2429e2e88930e9b966",
+  "retrievedAtUtc": "2026-09-09T23:55:05.264Z",
+  "preparedAtUtc": "2026-09-09T23:55:56.091Z",
+  "sourcePage": 1,
+  "renderDpi": 1200,
+  "cropPixels": {
+    "left": 1060,
+    "top": 2176,
+    "width": 7845,
+    "height": 9233
+  },
+  "tools": {
+    "pdftoppm": "pdftoppm version 26.07.0",
+    "gdal_translate": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalwarp": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdaltransform": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdalinfo": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12",
+    "gdal": "GDAL 3.12.1 \"Chicoutimi\", released 2025/12/12"
+  },
+  "targetCrs": "EPSG:3857",
+  "transform": "second-order polynomial (8 fit points; 9 independent holdouts)",
+  "bounds": {
+    "west": 17.6633243,
+    "east": 19.2605861,
+    "south": 68.7646366,
+    "north": 69.4243212
+  },
+  "assetCount": 1,
+  "assetBytes": 4753020,
+  "assetUrl": "aeronautical/vac/endu/2026-05-14-f93dd046-r3/chart.webp",
+  "outputAssetPath": "public/aeronautical/vac/endu/2026-05-14-f93dd046-r3/chart.webp",
+  "validation": {
+    "residualRmsPixels": 0.04255288731161405,
+    "maximumResidualPixels": 0.05567495968213432,
+    "residualRmsMeters": 0.6450859378263575,
+    "maximumResidualMeters": 0.9879072967674994,
+    "fitPointCount": 8,
+    "validationPointCount": 9,
+    "residuals": [
+      {
+        "label": "FINNFJORD",
+        "horizontalErrorMeters": 0.3960973189510723,
+        "pixelError": 0.03665788499660964,
+        "predictedLatitude": 69.2255521274515,
+        "predictedLongitude": 18.083330726804
+      },
+      {
+        "label": "REINELV",
+        "horizontalErrorMeters": 0.5211903033062117,
+        "pixelError": 0.03077375912683116,
+        "predictedLatitude": 69.2074956170991,
+        "predictedLongitude": 18.2436065557105
+      },
+      {
+        "label": "STEINVANN",
+        "horizontalErrorMeters": 0.9879072967674994,
+        "pixelError": 0.04764147585612685,
+        "predictedLatitude": 69.1166645504691,
+        "predictedLongitude": 18.4166425627807
+      },
+      {
+        "label": "ROGNMO",
+        "horizontalErrorMeters": 0.8145860416963823,
+        "pixelError": 0.03695714248388193,
+        "predictedLatitude": 69.0966660405989,
+        "predictedLongitude": 18.7224796260204
+      },
+      {
+        "label": "NORA",
+        "horizontalErrorMeters": 0.39766524850602447,
+        "pixelError": 0.05567495968213432,
+        "predictedLatitude": 69.1005551549511,
+        "predictedLongitude": 18.6116567451959
+      },
+      {
+        "label": "WERA",
+        "horizontalErrorMeters": 0.5669079920495577,
+        "pixelError": 0.032908699132614135,
+        "predictedLatitude": 69.0625003273708,
+        "predictedLongitude": 18.4027635978607
+      },
+      {
+        "label": "ELLA",
+        "horizontalErrorMeters": 0.32360622062459793,
+        "pixelError": 0.054527424239163416,
+        "predictedLatitude": 69.0333337857643,
+        "predictedLongitude": 18.638880887651
+      },
+      {
+        "label": "RUNDHAUG",
+        "horizontalErrorMeters": 0.45024250751062256,
+        "pixelError": 0.04303325762935721,
+        "predictedLatitude": 69.0194456168065,
+        "predictedLongitude": 18.8986003335538
+      },
+      {
+        "label": "SØRREISA",
+        "horizontalErrorMeters": 0.943513389964708,
+        "pixelError": 0.03691319155652929,
+        "predictedLatitude": 69.1263883465172,
+        "predictedLongitude": 18.1958096641058
+      }
+    ]
+  },
+  "fitPoints": [
+    {
+      "label": "FINNSNES",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 1284.25,
+      "pixelY": 2637.4833333333345,
+      "latitude": 69.24027777777778,
+      "longitude": 17.965
+    },
+    {
+      "label": "ROSSVOLL",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 4110.8,
+      "pixelY": 3396.495,
+      "latitude": 69.17833333333334,
+      "longitude": 18.5
+    },
+    {
+      "label": "TAKVATN",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 6978.683333333334,
+      "pixelY": 4226.4383333333335,
+      "latitude": 69.10972222222222,
+      "longitude": 19.03888888888889
+    },
+    {
+      "label": "TILLERMO",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 7733.666666666668,
+      "pixelY": 5851.421666666668,
+      "latitude": 68.99555555555555,
+      "longitude": 19.161944444444444
+    },
+    {
+      "label": "SODA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 6682.150000000001,
+      "pixelY": 6846.383333333333,
+      "latitude": 68.9325,
+      "longitude": 18.95
+    },
+    {
+      "label": "SAFT",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 5234.85,
+      "pixelY": 6471.855000000001,
+      "latitude": 68.96416666666667,
+      "longitude": 18.68
+    },
+    {
+      "label": "SARA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 4348.6,
+      "pixelY": 5896.45,
+      "latitude": 69.00694444444444,
+      "longitude": 18.518055555555556
+    },
+    {
+      "label": "GOMPEN",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 1295.4666666666667,
+      "pixelY": 5397.611666666667,
+      "latitude": 69.05194444444444,
+      "longitude": 17.941666666666666
+    }
+  ],
+  "validationPoints": [
+    {
+      "label": "FINNFJORD",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 1908.9,
+      "pixelY": 2822.4833333333336,
+      "latitude": 69.22555555555556,
+      "longitude": 18.083333333333332
+    },
+    {
+      "label": "REINELV",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 2754.7833333333338,
+      "pixelY": 3043.4716666666673,
+      "latitude": 69.2075,
+      "longitude": 18.24361111111111
+    },
+    {
+      "label": "STEINVANN",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 3727.7166666666662,
+      "pixelY": 4322.495,
+      "latitude": 69.11666666666666,
+      "longitude": 18.416666666666668
+    },
+    {
+      "label": "ROGNMO",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 5340.3166666666675,
+      "pixelY": 4521.845,
+      "latitude": 69.09666666666666,
+      "longitude": 18.722499999999997
+    },
+    {
+      "label": "NORA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 4758.583333333334,
+      "pixelY": 4499.621666666668,
+      "latitude": 69.10055555555554,
+      "longitude": 18.611666666666668
+    },
+    {
+      "label": "WERA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 3699.2833333333338,
+      "pixelY": 5118.395,
+      "latitude": 69.0625,
+      "longitude": 18.402777777777775
+    },
+    {
+      "label": "ELLA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 4958.983333333334,
+      "pixelY": 5473.783333333335,
+      "latitude": 69.03333333333333,
+      "longitude": 18.63888888888889
+    },
+    {
+      "label": "RUNDHAUG",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 6331.2,
+      "pixelY": 5593.116666666667,
+      "latitude": 69.01944444444445,
+      "longitude": 18.898611111111112
+    },
+    {
+      "label": "SØRREISA",
+      "reviewNote": "Published coordinate table matched to the centre of the corresponding vector triangle in the plan view.",
+      "pixelX": 2568.5000000000005,
+      "pixelY": 4242.495,
+      "latitude": 69.12638888888888,
+      "longitude": 18.195833333333333
+    }
+  ],
+  "thresholds": {
+    "maximumRmsMeters": 100,
+    "maximumErrorMeters": 200
+  },
+  "passed": true
+}

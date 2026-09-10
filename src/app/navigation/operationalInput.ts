@@ -23,6 +23,8 @@ export interface SectorOperationInputDraft {
 export interface AerodromePatternInputDraft {
   waypointId: string;
   patternCount: string;
+  /** Omitted means the standard arrival buffer is enabled. */
+  arrivalBufferEnabled?: boolean;
 }
 
 export interface OperationalInputDraft {
@@ -80,7 +82,7 @@ export function createEmptySectorOperationInputDraft(
 export function createEmptyAerodromePatternInputDraft(
   waypointId: string,
 ): AerodromePatternInputDraft {
-  return { waypointId, patternCount: '' };
+  return { waypointId, patternCount: '', arrivalBufferEnabled: true };
 }
 
 export function createOperationalInputDraft(
@@ -138,6 +140,7 @@ export function createOperationalInputDraft(
     patternPlans: (inputs.patternPlans ?? []).map((plan) => ({
       waypointId: plan.waypointId,
       patternCount: String(plan.patternCount),
+      arrivalBufferEnabled: plan.arrivalBufferEnabled ?? true,
     })),
     alternateEnabled: alternate !== null,
     alternateWaypoint: alternate?.waypoint ?? null,
@@ -366,8 +369,13 @@ export function parseOperationalInputDraft(
     if (!Number.isInteger(patternCount)) {
       return { status: 'invalid', message: 'Pattern count must be a whole number' };
     }
-    if (patternCount > 0) {
-      patternPlans.push({ waypointId: plan.waypointId, patternCount });
+    const arrivalBufferEnabled = plan.arrivalBufferEnabled ?? true;
+    if (patternCount > 0 || !arrivalBufferEnabled) {
+      patternPlans.push({
+        waypointId: plan.waypointId,
+        patternCount,
+        ...(arrivalBufferEnabled ? {} : { arrivalBufferEnabled: false }),
+      });
     }
   }
 
