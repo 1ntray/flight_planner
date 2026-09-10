@@ -1,0 +1,93 @@
+{
+  "icao": "ENMS",
+  "title": "MOSJOEN / Kjaerstad Visual Approach Chart - ICAO",
+  "chartDate": "2026-09-03",
+  "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643752.pdf",
+  "sourcePdfSha256": "5f288934e4e16ebf6d487cf1e99927380914d2c9b9a03d7812e1da1caf2e6e27",
+  "page": 1,
+  "cropPdfPoints": {
+    "left": 63.6711,
+    "top": 130.534,
+    "right": 534.1141000000001,
+    "bottom": 684.262
+  },
+  "transformOrder": 2,
+  "minimumControlSpanFraction": 0.95,
+  "graticuleControl": {
+    "method": "published-edge-graticule-second-order",
+    "longitudeFitTickCount": 92,
+    "latitudeFitTickCount": 42,
+    "longitudeCoefficients": [
+      12.900109087928,
+      0.802267437703,
+      0.031070633014,
+      0.000271960639,
+      -0.011858951902
+    ],
+    "latitudeCoefficients": [
+      65.938095795257,
+      0.008813687143,
+      -0.385464303806,
+      1.36787e-07,
+      -4.2934e-07
+    ],
+    "validationTicks": [
+      {
+        "edge": "bottom",
+        "axis": "longitude",
+        "sourcePointX": 183.967,
+        "sourcePointY": 684.262,
+        "value": 13.1333333333
+      },
+      {
+        "edge": "bottom",
+        "axis": "longitude",
+        "sourcePointX": 412.079,
+        "sourcePointY": 684.262,
+        "value": 13.5166666667
+      },
+      {
+        "edge": "top",
+        "axis": "longitude",
+        "sourcePointX": 190.627,
+        "sourcePointY": 130.534,
+        "value": 13.1166666667
+      },
+      {
+        "edge": "top",
+        "axis": "longitude",
+        "sourcePointX": 415.378,
+        "sourcePointY": 130.534,
+        "value": 13.5
+      },
+      {
+        "edge": "left",
+        "axis": "latitude",
+        "sourcePointX": 63.6711,
+        "sourcePointY": 281.028,
+        "value": 65.8333333333
+      },
+      {
+        "edge": "left",
+        "axis": "latitude",
+        "sourcePointX": 63.6711,
+        "sourcePointY": 520.448,
+        "value": 65.6666666667
+      },
+      {
+        "edge": "right",
+        "axis": "latitude",
+        "sourcePointX": 534.1141,
+        "sourcePointY": 293.689,
+        "value": 65.8333333333
+      },
+      {
+        "edge": "right",
+        "axis": "latitude",
+        "sourcePointX": 534.1141,
+        "sourcePointY": 533.109,
+        "value": 65.6666666667
+      }
+    ]
+  }
+}

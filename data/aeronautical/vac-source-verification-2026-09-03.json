@@ -1,0 +1,328 @@
+{
+  "provider": "Avinor",
+  "source": "eAIP",
+  "datasetId": "avinor-eaip-2026-09-03",
+  "editionLabel": "2026-09-03-AIRAC",
+  "effectiveFromUtc": "2026-09-03T00:00:00Z",
+  "verifiedAtUtc": "2026-09-10T10:02:22.542Z",
+  "publishedCount": 47,
+  "activeCount": 42,
+  "matchedCount": 42,
+  "missingPublished": [
+    {
+      "icao": "ENBN",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBN 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643887.pdf"
+    },
+    {
+      "icao": "ENMS",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENMS 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643752.pdf"
+    },
+    {
+      "icao": "ENNO",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENNO 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623141.pdf"
+    },
+    {
+      "icao": "ENRA",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRA 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638724.pdf"
+    },
+    {
+      "icao": "ENSR",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSR 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643749.pdf"
+    }
+  ],
+  "staleActive": [],
+  "published": [
+    {
+      "icao": "ENAL",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENAL 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623091.pdf"
+    },
+    {
+      "icao": "ENAN",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENAN 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623093.pdf"
+    },
+    {
+      "icao": "ENAT",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENAT 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623095.pdf"
+    },
+    {
+      "icao": "ENBL",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBL 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623097.pdf"
+    },
+    {
+      "icao": "ENBN",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBN 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643887.pdf"
+    },
+    {
+      "icao": "ENBO",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBO 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623101.pdf"
+    },
+    {
+      "icao": "ENBR",
+      "title": "Visual Approach Chart - ICAO - RWY 17",
+      "aipPage": "AD 2 ENBR 6 - 2",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623103.pdf"
+    },
+    {
+      "icao": "ENBR",
+      "title": "Visual Approach Chart - ICAO - RWY 35",
+      "aipPage": "AD 2 ENBR 6 - 3",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623105.pdf"
+    },
+    {
+      "icao": "ENBS",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBS 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623109.pdf"
+    },
+    {
+      "icao": "ENBV",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENBV 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623111.pdf"
+    },
+    {
+      "icao": "ENCN",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENCN 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623260.pdf"
+    },
+    {
+      "icao": "ENDU",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENDU 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623256.pdf"
+    },
+    {
+      "icao": "ENEV",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENEV 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623113.pdf"
+    },
+    {
+      "icao": "ENFL",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENFL 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623117.pdf"
+    },
+    {
+      "icao": "ENGK",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENGK 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623258.pdf"
+    },
+    {
+      "icao": "ENGM",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENGM 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623422.pdf"
+    },
+    {
+      "icao": "ENHD",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENHD 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623089.pdf"
+    },
+    {
+      "icao": "ENHF",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENHF 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638669.pdf"
+    },
+    {
+      "icao": "ENHK",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENHK 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623121.pdf"
+    },
+    {
+      "icao": "ENHV",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENHV 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623123.pdf"
+    },
+    {
+      "icao": "ENKB",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENKB 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623125.pdf"
+    },
+    {
+      "icao": "ENKR",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENKR 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623127.pdf"
+    },
+    {
+      "icao": "ENLK",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENLK 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623129.pdf"
+    },
+    {
+      "icao": "ENMH",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENMH 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623131.pdf"
+    },
+    {
+      "icao": "ENML",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENML 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623133.pdf"
+    },
+    {
+      "icao": "ENMS",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENMS 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643752.pdf"
+    },
+    {
+      "icao": "ENNA",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENNA 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623137.pdf"
+    },
+    {
+      "icao": "ENNM",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENNM 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623139.pdf"
+    },
+    {
+      "icao": "ENNO",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENNO 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623141.pdf"
+    },
+    {
+      "icao": "ENOV",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENOV 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638672.pdf"
+    },
+    {
+      "icao": "ENRA",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRA 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/638724.pdf"
+    },
+    {
+      "icao": "ENRE",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRE 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623149.pdf"
+    },
+    {
+      "icao": "ENRM",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRM 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623153.pdf"
+    },
+    {
+      "icao": "ENRO",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRO 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623155.pdf"
+    },
+    {
+      "icao": "ENRS",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENRS 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623157.pdf"
+    },
+    {
+      "icao": "ENSD",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSD 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623159.pdf"
+    },
+    {
+      "icao": "ENSG",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSG 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623161.pdf"
+    },
+    {
+      "icao": "ENSH",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSH 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623163.pdf"
+    },
+    {
+      "icao": "ENSK",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSK 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623165.pdf"
+    },
+    {
+      "icao": "ENSO",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSO 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623167.pdf"
+    },
+    {
+      "icao": "ENSR",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSR 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/643749.pdf"
+    },
+    {
+      "icao": "ENSS",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENSS 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623169.pdf"
+    },
+    {
+      "icao": "ENST",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENST 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623171.pdf"
+    },
+    {
+      "icao": "ENTC",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENTC 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623173.pdf"
+    },
+    {
+      "icao": "ENVA",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENVA 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623181.pdf"
+    },
+    {
+      "icao": "ENVD",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENVD 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623185.pdf"
+    },
+    {
+      "icao": "ENZV",
+      "title": "Visual Approach Chart - ICAO",
+      "aipPage": "AD 2 ENZV 6 - 1",
+      "sourceUrl": "https://aim-prod.avinor.no/no/AIP/View/Index/155/2026-09-03-AIRAC/graphics/623189.pdf"
+    }
+  ]
+}

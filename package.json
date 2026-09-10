@@ -11,6 +11,7 @@
     "aero:import:endu": "tsx tools/aeronautical/avinor-eaip/cli.ts --aerodrome ENDU",
     "aero:prepare:boundaries": "tsx tools/aeronautical/avinor-eaip/prepareNationalBoundary.ts",
     "aero:prepare:vac": "tsx tools/aeronautical/vac/cli.ts",
+    "aero:verify:vac-sources": "tsx tools/aeronautical/vac/verifyVacSourcesCli.ts",
     "aero:build:operational-slice": "node --experimental-strip-types tools/aeronautical/avinor-eaip/buildOperationalSlice.ts",
     "dev": "vite",
     "build": "tsc -b && vite build",

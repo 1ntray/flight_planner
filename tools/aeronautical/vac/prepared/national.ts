@@ -1,6 +1,7 @@
 import controls from './national-vac-controls-2026-09-03.json';
 import graticuleControlsData from './graticule-vac-controls-2026-09-03.json';
 import remainingGraticuleControlsData from './graticule-vac-controls-remaining-2026-09-03.json';
+import finalGraticuleControlsData from './graticule-vac-controls-final-2026-09-03.json';
 
 import type { VacPreparationConfig, VacPreparationPoint } from '../types';
 
@@ -218,4 +219,5 @@ export const NATIONAL_VAC_PREPARATIONS: readonly VacPreparationConfig[] =
     ...controls.charts,
     ...graticuleControlsData.charts,
     ...remainingGraticuleControlsData.charts,
+    ...finalGraticuleControlsData.charts,
   ] as readonly ReviewedChart[]).map(createConfig);

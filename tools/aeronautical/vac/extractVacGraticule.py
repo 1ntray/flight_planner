@@ -15,6 +15,7 @@ import argparse
 import hashlib
 import json
 import re
+import statistics
 from pathlib import Path
 
 import numpy
@@ -69,6 +70,36 @@ def chart_date(page: pdfplumber.page.Page) -> str:
     return f"{year}-{months[month]:02d}-{int(day):02d}"
 
 
+def deduplicate_nearby_ticks(values: list[float]) -> list[float]:
+    """Remove duplicate vector strokes without hiding a genuinely missing tick."""
+    if len(values) < 3:
+        return values
+    gaps = [right - left for left, right in zip(values, values[1:]) if right - left >= 2]
+    if not gaps:
+        return values
+    spacing = statistics.median(gaps)
+    groups: list[list[float]] = []
+    for value in values:
+        if groups and value - groups[-1][-1] < spacing * 0.25:
+            groups[-1].append(value)
+        else:
+            groups.append([value])
+    result: list[float] = []
+    for index, group in enumerate(groups):
+        if len(group) == 1:
+            result.append(group[0])
+            continue
+        previous = groups[index - 1][-1] if index > 0 else None
+        following = groups[index + 1][0] if index + 1 < len(groups) else None
+        def score(candidate: float) -> float:
+            return (
+                (0 if previous is None else abs(candidate - previous - spacing))
+                + (0 if following is None else abs(following - candidate - spacing))
+            )
+        result.append(min(group, key=score))
+    return result
+
+
 def edge_ticks(page: pdfplumber.page.Page, frame: dict[str, float], edge: str) -> list[float]:
     result: list[float] = []
     # Some Avinor PDFs place the tick path a fraction of a PDF point inside
@@ -86,7 +117,40 @@ def edge_ticks(page: pdfplumber.page.Page, frame: dict[str, float], edge: str) -
             result.append((top + bottom) / 2)
         elif edge == "right" and abs(x1 - frame["right"]) <= tolerance and height < 0.1 and 2.5 <= width <= 6:
             result.append((top + bottom) / 2)
-    return sorted(set(round(value, 6) for value in result))
+    return deduplicate_nearby_ticks(sorted(set(round(value, 6) for value in result)))
+
+
+def horizontal_character_anchors(
+    page: pdfplumber.page.Page, frame: dict[str, float], edge: str,
+) -> list[tuple[float, float]]:
+    expected_y = frame[edge]
+    characters = [
+        char for char in page.chars
+        if frame["left"] - 20 <= float(char["x0"]) <= frame["right"] + 20
+        and abs((float(char["top"]) + float(char["bottom"])) / 2 - expected_y) <= 10
+        and str(char["text"]).strip()
+    ]
+    rows: list[list[dict[str, object]]] = []
+    for char in sorted(characters, key=lambda item: (float(item["top"]), float(item["x0"]))):
+        row = next((candidate for candidate in rows if abs(float(candidate[0]["top"]) - float(char["top"])) <= 0.75), None)
+        if row is None:
+            rows.append([char])
+        else:
+            row.append(char)
+    anchors: list[tuple[float, float]] = []
+    for row in rows:
+        groups: list[list[dict[str, object]]] = []
+        for char in sorted(row, key=lambda item: float(item["x0"])):
+            if groups and float(char["x0"]) - float(groups[-1][-1]["x1"]) <= 1.75:
+                groups[-1].append(char)
+            else:
+                groups.append([char])
+        for group in groups:
+            text = "".join(str(char["text"]) for char in group)
+            value = parse_longitude(text)
+            if value is not None:
+                anchors.append(((float(group[0]["x0"]) + float(group[-1]["x1"])) / 2, value))
+    return anchors
 
 
 def labelled_anchors(page: pdfplumber.page.Page, frame: dict[str, float], edge: str) -> list[tuple[float, float]]:
@@ -105,7 +169,9 @@ def labelled_anchors(page: pdfplumber.page.Page, frame: dict[str, float], edge: 
             expected_x = frame[edge]
             if value is not None and abs(centre_x - expected_x) <= 8:
                 result.append((centre_y, value))
-    return result
+    if edge in {"top", "bottom"} and len(result) < 2:
+        result.extend(horizontal_character_anchors(page, frame, edge))
+    return sorted(set(result))
 
 
 def minute_constraints(page: pdfplumber.page.Page, frame: dict[str, float], edge: str) -> list[dict[str, float | str]]:
