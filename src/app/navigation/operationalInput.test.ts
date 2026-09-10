@@ -5,7 +5,9 @@ import {
   createEmptyOperationalInputDraft,
   createOperationalInputDraft,
   createOperationalInputOverrides,
+  createRunwayPerformanceOperationInputDraft,
   parseOperationalInputDraft,
+  reconcileRunwayPerformanceOperations,
 } from './operationalInput';
 
 describe('operational input parsing', () => {
@@ -92,7 +94,17 @@ describe('operational input parsing', () => {
       createOperationalInputDraft(inputs),
       PROJECT_AIRCRAFT_DEFINITION,
       ['B'],
-    )).toEqual({ status: 'valid', value: inputs });
+    )).toEqual({
+      status: 'valid',
+      value: {
+        ...inputs,
+        runwayPerformance: {
+          personalCrosswindLimitKt: 9,
+          instructor: false,
+          operations: [],
+        },
+      },
+    });
   });
 
   it('rejects excessive fuel and baggage', () => {
@@ -169,6 +181,92 @@ describe('operational input parsing', () => {
           arrivalBufferEnabled: false,
         }],
       },
+    });
+  });
+
+  it('keeps intermediate arrival and onward takeoff as independent semantic inputs', () => {
+    const arrival = {
+      ...createRunwayPerformanceOperationInputDraft('landing', 'A', 'B', 'B'),
+      runwayDesignator: '10', rcc: '5',
+    };
+    const departure = {
+      ...createRunwayPerformanceOperationInputDraft('takeoff', 'B', 'C', 'B'),
+      runwayDesignator: '28', rcc: '6',
+    };
+    const result = parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      sectorOperations: [{ waypointId: 'B', kind: 'full-stop', departureFuelOnboardLitres: '' }],
+      runwayPerformanceOperations: [arrival, departure],
+    }, PROJECT_AIRCRAFT_DEFINITION, ['B'], ['B', 'C']);
+    expect(result).toMatchObject({
+      status: 'valid',
+      value: { runwayPerformance: { operations: [
+        { kind: 'landing', sectorFromWaypointId: 'A', sectorToWaypointId: 'B', runwayDesignator: '10' },
+        { kind: 'takeoff', sectorFromWaypointId: 'B', sectorToWaypointId: 'C', runwayDesignator: '28' },
+      ] } },
+    });
+  });
+
+  it('removes runway operations whose stable sector adjacency no longer exists', () => {
+    const operations = [
+      createRunwayPerformanceOperationInputDraft('takeoff', 'A', 'B', 'A'),
+      createRunwayPerformanceOperationInputDraft('landing', 'B', 'C', 'C'),
+    ];
+    expect(reconcileRunwayPerformanceOperations({
+      waypoints: [
+        { id: 'A', name: 'A', position: { latitude: 60, longitude: 10 } },
+        { id: 'C', name: 'C', position: { latitude: 61, longitude: 11 } },
+      ],
+      legShapes: [], sectorBoundaryWaypointIds: [],
+    }, operations)).toEqual([]);
+  });
+
+  it('handles an empty or one-waypoint route while reconciling runway operations', () => {
+    const operation = createRunwayPerformanceOperationInputDraft(
+      'takeoff', 'A', 'B', 'A',
+    );
+
+    expect(reconcileRunwayPerformanceOperations({
+      waypoints: [], legShapes: [], sectorBoundaryWaypointIds: [],
+    }, [operation])).toEqual([]);
+    expect(reconcileRunwayPerformanceOperations({
+      waypoints: [
+        { id: 'A', name: 'A', position: { latitude: 60, longitude: 10 } },
+      ],
+      legShapes: [], sectorBoundaryWaypointIds: [],
+    }, [operation])).toEqual([]);
+  });
+
+  it('keeps the primary operational plan valid while an alternate is incomplete', () => {
+    expect(parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      alternateEnabled: true,
+    }, PROJECT_AIRCRAFT_DEFINITION)).toMatchObject({
+      status: 'valid',
+      value: { alternate: null },
+    });
+
+    expect(parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      alternateEnabled: true,
+      alternateDistanceNm: '20',
+    }, PROJECT_AIRCRAFT_DEFINITION)).toMatchObject({
+      status: 'valid',
+      value: { alternate: null },
+    });
+  });
+
+  it('keeps a partially typed surface wind from hiding the operational plan', () => {
+    const operation = {
+      ...createRunwayPerformanceOperationInputDraft('takeoff', 'A', 'B', 'A'),
+      manualWindDirectionFromTrueDeg: '240',
+    };
+    expect(parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      runwayPerformanceOperations: [operation],
+    }, PROJECT_AIRCRAFT_DEFINITION)).toMatchObject({
+      status: 'valid',
+      value: { runwayPerformance: { operations: [{ kind: 'takeoff' }] } },
     });
   });
 });

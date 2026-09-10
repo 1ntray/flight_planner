@@ -115,6 +115,14 @@ export type {
   SectorOperationPlan,
 } from './operationalPlanning';
 export type {
+  AircraftRunwayPerformanceProfile,
+  ManualSurfaceWind,
+  RunwayOperationKind,
+  RunwayPerformanceOperationInput,
+  RunwayPerformancePlanInputs,
+} from './runwayPerformance';
+export { runwayOperationKey } from './runwayPerformance';
+export type {
   LegShape,
   ReportingPointShapingAnchor,
   RouteShapingPoint,

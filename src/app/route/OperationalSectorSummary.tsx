@@ -3,12 +3,21 @@ import type {
   CalculatedLoadingState,
   CalculatedSectorOperationalFlightPlan,
 } from '../../calculations';
-import type { AircraftDefinition, OperationalPlanningInputs } from '../../domain';
+import type { AerodromeDetails, AircraftDefinition, OperationalPlanningInputs } from '../../domain';
+import type { EffectiveAirportPlanningEnvironment } from '../../weather';
+import type { OperationalInputDraft } from '../navigation/operationalInput';
+import { RunwayPerformanceSummary } from './RunwayPerformanceSummary';
 
 export interface OperationalSectorSummaryProps {
   sector: CalculatedSectorOperationalFlightPlan;
   aircraft: AircraftDefinition;
   inputs: OperationalPlanningInputs;
+  fromName: string;
+  toName: string;
+  aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
+  airportOperationEnvironments: ReadonlyMap<string, EffectiveAirportPlanningEnvironment>;
+  operationalDraft: OperationalInputDraft;
+  onOperationalDraftChange: (draft: OperationalInputDraft) => void;
 }
 
 function formatMinutes(totalMinutes: number): string {
@@ -61,6 +70,12 @@ export function OperationalSectorSummary({
   sector,
   aircraft,
   inputs,
+  fromName,
+  toName,
+  aerodromeDetailsByWaypointId,
+  airportOperationEnvironments,
+  operationalDraft,
+  onOperationalDraftChange,
 }: OperationalSectorSummaryProps) {
   const system = aircraft.fuelSystem!;
   const loading = aircraft.weightBalance!;
@@ -148,6 +163,22 @@ export function OperationalSectorSummary({
               <div><dt>Required fuel at landing</dt><dd>{minimumFlightFuel}</dd></div>
             </dl>
           </div>
+        </div>
+        <div className="operational-summary__runway-performance">
+          <h4>Runway performance</h4>
+          <RunwayPerformanceSummary
+            sectorFromWaypointId={sector.fromWaypointId}
+            sectorToWaypointId={sector.toWaypointId}
+            fromName={fromName}
+            toName={toName}
+            takeoffMassKg={sector.takeoffLoading.totalMassKg}
+            landingMassKg={sector.landingLoading.totalMassKg}
+            detailsByWaypointId={aerodromeDetailsByWaypointId}
+            environments={airportOperationEnvironments}
+            draft={operationalDraft}
+            onDraftChange={onOperationalDraftChange}
+            modelSupported={aircraft.runwayPerformanceProfile?.kind === 'z242l-utsa-v1'}
+          />
         </div>
       </div>
 

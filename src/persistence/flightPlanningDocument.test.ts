@@ -745,4 +745,82 @@ describe('flight-planning document persistence', () => {
     expect(() => parseFlightPlanningDocument(invalid))
       .toThrow('must be reporting-point');
   });
+
+  it('round-trips semantic runway inputs without persisting derived results', () => {
+    const withRunwayInputs = {
+      ...document,
+      operationalInputs: {
+        fuelOnboardLitres: 180,
+        leftSeatMassKg: 80,
+        rightSeatMassKg: 0,
+        baggageMassKg: 10,
+        extraFuelLitres: 18,
+        finalReserveLitres: 36,
+        sectorOperations: [],
+        patternPlans: [],
+        alternate: null,
+        runwayPerformance: {
+          personalCrosswindLimitKt: 9,
+          instructor: false,
+          operations: [{
+            kind: 'takeoff',
+            sectorFromWaypointId: 'A',
+            sectorToWaypointId: 'B',
+            aerodromeWaypointId: 'A',
+            runwayDesignator: '10',
+            runwayCondition: 'DRY',
+            rcc: 6,
+            manualOatC: 11,
+            manualSurfaceWind: {
+              directionFromTrueDeg: 240,
+              speedKt: 12,
+              gustKt: 22,
+            },
+          }],
+        },
+      },
+    };
+    const restored = parseFlightPlanningDocument(withRunwayInputs);
+    expect(restored.operationalInputs?.runwayPerformance).toEqual(
+      withRunwayInputs.operationalInputs.runwayPerformance,
+    );
+    expect(JSON.stringify(restored)).not.toContain('pressureAltitude');
+    expect(JSON.stringify(restored)).not.toContain('requiredDistance');
+  });
+
+  it('serializes operational inputs safely after the route is cleared', () => {
+    const emptyRouteDocument = {
+      ...document,
+      flightPlan: {
+        waypoints: [],
+        legShapes: [],
+        sectorBoundaryWaypointIds: [],
+      },
+      performanceInputs: document.performanceInputs === null
+        ? null
+        : {
+            ...document.performanceInputs,
+            legAltitudePlans: [],
+            sectorStopPlans: [],
+          },
+      operationalInputs: {
+        fuelOnboardLitres: 224,
+        leftSeatMassKg: 56,
+        rightSeatMassKg: 0,
+        baggageMassKg: 15,
+        extraFuelLitres: 18,
+        finalReserveLitres: 36,
+        sectorOperations: [],
+        patternPlans: [],
+        alternate: null,
+        runwayPerformance: {
+          personalCrosswindLimitKt: 9,
+          instructor: false,
+          operations: [],
+        },
+      },
+    };
+
+    expect(() => serializeFlightPlanningDocument(emptyRouteDocument)).not.toThrow();
+  });
 });

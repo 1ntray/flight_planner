@@ -843,6 +843,13 @@ function requireAircraftDefinition(
     ),
     ...(fuelSystem === undefined ? {} : { fuelSystem }),
     ...(weightBalance === undefined ? {} : { weightBalance }),
+    ...(record.runwayPerformanceProfile === undefined ? {} : (() => {
+      const profile = requireRecord(record.runwayPerformanceProfile, `${path}.runwayPerformanceProfile`);
+      if (profile.kind !== 'z242l-utsa-v1' || profile.revision !== 1) {
+        throw new RangeError(`${path}.runwayPerformanceProfile is not supported`);
+      }
+      return { runwayPerformanceProfile: { kind: 'z242l-utsa-v1' as const, revision: 1 as const } };
+    })()),
   };
 }
 
@@ -1479,6 +1486,84 @@ function requireOperationalInputs(
         };
   }
 
+  const routeSectorEndpointPairs = (() => {
+    if (flightPlan.waypoints.length < 2) {
+      return [];
+    }
+
+    const boundaryIndexes = flightPlan.waypoints
+      .map((waypoint, index) => boundaryIds.has(waypoint.id) ? index : -1)
+      .filter((index) => index > 0);
+    const endpoints = [0, ...boundaryIndexes, flightPlan.waypoints.length - 1];
+    return endpoints.slice(1).map((endIndex, index) => ({
+      from: flightPlan.waypoints[endpoints[index]!]!,
+      to: flightPlan.waypoints[endIndex]!,
+    }));
+  })();
+  const validRunwayOperationKeys = new Set(routeSectorEndpointPairs.flatMap(({ from, to }) => [
+    `takeoff:${from.id}:${to.id}`,
+    `landing:${from.id}:${to.id}`,
+  ]));
+  const runwayPerformance = record.runwayPerformance === undefined
+    ? undefined
+    : (() => {
+        const runwayPath = `${path}.runwayPerformance`;
+        const runwayRecord = requireRecord(record.runwayPerformance, runwayPath);
+        const personalCrosswindLimitKt = requireNonNegativeNumber(
+          runwayRecord.personalCrosswindLimitKt,
+          `${runwayPath}.personalCrosswindLimitKt`,
+        );
+        if (typeof runwayRecord.instructor !== 'boolean') {
+          throw new RangeError(`${runwayPath}.instructor must be a boolean`);
+        }
+        const seen = new Set<string>();
+        const operations = requireArray(runwayRecord.operations, `${runwayPath}.operations`).map((value, index) => {
+          const operationPath = `${runwayPath}.operations[${index}]`;
+          const operation = requireRecord(value, operationPath);
+          if (operation.kind !== 'takeoff' && operation.kind !== 'landing') {
+            throw new RangeError(`${operationPath}.kind is not supported`);
+          }
+          const sectorFromWaypointId = requireString(operation.sectorFromWaypointId, `${operationPath}.sectorFromWaypointId`);
+          const sectorToWaypointId = requireString(operation.sectorToWaypointId, `${operationPath}.sectorToWaypointId`);
+          const aerodromeWaypointId = requireString(operation.aerodromeWaypointId, `${operationPath}.aerodromeWaypointId`);
+          const key = `${operation.kind}:${sectorFromWaypointId}:${sectorToWaypointId}`;
+          if (!validRunwayOperationKeys.has(key) || seen.has(key)) {
+            throw new RangeError(`${operationPath} is stale or duplicated`);
+          }
+          seen.add(key);
+          const expectedAerodromeId = operation.kind === 'takeoff' ? sectorFromWaypointId : sectorToWaypointId;
+          if (aerodromeWaypointId !== expectedAerodromeId) {
+            throw new RangeError(`${operationPath}.aerodromeWaypointId does not match the sector operation`);
+          }
+          const runwayDesignator = operation.runwayDesignator === undefined ? undefined : requireString(operation.runwayDesignator, `${operationPath}.runwayDesignator`);
+          const runwayCondition = operation.runwayCondition === undefined ? undefined : requireString(operation.runwayCondition, `${operationPath}.runwayCondition`);
+          const rcc = operation.rcc === undefined ? undefined : requireNonNegativeNumber(operation.rcc, `${operationPath}.rcc`);
+          if (rcc !== undefined && (!Number.isInteger(rcc) || rcc > 6)) throw new RangeError(`${operationPath}.rcc must be a whole number from 0 to 6`);
+          const manualOatC = operation.manualOatC === undefined ? undefined : requireFiniteNumber(operation.manualOatC, `${operationPath}.manualOatC`);
+          const manualSurfaceWind = operation.manualSurfaceWind === undefined ? undefined : (() => {
+            const wind = requireRecord(operation.manualSurfaceWind, `${operationPath}.manualSurfaceWind`);
+            const directionFromTrueDeg = requireFiniteNumber(wind.directionFromTrueDeg, `${operationPath}.manualSurfaceWind.directionFromTrueDeg`);
+            const speedKt = requireNonNegativeNumber(wind.speedKt, `${operationPath}.manualSurfaceWind.speedKt`);
+            const gustKt = wind.gustKt === undefined ? undefined : requireNonNegativeNumber(wind.gustKt, `${operationPath}.manualSurfaceWind.gustKt`);
+            if (directionFromTrueDeg < 0 || directionFromTrueDeg >= 360) throw new RangeError(`${operationPath}.manualSurfaceWind.directionFromTrueDeg must be in [0, 360)`);
+            if (gustKt !== undefined && gustKt < speedKt) throw new RangeError(`${operationPath}.manualSurfaceWind.gustKt must be at least speedKt`);
+            return { directionFromTrueDeg, speedKt, ...(gustKt === undefined ? {} : { gustKt }) };
+          })();
+          return {
+            kind: operation.kind as 'takeoff' | 'landing',
+            sectorFromWaypointId,
+            sectorToWaypointId,
+            aerodromeWaypointId,
+            ...(runwayDesignator === undefined ? {} : { runwayDesignator }),
+            ...(runwayCondition === undefined ? {} : { runwayCondition }),
+            ...(rcc === undefined ? {} : { rcc: rcc as 0 | 1 | 2 | 3 | 4 | 5 | 6 }),
+            ...(manualSurfaceWind === undefined ? {} : { manualSurfaceWind }),
+            ...(manualOatC === undefined ? {} : { manualOatC }),
+          };
+        });
+        return { personalCrosswindLimitKt, instructor: runwayRecord.instructor, operations };
+      })();
+
   return {
     fuelOnboardLitres,
     leftSeatMassKg: requireNonNegativeNumber(
@@ -1506,6 +1591,7 @@ function requireOperationalInputs(
     sectorOperations,
     patternPlans,
     alternate,
+    ...(runwayPerformance === undefined ? {} : { runwayPerformance }),
   };
 }
 

@@ -10,10 +10,13 @@ import type {
 } from '../../calculations';
 import type {
   AircraftDefinition,
+  AerodromeDetails,
   FlightPlan,
   LegAltitudePlan,
   OperationalPlanningInputs,
 } from '../../domain';
+import type { EffectiveAirportPlanningEnvironment } from '../../weather';
+import type { OperationalInputDraft } from '../navigation/operationalInput';
 import type { ForecastLegWind } from '../../weather';
 import { RouteTable } from './RouteTable';
 import { OperationalSectorSummary } from './OperationalSectorSummary';
@@ -27,6 +30,10 @@ export interface SectorRouteTablesProps {
   operationalPlan?: CalculatedOperationalFlightPlan | null;
   aircraftDefinition: AircraftDefinition;
   operationalInputs?: OperationalPlanningInputs | null;
+  operationalDraft: OperationalInputDraft;
+  onOperationalDraftChange: (draft: OperationalInputDraft) => void;
+  aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
+  airportOperationEnvironments: ReadonlyMap<string, EffectiveAirportPlanningEnvironment>;
   alternateTrueAirspeedKt?: number | null;
   forecastWinds?: readonly ForecastLegWind[];
   legAltitudePlans?: readonly LegAltitudePlan[];
@@ -91,6 +98,10 @@ export function SectorRouteTables({
   operationalPlan = null,
   aircraftDefinition,
   operationalInputs = null,
+  operationalDraft,
+  onOperationalDraftChange,
+  aerodromeDetailsByWaypointId,
+  airportOperationEnvironments,
   alternateTrueAirspeedKt = null,
   forecastWinds = [],
   legAltitudePlans = [],
@@ -183,6 +194,12 @@ export function SectorRouteTables({
             sector={operationalSector}
             aircraft={aircraftDefinition}
             inputs={operationalInputs}
+            fromName={fromName!}
+            toName={toName!}
+            aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
+            airportOperationEnvironments={airportOperationEnvironments}
+            operationalDraft={operationalDraft}
+            onOperationalDraftChange={onOperationalDraftChange}
           />
         )}
       </div>
@@ -255,6 +272,12 @@ export function SectorRouteTables({
                 sector={operationalSector}
                 aircraft={aircraftDefinition}
                 inputs={operationalInputs}
+                fromName={fromName}
+                toName={toName}
+                aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
+                airportOperationEnvironments={airportOperationEnvironments}
+                operationalDraft={operationalDraft}
+                onOperationalDraftChange={onOperationalDraftChange}
               />
             )}
           </section>

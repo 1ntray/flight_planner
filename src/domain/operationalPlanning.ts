@@ -1,4 +1,5 @@
 import type { Waypoint } from './waypoint';
+import type { RunwayPerformancePlanInputs } from './runwayPerformance';
 
 export type FuelTankKind = 'main' | 'auxiliary';
 
@@ -79,4 +80,6 @@ export interface OperationalPlanningInputs {
   /** Optional so saved plans from before pattern planning remain readable. */
   readonly patternPlans?: readonly AerodromePatternPlan[];
   readonly alternate: AlternatePlanningInputs | null;
+  /** Optional so documents created before runway planning remain valid. */
+  readonly runwayPerformance?: RunwayPerformancePlanInputs;
 }

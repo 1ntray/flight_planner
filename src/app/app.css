@@ -1173,10 +1173,65 @@ kbd {
 
 .operational-summary__grid {
   display: grid;
-  grid-template-columns: repeat(2, max-content);
+  grid-template-columns: repeat(3, max-content);
   justify-content: start;
   align-items: start;
   gap: 0.8rem;
+}
+
+.runway-performance {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 34rem;
+}
+
+.runway-performance h5 {
+  margin: 0 0 0.3rem;
+  color: #34465a;
+  font-size: 0.68rem;
+  letter-spacing: 0.035em;
+}
+
+.runway-performance__global-controls,
+.runway-performance__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+}
+
+.runway-performance__global-controls label,
+.runway-performance__controls label {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.runway-performance__global-controls input[type='number'] {
+  width: 4rem;
+}
+
+.runway-performance__controls input,
+.runway-performance__controls select {
+  width: 6.5rem;
+  min-height: 1.8rem;
+}
+
+.runway-performance__table {
+  width: 100%;
+}
+
+.runway-performance__issues,
+.runway-performance__warning {
+  margin: 0.3rem 0 0;
+  color: #8f2722;
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.runway-performance__issues {
+  padding-left: 1rem;
 }
 
 .operational-summary h4 {
@@ -1368,7 +1423,13 @@ kbd {
   right: 0.75rem;
   display: grid;
   width: min(17rem, calc(100% - 5rem));
+  max-height: calc(100% - 1.5rem);
   gap: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 0.15rem 0.2rem 0;
+  scrollbar-gutter: stable;
 }
 
 .base-map-control,

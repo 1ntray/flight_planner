@@ -267,7 +267,12 @@ typecheck, pnpm test, and pnpm build.
 - No NOTAM, runway-state, or live airspace-status feed. Airport METAR/TAF and
   numerical surface forecast are explicit-load planning-review data, not a
   briefing or go/no-go service.
-- No takeoff or landing runway-performance calculation.
+- Zlin Z242L runway-performance groundwork is implemented: explicit runway/RCC
+  selection, sector masses, effective airport wind/QNH/OAT, UTSA atmosphere and
+  correction rules, crosswind checks, semantic persistence, and OFP-style
+  tables. Operational AFM distances remain unavailable until independently
+  reviewed Figure 5-10 and Figure 5-26 control values are supplied; no raster/OCR
+  values are guessed. See [runway-performance.md](runway-performance.md).
 - No PDF OFP generation; the on-screen navlog is OFP-oriented.
 - No automatic terrain/obstacle scan or terrain-derived MSA.
 - The approved edition's 47 published VAC charts are covered, but they remain

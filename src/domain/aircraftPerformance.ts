@@ -3,6 +3,7 @@ import type {
   AircraftFuelSystemDefinition,
   AircraftWeightBalanceDefinition,
 } from './operationalPlanning';
+import type { AircraftRunwayPerformanceProfile } from './runwayPerformance';
 
 /**
  * Defensive limit for user-entered planning altitudes. This is not an
@@ -56,6 +57,8 @@ export interface AircraftDefinition {
   readonly fuelSystem?: AircraftFuelSystemDefinition;
   /** Optional for legacy/custom snapshots that predate operational planning. */
   readonly weightBalance?: AircraftWeightBalanceDefinition;
+  /** Explicit opt-in: never apply Z242L runway rules to another aircraft. */
+  readonly runwayPerformanceProfile?: AircraftRunwayPerformanceProfile;
 }
 
 export interface AerodromePlanningWeather {

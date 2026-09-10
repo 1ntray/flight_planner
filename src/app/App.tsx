@@ -4,6 +4,7 @@ import { getConfiguredAeronauticalRepository } from '../aeronautical';
 import type {
   AeronauticalFeatureRef,
   AeronauticalPointFeature,
+  AerodromeDetails,
   AircraftDefinition,
   FlightPlan,
   FlightPlanningDocument,
@@ -67,6 +68,8 @@ import {
   parseOperationalInputDraft,
 } from './navigation/operationalInput';
 import type { OperationalInputDraft } from './navigation/operationalInput';
+import { reconcileRunwayPerformanceOperations } from './navigation/operationalInput';
+import type { EffectiveAirportPlanningEnvironment } from '../weather';
 import {
   removeAltitudePlansTouchingWaypoint,
   setLegAltitudeOverride,
@@ -134,6 +137,7 @@ interface EndpointAerodromeReference {
   readonly waypointId: string;
   readonly feature: AeronauticalFeatureRef;
   readonly key: string;
+  readonly identifier?: string;
 }
 
 interface EndpointAerodromeElevation {
@@ -151,6 +155,25 @@ const EMPTY_ENDPOINT_AERODROME_ELEVATIONS: EndpointAerodromeElevations = {
   departure: null,
   destination: null,
 };
+
+function sameAirportEnvironment(
+  first: EffectiveAirportPlanningEnvironment | undefined,
+  second: EffectiveAirportPlanningEnvironment,
+): boolean {
+  const firstWind = first?.wind;
+  const secondWind = second.wind;
+  return first?.qnhHpa === second.qnhHpa &&
+    first?.isaDeviationC === second.isaDeviationC &&
+    first?.temperatureC === second.temperatureC &&
+    first?.windSource === second.windSource &&
+    first?.pressureSource === second.pressureSource &&
+    first?.temperatureSource === second.temperatureSource &&
+    firstWind?.kind === secondWind?.kind &&
+    firstWind?.speedKt === secondWind?.speedKt &&
+    firstWind?.gustKt === secondWind?.gustKt &&
+    (firstWind?.kind !== 'fixed' || secondWind?.kind !== 'fixed' ||
+      firstWind.directionFromTrueDeg === secondWind.directionFromTrueDeg);
+}
 
 type BatchEntryMode =
   | { readonly kind: 'naming'; readonly index: number }
@@ -170,6 +193,7 @@ function getEndpointAerodromeReference(
   return {
     waypointId: waypoint.id,
     feature,
+    ...(waypoint.anchor?.publishedIdentifier === undefined ? {} : { identifier: waypoint.anchor.publishedIdentifier }),
     key: [
       waypoint.id,
       feature.dataset.datasetId,
@@ -336,6 +360,8 @@ export function App() {
   const [forecastRequestKey, setForecastRequestKey] = useState(0);
   // Live MET Norway values are intentionally not part of the saved plan.
   const [airportWeatherOverrides, setAirportWeatherOverrides] = useState<ReadonlyMap<string, { readonly qnhHpa?: number; readonly isaDeviationC?: number }>>(new Map());
+  const [airportOperationEnvironments, setAirportOperationEnvironments] = useState<ReadonlyMap<string, EffectiveAirportPlanningEnvironment>>(new Map());
+  const [aerodromeDetailsByWaypointId, setAerodromeDetailsByWaypointId] = useState<ReadonlyMap<string, AerodromeDetails>>(new Map());
   const [performanceInputDraft, setPerformanceInputDraft] =
     useState<PerformanceInputDraft>(
       initialPlanningState.performanceInputDraft,
@@ -411,6 +437,17 @@ export function App() {
       return reconciled.length === current.manualLegWindOverrides.length
         ? current
         : { ...current, manualLegWindOverrides: reconciled };
+    });
+  }, [flightPlan]);
+  useEffect(() => {
+    setOperationalInputDraft((current) => {
+      const operations = reconcileRunwayPerformanceOperations(
+        flightPlan,
+        current.runwayPerformanceOperations,
+      );
+      return operations.length === current.runwayPerformanceOperations.length
+        ? current
+        : { ...current, runwayPerformanceOperations: operations };
     });
   }, [flightPlan]);
   const parsedOperationalInputs = useMemo(
@@ -682,10 +719,20 @@ export function App() {
       }
 
       try {
-        const details = await aeronauticalRepository.getFeatureDetails(
+        let details = await aeronauticalRepository.getFeatureDetails(
           endpoint.feature,
           { signal: controller.signal },
         );
+        if (details === null && endpoint.identifier !== undefined) {
+          const currentFeature = await aeronauticalRepository.findAerodromeByIdentifier(
+            endpoint.identifier,
+            { signal: controller.signal },
+          );
+          details = currentFeature === null ? null : await aeronauticalRepository.getFeatureDetails(
+            currentFeature.ref,
+            { signal: controller.signal },
+          );
+        }
 
         return details?.detailKind === 'aerodrome' &&
           details.elevationFt !== null
@@ -727,6 +774,28 @@ export function App() {
       controller.abort();
     };
   }, [endpointAerodromeReferences, sectorStopAerodromeReferences]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const anchored = flightPlan.waypoints.flatMap((waypoint) => {
+      const feature = waypoint.anchor?.feature;
+      return feature?.featureKind === 'aerodrome' ? [{ waypointId: waypoint.id, feature }] : [];
+    });
+    void Promise.all(anchored.map(async ({ waypointId, feature }) => {
+      let details = await aeronauticalRepository.getFeatureDetails(feature, { signal: controller.signal });
+      if (details === null) {
+        const identifier = flightPlan.waypoints.find((waypoint) => waypoint.id === waypointId)?.anchor?.publishedIdentifier;
+        const currentFeature = identifier === undefined ? null : await aeronauticalRepository.findAerodromeByIdentifier(identifier, { signal: controller.signal });
+        details = currentFeature === null ? null : await aeronauticalRepository.getFeatureDetails(currentFeature.ref, { signal: controller.signal });
+      }
+      return details?.detailKind === 'aerodrome' ? [waypointId, details] as const : null;
+    })).then((values) => {
+      if (!controller.signal.aborted) {
+        setAerodromeDetailsByWaypointId(new Map(values.filter((value): value is readonly [string, AerodromeDetails] => value !== null)));
+      }
+    }).catch(() => undefined);
+    return () => controller.abort();
+  }, [flightPlan.waypoints]);
 
 
   const addWaypoint = useCallback((position: Position) => {
@@ -961,7 +1030,11 @@ export function App() {
       sectorOperations: [],
       patternPlans: [],
       alternateEnabled: false,
+      alternateWaypoint: null,
+      runwayPerformanceOperations: [],
     }));
+    setAirportOperationEnvironments(new Map());
+    setAirportWeatherOverrides(new Map());
     setMapSelection(null);
     setMapTool({ kind: 'select' });
   };
@@ -1520,6 +1593,36 @@ export function App() {
     tool: mapTool,
     onAction: handlePlannerShortcut,
   });
+  const primaryDepartureWaypointId = flightPlan.waypoints[0]?.id;
+  const handleEffectivePlanningEnvironmentChange = useCallback((
+    operationKey: string,
+    waypointId: string,
+    environment: EffectiveAirportPlanningEnvironment | null,
+  ) => {
+    setAirportOperationEnvironments((current) => {
+      const previous = current.get(operationKey);
+      if (environment === null && previous === undefined) return current;
+      if (environment !== null && sameAirportEnvironment(previous, environment)) return current;
+      const next = new Map(current);
+      if (environment === null) next.delete(operationKey); else next.set(operationKey, environment);
+      return next;
+    });
+    const override = environment === null ? null : {
+      qnhHpa: environment.qnhHpa,
+      isaDeviationC: environment.isaDeviationC,
+    };
+    const feedsSharedEnrouteEnvironment = operationKey.startsWith('landing:') ||
+      waypointId === primaryDepartureWaypointId;
+    if (!feedsSharedEnrouteEnvironment) return;
+    setAirportWeatherOverrides((current) => {
+      const previous = current.get(waypointId);
+      if (override === null && previous === undefined) return current;
+      if (override !== null && previous?.qnhHpa === override.qnhHpa && previous?.isaDeviationC === override.isaDeviationC) return current;
+      const next = new Map(current);
+      if (override === null) next.delete(waypointId); else next.set(waypointId, override);
+      return next;
+    });
+  }, [primaryDepartureWaypointId]);
   const navigationLogProps = {
     flightPlan,
     aircraftDefinition,
@@ -1527,6 +1630,8 @@ export function App() {
     performanceDraft: performanceInputDraft,
     performanceInputDefaults,
     operationalDraft: operationalInputDraft,
+    aerodromeDetailsByWaypointId,
+    airportOperationEnvironments,
     useForecastWinds,
     onDraftChange: setNavigationInputDraft,
     onAircraftDefinitionChange: setAircraftDefinition,
@@ -1537,16 +1642,7 @@ export function App() {
       setUseForecastWinds(true);
       setForecastRequestKey((current) => current + 1);
     },
-    onEffectivePlanningEnvironmentChange: (waypointId: string, override: { readonly qnhHpa?: number; readonly isaDeviationC?: number } | null) => {
-      setAirportWeatherOverrides((current) => {
-        const previous = current.get(waypointId);
-        if (override === null && previous === undefined) return current;
-        if (override !== null && previous?.qnhHpa === override.qnhHpa && previous?.isaDeviationC === override.isaDeviationC) return current;
-        const next = new Map(current);
-        if (override === null) next.delete(waypointId); else next.set(waypointId, override);
-        return next;
-      });
-    },
+    onEffectivePlanningEnvironmentChange: handleEffectivePlanningEnvironmentChange,
     legWindDefaults,
     onManualLegWindChange: setLegManualWind,
     onChooseAlternateByIcao: chooseAlternateAerodromeByIcao,

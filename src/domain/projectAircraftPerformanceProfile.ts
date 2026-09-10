@@ -72,6 +72,7 @@ function createZlinAircraft(
     performance: PROJECT_AIRCRAFT_PERFORMANCE_PROFILE,
     fuelSystem: ZLIN_Z242_FUEL_SYSTEM,
     weightBalance,
+    runwayPerformanceProfile: { kind: 'z242l-utsa-v1', revision: 1 },
   };
 }
 

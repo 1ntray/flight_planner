@@ -29,6 +29,7 @@ interface RunwaySourceRow {
   readonly designator: string;
   readonly trueBearingDeg: number | null;
   readonly lengthM: number | null;
+  readonly widthM: number | null;
 }
 
 function runwayDesignators(value: string): readonly string[] {
@@ -245,11 +246,11 @@ function optionalBearings(
   return alignDirectionalValues(bearings, designators, 'true bearing', 'AD 2.12');
 }
 
-function optionalPhysicalLengths(
+function optionalPhysicalDimensions(
   value: string,
   designators: readonly string[],
   warnings: AvinorEaipImportWarning[],
-): readonly (number | null)[] {
+): { readonly lengths: readonly (number | null)[]; readonly widthM: number | null } {
   if (value === '' || value === 'NIL') {
     for (const designator of designators) {
       addWarning(
@@ -259,9 +260,9 @@ function optionalPhysicalLengths(
         'AD 2.12',
       );
     }
-    return designators.map(() => null);
+    return { lengths: designators.map(() => null), widthM: null };
   }
-  const match = /^(.+?)\s*x\s*\d+(?:\.\d+)?$/i.exec(value);
+  const match = /^(.+?)\s*x\s*(\d+(?:\.\d+)?)$/i.exec(value);
   if (match === null || match[1] === undefined) {
     return importerError(
       'malformed-runway-dimensions',
@@ -277,12 +278,15 @@ function optionalPhysicalLengths(
       'AD 2.12',
     );
   }
-  return alignDirectionalValues(
-    lengths.map(Number),
-    designators,
-    'physical runway length',
-    'AD 2.12',
-  );
+  return {
+    lengths: alignDirectionalValues(
+      lengths.map(Number),
+      designators,
+      'physical runway length',
+      'AD 2.12',
+    ),
+    widthM: Number(match[2]),
+  };
 }
 
 function parseRunwaySourceRows(
@@ -312,11 +316,12 @@ function parseRunwaySourceRows(
       const designators = runwayDesignators(designatorCell);
       if (designators.length === 0) return [];
       const bearings = optionalBearings(row[bearingColumn] ?? '', designators, warnings);
-      const lengths = optionalPhysicalLengths(row[dimensionColumn] ?? '', designators, warnings);
+      const dimensions = optionalPhysicalDimensions(row[dimensionColumn] ?? '', designators, warnings);
       return designators.map((designator, index) => ({
         designator,
         trueBearingDeg: bearings[index] ?? null,
-        lengthM: lengths[index] ?? null,
+        lengthM: dimensions.lengths[index] ?? null,
+        widthM: dimensions.widthM,
       }));
     });
 
@@ -423,10 +428,20 @@ function buildRunway(
   const publishedLengths = new Set(
     sourceRows.flatMap((row) => (row.lengthM === null ? [] : [row.lengthM])),
   );
+  const publishedWidths = new Set(
+    sourceRows.flatMap((row) => (row.widthM === null ? [] : [row.widthM])),
+  );
   if (publishedLengths.size > 1) {
     return importerError(
       'ambiguous-physical-runway-length',
       'Runway directions publish conflicting physical lengths',
+      'AD 2.12',
+    );
+  }
+  if (publishedWidths.size > 1) {
+    return importerError(
+      'ambiguous-physical-runway-width',
+      'Runway directions publish conflicting physical widths',
       'AD 2.12',
     );
   }
@@ -456,6 +471,7 @@ function buildRunway(
   return {
     identifier: directions.map((direction) => direction.designator).join('/'),
     lengthM: publishedLengths.values().next().value ?? null,
+    widthM: publishedWidths.values().next().value ?? null,
     directions,
   };
 }

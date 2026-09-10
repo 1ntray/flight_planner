@@ -27,6 +27,9 @@ type ScalarField = Exclude<
   | 'patternPlans'
   | 'alternateEnabled'
   | 'alternateWaypoint'
+  | 'personalCrosswindLimitKt'
+  | 'instructor'
+  | 'runwayPerformanceOperations'
 >;
 
 interface NumericFieldProps {

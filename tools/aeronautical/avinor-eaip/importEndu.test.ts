@@ -60,6 +60,7 @@ describe('Avinor ENDU eAIP importer', () => {
     expect(runway).toMatchObject({
       identifier: '10/28',
       lengthM: 2995,
+      widthM: 45,
       directions: [
         {
           designator: '10',

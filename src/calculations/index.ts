@@ -146,6 +146,33 @@ export {
   calculateOperationalFlightPlan,
   consumeFuelFromTanks,
 } from './operationalPlanning';
+export {
+  calculateLandingDistanceSequence,
+  calculateRunwayWindComponents,
+  calculateTakeoffDistanceSequence,
+  calculateUtsaDensityAltitudeFt,
+  calculateUtsaIsaDeviationC,
+  calculateUtsaPressureAltitudeFt,
+  calculateUtsaWindDistanceCorrection,
+  calculateZ242HotBrakesLandingDistanceFrom50Ft,
+  calculateZ242TakeoffDistanceTo50Ft,
+  DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT,
+  effectiveCrosswindLimitKt,
+  getRccPerformanceRule,
+  LANDING_PERFORMANCE_FACTOR,
+  resolveRunwayDirection,
+  TAKEOFF_PERFORMANCE_FACTOR,
+  Z242L_RUNWAY_PERFORMANCE_PROVENANCE,
+} from './runwayPerformance';
+export type {
+  RccPerformanceRule,
+  RunwayPerformanceModelProvenance,
+  RunwayWindComponentResult,
+  RunwayWindComponents,
+  WindDistanceCorrection,
+  Z242AfmDistanceResult,
+  Z242AfmDistanceInput,
+} from './runwayPerformance';
 export type {
   CalculatedFuelRequirementLine,
   CalculatedLoadingState,

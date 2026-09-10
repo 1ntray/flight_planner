@@ -1,4 +1,8 @@
-import type { AircraftDefinition, FlightPlan, Wind } from '../../domain';
+import { useMemo } from 'react';
+
+import { runwayOperationKey } from '../../domain';
+import type { AerodromeDetails, AircraftDefinition, FlightPlan, Wind } from '../../domain';
+import type { EffectiveAirportPlanningEnvironment } from '../../weather';
 import { SectorRouteTables } from '../route/SectorRouteTables';
 import { CollapsibleSection } from '../layout/CollapsibleSection';
 import type { NavigationInputDraft } from './navigationInput';
@@ -55,6 +59,8 @@ export interface NavigationLogProps {
   performanceDraft: PerformanceInputDraft;
   performanceInputDefaults: PerformanceInputDefaults;
   operationalDraft: OperationalInputDraft;
+  aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
+  airportOperationEnvironments: ReadonlyMap<string, EffectiveAirportPlanningEnvironment>;
   useForecastWinds: boolean;
   onDraftChange: (draft: NavigationInputDraft) => void;
   onAircraftDefinitionChange: (aircraft: AircraftDefinition) => void;
@@ -63,8 +69,9 @@ export interface NavigationLogProps {
   onUseForecastWindsChange: (enabled: boolean) => void;
   onLoadForecastWinds: () => void;
   onEffectivePlanningEnvironmentChange?: (
+    operationKey: string,
     waypointId: string,
-    override: { readonly qnhHpa?: number; readonly isaDeviationC?: number } | null,
+    environment: EffectiveAirportPlanningEnvironment | null,
   ) => void;
   legWindDefaults: ReadonlyMap<string, LegWindDefault>;
   onManualLegWindChange: (
@@ -87,6 +94,8 @@ export function NavigationLog({
   performanceDraft,
   performanceInputDefaults,
   operationalDraft,
+  aerodromeDetailsByWaypointId,
+  airportOperationEnvironments,
   useForecastWinds,
   onDraftChange,
   onAircraftDefinitionChange,
@@ -118,21 +127,16 @@ export function NavigationLog({
     resumeCalculations,
     forecast,
   } = calculations;
-  const airportPlannedTimes = new Map<string, number>();
-  const firstWaypoint = flightPlan.waypoints[0];
-  if (firstWaypoint !== undefined && calculatedRoute.departureTimeUtcMs !== null) {
-    airportPlannedTimes.set(firstWaypoint.id, calculatedRoute.departureTimeUtcMs);
-  }
-  if (performanceRoute?.status === 'ok') {
-    for (const sector of performanceRoute.sectors) {
-      airportPlannedTimes.set(sector.toWaypointId, sector.estimatedArrivalTimeUtcMs);
+  const airportPlannedTimes = useMemo(() => {
+    const result = new Map<string, number>();
+    if (performanceRoute?.status === 'ok') {
+      for (const sector of performanceRoute.sectors) {
+        result.set(runwayOperationKey('takeoff', sector.fromWaypointId, sector.toWaypointId), sector.departureTimeUtcMs);
+        result.set(runwayOperationKey('landing', sector.fromWaypointId, sector.toWaypointId), sector.estimatedArrivalTimeUtcMs);
+      }
     }
-  } else {
-    const finalWaypoint = flightPlan.waypoints.at(-1);
-    if (finalWaypoint !== undefined && calculatedRoute.estimatedArrivalTimeUtcMs !== null) {
-      airportPlannedTimes.set(finalWaypoint.id, calculatedRoute.estimatedArrivalTimeUtcMs);
-    }
-  }
+    return result;
+  }, [performanceRoute]);
 
   const updateDraft = <Field extends keyof NavigationInputDraft>(
     field: Field,
@@ -454,7 +458,7 @@ export function NavigationLog({
         draft={performanceDraft}
         operationalDraft={operationalDraft}
         defaults={performanceInputDefaults}
-        plannedTimeUtcMsByWaypointId={airportPlannedTimes}
+        plannedTimeUtcMsByOperationKey={airportPlannedTimes}
         {...(onEffectivePlanningEnvironmentChange === undefined
           ? {}
           : { onEffectivePlanningEnvironmentChange })}
@@ -512,6 +516,10 @@ export function NavigationLog({
             ? parsedOperational.value
             : null
         }
+        operationalDraft={operationalDraft}
+        onOperationalDraftChange={onOperationalDraftChange}
+        aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
+        airportOperationEnvironments={airportOperationEnvironments}
         forecastWinds={
           forecast.status.status === 'success' ? forecast.status.winds : []
         }

@@ -77,6 +77,8 @@ export interface EffectiveAirportPlanningEnvironment {
   readonly wind?: AirportWind;
   readonly qnhHpa: number;
   readonly isaDeviationC: number;
+  /** Selected actual surface temperature. Required by UTSA runway planning. */
+  readonly temperatureC?: number;
   readonly windSource: AirportWeatherSelection['wind'];
   readonly pressureSource: AirportWeatherSelection['pressure'];
   readonly temperatureSource: AirportWeatherSelection['temperature'];
@@ -207,15 +209,15 @@ export function selectSurfaceForecast(value: unknown, plannedTimeUtcMs: number):
 
 export function deriveIsaDeviationC(temperatureC: number, elevationFtMsl: number): number { return temperatureC - (15 - 0.0019812 * elevationFtMsl); }
 
-export function resolveEffectiveAirportPlanningEnvironment(manual: { qnhHpa: number; isaDeviationC: number }, weather: AirportOperationalWeather, selection: AirportWeatherSelection): EffectiveAirportPlanningEnvironment {
+export function resolveEffectiveAirportPlanningEnvironment(manual: { qnhHpa: number; isaDeviationC: number; temperatureC?: number; wind?: AirportWind }, weather: AirportOperationalWeather, selection: AirportWeatherSelection): EffectiveAirportPlanningEnvironment {
   const unavailable: string[] = []; const metar = weather.metar.status === 'available' ? weather.metar.value : undefined; const forecast = weather.forecast.status === 'available' ? weather.forecast.value : undefined; const taf = weather.taf.status === 'available' ? resolveTafWind(weather.taf.value, weather.request.plannedTimeUtcMs) : undefined;
-  const wind = selection.wind === 'metar' ? metar?.wind : selection.wind === 'taf' && taf?.status === 'available' ? taf.wind : undefined;
+  const wind = selection.wind === 'manual' ? manual.wind : selection.wind === 'metar' ? metar?.wind : selection.wind === 'taf' && taf?.status === 'available' ? taf.wind : undefined;
   if (selection.wind !== 'manual' && wind === undefined) unavailable.push(`${selection.wind.toUpperCase()} wind unavailable or ambiguous`);
   const qnh = selection.pressure === 'metar' ? metar?.qnhHpa : selection.pressure === 'forecast' ? forecast?.pressureMslHpa : undefined;
   if (selection.pressure !== 'manual' && qnh === undefined) unavailable.push(`${selection.pressure} pressure unavailable`);
-  const temperature = selection.temperature === 'metar' ? metar?.temperatureC : selection.temperature === 'forecast' ? forecast?.temperatureC : undefined;
+  const temperature = selection.temperature === 'manual' ? manual.temperatureC : selection.temperature === 'metar' ? metar?.temperatureC : selection.temperature === 'forecast' ? forecast?.temperatureC : undefined;
   if (selection.temperature !== 'manual' && temperature === undefined) unavailable.push(`${selection.temperature} temperature unavailable`);
-  return { ...(wind === undefined ? {} : { wind }), qnhHpa: qnh ?? manual.qnhHpa, isaDeviationC: temperature === undefined ? manual.isaDeviationC : deriveIsaDeviationC(temperature, weather.request.elevationFtMsl), windSource: selection.wind, pressureSource: selection.pressure, temperatureSource: selection.temperature, unavailable };
+  return { ...(wind === undefined ? {} : { wind }), ...(temperature === undefined ? {} : { temperatureC: temperature }), qnhHpa: qnh ?? manual.qnhHpa, isaDeviationC: temperature === undefined ? manual.isaDeviationC : deriveIsaDeviationC(temperature, weather.request.elevationFtMsl), windSource: selection.wind, pressureSource: selection.pressure, temperatureSource: selection.temperature, unavailable };
 }
 
 function textContent(xml: string, tag: string): readonly string[] { const expression = new RegExp(`<(?:(?:[\\w-]+):)?${tag}[^>]*>([\\s\\S]*?)</(?:(?:[\\w-]+):)?${tag}>`, 'gi'); return [...xml.matchAll(expression)].map((match) => match[1]!.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').trim()); }

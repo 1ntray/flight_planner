@@ -19,13 +19,13 @@ subject to authoritative aircraft, aerodrome, and operational source material.
 **Why first:** reliable boundaries and reproducible review are prerequisites
 for trusting later operational features.
 
-### 2. Takeoff and landing runway performance
+### 2. Complete and validate takeoff and landing AFM digitization
 
-Implement runway-specific Zlin planning calculations only after verified source
-data and rules are available. The feature should combine selected runway,
-declared distances, aircraft performance data, mass, QNH/OAT, wind, and any
-required surface assumptions; it must return explicit unavailable/no-solution
-results rather than guessed margins.
+The runway-performance architecture, UTSA atmosphere/wind/RCC rules, semantic
+inputs, operation-specific weather contexts, and OFP-style presentation are in
+place. A qualified human review must still provide numeric control values from
+Z242L AFM Figures 5-10 and 5-26. Until then, the AFM lookup fails closed and no
+required runway distance or margin is presented.
 
 This closes the largest operational gap between the existing enroute/performance
 planning and airport operations.
@@ -51,9 +51,17 @@ time, and exposes ambiguity for pilot review. Wind, pressure, and
 temperature/ISA choices are independent; manual planning inputs remain the
 persisted fallback. Fetched reports, parsed data, and caches are runtime-only.
 
-The next major V1 operational feature is therefore runway-specific takeoff and
-landing performance, using this explicit effective planning environment as an
-input rather than coupling calculations to a weather provider.
+Runway performance consumes this explicit effective environment rather than
+coupling calculations to a provider.
+
+### Runway-performance groundwork
+
+Zlin-specific runway planning now uses stable per-sector takeoff and landing
+operation keys, distinct arrival/onward-departure airport-weather contexts,
+published runway direction/TODA/LDA, sector loading masses, UTSA simplified
+atmosphere and discrete wind rules, OM-C RCC/crosswind limits, and semantic saved
+inputs. See [runway-performance.md](runway-performance.md). Operational AFM
+distances remain deliberately unavailable pending reviewed graph control data.
 
 ### Zlin OFP PDF generation
 

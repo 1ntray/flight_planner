@@ -31,7 +31,9 @@ export function calculateNavigationSummaryRoute({
   return calculateNavigationRoute({
     flightPlan,
     planning,
-    legWinds: performancePlanActive ? [] : forecastWinds,
+    // A temporarily incomplete form can make planning unavailable while a
+    // previously loaded forecast still exists. Do not pass orphaned leg winds
+    // across the calculation boundary during that edit.
+    legWinds: planning === null || performancePlanActive ? [] : forecastWinds,
   });
 }
-

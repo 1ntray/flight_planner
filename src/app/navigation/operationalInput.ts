@@ -5,6 +5,9 @@ import type {
   OperationalPlanningInputs,
   Waypoint,
 } from '../../domain';
+import { runwayOperationKey } from '../../domain';
+import type { FlightPlan, RunwayOperationKind } from '../../domain';
+import { DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT } from '../../calculations';
 
 export const DEFAULT_FUEL_ONBOARD_LITRES = 224;
 export const DEFAULT_LEFT_SEAT_MASS_KG = 56;
@@ -27,6 +30,20 @@ export interface AerodromePatternInputDraft {
   arrivalBufferEnabled?: boolean;
 }
 
+export interface RunwayPerformanceOperationInputDraft {
+  readonly kind: RunwayOperationKind;
+  readonly sectorFromWaypointId: string;
+  readonly sectorToWaypointId: string;
+  readonly aerodromeWaypointId: string;
+  readonly runwayDesignator: string;
+  readonly runwayCondition: string;
+  readonly rcc: string;
+  readonly manualWindDirectionFromTrueDeg: string;
+  readonly manualWindSpeedKt: string;
+  readonly manualWindGustKt: string;
+  readonly manualOatC: string;
+}
+
 export interface OperationalInputDraft {
   fuelOnboardLitres: string;
   leftSeatMassKg: string;
@@ -43,6 +60,9 @@ export interface OperationalInputDraft {
   alternateDistanceNm: string;
   alternateTimeMinutes: string;
   alternateFuelLitres: string;
+  personalCrosswindLimitKt: string;
+  instructor: boolean;
+  runwayPerformanceOperations: readonly RunwayPerformanceOperationInputDraft[];
 }
 
 export type OperationalInputParseResult =
@@ -66,6 +86,9 @@ export function createEmptyOperationalInputDraft(): OperationalInputDraft {
     alternateDistanceNm: '',
     alternateTimeMinutes: '',
     alternateFuelLitres: '',
+    personalCrosswindLimitKt: '',
+    instructor: false,
+    runwayPerformanceOperations: [],
   };
 }
 
@@ -155,7 +178,66 @@ export function createOperationalInputDraft(
     alternateDistanceNm: alternate === null ? '' : String(alternate.distanceNm),
     alternateTimeMinutes: alternate === null ? '' : String(alternate.timeMinutes),
     alternateFuelLitres: alternate === null ? '' : String(alternate.fuelLitres),
+    personalCrosswindLimitKt:
+      inputs.runwayPerformance?.personalCrosswindLimitKt === undefined ||
+      inputs.runwayPerformance.personalCrosswindLimitKt === DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT
+        ? ''
+        : String(inputs.runwayPerformance.personalCrosswindLimitKt),
+    instructor: inputs.runwayPerformance?.instructor ?? false,
+    runwayPerformanceOperations: (inputs.runwayPerformance?.operations ?? []).map((operation) => ({
+      kind: operation.kind,
+      sectorFromWaypointId: operation.sectorFromWaypointId,
+      sectorToWaypointId: operation.sectorToWaypointId,
+      aerodromeWaypointId: operation.aerodromeWaypointId,
+      runwayDesignator: operation.runwayDesignator ?? '',
+      runwayCondition: operation.runwayCondition ?? '',
+      rcc: operation.rcc === undefined ? '' : String(operation.rcc),
+      manualWindDirectionFromTrueDeg: operation.manualSurfaceWind === undefined ? '' : String(operation.manualSurfaceWind.directionFromTrueDeg),
+      manualWindSpeedKt: operation.manualSurfaceWind === undefined ? '' : String(operation.manualSurfaceWind.speedKt),
+      manualWindGustKt: operation.manualSurfaceWind?.gustKt === undefined ? '' : String(operation.manualSurfaceWind.gustKt),
+      manualOatC: operation.manualOatC === undefined ? '' : String(operation.manualOatC),
+    })),
   };
+}
+
+export function createRunwayPerformanceOperationInputDraft(
+  kind: RunwayOperationKind,
+  sectorFromWaypointId: string,
+  sectorToWaypointId: string,
+  aerodromeWaypointId: string,
+): RunwayPerformanceOperationInputDraft {
+  return {
+    kind, sectorFromWaypointId, sectorToWaypointId, aerodromeWaypointId,
+    runwayDesignator: '', runwayCondition: '', rcc: '',
+    manualWindDirectionFromTrueDeg: '', manualWindSpeedKt: '',
+    manualWindGustKt: '', manualOatC: '',
+  };
+}
+
+export function runwayPerformanceOperationDraftKey(
+  operation: Pick<RunwayPerformanceOperationInputDraft, 'kind' | 'sectorFromWaypointId' | 'sectorToWaypointId'>,
+): string {
+  return runwayOperationKey(operation.kind, operation.sectorFromWaypointId, operation.sectorToWaypointId);
+}
+
+export function reconcileRunwayPerformanceOperations(
+  flightPlan: FlightPlan,
+  operations: readonly RunwayPerformanceOperationInputDraft[],
+): readonly RunwayPerformanceOperationInputDraft[] {
+  if (flightPlan.waypoints.length < 2) {
+    return [];
+  }
+
+  const boundaryIds = new Set(flightPlan.sectorBoundaryWaypointIds ?? []);
+  const indexes = [0, ...flightPlan.waypoints.map((waypoint, index) => boundaryIds.has(waypoint.id) ? index : -1).filter((index) => index > 0), flightPlan.waypoints.length - 1];
+  const valid = new Set<string>();
+  for (let index = 0; index < indexes.length - 1; index += 1) {
+    const from = flightPlan.waypoints[indexes[index]!]!;
+    const to = flightPlan.waypoints[indexes[index + 1]!]!;
+    valid.add(runwayOperationKey('takeoff', from.id, to.id));
+    valid.add(runwayOperationKey('landing', from.id, to.id));
+  }
+  return operations.filter((operation) => valid.has(runwayPerformanceOperationDraftKey(operation)));
 }
 
 /** Captures user changes while leaving standard loading values as defaults. */
@@ -381,6 +463,22 @@ export function parseOperationalInputDraft(
 
   let alternate: OperationalPlanningInputs['alternate'] = null;
   if (draft.alternateEnabled) {
+    const alternateRequiredFields = [
+      draft.alternateDistanceNm,
+      draft.alternateTimeMinutes,
+      draft.alternateFuelLitres,
+    ];
+    const alternateIsComplete =
+      draft.alternateWaypoint !== null &&
+      alternateRequiredFields.every((value) => value.trim() !== '');
+
+    // Enabling the form or partially entering an alternate must not invalidate
+    // the primary route and tear down its derived timing/weather state. The
+    // alternate becomes operational only once every required semantic input is
+    // present; malformed entered numbers are still rejected below.
+    if (!alternateIsComplete) {
+      alternate = null;
+    } else {
     const alternateFields = [
       [
         draft.alternatePlannedAltitudeFtMsl.trim() === ''
@@ -420,12 +518,56 @@ export function parseOperationalInputDraft(
       };
     }
     alternate = {
-      waypoint: draft.alternateWaypoint,
+      waypoint: draft.alternateWaypoint!,
       plannedAltitudeFtMsl,
       distanceNm,
       timeMinutes,
       fuelLitres,
     };
+    }
+  }
+
+  const personalCrosswindLimitKt = draft.personalCrosswindLimitKt.trim() === ''
+    ? DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT
+    : parseNumber(draft.personalCrosswindLimitKt, 'Personal crosswind limit');
+  if (typeof personalCrosswindLimitKt === 'string') {
+    return { status: 'invalid', message: personalCrosswindLimitKt };
+  }
+  const runwayPerformanceOperations = [];
+  const seenRunwayOperationKeys = new Set<string>();
+  for (const operation of draft.runwayPerformanceOperations) {
+    const key = runwayPerformanceOperationDraftKey(operation);
+    if (seenRunwayOperationKeys.has(key)) {
+      return { status: 'invalid', message: `Duplicate runway-performance operation ${key}` };
+    }
+    seenRunwayOperationKeys.add(key);
+    const rccValue = operation.rcc.trim() === '' ? undefined : Number(operation.rcc);
+    if (rccValue !== undefined && (!Number.isInteger(rccValue) || rccValue < 0 || rccValue > 6)) {
+      return { status: 'invalid', message: 'RCC must be a whole number from 0 to 6' };
+    }
+    const directionText = operation.manualWindDirectionFromTrueDeg.trim();
+    const speedText = operation.manualWindSpeedKt.trim();
+    // A partially typed pair is an incomplete optional runway input, not a
+    // reason to invalidate and hide the entire operational OFP while editing.
+    const direction = directionText === '' ? undefined : Number(directionText);
+    const speed = speedText === '' ? undefined : Number(speedText);
+    const gust = operation.manualWindGustKt.trim() === '' ? undefined : Number(operation.manualWindGustKt);
+    if (direction !== undefined && (!Number.isFinite(direction) || direction < 0 || direction >= 360)) return { status: 'invalid', message: 'Manual surface wind direction must be from 0 to less than 360° true' };
+    if (speed !== undefined && (!Number.isFinite(speed) || speed < 0)) return { status: 'invalid', message: 'Manual surface wind speed must be non-negative' };
+    if (gust !== undefined && (!Number.isFinite(gust) || gust < 0 || speed === undefined || gust < speed)) return { status: 'invalid', message: 'Manual surface wind gust must be at least the base speed' };
+    const oat = operation.manualOatC.trim() === '' ? undefined : Number(operation.manualOatC);
+    if (oat !== undefined && !Number.isFinite(oat)) return { status: 'invalid', message: 'Manual OAT must be a number' };
+    runwayPerformanceOperations.push({
+      kind: operation.kind,
+      sectorFromWaypointId: operation.sectorFromWaypointId,
+      sectorToWaypointId: operation.sectorToWaypointId,
+      aerodromeWaypointId: operation.aerodromeWaypointId,
+      ...(operation.runwayDesignator.trim() === '' ? {} : { runwayDesignator: operation.runwayDesignator.trim() }),
+      ...(operation.runwayCondition.trim() === '' ? {} : { runwayCondition: operation.runwayCondition.trim() }),
+      ...(rccValue === undefined ? {} : { rcc: rccValue as 0 | 1 | 2 | 3 | 4 | 5 | 6 }),
+      ...(direction === undefined || speed === undefined ? {} : { manualSurfaceWind: { directionFromTrueDeg: direction, speedKt: speed, ...(gust === undefined ? {} : { gustKt: gust }) } }),
+      ...(oat === undefined ? {} : { manualOatC: oat }),
+    });
   }
 
   return {
@@ -440,6 +582,11 @@ export function parseOperationalInputDraft(
       sectorOperations,
       patternPlans,
       alternate,
+      runwayPerformance: {
+        personalCrosswindLimitKt,
+        instructor: draft.instructor,
+        operations: runwayPerformanceOperations,
+      },
     },
   };
 }

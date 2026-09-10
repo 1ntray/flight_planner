@@ -53,6 +53,16 @@ states, OFP rows, warnings, and requirement totals are recalculated. The
 alternate navigation line remains derived; it is not used to overwrite the
 pilot-entered alternate requirement.
 
+Operational inputs may also contain the runway-performance planning block:
+personal crosswind limit, Instructor mode, and stable per-sector takeoff/landing
+operation inputs. Each operation may retain a selected runway direction,
+condition/RCC, manual OAT, and manual surface wind. Intermediate arrival and
+onward takeoff use separate keys based on operation kind and the sector's stable
+FROM/TO waypoint IDs. Old version-nine documents omit this optional block and
+open with the 9 kt personal default, Instructor off, and no invented selections.
+Pressure altitude, density altitude, wind components, AFM distances, factors,
+runway margins, and pass/exceeds states are derived and are never persisted.
+
 Optional per-airport pattern plans contain a landing waypoint ID, a
 whole-number circuit count, and an optional arrival-buffer flag. Omission keeps
 the default three-minute visual-arrival allowance enabled; `false` records the

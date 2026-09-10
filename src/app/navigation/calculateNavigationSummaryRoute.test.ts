@@ -74,5 +74,13 @@ describe('calculateNavigationSummaryRoute', () => {
       windSource: 'forecast',
     });
   });
-});
 
+  it('ignores loaded forecast winds while form edits make planning unavailable', () => {
+    expect(() => calculateNavigationSummaryRoute({
+      flightPlan,
+      planning: null,
+      forecastWinds: forecastSamples.slice(0, 1),
+      performancePlanActive: false,
+    })).not.toThrow();
+  });
+});

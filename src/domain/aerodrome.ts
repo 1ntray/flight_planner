@@ -23,6 +23,8 @@ export interface AerodromeRunway {
   /** Semantic identifier derived from the published directions, e.g. 10/28. */
   readonly identifier: string;
   readonly lengthM: number | null;
+  /** Published physical width; unavailable in datasets imported before this field. */
+  readonly widthM?: number | null;
   readonly directions: readonly RunwayDirection[];
 }
 

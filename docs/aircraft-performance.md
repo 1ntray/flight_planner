@@ -1,5 +1,10 @@
 # Aircraft performance model
 
+Runway performance is a separate pure calculation boundary documented in
+[runway-performance.md](runway-performance.md). It uses sector takeoff/landing
+mass and effective airport surface conditions; it does not alter the enroute
+climb, cruise, descent, or wind model described here.
+
 ## Aircraft definition, profile, and units
 
 An `AircraftDefinition` owns stable aircraft identity, registration, a revision,
@@ -89,8 +94,10 @@ resulting leg plans so that each can be reviewed after the route is split.
 The route may also contain explicit intermediate landing boundaries. Each
 boundary closes one flight sector at the airport's pattern altitude. The next
 sector is calculated independently from that airport's field elevation, using
-its weather as the inbound destination environment and outbound departure
-environment. If an onward departure time is omitted, it defaults to the
+its planning values in the enroute performance model. Runway planning additionally
+keeps separate arrival-time and onward-departure-time effective weather contexts,
+so a full-stop forecast is not reused after the stop. If an onward departure
+time is omitted, it defaults to the
 preceding calculated arrival time plus the airport's stop duration. A blank
 duration means zero minutes. Stop time shifts the following sector's UTC
 timeline and weather sampling, but is not airborne EET. Operational planning
