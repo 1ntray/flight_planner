@@ -24,6 +24,11 @@ export interface CommunicationPlanState {
 }
 
 const EMPTY_CHANGES = new Map<string, readonly CommunicationChange[]>();
+const IDLE_COMMUNICATION_PLAN_STATE: CommunicationPlanState = {
+  status: 'idle',
+  plan: null,
+  changesByLeg: EMPTY_CHANGES,
+};
 
 function routeBounds(
   route: Extract<CalculatedPerformanceRoute, { status: 'ok' }>,
@@ -49,11 +54,9 @@ export function useCommunicationPlan(
   performanceRoute: CalculatedPerformanceRoute | null,
   preferences: CommunicationPreferences,
 ): CommunicationPlanState {
-  const [state, setState] = useState<CommunicationPlanState>({
-    status: 'idle',
-    plan: null,
-    changesByLeg: EMPTY_CHANGES,
-  });
+  const [state, setState] = useState<CommunicationPlanState>(
+    IDLE_COMMUNICATION_PLAN_STATE,
+  );
   const bounds = useMemo(
     () => performanceRoute?.status === 'ok' ? routeBounds(performanceRoute) : null,
     [performanceRoute],
@@ -61,7 +64,13 @@ export function useCommunicationPlan(
 
   useEffect(() => {
     if (performanceRoute?.status !== 'ok' || bounds === null) {
-      setState({ status: 'idle', plan: null, changesByLeg: EMPTY_CHANGES });
+      setState((current) =>
+        current.status === 'idle' &&
+        current.plan === null &&
+        current.changesByLeg === EMPTY_CHANGES
+          ? current
+          : IDLE_COMMUNICATION_PLAN_STATE,
+      );
       return undefined;
     }
     const route = performanceRoute;

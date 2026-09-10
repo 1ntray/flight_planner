@@ -57,6 +57,7 @@ export const PLANNER_SHORTCUTS: readonly PlannerShortcutDefinition[] = [
   { keys: 'A', action: 'Edit the selected leg altitude', availability: 'Leg selected' },
   { keys: 'M', action: 'Edit the selected leg MSA', availability: 'Leg selected' },
   { keys: 'W', action: 'Edit the selected leg wind', availability: 'Leg selected' },
+  { keys: 'Hold G', action: 'Measure a circle radius', availability: 'Pointer over map' },
   { keys: 'P', action: 'Place the selected leg altitude target on the map', availability: 'Leg selected' },
   { keys: 'Shift+P', action: 'Place the selected leg end-altitude target on the map', availability: 'Leg selected' },
   { keys: 'T', action: 'Return selected altitude target to automatic', availability: 'Leg selected' },

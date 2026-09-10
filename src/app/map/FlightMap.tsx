@@ -83,6 +83,7 @@ import {
 import type { LegWindDefault } from '../navigation/legWindOverrideState';
 import { AerodromeInfoPopup } from './AerodromeInfoPopup';
 import { MsaCorridor } from './MsaCorridor';
+import { CirclingMeasurement } from './CirclingMeasurementLayer';
 import { findReportingPointShapingAttachmentTarget } from './aeronauticalWaypointAttachment';
 import { VacChartLayers } from './VacChartLayers';
 import { aerodromeInfoFeatureFromWaypoint } from './aerodromeInfo';
@@ -957,6 +958,7 @@ export function FlightMap({
           }}
           consumeSuppressedClick={consumeSuppressedMapClick}
         />
+        <CirclingMeasurement />
         <BatchEntryMapCenter focus={batchEntryMapFocus} />
         <RouteLineInteractionHandler
           interaction={routeLineInteraction}

@@ -41,6 +41,12 @@ import type {
   PerformanceInputDraft,
   SectorStopInputDraft,
 } from './performanceInput';
+import {
+  shouldPublishAirportEnvironment,
+} from './airportEnvironmentPublication';
+import type {
+  PublishedAirportEnvironment,
+} from './airportEnvironmentPublication';
 
 type AirportTab = {
   readonly key: string;
@@ -187,6 +193,9 @@ export function AirportInputs({
   const [weatherByOperationKey, setWeatherByOperationKey] = useState<ReadonlyMap<string, AirportOperationalWeather>>(new Map());
   const [weatherSelections, setWeatherSelections] = useState<ReadonlyMap<string, AirportWeatherSelection>>(new Map());
   const weatherAbort = useRef<AbortController | null>(null);
+  const publishedEnvironments = useRef<
+    ReadonlyMap<string, PublishedAirportEnvironment>
+  >(new Map());
   const [weatherLoadInProgress, setWeatherLoadInProgress] = useState(false);
   useEffect(() => () => weatherAbort.current?.abort(), []);
   const airportWeatherRequest = (tab: AirportTab) => {
@@ -218,6 +227,12 @@ export function AirportInputs({
     };
   };
   useEffect(() => {
+    if (onEffectivePlanningEnvironmentChange === undefined) {
+      publishedEnvironments.current = new Map();
+      return;
+    }
+
+    const nextPublished = new Map<string, PublishedAirportEnvironment>();
     for (const tab of tabs) {
       const stopDraft = draft.sectorStopPlans.find((candidate) => candidate.waypointId === tab.waypointId);
       const qnhDraft = tab.role === 'departure' ? draft.departureQnhHpa : tab.role === 'destination' ? draft.destinationQnhHpa : stopDraft?.qnhHpa ?? '';
@@ -252,8 +267,35 @@ export function AirportInputs({
             ...(tabOat === undefined || !Number.isFinite(tabOat) ? {} : { temperatureC: tabOat }),
             ...(tabWind === undefined ? {} : { wind: tabWind }),
           }, tabWeather, tabSelection);
-      onEffectivePlanningEnvironmentChange?.(tab.key, tab.waypointId, environment);
+      nextPublished.set(tab.key, {
+        waypointId: tab.waypointId,
+        environment,
+      });
+      const previous = publishedEnvironments.current.get(tab.key);
+      if (shouldPublishAirportEnvironment(
+        previous,
+        tab.waypointId,
+        environment,
+      )) {
+        onEffectivePlanningEnvironmentChange(
+          tab.key,
+          tab.waypointId,
+          environment,
+        );
+      }
     }
+
+    for (const [operationKey, previous] of publishedEnvironments.current) {
+      if (!nextPublished.has(operationKey)) {
+        onEffectivePlanningEnvironmentChange(
+          operationKey,
+          previous.waypointId,
+          null,
+        );
+      }
+    }
+
+    publishedEnvironments.current = nextPublished;
   }, [draft, onEffectivePlanningEnvironmentChange, operationalDraft.runwayPerformanceOperations, plannedTimeUtcMsByOperationKey, tabs, weatherByOperationKey, weatherSelections]);
 
   const active = tabs.find((tab) => tab.key === activeKey) ?? tabs[0];

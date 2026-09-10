@@ -2277,6 +2277,17 @@ kbd {
   background: rgb(169 64 55 / 92%);
 }
 
+.leaflet-tooltip.circling-measurement__label {
+  padding: 0.14rem 0.36rem;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 0.22rem;
+  color: #ffffff;
+  background: rgb(23 109 165 / 94%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
 .leaflet-popup.route-insertion-popup .leaflet-popup-content {
   display: grid;
   min-width: 13rem;
