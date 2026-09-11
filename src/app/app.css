@@ -940,6 +940,49 @@ kbd {
   margin: 0;
 }
 
+.airport-inputs__global-limits {
+  margin: 0;
+}
+
+.airport-inputs__instructor-limit {
+  align-self: end;
+}
+
+.airport-inputs__runway-operations {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.45rem;
+}
+
+.airport-inputs__runway-operations > h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #394a60;
+  font-size: 0.75rem;
+}
+
+.airport-inputs__runway-operation {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid #dbe3eb;
+  border-radius: 0.35rem;
+  background: #f8fafc;
+}
+
+.airport-inputs__runway-operation label {
+  min-width: 0;
+}
+
+.airport-inputs__runway-operation input,
+.airport-inputs__runway-operation select {
+  width: 100%;
+  min-width: 0;
+}
+
 .airport-inputs__arrival-buffer {
   grid-column: 1 / -1;
 }
@@ -1173,7 +1216,7 @@ kbd {
 
 .operational-summary__grid {
   display: grid;
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: max-content max-content minmax(38rem, max-content);
   justify-content: start;
   align-items: start;
   gap: 0.8rem;
@@ -1181,45 +1224,103 @@ kbd {
 
 .runway-performance {
   display: grid;
-  gap: 0.55rem;
-  max-width: 34rem;
+  grid-template-columns: repeat(2, minmax(18rem, 1fr));
+  gap: 0.8rem;
+  width: 100%;
 }
 
-.runway-performance h5 {
-  margin: 0 0 0.3rem;
-  color: #34465a;
+.runway-performance__operation {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.runway-performance__title {
+  display: grid;
+  grid-template-columns: minmax(11rem, 2fr) minmax(4rem, 0.7fr);
+  justify-self: start;
+  min-width: 55%;
+}
+
+.runway-performance__title h5,
+.runway-performance__title span {
+  min-height: 1.65rem;
+  margin: 0;
+  padding: 0.35rem 0.4rem;
+  border: 1px solid #cdd9e4;
   font-size: 0.68rem;
+  line-height: 1;
+}
+
+.runway-performance__title h5 {
+  color: #34465a;
+  background: #e8f0f7;
+  font-weight: 800;
   letter-spacing: 0.035em;
 }
 
-.runway-performance__global-controls,
-.runway-performance__controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 0.4rem;
-  margin-bottom: 0.35rem;
-  font-size: 0.68rem;
-}
-
-.runway-performance__global-controls label,
-.runway-performance__controls label {
-  display: grid;
-  gap: 0.18rem;
-}
-
-.runway-performance__global-controls input[type='number'] {
-  width: 4rem;
-}
-
-.runway-performance__controls input,
-.runway-performance__controls select {
-  width: 6.5rem;
-  min-height: 1.8rem;
+.runway-performance__title span {
+  overflow: hidden;
+  border-left: 0;
+  background: #f8fafc;
+  color: #26384c;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .runway-performance__table {
   width: 100%;
+  table-layout: fixed;
+}
+
+.runway-performance__table th,
+.runway-performance__table th:first-child {
+  text-align: left;
+}
+
+.runway-performance__table th,
+.runway-performance__table td {
+  overflow: hidden;
+  border-right: 1px solid #d1d9e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runway-performance__table tr > :last-child {
+  border-right: 0;
+}
+
+.runway-performance__table th {
+  background: #f1f5f9;
+  font-weight: 750;
+}
+
+.runway-performance__label-column {
+  width: 18%;
+}
+
+.runway-performance__value-column {
+  width: 15.333%;
+}
+
+.runway-performance__worksheet-wrap {
+  margin-top: 0.45rem;
+}
+
+.runway-performance__worksheet-row td {
+  height: 1.35rem;
+  background: #ffffff;
+}
+
+.runway-performance__table .runway-performance__dark-cell {
+  color: #26384c;
+  background: #dce8f2;
+  text-align: center;
+}
+
+.operational-summary__runway-performance {
+  grid-column: auto;
 }
 
 .runway-performance__issues,
@@ -1295,12 +1396,24 @@ kbd {
   line-height: 1.35;
 }
 
+.operational-summary__fuel-plan {
+  width: 22.5rem;
+}
+
+.operational-summary__fuel-plan .operational-summary__table {
+  width: 100%;
+}
+
+.operational-summary__fuel-plan .operational-summary__note {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
 .operational-summary__minimum-flight {
   display: grid;
   grid-template-columns: repeat(2, minmax(7.6rem, 1fr));
-  align-self: end;
   gap: 0.4rem;
-  margin: 0;
+  margin: 0.5rem 0 0;
 }
 
 .operational-summary__minimum-flight div {
@@ -1316,9 +1429,9 @@ kbd {
 }
 
 .operational-summary__mass-balance-content {
-  display: flex;
-  align-items: end;
-  gap: 0.65rem;
+  display: grid;
+  align-items: start;
+  gap: 0.5rem;
 }
 
 .operational-summary__minimum-flight dt {
@@ -2395,6 +2508,10 @@ kbd {
   }
 
   .operational-summary__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .runway-performance {
     grid-template-columns: 1fr;
   }
 

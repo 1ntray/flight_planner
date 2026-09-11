@@ -13,6 +13,7 @@ import {
   effectiveCrosswindLimitKt,
   getRccPerformanceRule,
   resolveRunwayDirection,
+  runwayDesignatorHeadingDeg,
 } from './runwayPerformance';
 
 describe('UTSA runway atmosphere', () => {
@@ -90,6 +91,11 @@ describe('RCC and crosswind limits', () => {
     });
   });
 
+  it('provides the reviewed default runway state for RCC 6 and RCC 5', () => {
+    expect(getRccPerformanceRule(6).runwayCondition).toBe('DRY');
+    expect(getRccPerformanceRule(5).runwayCondition).toBe('WET');
+  });
+
   it('keeps the personal value when instructor mode is switched', () => {
     expect(effectiveCrosswindLimitKt(9, false, 2)).toBe(9);
     expect(effectiveCrosswindLimitKt(9, true, 2)).toBe(7);
@@ -98,26 +104,38 @@ describe('RCC and crosswind limits', () => {
 });
 
 describe('runway wind components', () => {
-  it('uses true runway bearing for headwind, tailwind, crosswind and quartering wind', () => {
+  it('converts runway designators to the nominal OFP heading', () => {
+    expect(runwayDesignatorHeadingDeg('10')).toBe(100);
+    expect(runwayDesignatorHeadingDeg('28L')).toBe(280);
+    expect(runwayDesignatorHeadingDeg('36')).toBe(360);
+    expect(runwayDesignatorHeadingDeg('00')).toBeNull();
+    expect(runwayDesignatorHeadingDeg('north')).toBeNull();
+  });
+
+  it('uses the nominal runway heading and rounds components to whole knots', () => {
     expect(calculateRunwayWindComponents(90, { kind: 'fixed', directionFromTrueDeg: 90, speedKt: 12 })).toMatchObject({ status: 'available', components: { parallelKt: 12, crosswindKt: 0 } });
     expect(calculateRunwayWindComponents(90, { kind: 'fixed', directionFromTrueDeg: 270, speedKt: 12 })).toMatchObject({ status: 'available', components: { parallelKt: -12 } });
     const cross = calculateRunwayWindComponents(90, { kind: 'fixed', directionFromTrueDeg: 180, speedKt: 12 });
     expect(cross.status).toBe('available');
-    if (cross.status === 'available') expect(Math.abs(cross.components.crosswindKt)).toBeCloseTo(12);
+    if (cross.status === 'available') expect(Math.abs(cross.components.crosswindKt)).toBe(12);
     const quartering = calculateRunwayWindComponents(90, { kind: 'fixed', directionFromTrueDeg: 135, speedKt: Math.SQRT2 * 10 });
     expect(quartering.status).toBe('available');
     if (quartering.status === 'available') {
-      expect(quartering.components.parallelKt).toBeCloseTo(10);
-      expect(quartering.components.crosswindKt).toBeCloseTo(10);
+      expect(quartering.components.parallelKt).toBe(10);
+      expect(quartering.components.crosswindKt).toBe(10);
     }
+    expect(calculateRunwayWindComponents(100, { kind: 'fixed', directionFromTrueDeg: 150, speedKt: 20 })).toMatchObject({
+      status: 'available',
+      components: { parallelKt: 13, crosswindKt: 15 },
+    });
   });
 
   it('keeps base and gust components separate', () => {
     const result = calculateRunwayWindComponents(0, { kind: 'fixed', directionFromTrueDeg: 90, speedKt: 8, gustKt: 15 });
     expect(result).toMatchObject({ status: 'available' });
     if (result.status === 'available') {
-      expect(Math.abs(result.components.crosswindKt)).toBeCloseTo(8);
-      expect(Math.abs(result.components.gustCrosswindKt!)).toBeCloseTo(15);
+      expect(Math.abs(result.components.crosswindKt)).toBe(8);
+      expect(Math.abs(result.components.gustCrosswindKt!)).toBe(15);
     }
   });
 

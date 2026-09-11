@@ -58,8 +58,9 @@ personal crosswind limit, Instructor mode, and stable per-sector takeoff/landing
 operation inputs. Each operation may retain a selected runway direction,
 condition/RCC, manual OAT, and manual surface wind. Intermediate arrival and
 onward takeoff use separate keys based on operation kind and the sector's stable
-FROM/TO waypoint IDs. Old version-nine documents omit this optional block and
-open with the 9 kt personal default, Instructor off, and no invented selections.
+FROM/TO waypoint IDs, while the UI presents them as one airport stop and applies
+one shared airport weather context. Old version-nine documents omit this optional
+block and open with the 9 kt personal default, Instructor off, and no invented selections.
 Pressure altitude, density altitude, wind components, AFM distances, factors,
 runway margins, and pass/exceeds states are derived and are never persisted.
 

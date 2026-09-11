@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   calculateAerodromePatternAltitudeFtMsl,
+  DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT,
   DEFAULT_PATTERN_HEIGHT_AGL_FT,
-  deriveFlightPlanSectors,
+  getRccPerformanceRule,
 } from '../../calculations';
-import { runwayOperationKey } from '../../domain';
-import type { AircraftDefinition, FlightPlan, RunwayOperationKind } from '../../domain';
+import type { AerodromeDetails, AircraftDefinition, FlightPlan } from '../../domain';
 import {
   MANUAL_AIRPORT_WEATHER_SELECTION,
   fetchAirportOperationalWeather,
@@ -47,16 +47,8 @@ import {
 import type {
   PublishedAirportEnvironment,
 } from './airportEnvironmentPublication';
-
-type AirportTab = {
-  readonly key: string;
-  readonly kind: RunwayOperationKind;
-  readonly sectorFromWaypointId: string;
-  readonly sectorToWaypointId: string;
-  readonly waypointId: string;
-  readonly name: string;
-  readonly role: 'departure' | 'arrival' | 'onward-departure' | 'destination';
-};
+import { deriveAirportStops } from './airportStops';
+import type { AirportOperationContext, AirportStopContext } from './airportStops';
 
 export interface AirportInputsProps {
   flightPlan: FlightPlan;
@@ -64,6 +56,7 @@ export interface AirportInputsProps {
   draft: PerformanceInputDraft;
   operationalDraft: OperationalInputDraft;
   defaults: PerformanceInputDefaults;
+  aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
   plannedTimeUtcMsByOperationKey?: ReadonlyMap<string, number>;
   onEffectivePlanningEnvironmentChange?: (
     operationKey: string,
@@ -163,67 +156,58 @@ export function AirportInputs({
   draft,
   operationalDraft,
   defaults,
+  aerodromeDetailsByWaypointId,
   plannedTimeUtcMsByOperationKey = new Map(),
   onEffectivePlanningEnvironmentChange,
   onDraftChange,
   onOperationalDraftChange,
 }: AirportInputsProps) {
-  const tabs = useMemo<readonly AirportTab[]>(() => {
-    const sectors = deriveFlightPlanSectors(flightPlan);
-    return sectors.flatMap((sector, index) => {
-      const from = sector.flightPlan.waypoints[0]!;
-      const to = sector.flightPlan.waypoints.at(-1)!;
-      return [
-        {
-          key: runwayOperationKey('takeoff', from.id, to.id), kind: 'takeoff' as const,
-          sectorFromWaypointId: from.id, sectorToWaypointId: to.id,
-          waypointId: from.id, name: from.name,
-          role: index === 0 ? 'departure' as const : 'onward-departure' as const,
-        },
-        {
-          key: runwayOperationKey('landing', from.id, to.id), kind: 'landing' as const,
-          sectorFromWaypointId: from.id, sectorToWaypointId: to.id,
-          waypointId: to.id, name: to.name,
-          role: index === sectors.length - 1 ? 'destination' as const : 'arrival' as const,
-        },
-      ];
-    });
+  const stops = useMemo<readonly AirportStopContext[]>(() => {
+    return deriveAirportStops(flightPlan);
   }, [flightPlan.sectorBoundaryWaypointIds, flightPlan.waypoints]);
   const [activeKey, setActiveKey] = useState<string>('');
-  const [weatherByOperationKey, setWeatherByOperationKey] = useState<ReadonlyMap<string, AirportOperationalWeather>>(new Map());
-  const [weatherSelections, setWeatherSelections] = useState<ReadonlyMap<string, AirportWeatherSelection>>(new Map());
+  const [weatherByStopKey, setWeatherByStopKey] = useState<ReadonlyMap<string, AirportOperationalWeather>>(new Map());
+  const [weatherSelectionsByStopKey, setWeatherSelectionsByStopKey] = useState<ReadonlyMap<string, AirportWeatherSelection>>(new Map());
   const weatherAbort = useRef<AbortController | null>(null);
   const publishedEnvironments = useRef<
     ReadonlyMap<string, PublishedAirportEnvironment>
   >(new Map());
   const [weatherLoadInProgress, setWeatherLoadInProgress] = useState(false);
   useEffect(() => () => weatherAbort.current?.abort(), []);
-  const airportWeatherRequest = (tab: AirportTab) => {
-    const candidate = flightPlan.waypoints.find((item) => item.id === tab.waypointId);
+  const primaryOperation = (stop: AirportStopContext) =>
+    stop.operations.find((operation) => operation.kind === 'landing') ??
+    stop.operations[0]!;
+  const airportWeatherRequest = (stop: AirportStopContext) => {
+    const operation = primaryOperation(stop);
+    const candidate = flightPlan.waypoints.find((item) => item.id === stop.waypointId);
     const airportIdentifier = candidate?.anchor?.publishedIdentifier;
-    const stopDraft = draft.sectorStopPlans.find((candidate) => candidate.waypointId === tab.waypointId);
-    const enteredElevation = tab.role === 'departure'
+    const stopDraft = draft.sectorStopPlans.find((candidate) => candidate.waypointId === stop.waypointId);
+    const enteredElevation = stop.role === 'departure'
       ? draft.departureElevationFtMsl
-      : tab.role === 'destination'
+      : stop.role === 'destination'
         ? draft.destinationElevationFtMsl
         : stopDraft?.elevationFtMsl ?? '';
-    const defaultForTab = tab.role === 'departure'
+    const defaultForTab = stop.role === 'departure'
       ? defaults.departureElevationFtMsl
-      : tab.role === 'destination'
+      : stop.role === 'destination'
         ? defaults.destinationElevationFtMsl
-        : defaults.sectorStopElevationFtMslByWaypointId?.[tab.waypointId];
+        : defaults.sectorStopElevationFtMslByWaypointId?.[stop.waypointId];
     const elevationFtMsl = enteredElevation.trim() === ''
       ? defaultForTab
       : Number(enteredElevation);
-    const plannedTimeUtcMs = plannedTimeUtcMsByOperationKey.get(tab.key);
+    const plannedTimeUtcMs = plannedTimeUtcMsByOperationKey.get(operation.key);
     if (candidate?.anchor?.feature.featureKind !== 'aerodrome' || airportIdentifier === undefined || elevationFtMsl === undefined || !Number.isFinite(elevationFtMsl) || plannedTimeUtcMs === undefined) return null;
     return {
-      airportKey: tab.key,
+      airportKey: stop.key,
       icaoIdentifier: airportIdentifier,
       position: candidate.position,
       elevationFtMsl,
       plannedTimeUtcMs,
-      context: tab.role,
+      context: stop.role === 'departure'
+        ? 'departure' as const
+        : stop.role === 'destination'
+          ? 'destination' as const
+          : 'arrival' as const,
     };
   };
   useEffect(() => {
@@ -233,14 +217,15 @@ export function AirportInputs({
     }
 
     const nextPublished = new Map<string, PublishedAirportEnvironment>();
-    for (const tab of tabs) {
-      const stopDraft = draft.sectorStopPlans.find((candidate) => candidate.waypointId === tab.waypointId);
-      const qnhDraft = tab.role === 'departure' ? draft.departureQnhHpa : tab.role === 'destination' ? draft.destinationQnhHpa : stopDraft?.qnhHpa ?? '';
-      const isaDraft = tab.role === 'departure' ? draft.departureIsaDeviationC : tab.role === 'destination' ? draft.destinationIsaDeviationC : stopDraft?.isaDeviationC ?? '';
+    for (const stop of stops) {
+      const primary = primaryOperation(stop);
+      const stopDraft = draft.sectorStopPlans.find((candidate) => candidate.waypointId === stop.waypointId);
+      const qnhDraft = stop.role === 'departure' ? draft.departureQnhHpa : stop.role === 'destination' ? draft.destinationQnhHpa : stopDraft?.qnhHpa ?? '';
+      const isaDraft = stop.role === 'departure' ? draft.departureIsaDeviationC : stop.role === 'destination' ? draft.destinationIsaDeviationC : stopDraft?.isaDeviationC ?? '';
       const tabQnh = qnhDraft.trim() === '' ? DEFAULT_PLANNING_QNH_HPA : Number(qnhDraft);
       const tabIsa = isaDraft.trim() === '' ? DEFAULT_PLANNING_ISA_DEVIATION_C : Number(isaDraft);
-      const tabOperation = operationalDraft.runwayPerformanceOperations.find((candidate) => runwayPerformanceOperationDraftKey(candidate) === tab.key)
-        ?? createRunwayPerformanceOperationInputDraft(tab.kind, tab.sectorFromWaypointId, tab.sectorToWaypointId, tab.waypointId);
+      const tabOperation = operationalDraft.runwayPerformanceOperations.find((candidate) => runwayPerformanceOperationDraftKey(candidate) === primary.key)
+        ?? createRunwayPerformanceOperationInputDraft(primary.kind, primary.sectorFromWaypointId, primary.sectorToWaypointId, primary.waypointId);
       const tabOat = tabOperation.manualOatC.trim() === '' ? undefined : Number(tabOperation.manualOatC);
       const tabWind = tabOperation.manualWindDirectionFromTrueDeg.trim() === '' || tabOperation.manualWindSpeedKt.trim() === '' ? undefined : {
         kind: 'fixed' as const,
@@ -248,9 +233,9 @@ export function AirportInputs({
         speedKt: Number(tabOperation.manualWindSpeedKt),
         ...(tabOperation.manualWindGustKt.trim() === '' ? {} : { gustKt: Number(tabOperation.manualWindGustKt) }),
       };
-      const tabRequest = airportWeatherRequest(tab);
-      const tabLoadedWeather = weatherByOperationKey.get(tab.key);
-      const tabSelection = weatherSelections.get(tab.key) ?? MANUAL_AIRPORT_WEATHER_SELECTION;
+      const tabRequest = airportWeatherRequest(stop);
+      const tabLoadedWeather = weatherByStopKey.get(stop.key);
+      const tabSelection = weatherSelectionsByStopKey.get(stop.key) ?? MANUAL_AIRPORT_WEATHER_SELECTION;
       const tabWeather = tabLoadedWeather ?? (tabRequest === null ? undefined : {
         request: tabRequest,
         metar: { status: 'unavailable' as const, message: 'Not loaded' },
@@ -258,7 +243,7 @@ export function AirportInputs({
         forecast: { status: 'unavailable' as const, message: 'Not loaded' },
       });
       const stale = tabLoadedWeather !== undefined &&
-        Math.abs(tabLoadedWeather.request.plannedTimeUtcMs - (plannedTimeUtcMsByOperationKey.get(tab.key) ?? tabLoadedWeather.request.plannedTimeUtcMs)) > WEATHER_CONTEXT_STALE_TOLERANCE_MS;
+        Math.abs(tabLoadedWeather.request.plannedTimeUtcMs - (plannedTimeUtcMsByOperationKey.get(primary.key) ?? tabLoadedWeather.request.plannedTimeUtcMs)) > WEATHER_CONTEXT_STALE_TOLERANCE_MS;
       const environment = tabWeather === undefined || stale || !Number.isFinite(tabQnh) || !Number.isFinite(tabIsa)
         ? null
         : resolveEffectiveAirportPlanningEnvironment({
@@ -267,21 +252,23 @@ export function AirportInputs({
             ...(tabOat === undefined || !Number.isFinite(tabOat) ? {} : { temperatureC: tabOat }),
             ...(tabWind === undefined ? {} : { wind: tabWind }),
           }, tabWeather, tabSelection);
-      nextPublished.set(tab.key, {
-        waypointId: tab.waypointId,
-        environment,
-      });
-      const previous = publishedEnvironments.current.get(tab.key);
-      if (shouldPublishAirportEnvironment(
-        previous,
-        tab.waypointId,
-        environment,
-      )) {
-        onEffectivePlanningEnvironmentChange(
-          tab.key,
-          tab.waypointId,
+      for (const operation of stop.operations) {
+        nextPublished.set(operation.key, {
+          waypointId: stop.waypointId,
           environment,
-        );
+        });
+        const previous = publishedEnvironments.current.get(operation.key);
+        if (shouldPublishAirportEnvironment(
+          previous,
+          stop.waypointId,
+          environment,
+        )) {
+          onEffectivePlanningEnvironmentChange(
+            operation.key,
+            stop.waypointId,
+            environment,
+          );
+        }
       }
     }
 
@@ -296,19 +283,19 @@ export function AirportInputs({
     }
 
     publishedEnvironments.current = nextPublished;
-  }, [draft, onEffectivePlanningEnvironmentChange, operationalDraft.runwayPerformanceOperations, plannedTimeUtcMsByOperationKey, tabs, weatherByOperationKey, weatherSelections]);
+  }, [draft, onEffectivePlanningEnvironmentChange, operationalDraft.runwayPerformanceOperations, plannedTimeUtcMsByOperationKey, stops, weatherByStopKey, weatherSelectionsByStopKey]);
 
-  const active = tabs.find((tab) => tab.key === activeKey) ?? tabs[0];
+  const active = stops.find((stop) => stop.key === activeKey) ?? stops[0];
 
   useEffect(() => {
-    if (active !== undefined && !tabs.some((tab) => tab.key === activeKey)) {
+    if (active !== undefined && !stops.some((stop) => stop.key === activeKey)) {
       setActiveKey(active.key);
     }
-  }, [active, activeKey, tabs]);
+  }, [active, activeKey, stops]);
 
   if (active === undefined) return null;
 
-  const loadableAirportCount = tabs.filter((tab) => airportWeatherRequest(tab) !== null).length;
+  const loadableAirportCount = stops.filter((stop) => airportWeatherRequest(stop) !== null).length;
   const loadRouteWeather = async (refresh = false) => {
     weatherAbort.current?.abort();
     const controller = new AbortController();
@@ -317,17 +304,17 @@ export function AirportInputs({
     try {
       // Deliberately sequential: a route may contain many stops and MET Norway
       // asks clients to avoid bursts of concurrent requests.
-      for (const tab of tabs) {
-        const request = airportWeatherRequest(tab);
+      for (const stop of stops) {
+        const request = airportWeatherRequest(stop);
         if (request === null) continue;
-        setWeatherByOperationKey((current) => new Map(current).set(tab.key, {
+        setWeatherByStopKey((current) => new Map(current).set(stop.key, {
           request, metar: { status: 'loading' }, taf: { status: 'loading' }, forecast: { status: 'loading' },
         }));
         try {
           const value = await fetchAirportOperationalWeather(request, controller.signal, refresh);
-          if (!controller.signal.aborted) setWeatherByOperationKey((current) => new Map(current).set(tab.key, value));
+          if (!controller.signal.aborted) setWeatherByStopKey((current) => new Map(current).set(stop.key, value));
         } catch (error) {
-          if (!controller.signal.aborted) setWeatherByOperationKey((current) => new Map(current).set(tab.key, {
+          if (!controller.signal.aborted) setWeatherByStopKey((current) => new Map(current).set(stop.key, {
             request,
             metar: { status: 'error', message: error instanceof Error ? error.message : 'Weather request failed' },
             taf: { status: 'error', message: error instanceof Error ? error.message : 'Weather request failed' },
@@ -343,8 +330,9 @@ export function AirportInputs({
   const waypoint = flightPlan.waypoints.find(
     (candidate) => candidate.id === active.waypointId,
   );
+  const weatherOperation = primaryOperation(active);
   const identifier = waypoint?.anchor?.publishedIdentifier;
-  const isStop = active.role === 'arrival' || active.role === 'onward-departure';
+  const isStop = active.role === 'stop';
   const stop = isStop
     ? draft.sectorStopPlans.find((candidate) => candidate.waypointId === active.waypointId) ??
       createEmptySectorStopInputDraft(active.waypointId)
@@ -354,7 +342,10 @@ export function AirportInputs({
         (candidate) => candidate.waypointId === active.waypointId,
       ) ?? createEmptySectorOperationInputDraft(active.waypointId)
     : null;
-  const pattern = active.kind === 'takeoff'
+  const hasLandingOperation = active.operations.some(
+    (candidate) => candidate.kind === 'landing',
+  );
+  const pattern = !hasLandingOperation
     ? null
     : operationalDraft.patternPlans.find(
         (candidate) => candidate.waypointId === active.waypointId,
@@ -383,17 +374,17 @@ export function AirportInputs({
     : active.role === 'destination'
       ? draft.destinationIsaDeviationC
       : stop!.isaDeviationC;
-  const selection = weatherSelections.get(active.key) ?? MANUAL_AIRPORT_WEATHER_SELECTION;
-  const weather = weatherByOperationKey.get(active.key);
-  const plannedTimeUtcMs = plannedTimeUtcMsByOperationKey.get(active.key);
+  const selection = weatherSelectionsByStopKey.get(active.key) ?? MANUAL_AIRPORT_WEATHER_SELECTION;
+  const weather = weatherByStopKey.get(active.key);
+  const plannedTimeUtcMs = plannedTimeUtcMsByOperationKey.get(weatherOperation.key);
   const weatherIsStale = weather !== undefined && plannedTimeUtcMs !== undefined &&
     Math.abs(weather.request.plannedTimeUtcMs - plannedTimeUtcMs) > WEATHER_CONTEXT_STALE_TOLERANCE_MS;
   const canLoadWeather = airportWeatherRequest(active) !== null;
   const manualQnh = qnhValue.trim() === '' ? DEFAULT_PLANNING_QNH_HPA : Number(qnhValue);
   const manualIsa = isaValue.trim() === '' ? DEFAULT_PLANNING_ISA_DEVIATION_C : Number(isaValue);
   const runwayOperation = operationalDraft.runwayPerformanceOperations.find(
-    (candidate) => runwayPerformanceOperationDraftKey(candidate) === active.key,
-  ) ?? createRunwayPerformanceOperationInputDraft(active.kind, active.sectorFromWaypointId, active.sectorToWaypointId, active.waypointId);
+    (candidate) => runwayPerformanceOperationDraftKey(candidate) === weatherOperation.key,
+  ) ?? createRunwayPerformanceOperationInputDraft(weatherOperation.kind, weatherOperation.sectorFromWaypointId, weatherOperation.sectorToWaypointId, weatherOperation.waypointId);
   const manualOat = runwayOperation.manualOatC.trim() === '' ? undefined : Number(runwayOperation.manualOatC);
   const manualWind = runwayOperation.manualWindDirectionFromTrueDeg.trim() === '' || runwayOperation.manualWindSpeedKt.trim() === '' ? undefined : {
     kind: 'fixed' as const,
@@ -421,15 +412,46 @@ export function AirportInputs({
     : selection.temperature === 'forecast' && effectiveWeather !== undefined
       ? `${effectiveWeather.isaDeviationC.toFixed(1)} (MET Norway forecast)`
       : `${DEFAULT_PLANNING_ISA_DEVIATION_C} (standard)`;
-  const setSelection = (field: keyof AirportWeatherSelection, value: AirportWeatherSelection[typeof field]) => setWeatherSelections((current) => new Map(current).set(active.key, { ...selection, [field]: value }));
+  const setSelection = (field: keyof AirportWeatherSelection, value: AirportWeatherSelection[typeof field]) => setWeatherSelectionsByStopKey((current) => new Map(current).set(active.key, { ...selection, [field]: value }));
 
-  const updateRunwayOperation = (changes: Partial<RunwayPerformanceOperationInputDraft>) => {
-    const updated = { ...runwayOperation, ...changes };
+  const operationDraft = (context: AirportOperationContext) =>
+    operationalDraft.runwayPerformanceOperations.find(
+      (candidate) => runwayPerformanceOperationDraftKey(candidate) === context.key,
+    ) ?? createRunwayPerformanceOperationInputDraft(
+      context.kind,
+      context.sectorFromWaypointId,
+      context.sectorToWaypointId,
+      context.waypointId,
+    );
+  const updateRunwayOperation = (
+    context: AirportOperationContext,
+    changes: Partial<RunwayPerformanceOperationInputDraft>,
+  ) => {
+    const currentOperation = operationDraft(context);
+    const updated = { ...currentOperation, ...changes };
     onOperationalDraftChange({
       ...operationalDraft,
-      runwayPerformanceOperations: operationalDraft.runwayPerformanceOperations.some((candidate) => runwayPerformanceOperationDraftKey(candidate) === active.key)
-        ? operationalDraft.runwayPerformanceOperations.map((candidate) => runwayPerformanceOperationDraftKey(candidate) === active.key ? updated : candidate)
+      runwayPerformanceOperations: operationalDraft.runwayPerformanceOperations.some((candidate) => runwayPerformanceOperationDraftKey(candidate) === context.key)
+        ? operationalDraft.runwayPerformanceOperations.map((candidate) => runwayPerformanceOperationDraftKey(candidate) === context.key ? updated : candidate)
         : [...operationalDraft.runwayPerformanceOperations, updated],
+    });
+  };
+  const updateAirportWeatherOperations = (
+    changes: Partial<RunwayPerformanceOperationInputDraft>,
+  ) => {
+    const activeKeys = new Set(active.operations.map((context) => context.key));
+    const updatedActive = active.operations.map((context) => ({
+      ...operationDraft(context),
+      ...changes,
+    }));
+    onOperationalDraftChange({
+      ...operationalDraft,
+      runwayPerformanceOperations: [
+        ...operationalDraft.runwayPerformanceOperations.filter(
+          (candidate) => !activeKeys.has(runwayPerformanceOperationDraftKey(candidate)),
+        ),
+        ...updatedActive,
+      ],
     });
   };
 
@@ -527,17 +549,46 @@ export function AirportInputs({
 
   return (
     <section className="airport-inputs" aria-label="Airport planning inputs">
+      <fieldset className="navigation-inputs airport-inputs__global-limits">
+        <legend>Runway limits</legend>
+        <NumberField
+          label="Personal X-wind limit"
+          value={operationalDraft.personalCrosswindLimitKt}
+          placeholder={`${DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT} (standard)`}
+          unit="kt"
+          min="0"
+          step="1"
+          onChange={(value) => onOperationalDraftChange({
+            ...operationalDraft,
+            personalCrosswindLimitKt: value,
+          })}
+        />
+        <label className="airport-inputs__instructor-limit">
+          <span>Crosswind policy</span>
+          <span className="airport-inputs__arrival-buffer-control">
+            <input
+              type="checkbox"
+              checked={operationalDraft.instructor}
+              onChange={(event) => onOperationalDraftChange({
+                ...operationalDraft,
+                instructor: event.currentTarget.checked,
+              })}
+            />
+            <span>Use instructor RCC limits</span>
+          </span>
+        </label>
+      </fieldset>
       <div className="airport-inputs__tabs" role="tablist" aria-label="Route airports">
-        {tabs.map((tab) => (
+        {stops.map((stop) => (
           <button
-            key={tab.key}
+            key={stop.key}
             type="button"
             role="tab"
-            aria-selected={tab.key === active.key}
-            className={`button${tab.key === active.key ? ' button--active' : ''}`}
-            onClick={() => setActiveKey(tab.key)}
+            aria-selected={stop.key === active.key}
+            className={`button${stop.key === active.key ? ' button--active' : ''}`}
+            onClick={() => setActiveKey(stop.key)}
           >
-            {tab.role === 'departure' ? 'DEP' : tab.role === 'destination' ? 'DEST' : tab.role === 'arrival' ? 'ARR' : 'DEP'} {tab.name}
+            {stop.role === 'departure' ? 'DEP' : stop.role === 'destination' ? 'DEST' : 'STOP'} {stop.name}
           </button>
         ))}
       </div>
@@ -546,11 +597,11 @@ export function AirportInputs({
           type="button"
           className="button"
           disabled={weatherLoadInProgress || loadableAirportCount === 0}
-          onClick={() => { void loadRouteWeather(weatherByOperationKey.size > 0); }}
+          onClick={() => { void loadRouteWeather(weatherByStopKey.size > 0); }}
         >
           {weatherLoadInProgress
             ? 'Loading route weather…'
-            : weatherByOperationKey.size > 0
+            : weatherByStopKey.size > 0
               ? 'Refresh route weather'
               : `Load weather for ${loadableAirportCount} airport${loadableAirportCount === 1 ? '' : 's'}`}
         </button>
@@ -574,11 +625,11 @@ export function AirportInputs({
           placeholder={effectiveWeather?.temperatureC === undefined ? 'Required for runway performance' : `${effectiveWeather.temperatureC.toFixed(1)} (${selection.temperature})`}
           unit="°C"
           step="0.1"
-          onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateRunwayOperation({ manualOatC: value }); }}
+          onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateAirportWeatherOperations({ manualOatC: value }); }}
         />
-        <NumberField label="Surface wind from" value={selection.wind === 'manual' ? runwayOperation.manualWindDirectionFromTrueDeg : ''} placeholder={effectiveWeather?.wind?.kind === 'fixed' ? `${Math.round(effectiveWeather.wind.directionFromTrueDeg)} (${selection.wind})` : 'Required'} unit="°T" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateRunwayOperation({ manualWindDirectionFromTrueDeg: value }); }} />
-        <NumberField label="Surface wind speed" value={selection.wind === 'manual' ? runwayOperation.manualWindSpeedKt : ''} placeholder={effectiveWeather?.wind === undefined ? 'Required' : `${Math.round(effectiveWeather.wind.speedKt)} (${selection.wind})`} unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateRunwayOperation({ manualWindSpeedKt: value }); }} />
-        <NumberField label="Surface gust" value={selection.wind === 'manual' ? runwayOperation.manualWindGustKt : ''} placeholder="optional" unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateRunwayOperation({ manualWindGustKt: value }); }} />
+        <NumberField label="Surface wind from" value={selection.wind === 'manual' ? runwayOperation.manualWindDirectionFromTrueDeg : ''} placeholder={effectiveWeather?.wind?.kind === 'fixed' ? `${Math.round(effectiveWeather.wind.directionFromTrueDeg)} (${selection.wind})` : 'Required'} unit="°T" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindDirectionFromTrueDeg: value }); }} />
+        <NumberField label="Surface wind speed" value={selection.wind === 'manual' ? runwayOperation.manualWindSpeedKt : ''} placeholder={effectiveWeather?.wind === undefined ? 'Required' : `${Math.round(effectiveWeather.wind.speedKt)} (${selection.wind})`} unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindSpeedKt: value }); }} />
+        <NumberField label="Surface gust" value={selection.wind === 'manual' ? runwayOperation.manualWindGustKt : ''} placeholder="optional" unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindGustKt: value }); }} />
         <NumberField
           label="QNH"
           value={selection.pressure === 'manual' ? qnhValue : ''}
@@ -596,6 +647,51 @@ export function AirportInputs({
           step="0.1"
           onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateAirport('isa', value); }}
         />
+        <section className="airport-inputs__runway-operations" aria-label={`Runway inputs for ${active.name}`}>
+          <h3>Runway performance inputs</h3>
+          {active.operations.map((context) => {
+            const current = operationDraft(context);
+            const details = aerodromeDetailsByWaypointId.get(active.waypointId);
+            return (
+              <fieldset key={context.key} className="airport-inputs__runway-operation">
+                <legend>{context.kind === 'takeoff' ? 'Takeoff' : 'Landing'}</legend>
+                <label>
+                  <span>RWY</span>
+                  <select
+                    value={current.runwayDesignator}
+                    onChange={(event) => updateRunwayOperation(context, { runwayDesignator: event.currentTarget.value })}
+                  >
+                    <option value="">Select</option>
+                    {(details?.runways.flatMap((runway) => runway.directions) ?? []).map((direction) => (
+                      <option key={direction.designator} value={direction.designator}>{direction.designator}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>RCC</span>
+                  <select
+                    value={current.rcc}
+                    onChange={(event) => updateRunwayOperation(context, { rcc: event.currentTarget.value })}
+                  >
+                    <option value="">Select</option>
+                    {[6, 5, 4, 3, 2, 1, 0].map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>RWY state</span>
+                  <input
+                    type="text"
+                    value={current.runwayCondition}
+                    placeholder={current.rcc === ''
+                      ? 'optional'
+                      : getRccPerformanceRule(Number(current.rcc) as 0 | 1 | 2 | 3 | 4 | 5 | 6).runwayCondition}
+                    onChange={(event) => updateRunwayOperation(context, { runwayCondition: event.currentTarget.value })}
+                  />
+                </label>
+              </fieldset>
+            );
+          })}
+        </section>
         {pattern === null ? null : <NumberField
           label="Patterns"
           value={pattern.patternCount}
@@ -665,7 +761,7 @@ export function AirportInputs({
         </> : null}
         <section className="airport-inputs__weather" aria-label={`Operational weather for ${active.name}`}>
           <h3>Weather{identifier === undefined ? '' : ` — ${identifier}`}</h3>
-          <p className="navigation-inputs__scope">Planned {active.kind}: {formatUtc(plannedTimeUtcMs)}. Weather data: MET Norway.</p>
+          <p className="navigation-inputs__scope">Planned {active.role === 'stop' ? 'stop arrival' : weatherOperation.kind}: {formatUtc(plannedTimeUtcMs)}. Weather data: MET Norway.</p>
           {canLoadWeather ? null : <p className="navigation-inputs__scope">Operational weather is available only for an anchored aerodrome with an ICAO identifier, elevation, and planned time.</p>}
           {weather === undefined ? null : <>
             {weatherIsStale ? <p className="navigation-inputs__error" role="status">Weather is stale for the changed planned time. Refresh before selecting it for calculations.</p> : null}

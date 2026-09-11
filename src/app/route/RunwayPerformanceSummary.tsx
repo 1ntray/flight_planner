@@ -9,18 +9,16 @@ import {
   effectiveCrosswindLimitKt,
   getRccPerformanceRule,
   resolveRunwayDirection,
+  runwayDesignatorHeadingDeg,
 } from '../../calculations';
 import { runwayOperationKey } from '../../domain';
 import type { AerodromeDetails, RunwayOperationKind } from '../../domain';
 import type { EffectiveAirportPlanningEnvironment } from '../../weather';
 import {
-  createRunwayPerformanceOperationInputDraft,
   runwayPerformanceOperationDraftKey,
 } from '../navigation/operationalInput';
-import type {
-  OperationalInputDraft,
-  RunwayPerformanceOperationInputDraft,
-} from '../navigation/operationalInput';
+import { createRunwayPerformanceOperationInputDraft } from '../navigation/operationalInput';
+import type { OperationalInputDraft } from '../navigation/operationalInput';
 
 interface OperationPanelProps {
   kind: RunwayOperationKind;
@@ -33,7 +31,6 @@ interface OperationPanelProps {
   details?: AerodromeDetails;
   environment?: EffectiveAirportPlanningEnvironment;
   draft: OperationalInputDraft;
-  onDraftChange: (draft: OperationalInputDraft) => void;
 }
 
 function formatWind(environment: EffectiveAirportPlanningEnvironment | undefined): string {
@@ -55,15 +52,6 @@ function OperationPanel(props: OperationPanelProps) {
   ) ?? createRunwayPerformanceOperationInputDraft(
     props.kind, props.sectorFromWaypointId, props.sectorToWaypointId, props.aerodromeWaypointId,
   );
-  const update = (changes: Partial<RunwayPerformanceOperationInputDraft>) => {
-    const updated = { ...operation, ...changes };
-    props.onDraftChange({
-      ...props.draft,
-      runwayPerformanceOperations: props.draft.runwayPerformanceOperations.some((candidate) => runwayPerformanceOperationDraftKey(candidate) === key)
-        ? props.draft.runwayPerformanceOperations.map((candidate) => runwayPerformanceOperationDraftKey(candidate) === key ? updated : candidate)
-        : [...props.draft.runwayPerformanceOperations, updated],
-    });
-  };
   const resolved = operation.runwayDesignator === '' || props.details === undefined
     ? null
     : resolveRunwayDirection(props.details.runways, operation.runwayDesignator);
@@ -78,8 +66,9 @@ function OperationPanel(props: OperationPanelProps) {
   const isaDeviation = oat === undefined ? undefined : calculateUtsaIsaDeviationC(oat);
   const densityAltitude = pressureAltitude === undefined || isaDeviation === undefined
     ? undefined : calculateUtsaDensityAltitudeFt(pressureAltitude, isaDeviation);
-  const windComponents = direction?.trueBearingDeg === null || direction?.trueBearingDeg === undefined || props.environment?.wind === undefined
-    ? undefined : calculateRunwayWindComponents(direction.trueBearingDeg, props.environment.wind);
+  const runwayHeadingDeg = direction === undefined ? null : runwayDesignatorHeadingDeg(direction.designator);
+  const windComponents = runwayHeadingDeg === null || props.environment?.wind === undefined
+    ? undefined : calculateRunwayWindComponents(runwayHeadingDeg, props.environment.wind);
   const components = windComponents?.status === 'available' ? windComponents.components : undefined;
   const personalLimit = props.draft.personalCrosswindLimitKt.trim() === ''
     ? DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT : Number(props.draft.personalCrosswindLimitKt);
@@ -97,7 +86,7 @@ function OperationPanel(props: OperationPanelProps) {
   const blocking = [
     ...(props.details === undefined ? ['Aerodrome data unavailable'] : []),
     ...(operation.runwayDesignator === '' ? ['Runway not selected'] : []),
-    ...(direction?.trueBearingDeg === null ? ['Published true bearing unavailable'] : []),
+    ...(direction !== undefined && runwayHeadingDeg === null ? ['Runway designator cannot be converted to a nominal heading'] : []),
     ...(availableDistance === null ? [`Published ${props.kind === 'takeoff' ? 'TODA' : 'LDA'} unavailable`] : []),
     ...(rcc === undefined ? ['RCC not selected'] : []),
     ...(rcc === 0 ? ['RCC 0: operation unsupported'] : []),
@@ -110,39 +99,89 @@ function OperationPanel(props: OperationPanelProps) {
   ];
   const crosswindText = baseCrosswind === undefined
     ? '—'
-    : `${baseCrosswind.toFixed(1)} kt${gustCrosswind === undefined ? '' : ` / G${gustCrosswind.toFixed(1)} kt`}`;
+    : `${baseCrosswind} kt${gustCrosswind === undefined ? '' : ` / G${gustCrosswind} kt`}`;
   const crosswindWarning = effectiveLimit === undefined || effectiveLimit === null || baseCrosswind === undefined
     ? null
     : baseCrosswind > effectiveLimit || (gustCrosswind !== undefined && gustCrosswind > effectiveLimit)
       ? `Crosswind limit ${effectiveLimit} kt exceeded${gustCrosswind !== undefined && gustCrosswind > effectiveLimit ? ' by gust' : ''}.`
       : `Crosswind within ${effectiveLimit} kt limit.`;
+  const runwayState = operation.runwayCondition.trim() !== ''
+    ? operation.runwayCondition
+    : rccRule?.runwayCondition ?? '—';
+  const operationLabel = props.kind === 'takeoff' ? 'DEP. AERODROME' : 'DEST. AERODROME';
+  const uncorrectedLabel = props.kind === 'takeoff'
+    ? 'Uncorrected take-off distance'
+    : 'Uncorrected landing distance';
+  const correctedLabel = props.kind === 'takeoff'
+    ? 'Corrected take-off distance'
+    : 'Corrected landing distance';
+  const requiredLabel = props.kind === 'takeoff' ? 'Req. TOD' : 'Req. LD';
+  const availableLabel = props.kind === 'takeoff' ? 'TODA' : 'LDA';
 
   return (
     <div className="runway-performance__operation">
-      <h5>{props.kind === 'takeoff' ? 'DEP.' : 'DEST.'} AERODROME · {props.aerodromeName}</h5>
-      <div className="runway-performance__controls">
-        <label>RWY<select value={operation.runwayDesignator} onChange={(event) => update({ runwayDesignator: event.currentTarget.value })}>
-          <option value="">Select</option>
-          {(props.details?.runways.flatMap((runway) => runway.directions) ?? []).map((candidate) => <option key={candidate.designator} value={candidate.designator}>{candidate.designator}</option>)}
-        </select></label>
-        <label>RCC<select value={operation.rcc} onChange={(event) => update({ rcc: event.currentTarget.value })}>
-          <option value="">Select</option>{[6, 5, 4, 3, 2, 1, 0].map((value) => <option key={value} value={value}>{value}</option>)}
-        </select></label>
-        <label>RWY stat<input value={operation.runwayCondition} placeholder={rccRule?.runwayCondition ?? ''} onChange={(event) => update({ runwayCondition: event.currentTarget.value })} /></label>
+      <div className="runway-performance__title">
+        <h5>{operationLabel}</h5>
+        <span>{props.aerodromeName}</span>
       </div>
-      <table className="operational-summary__table runway-performance__table">
+      <table className="operational-summary__table runway-performance__table runway-performance__airport-table">
+        <colgroup>
+          <col className="runway-performance__label-column" />
+          <col className="runway-performance__value-column" />
+          <col className="runway-performance__label-column" />
+          <col className="runway-performance__value-column" />
+          <col className="runway-performance__label-column" />
+          <col className="runway-performance__value-column" />
+        </colgroup>
         <tbody>
-          <tr><th>RWY</th><td>{direction?.designator ?? '—'}</td><th>Elevation</th><td>{elevation == null ? '—' : `${Math.round(elevation)} ft`}</td></tr>
-          <tr><th>Flaps {props.kind === 'takeoff' ? 'TO' : 'LND'}</th><td></td><th>Mass</th><td>{props.massKg.toFixed(1)} kg</td></tr>
-          <tr><th>W/V</th><td>{formatWind(props.environment)}</td><th>X-Wind</th><td>{crosswindText}</td></tr>
-          <tr><th>QNH</th><td>{props.environment === undefined ? '—' : `${props.environment.qnhHpa.toFixed(0)} hPa`}</td><th>Press ALT.</th><td>{pressureAltitude === undefined ? '—' : `${Math.round(pressureAltitude)} ft`}</td></tr>
-          <tr><th>Temp.</th><td>{oat === undefined ? '—' : `${oat.toFixed(1)}°C`}</td><th>Dens ALT.</th><td>{densityAltitude === undefined ? '—' : `${Math.round(densityAltitude)} ft`}</td></tr>
-          <tr><th>Uncorrected {props.kind === 'takeoff' ? 'TOD' : 'LD'}</th><td>—</td><th>H-Wind</th><td>{components === undefined ? '—' : `${components.parallelKt.toFixed(1)} kt`}</td></tr>
-          <tr><th>Brk action</th><td>{rccRule?.brakingAction ?? '—'}</td><th>Corr.</th><td>{props.kind === 'takeoff' ? '0%' : rccRule?.landingCorrectionFraction == null ? '—' : `${rccRule.landingCorrectionFraction * 100}%`}</td></tr>
-          <tr><th>Corrected {props.kind === 'takeoff' ? 'TOD' : 'LD'}</th><td>—</td><th>Performance factor</th><td>{props.kind === 'takeoff' ? '25%' : '43%'}</td></tr>
-          <tr><th>Req. {props.kind === 'takeoff' ? 'TOD' : 'LD'}</th><td>—</td><th>{props.kind === 'takeoff' ? 'TODA' : 'LDA'}</th><td>{valueM(availableDistance)}</td></tr>
+          <tr>
+            <th scope="row">RWY</th><td>{direction?.designator ?? '—'}</td>
+            <th scope="row">Elevation</th><td>{elevation == null ? '—' : `${Math.round(elevation)} ft`}</td>
+            <th scope="row">Flaps</th><td>{props.kind === 'takeoff' ? 'TO' : 'LND'}</td>
+          </tr>
+          <tr>
+            <th scope="row">W/V</th><td>{formatWind(props.environment)}</td>
+            <th scope="row">X-Wind</th><td>{crosswindText}</td>
+            <th scope="row">Press ALT.</th><td>{pressureAltitude === undefined ? '—' : `${Math.round(pressureAltitude)} ft`}</td>
+          </tr>
+          <tr>
+            <th scope="row">QNH</th><td>{props.environment === undefined ? '—' : `${props.environment.qnhHpa.toFixed(0)} hPa`}</td>
+            <th scope="row">Temp.</th><td>{oat === undefined ? '—' : `${oat.toFixed(1)}°C`}</td>
+            <th scope="row">Dens ALT.</th><td>{densityAltitude === undefined ? '—' : `${Math.round(densityAltitude)} ft`}</td>
+          </tr>
         </tbody>
       </table>
+      <div className="runway-performance__worksheet-wrap">
+        <table className="operational-summary__table runway-performance__table runway-performance__worksheet">
+          <colgroup>
+            <col className="runway-performance__label-column" />
+            <col className="runway-performance__value-column" />
+            <col className="runway-performance__label-column" />
+            <col className="runway-performance__value-column" />
+            <col className="runway-performance__label-column" />
+            <col className="runway-performance__value-column" />
+          </colgroup>
+          <tbody>
+            <tr><th scope="row" colSpan={5}>{uncorrectedLabel}</th><td>—</td></tr>
+            <tr><th scope="row">H-Wind</th><td colSpan={5}>{components === undefined ? '—' : `${components.parallelKt} kt`}</td></tr>
+            <tr>
+              <th scope="row">RWY stat</th><td>{runwayState}</td>
+              <th scope="row">Brk action</th><td>{rcc ?? '—'}</td>
+              <th scope="row">Corr.</th><td>{props.kind === 'takeoff' ? '0%' : rccRule?.landingCorrectionFraction == null ? '—' : `${rccRule.landingCorrectionFraction * 100}%`}</td>
+            </tr>
+            {[0, 1, 2, 3].map((row) => <tr key={row} className="runway-performance__worksheet-row" aria-hidden="true"><td colSpan={6}></td></tr>)}
+            <tr><th scope="row" colSpan={5}>{correctedLabel}</th><td>—</td></tr>
+            <tr>
+              <th scope="row" colSpan={2}>Performance factor</th><td>{props.kind === 'takeoff' ? '25%' : '43%'}</td>
+              <th scope="row" colSpan={2} className="runway-performance__dark-cell">{requiredLabel}</th><td>—</td>
+            </tr>
+            <tr>
+              <td colSpan={4}></td>
+              <th scope="row" className="runway-performance__dark-cell">{availableLabel}</th><td>{valueM(availableDistance)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       {crosswindWarning === null ? null : <p className={crosswindWarning.includes('exceeded') ? 'runway-performance__warning' : 'operational-summary__note'}>{crosswindWarning}</p>}
       <ul className="runway-performance__issues">{blocking.map((message) => <li key={message}>{message}</li>)}</ul>
     </div>
@@ -159,7 +198,6 @@ export interface RunwayPerformanceSummaryProps {
   detailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
   environments: ReadonlyMap<string, EffectiveAirportPlanningEnvironment>;
   draft: OperationalInputDraft;
-  onDraftChange: (draft: OperationalInputDraft) => void;
   modelSupported: boolean;
 }
 
@@ -168,12 +206,8 @@ export function RunwayPerformanceSummary(props: RunwayPerformanceSummaryProps) {
   const landingKey = runwayOperationKey('landing', props.sectorFromWaypointId, props.sectorToWaypointId);
   return (
     <div className="runway-performance">
-      <div className="runway-performance__global-controls">
-        <label>Personal X-wind <input type="number" min="0" step="1" placeholder={`${DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT}`} value={props.draft.personalCrosswindLimitKt} onChange={(event) => props.onDraftChange({ ...props.draft, personalCrosswindLimitKt: event.currentTarget.value })} /> kt</label>
-        <label><input type="checkbox" checked={props.draft.instructor} onChange={(event) => props.onDraftChange({ ...props.draft, instructor: event.currentTarget.checked })} /> Instructor RCC limits</label>
-      </div>
-      <OperationPanel kind="takeoff" sectorFromWaypointId={props.sectorFromWaypointId} sectorToWaypointId={props.sectorToWaypointId} aerodromeWaypointId={props.sectorFromWaypointId} aerodromeName={props.fromName} massKg={props.takeoffMassKg} modelSupported={props.modelSupported} {...(props.detailsByWaypointId.get(props.sectorFromWaypointId) === undefined ? {} : { details: props.detailsByWaypointId.get(props.sectorFromWaypointId)! })} {...(props.environments.get(takeoffKey) === undefined ? {} : { environment: props.environments.get(takeoffKey)! })} draft={props.draft} onDraftChange={props.onDraftChange} />
-      <OperationPanel kind="landing" sectorFromWaypointId={props.sectorFromWaypointId} sectorToWaypointId={props.sectorToWaypointId} aerodromeWaypointId={props.sectorToWaypointId} aerodromeName={props.toName} massKg={props.landingMassKg} modelSupported={props.modelSupported} {...(props.detailsByWaypointId.get(props.sectorToWaypointId) === undefined ? {} : { details: props.detailsByWaypointId.get(props.sectorToWaypointId)! })} {...(props.environments.get(landingKey) === undefined ? {} : { environment: props.environments.get(landingKey)! })} draft={props.draft} onDraftChange={props.onDraftChange} />
+      <OperationPanel kind="takeoff" sectorFromWaypointId={props.sectorFromWaypointId} sectorToWaypointId={props.sectorToWaypointId} aerodromeWaypointId={props.sectorFromWaypointId} aerodromeName={props.fromName} massKg={props.takeoffMassKg} modelSupported={props.modelSupported} {...(props.detailsByWaypointId.get(props.sectorFromWaypointId) === undefined ? {} : { details: props.detailsByWaypointId.get(props.sectorFromWaypointId)! })} {...(props.environments.get(takeoffKey) === undefined ? {} : { environment: props.environments.get(takeoffKey)! })} draft={props.draft} />
+      <OperationPanel kind="landing" sectorFromWaypointId={props.sectorFromWaypointId} sectorToWaypointId={props.sectorToWaypointId} aerodromeWaypointId={props.sectorToWaypointId} aerodromeName={props.toName} massKg={props.landingMassKg} modelSupported={props.modelSupported} {...(props.detailsByWaypointId.get(props.sectorToWaypointId) === undefined ? {} : { details: props.detailsByWaypointId.get(props.sectorToWaypointId)! })} {...(props.environments.get(landingKey) === undefined ? {} : { environment: props.environments.get(landingKey)! })} draft={props.draft} />
     </div>
   );
 }

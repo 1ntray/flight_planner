@@ -62,24 +62,41 @@ export type RunwayWindComponentResult =
   | { readonly status: 'available'; readonly components: RunwayWindComponents }
   | { readonly status: 'unavailable'; readonly reason: 'variable-wind' };
 
+/**
+ * Converts a standard runway designator (for example 10 or 28L) to the
+ * nominal heading used by the OFP wind-component worksheet. This deliberately
+ * does not use the aerodrome's published true bearing.
+ */
+export function runwayDesignatorHeadingDeg(designator: string): number | null {
+  const match = /^(\d{2})(?:[LCR])?$/.exec(designator.trim().toUpperCase());
+  if (match === null) return null;
+  const runwayNumber = Number(match[1]);
+  return runwayNumber >= 1 && runwayNumber <= 36 ? runwayNumber * 10 : null;
+}
+
+function roundWindComponentKt(value: number): number {
+  const rounded = Math.round(value);
+  return Object.is(rounded, -0) ? 0 : rounded;
+}
+
 export function calculateRunwayWindComponents(
-  runwayTrueBearingDeg: number,
+  runwayHeadingDeg: number,
   wind: AirportWind,
 ): RunwayWindComponentResult {
-  if (!Number.isFinite(runwayTrueBearingDeg)) {
-    throw new RangeError('Runway bearing must be finite');
+  if (!Number.isFinite(runwayHeadingDeg)) {
+    throw new RangeError('Runway heading must be finite');
   }
   if (wind.kind === 'variable') return { status: 'unavailable', reason: 'variable-wind' };
   if (wind.kind === 'calm') {
     return { status: 'available', components: { parallelKt: 0, crosswindKt: 0 } };
   }
-  const angleRad = (wind.directionFromTrueDeg - runwayTrueBearingDeg) * Math.PI / 180;
+  const angleRad = (wind.directionFromTrueDeg - runwayHeadingDeg) * Math.PI / 180;
   const components: RunwayWindComponents = {
-    parallelKt: wind.speedKt * Math.cos(angleRad),
-    crosswindKt: wind.speedKt * Math.sin(angleRad),
+    parallelKt: roundWindComponentKt(wind.speedKt * Math.cos(angleRad)),
+    crosswindKt: roundWindComponentKt(wind.speedKt * Math.sin(angleRad)),
     ...(wind.gustKt === undefined ? {} : {
-      gustParallelKt: wind.gustKt * Math.cos(angleRad),
-      gustCrosswindKt: wind.gustKt * Math.sin(angleRad),
+      gustParallelKt: roundWindComponentKt(wind.gustKt * Math.cos(angleRad)),
+      gustCrosswindKt: roundWindComponentKt(wind.gustKt * Math.sin(angleRad)),
     }),
   };
   return { status: 'available', components };
@@ -112,7 +129,7 @@ export interface RccPerformanceRule {
 
 const RCC_RULES: Readonly<Record<number, RccPerformanceRule>> = {
   6: { rcc: 6, runwayCondition: 'DRY', brakingAction: 'DRY', landingCorrectionFraction: 0, instructorCrosswindLimitKt: 20, supported: true },
-  5: { rcc: 5, runwayCondition: '—', brakingAction: 'GOOD', landingCorrectionFraction: 0, instructorCrosswindLimitKt: 20, supported: true },
+  5: { rcc: 5, runwayCondition: 'WET', brakingAction: 'GOOD', landingCorrectionFraction: 0, instructorCrosswindLimitKt: 20, supported: true },
   4: { rcc: 4, runwayCondition: '—', brakingAction: 'MEDIUM TO GOOD', landingCorrectionFraction: 0.1, instructorCrosswindLimitKt: 16, supported: true },
   3: { rcc: 3, runwayCondition: '—', brakingAction: 'MEDIUM', landingCorrectionFraction: 0.2, instructorCrosswindLimitKt: 13, supported: true },
   2: { rcc: 2, runwayCondition: '—', brakingAction: 'MEDIUM TO POOR', landingCorrectionFraction: 0.5, instructorCrosswindLimitKt: 7, supported: true },

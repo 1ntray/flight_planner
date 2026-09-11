@@ -458,6 +458,7 @@ export function NavigationLog({
         draft={performanceDraft}
         operationalDraft={operationalDraft}
         defaults={performanceInputDefaults}
+        aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
         plannedTimeUtcMsByOperationKey={airportPlannedTimes}
         {...(onEffectivePlanningEnvironmentChange === undefined
           ? {}
@@ -517,7 +518,6 @@ export function NavigationLog({
             : null
         }
         operationalDraft={operationalDraft}
-        onOperationalDraftChange={onOperationalDraftChange}
         aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
         airportOperationEnvironments={airportOperationEnvironments}
         forecastWinds={

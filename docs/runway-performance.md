@@ -44,13 +44,26 @@ threshold elevation.
 
 ## Wind and crosswind
 
-Surface wind is direction **from**, degrees true. Components use the selected
-runway direction's published true bearing. Base and gust crosswind magnitudes
-are calculated and checked independently; gust affects limitations but never
-distance correction. Variable or otherwise unresolved wind has no invented
-component.
+Surface wind is direction **from**. For the project OFP worksheet, runway
+heading is intentionally simplified from the selected runway designator:
+runway `10` is `100°`, runway `28` is `280°`, and so on. The published true
+bearing is not used for this particular calculation. Components are calculated
+directly from the difference between that nominal heading and the wind:
 
-Distance correction uses the unrounded steady runway-parallel component:
+```text
+angle difference = wind direction - runway number * 10°
+headwind kt       = round(cos(angle difference) * wind speed kt)
+crosswind kt      = round(sin(angle difference) * wind speed kt)
+```
+
+Positive parallel component means headwind and negative means tailwind.
+Crosswind retains its side sign in the calculation, while the OFP displays its
+magnitude. Both steady and gust components are rounded to the nearest whole
+knot. Base and gust crosswind magnitudes are checked independently; gust affects
+limitations but never distance correction. Variable or otherwise unresolved
+wind has no invented component.
+
+Distance correction uses the rounded steady runway-parallel component:
 
 ```text
 steps = floor(abs(component kt) / 9)
@@ -63,15 +76,15 @@ factor is unavailable rather than clipped.
 
 ## RCC and calculation order
 
-| RCC | Braking action | Landing correction | Instructor X-wind |
+| RCC | Default runway state | Landing correction | Instructor X-wind |
 |---:|---|---:|---:|
 | 6 | Dry | 0% | 20 kt |
-| 5 | Good | 0% | 20 kt |
-| 4 | Medium to good | 10% | 16 kt |
-| 3 | Medium | 20% | 13 kt |
-| 2 | Medium to poor | 50% | 7 kt |
-| 1 | Poor | 100% | 4 kt |
-| 0 | Less than poor | unsupported | unsupported |
+| 5 | Wet | 0% | 20 kt |
+| 4 | unavailable | 10% | 16 kt |
+| 3 | unavailable | 20% | 13 kt |
+| 2 | unavailable | 50% | 7 kt |
+| 1 | unavailable | 100% | 4 kt |
+| 0 | unavailable | unsupported | unsupported |
 
 Takeoff order is AFM Figure 5-10 distance, steady-wind correction, then `1.25`,
 then comparison with published TODA. RCC distance correction is always 0% for
@@ -84,18 +97,27 @@ with published LDA. Physical runway length is never substituted for TODA/LDA.
 The personal crosswind default is 9 kt. Instructor mode temporarily selects the
 RCC table limit without destroying the saved personal value. RCC 0 and a known
 runway width below 24 m are explicitly unsupported; unknown width is shown as
-unavailable data and is not guessed. Flaps TO/LND cells are intentionally blank.
+unavailable data and is not guessed. The Flaps field identifies the takeoff and
+landing worksheets as `TO` and `LND`, matching the OFP layout.
 
 ## State, weather, and sectors
 
 Runway selections and conditions use stable operation keys made from operation
 kind plus sector FROM/TO waypoint IDs. An intermediate landing and its onward
-takeoff therefore have independent runway, RCC, manual OAT, manual surface wind,
-weather selection, and forecast time contexts. The times come from the existing
-derived sector timeline; no second timeline or route is created.
+takeoff therefore retain independent runway and RCC selections for calculation,
+but are presented as one airport stop. Because the elapsed ground time is not
+material to this planning use, that stop uses one reviewed weather context for
+both operations. The representative time is the derived arrival time; no second
+timeline or route is created.
 
 Manual surface wind and OAT, runway direction, condition/RCC, personal limit,
-and Instructor mode are persisted as semantic inputs. Fetched METAR, TAF, and
+and Instructor mode are persisted as semantic inputs. Personal/Instructor
+crosswind policy is global, while runway direction, condition and RCC are edited
+only in the airport-planning panel. The navlog runway tables are read-only and
+retain the OFP's three-pair airport grid and separate distance-worksheet row
+layout. The worksheet's `Brk action` value presents only the selected RCC
+number; it does not add a prefix or translate the code to a qualitative
+braking-action label. Fetched METAR, TAF, and
 Locationforecast data, weather-source choices, wind components, atmosphere,
 distances, and margins are derived/runtime-only. Old documents omit the optional
 runway block and therefore open with 9 kt personal limit, Instructor off, and no

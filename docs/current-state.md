@@ -267,7 +267,7 @@ typecheck, pnpm test, and pnpm build.
 - No NOTAM, runway-state, or live airspace-status feed. Airport METAR/TAF and
   numerical surface forecast are explicit-load planning-review data, not a
   briefing or go/no-go service.
-- Zlin Z242L runway-performance groundwork is implemented: explicit runway/RCC
+- Zlin Z242L runway-performance groundwork is implemented: airport-panel runway/RCC
   selection, sector masses, effective airport wind/QNH/OAT, UTSA atmosphere and
   correction rules, crosswind checks, semantic persistence, and OFP-style
   tables. Operational AFM distances remain unavailable until independently

@@ -161,6 +161,7 @@ export {
   getRccPerformanceRule,
   LANDING_PERFORMANCE_FACTOR,
   resolveRunwayDirection,
+  runwayDesignatorHeadingDeg,
   TAKEOFF_PERFORMANCE_FACTOR,
   Z242L_RUNWAY_PERFORMANCE_PROVENANCE,
 } from './runwayPerformance';

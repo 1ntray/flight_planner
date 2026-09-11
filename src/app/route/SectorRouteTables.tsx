@@ -31,7 +31,6 @@ export interface SectorRouteTablesProps {
   aircraftDefinition: AircraftDefinition;
   operationalInputs?: OperationalPlanningInputs | null;
   operationalDraft: OperationalInputDraft;
-  onOperationalDraftChange: (draft: OperationalInputDraft) => void;
   aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
   airportOperationEnvironments: ReadonlyMap<string, EffectiveAirportPlanningEnvironment>;
   alternateTrueAirspeedKt?: number | null;
@@ -99,7 +98,6 @@ export function SectorRouteTables({
   aircraftDefinition,
   operationalInputs = null,
   operationalDraft,
-  onOperationalDraftChange,
   aerodromeDetailsByWaypointId,
   airportOperationEnvironments,
   alternateTrueAirspeedKt = null,
@@ -199,7 +197,6 @@ export function SectorRouteTables({
             aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
             airportOperationEnvironments={airportOperationEnvironments}
             operationalDraft={operationalDraft}
-            onOperationalDraftChange={onOperationalDraftChange}
           />
         )}
       </div>
@@ -277,7 +274,6 @@ export function SectorRouteTables({
                 aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
                 airportOperationEnvironments={airportOperationEnvironments}
                 operationalDraft={operationalDraft}
-                onOperationalDraftChange={onOperationalDraftChange}
               />
             )}
           </section>
