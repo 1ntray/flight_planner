@@ -1323,16 +1323,11 @@ kbd {
   grid-column: auto;
 }
 
-.runway-performance__issues,
 .runway-performance__warning {
   margin: 0.3rem 0 0;
   color: #8f2722;
   font-size: 0.65rem;
   line-height: 1.35;
-}
-
-.runway-performance__issues {
-  padding-left: 1rem;
 }
 
 .operational-summary h4 {

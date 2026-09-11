@@ -139,6 +139,20 @@ corridor is a visual terrain/obstacle assessment aid only; the app does not
 derive terrain or obstacle elevation. Blank MSA and MSA above planned altitude
 produce warnings, not calculation errors.
 
+Runway performance is a separate pure calculation boundary. Its project OFP
+method derives nominal runway direction from the designator (`10` -> `100°`)
+and compares that number directly with the surface-wind direction; it does not
+use the published true bearing or apply WMM at this boundary. Headwind is
+`cos(difference) * speed`, crosswind is `sin(difference) * speed`, and both
+steady and gust components are rounded to whole knots. Positive parallel wind
+is headwind and negative is tailwind; the OFP displays crosswind magnitude.
+
+RCC 6 defaults a blank runway-state field to DRY and RCC 5 defaults it to WET;
+lower codes have no invented default. The OFP `Brk action` cell shows only the
+selected RCC number. Personal and Instructor crosswind policy is global, while
+runway, state, and RCC remain airport-panel inputs. Full calculation details and
+the fail-closed AFM boundary are in [runway-performance.md](runway-performance.md).
+
 ## Wind and weather
 
 Open-Meteo upper-air forecast winds are supported through a provider boundary.
@@ -232,6 +246,13 @@ An optional alternate is an aerodrome snapshot selected from the repository.
 Its calculated navigation line uses its planned altitude, but alternate
 distance, time, and fuel requirements are pilot-entered. The alternate row is
 shown only with the final primary sector.
+
+The operational OFP summary places mass and balance first, remaining fuel next,
+and the paired runway-performance worksheets alongside them. Minimum-flight
+time and required fuel at landing are below the fuel table, and the explanatory
+fuel note wraps within that table's width. Repeated runway-availability issue
+lists are visually suppressed, but the same conditions still produce a
+ready/blocked operation status and retain non-visual issue details.
 
 ## Mass and balance
 

@@ -63,6 +63,11 @@ one shared airport weather context. Old version-nine documents omit this optiona
 block and open with the 9 kt personal default, Instructor off, and no invented selections.
 Pressure altitude, density altitude, wind components, AFM distances, factors,
 runway margins, and pass/exceeds states are derived and are never persisted.
+A blank runway-state input also remains blank in the document: the displayed
+DRY fallback for RCC 6 and WET fallback for RCC 5 are derived defaults, not
+silently inserted values. Nominal runway direction derived from the runway
+designator, rounded headwind/crosswind components, and runway-operation
+ready/blocked status likewise remain calculated output.
 
 Optional per-airport pattern plans contain a landing waypoint ID, a
 whole-number circuit count, and an optional arrival-buffer flag. Omission keeps

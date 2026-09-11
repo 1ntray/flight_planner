@@ -119,7 +119,10 @@ function OperationPanel(props: OperationPanelProps) {
   const availableLabel = props.kind === 'takeoff' ? 'TODA' : 'LDA';
 
   return (
-    <div className="runway-performance__operation">
+    <div
+      className="runway-performance__operation"
+      data-runway-performance-status={blocking.length === 0 ? 'ready' : 'blocked'}
+    >
       <div className="runway-performance__title">
         <h5>{operationLabel}</h5>
         <span>{props.aerodromeName}</span>
@@ -183,7 +186,9 @@ function OperationPanel(props: OperationPanelProps) {
         </table>
       </div>
       {crosswindWarning === null ? null : <p className={crosswindWarning.includes('exceeded') ? 'runway-performance__warning' : 'operational-summary__note'}>{crosswindWarning}</p>}
-      <ul className="runway-performance__issues">{blocking.map((message) => <li key={message}>{message}</li>)}</ul>
+      <ul className="sr-only" aria-label="Runway performance availability issues">
+        {blocking.map((message) => <li key={message}>{message}</li>)}
+      </ul>
     </div>
   );
 }

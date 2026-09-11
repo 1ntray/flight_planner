@@ -69,6 +69,9 @@ Detailed contracts and operational boundaries:
   wind, magnetic, timing, and forecast conventions.
 - [`docs/aircraft-performance.md`](docs/aircraft-performance.md) — aircraft
   constants, phase integration, MSA, patterns, and operational calculations.
+- [`docs/runway-performance.md`](docs/runway-performance.md) — runway wind,
+  atmosphere, RCC, distance-correction, OFP-presentation, and fail-closed AFM
+  rules.
 - [`docs/aeronautical-data.md`](docs/aeronautical-data.md) — aeronautical data,
   anchoring, frequency planning, and importer contracts.
 - [`docs/vac-chart-preparation.md`](docs/vac-chart-preparation.md) — offline VAC

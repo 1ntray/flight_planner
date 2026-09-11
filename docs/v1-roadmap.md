@@ -22,10 +22,10 @@ for trusting later operational features.
 ### 2. Complete and validate takeoff and landing AFM digitization
 
 The runway-performance architecture, UTSA atmosphere/wind/RCC rules, semantic
-inputs, operation-specific weather contexts, and OFP-style presentation are in
-place. A qualified human review must still provide numeric control values from
-Z242L AFM Figures 5-10 and 5-26. Until then, the AFM lookup fails closed and no
-required runway distance or margin is presented.
+inputs, combined airport-stop weather contexts, and OFP-style presentation are
+in place. A qualified human review must still provide numeric control values
+from Z242L AFM Figures 5-10 and 5-26. Until then, the AFM lookup fails closed and
+no required runway distance or margin is presented.
 
 This closes the largest operational gap between the existing enroute/performance
 planning and airport operations.
@@ -57,10 +57,11 @@ coupling calculations to a provider.
 ### Runway-performance groundwork
 
 Zlin-specific runway planning now uses stable per-sector takeoff and landing
-operation keys, distinct arrival/onward-departure airport-weather contexts,
-published runway direction/TODA/LDA, sector loading masses, UTSA simplified
-atmosphere and discrete wind rules, OM-C RCC/crosswind limits, and semantic saved
-inputs. See [runway-performance.md](runway-performance.md). Operational AFM
+operation keys, one shared reviewed weather context for each displayed airport
+stop, published TODA/LDA, sector loading masses, UTSA simplified atmosphere and
+discrete wind rules, the project designator-based whole-knot wind-component
+method, OM-C RCC/crosswind limits, and semantic saved inputs. See
+[runway-performance.md](runway-performance.md). Operational AFM
 distances remain deliberately unavailable pending reviewed graph control data.
 
 ### Zlin OFP PDF generation

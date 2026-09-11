@@ -222,6 +222,9 @@ clicked waypoint is anchored.
   [`navigation-conventions.md`](navigation-conventions.md).
 - Aircraft performance units, formulas, and vertical integration are documented
   in [`aircraft-performance.md`](aircraft-performance.md).
+- The separate designator-based runway wind-component method, whole-knot
+  rounding, RCC defaults, and OFP availability boundary are documented in
+  [`runway-performance.md`](runway-performance.md).
 
 ## TypeScript and testing
 

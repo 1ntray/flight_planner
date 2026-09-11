@@ -150,6 +150,20 @@ function patternAltitude(
   )} ft MSL`;
 }
 
+type SharedRunwayField =
+  | 'runwayDesignator'
+  | 'rcc'
+  | 'runwayCondition';
+
+function sharedRunwayField(
+  operations: readonly RunwayPerformanceOperationInputDraft[],
+  field: SharedRunwayField,
+): { readonly value: string; readonly differs: boolean } {
+  const firstValue = operations[0]?.[field] ?? '';
+  const differs = operations.some((operation) => operation[field] !== firstValue);
+  return { value: differs ? '' : firstValue, differs };
+}
+
 export function AirportInputs({
   flightPlan,
   aircraft,
@@ -423,20 +437,7 @@ export function AirportInputs({
       context.sectorToWaypointId,
       context.waypointId,
     );
-  const updateRunwayOperation = (
-    context: AirportOperationContext,
-    changes: Partial<RunwayPerformanceOperationInputDraft>,
-  ) => {
-    const currentOperation = operationDraft(context);
-    const updated = { ...currentOperation, ...changes };
-    onOperationalDraftChange({
-      ...operationalDraft,
-      runwayPerformanceOperations: operationalDraft.runwayPerformanceOperations.some((candidate) => runwayPerformanceOperationDraftKey(candidate) === context.key)
-        ? operationalDraft.runwayPerformanceOperations.map((candidate) => runwayPerformanceOperationDraftKey(candidate) === context.key ? updated : candidate)
-        : [...operationalDraft.runwayPerformanceOperations, updated],
-    });
-  };
-  const updateAirportWeatherOperations = (
+  const updateAirportOperations = (
     changes: Partial<RunwayPerformanceOperationInputDraft>,
   ) => {
     const activeKeys = new Set(active.operations.map((context) => context.key));
@@ -454,6 +455,17 @@ export function AirportInputs({
       ],
     });
   };
+  const runwayOperations = active.operations.map(operationDraft);
+  const sharedRunwayDesignator = sharedRunwayField(
+    runwayOperations,
+    'runwayDesignator',
+  );
+  const sharedRcc = sharedRunwayField(runwayOperations, 'rcc');
+  const sharedRunwayCondition = sharedRunwayField(
+    runwayOperations,
+    'runwayCondition',
+  );
+  const runwayDetails = aerodromeDetailsByWaypointId.get(active.waypointId);
 
   const updateAirport = (
     field: 'elevation' | 'qnh' | 'isa',
@@ -625,11 +637,11 @@ export function AirportInputs({
           placeholder={effectiveWeather?.temperatureC === undefined ? 'Required for runway performance' : `${effectiveWeather.temperatureC.toFixed(1)} (${selection.temperature})`}
           unit="°C"
           step="0.1"
-          onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateAirportWeatherOperations({ manualOatC: value }); }}
+          onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateAirportOperations({ manualOatC: value }); }}
         />
-        <NumberField label="Surface wind from" value={selection.wind === 'manual' ? runwayOperation.manualWindDirectionFromTrueDeg : ''} placeholder={effectiveWeather?.wind?.kind === 'fixed' ? `${Math.round(effectiveWeather.wind.directionFromTrueDeg)} (${selection.wind})` : 'Required'} unit="°T" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindDirectionFromTrueDeg: value }); }} />
-        <NumberField label="Surface wind speed" value={selection.wind === 'manual' ? runwayOperation.manualWindSpeedKt : ''} placeholder={effectiveWeather?.wind === undefined ? 'Required' : `${Math.round(effectiveWeather.wind.speedKt)} (${selection.wind})`} unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindSpeedKt: value }); }} />
-        <NumberField label="Surface gust" value={selection.wind === 'manual' ? runwayOperation.manualWindGustKt : ''} placeholder="optional" unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportWeatherOperations({ manualWindGustKt: value }); }} />
+        <NumberField label="Surface wind from" value={selection.wind === 'manual' ? runwayOperation.manualWindDirectionFromTrueDeg : ''} placeholder={effectiveWeather?.wind?.kind === 'fixed' ? `${Math.round(effectiveWeather.wind.directionFromTrueDeg)} (${selection.wind})` : 'Required'} unit="°T" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportOperations({ manualWindDirectionFromTrueDeg: value }); }} />
+        <NumberField label="Surface wind speed" value={selection.wind === 'manual' ? runwayOperation.manualWindSpeedKt : ''} placeholder={effectiveWeather?.wind === undefined ? 'Required' : `${Math.round(effectiveWeather.wind.speedKt)} (${selection.wind})`} unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportOperations({ manualWindSpeedKt: value }); }} />
+        <NumberField label="Surface gust" value={selection.wind === 'manual' ? runwayOperation.manualWindGustKt : ''} placeholder="optional" unit="kt" min="0" step="1" onChange={(value) => { if (selection.wind !== 'manual') setSelection('wind', 'manual'); updateAirportOperations({ manualWindGustKt: value }); }} />
         <NumberField
           label="QNH"
           value={selection.pressure === 'manual' ? qnhValue : ''}
@@ -649,48 +661,44 @@ export function AirportInputs({
         />
         <section className="airport-inputs__runway-operations" aria-label={`Runway inputs for ${active.name}`}>
           <h3>Runway performance inputs</h3>
-          {active.operations.map((context) => {
-            const current = operationDraft(context);
-            const details = aerodromeDetailsByWaypointId.get(active.waypointId);
-            return (
-              <fieldset key={context.key} className="airport-inputs__runway-operation">
-                <legend>{context.kind === 'takeoff' ? 'Takeoff' : 'Landing'}</legend>
-                <label>
-                  <span>RWY</span>
-                  <select
-                    value={current.runwayDesignator}
-                    onChange={(event) => updateRunwayOperation(context, { runwayDesignator: event.currentTarget.value })}
-                  >
-                    <option value="">Select</option>
-                    {(details?.runways.flatMap((runway) => runway.directions) ?? []).map((direction) => (
-                      <option key={direction.designator} value={direction.designator}>{direction.designator}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>RCC</span>
-                  <select
-                    value={current.rcc}
-                    onChange={(event) => updateRunwayOperation(context, { rcc: event.currentTarget.value })}
-                  >
-                    <option value="">Select</option>
-                    {[6, 5, 4, 3, 2, 1, 0].map((value) => <option key={value} value={value}>{value}</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>RWY state</span>
-                  <input
-                    type="text"
-                    value={current.runwayCondition}
-                    placeholder={current.rcc === ''
-                      ? 'optional'
-                      : getRccPerformanceRule(Number(current.rcc) as 0 | 1 | 2 | 3 | 4 | 5 | 6).runwayCondition}
-                    onChange={(event) => updateRunwayOperation(context, { runwayCondition: event.currentTarget.value })}
-                  />
-                </label>
-              </fieldset>
-            );
-          })}
+          <fieldset className="airport-inputs__runway-operation">
+            <legend>Runway</legend>
+            <label>
+              <span>RWY</span>
+              <select
+                value={sharedRunwayDesignator.value}
+                onChange={(event) => updateAirportOperations({ runwayDesignator: event.currentTarget.value })}
+              >
+                <option value="">{sharedRunwayDesignator.differs ? 'Different values' : 'Select'}</option>
+                {(runwayDetails?.runways.flatMap((runway) => runway.directions) ?? []).map((direction) => (
+                  <option key={direction.designator} value={direction.designator}>{direction.designator}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>RCC</span>
+              <select
+                value={sharedRcc.value}
+                onChange={(event) => updateAirportOperations({ rcc: event.currentTarget.value })}
+              >
+                <option value="">{sharedRcc.differs ? 'Different values' : 'Select'}</option>
+                {[6, 5, 4, 3, 2, 1, 0].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>RWY state</span>
+              <input
+                type="text"
+                value={sharedRunwayCondition.value}
+                placeholder={sharedRunwayCondition.differs
+                  ? 'Different values'
+                  : sharedRcc.value === ''
+                    ? 'optional'
+                    : getRccPerformanceRule(Number(sharedRcc.value) as 0 | 1 | 2 | 3 | 4 | 5 | 6).runwayCondition}
+                onChange={(event) => updateAirportOperations({ runwayCondition: event.currentTarget.value })}
+              />
+            </label>
+          </fieldset>
         </section>
         {pattern === null ? null : <NumberField
           label="Patterns"

@@ -44,17 +44,31 @@ threshold elevation.
 
 ## Wind and crosswind
 
-Surface wind is direction **from**. For the project OFP worksheet, runway
-heading is intentionally simplified from the selected runway designator:
-runway `10` is `100°`, runway `28` is `280°`, and so on. The published true
-bearing is not used for this particular calculation. Components are calculated
-directly from the difference between that nominal heading and the wind:
+Surface wind is direction **from**. The project OFP worksheet deliberately uses
+the selected runway designator as a simplified nominal direction. The numeric
+runway part is multiplied by ten: runway `10` is `100°`, runway `28L` is
+`280°`, and runway `36` is `360°`. A `L`, `C`, or `R` suffix does not change
+the direction. Only standard runway numbers `01` through `36` are accepted;
+an invalid designator makes the component unavailable rather than guessed.
+
+Although runway designators conventionally represent magnetic direction, this
+project method compares that nominal number directly with the entered or
+selected wind-direction number. It does not substitute the published true
+bearing and does not apply WMM variation at this runway-workbook boundary.
+This is intentionally separate from the enroute wind triangle.
+
+Components are calculated from the direct angular difference:
 
 ```text
-angle difference = wind direction - runway number * 10°
-headwind kt       = round(cos(angle difference) * wind speed kt)
-crosswind kt      = round(sin(angle difference) * wind speed kt)
+runway direction deg = runway number * 10
+angle difference deg = wind direction from deg - runway direction deg
+angle difference rad = angle difference deg * pi / 180
+headwind kt           = round(cos(angle difference rad) * wind speed kt)
+crosswind kt          = round(sin(angle difference rad) * wind speed kt)
 ```
+
+For example, runway `10` and wind from `150°` give a `50°` difference. At
+20 kt this produces a displayed 13 kt headwind and 15 kt crosswind.
 
 Positive parallel component means headwind and negative means tailwind.
 Crosswind retains its side sign in the calculation, while the OFP displays its
@@ -88,7 +102,7 @@ factor is unavailable rather than clipped.
 
 Takeoff order is AFM Figure 5-10 distance, steady-wind correction, then `1.25`,
 then comparison with published TODA. RCC distance correction is always 0% for
-takeoff, although runway status and braking action remain visible.
+takeoff, although the runway state and selected RCC number remain visible.
 
 Landing order is AFM Figure 5-26 Hot-brakes distance, steady-wind correction,
 RCC correction applied to the complete distance, then `1.43`, then comparison
@@ -99,6 +113,10 @@ RCC table limit without destroying the saved personal value. RCC 0 and a known
 runway width below 24 m are explicitly unsupported; unknown width is shown as
 unavailable data and is not guessed. The Flaps field identifies the takeoff and
 landing worksheets as `TO` and `LND`, matching the OFP layout.
+
+Leaving runway state blank uses `DRY` for RCC 6 and `WET` for RCC 5. No default
+state is invented for RCC 4 through 0. A manually entered runway state overrides
+the default display without changing the selected RCC.
 
 ## State, weather, and sectors
 
@@ -117,15 +135,40 @@ only in the airport-planning panel. The navlog runway tables are read-only and
 retain the OFP's three-pair airport grid and separate distance-worksheet row
 layout. The worksheet's `Brk action` value presents only the selected RCC
 number; it does not add a prefix or translate the code to a qualitative
-braking-action label. Fetched METAR, TAF, and
-Locationforecast data, weather-source choices, wind components, atmosphere,
-distances, and margins are derived/runtime-only. Old documents omit the optional
-runway block and therefore open with 9 kt personal limit, Instructor off, and no
-invented runway or RCC selection.
+braking-action label. Fetched METAR, TAF, and Locationforecast data,
+weather-source choices, wind components, atmosphere, distances, and margins are
+derived/runtime-only. Old documents omit the optional runway block and therefore
+open with 9 kt personal limit, Instructor off, and no invented runway or RCC
+selection.
 
 The calculation module has no React, Leaflet, repository, network, or PDF
 dependency. The active aircraft is explicitly Zlin Z242L; no model is applied
 to an unsupported aircraft.
+
+## OFP presentation
+
+The operational summary is arranged with mass and balance at the top left, the
+remaining-fuel plan beside it, and the paired departure/destination runway
+worksheets to their right. Minimum-flight time and required fuel at landing sit
+below the fuel table. The fuel explanation wraps to that table's width rather
+than widening the complete summary. Narrow layouts stack the same sections.
+
+Each runway worksheet keeps the OFP's three label/value pairs per row and the
+published placement of RWY, elevation, flaps, wind, crosswind, pressure
+altitude, QNH, temperature, density altitude, corrections, required distance,
+and TODA/LDA. The decorative vertical `FILL OUT AS REQUIRED` strip is omitted
+so the airport table and distance worksheet align. The `Brk action` value shows
+only the selected RCC number, for example `5`, not `RCC 5` or a qualitative
+GOOD/MEDIUM label.
+
+Availability problems are still derived for every runway operation. They
+include missing aerodrome/runway/RCC/weather data, invalid designators,
+unsupported runway/RCC/aircraft cases, missing declared distance, and the
+pending AFM digitization boundary. The repeated red issue list is intentionally
+not drawn beneath each worksheet; the operation retains a ready/blocked status
+and non-visual issue detail. Crosswind-limit feedback remains visible when a
+component and applicable limit are available. This is a presentation choice,
+not removal of validation or fail-closed behaviour.
 
 ## Remaining validation work
 
