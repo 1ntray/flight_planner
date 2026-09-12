@@ -65,7 +65,36 @@ function drawNavlogRow(page: PDFPage, font: PDFFont, row: OfpNavlogRow, y: numbe
   write(OFP_NAVLOG_COLUMN.intermediateDistance, formatIncrement(row.accumulatedDistanceNm, row.intermediateDistanceNm)); write(OFP_NAVLOG_COLUMN.intermediateTime, formatIncrement(row.accumulatedTimeSeconds, row.intermediateTimeSeconds, 60));
   // ETO/ATO/Diff are operational actual-time fields on this form and remain blank.
   write(OFP_NAVLOG_COLUMN.difference, formatTimeMinutes(row.timeDifferenceSeconds)); write(OFP_NAVLOG_COLUMN.estimatedFuelRemaining, formatOptionalNumber(row.estimatedFuelRemainingLitres));
-  write(OFP_NAVLOG_COLUMN.actualFuelRemaining, formatOptionalNumber(row.actualFuelRemainingLitres)); write(OFP_NAVLOG_COLUMN.frequency, row.frequency);
+  write(OFP_NAVLOG_COLUMN.actualFuelRemaining, formatOptionalNumber(row.actualFuelRemainingLitres));
+}
+
+function drawPlannedFrequencies(
+  page: PDFPage,
+  font: PDFFont,
+  rows: readonly OfpNavlogRow[],
+): void {
+  let nextAvailableRow = 0;
+  for (const [rowIndex, row] of rows.entries()) {
+    const frequencies = row.frequency === null
+      ? row.plannedFrequencies
+      : [row.frequency, ...row.plannedFrequencies];
+    for (const frequency of frequencies) {
+      const targetRow = Math.max(rowIndex, nextAvailableRow);
+      if (targetRow >= OFP_TEMPLATE_LAYOUT.page1.navlog.rowLimit) {
+        throw new OfpPdfGenerationError(
+          'The planned frequencies exceed the available rows on this OFP form.',
+        );
+      }
+      drawValue(
+        page,
+        font,
+        frequency,
+        navBox(OFP_NAVLOG_COLUMN.frequency, OFP_TEMPLATE_LAYOUT.page1.navlog.rowY[targetRow]!),
+        SMALL_FONT_SIZE,
+      );
+      nextAvailableRow = targetRow + 1;
+    }
+  }
 }
 
 function drawWeightBalanceRow(page: PDFPage, font: PDFFont, value: OfpWeightBalanceRow, y: number, includeArm: boolean): void {
@@ -122,9 +151,10 @@ export async function generateOfpPdf(model: OfpPdfModel, templateBytes: Uint8Arr
   drawValue(page1, font, model.page1.dateUtcMs === null ? null : new Date(model.page1.dateUtcMs).toISOString().slice(0, 10), page1Layout.date);
   drawValue(page1, font, model.page1.registration, page1Layout.registration);
   model.page1.navlogRows.forEach((row, index) => drawNavlogRow(page1, font, row, page1Layout.navlog.rowY[index]!));
-  drawNavlogRow(page1, font, { kind: 'leg', from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: model.page1.totals.accumulatedDistanceNm, accumulatedTimeSeconds: model.page1.totals.accumulatedTimeSeconds, fuelFlowLph: null, intermediateFuelLitres: model.page1.totals.intermediateFuelLitres, accumulatedFuelLitres: model.page1.totals.accumulatedFuelLitres, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: model.page1.totals.intermediateDistanceNm, intermediateTimeSeconds: model.page1.totals.intermediateTimeSeconds, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: model.page1.totals.estimatedFuelRemainingLitres, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null }, page1Layout.navlog.totalY);
+  drawPlannedFrequencies(page1, font, model.page1.navlogRows);
+  drawNavlogRow(page1, font, { kind: 'leg', from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: model.page1.totals.accumulatedDistanceNm, accumulatedTimeSeconds: model.page1.totals.accumulatedTimeSeconds, fuelFlowLph: null, intermediateFuelLitres: model.page1.totals.intermediateFuelLitres, accumulatedFuelLitres: model.page1.totals.accumulatedFuelLitres, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: model.page1.totals.intermediateDistanceNm, intermediateTimeSeconds: model.page1.totals.intermediateTimeSeconds, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: model.page1.totals.estimatedFuelRemainingLitres, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null, plannedFrequencies: [] }, page1Layout.navlog.totalY);
   if (model.page1.alternateRow !== null) drawNavlogRow(page1, font, model.page1.alternateRow, page1Layout.navlog.alternateY);
-  if (model.page1.alternateTotals !== null) drawNavlogRow(page1, font, { kind: 'alternate', from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: model.page1.alternateTotals.accumulatedDistanceNm, accumulatedTimeSeconds: model.page1.alternateTotals.accumulatedTimeSeconds, fuelFlowLph: null, intermediateFuelLitres: model.page1.alternateTotals.intermediateFuelLitres, accumulatedFuelLitres: model.page1.alternateTotals.accumulatedFuelLitres, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: model.page1.alternateTotals.intermediateDistanceNm, intermediateTimeSeconds: model.page1.alternateTotals.intermediateTimeSeconds, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: model.page1.alternateTotals.estimatedFuelRemainingLitres, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null }, page1Layout.navlog.alternateTotalY);
+  if (model.page1.alternateTotals !== null) drawNavlogRow(page1, font, { kind: 'alternate', from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: model.page1.alternateTotals.accumulatedDistanceNm, accumulatedTimeSeconds: model.page1.alternateTotals.accumulatedTimeSeconds, fuelFlowLph: null, intermediateFuelLitres: model.page1.alternateTotals.intermediateFuelLitres, accumulatedFuelLitres: model.page1.alternateTotals.accumulatedFuelLitres, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: model.page1.alternateTotals.intermediateDistanceNm, intermediateTimeSeconds: model.page1.alternateTotals.intermediateTimeSeconds, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: model.page1.alternateTotals.estimatedFuelRemainingLitres, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null, plannedFrequencies: [] }, page1Layout.navlog.alternateTotalY);
 
   const page2Layout = OFP_TEMPLATE_LAYOUT.page2;
   drawValue(page2, font, model.page2.registration, page2Layout.registration);

@@ -3,7 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import { generateOfpPdf } from './generateOfpPdf';
 import type { OfpPdfModel } from './ofpPdfModel';
 
-const emptyRow = { kind: 'leg' as const, from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: null, accumulatedTimeSeconds: null, fuelFlowLph: null, intermediateFuelLitres: null, accumulatedFuelLitres: null, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: null, intermediateTimeSeconds: null, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: null, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null };
+const emptyRow = { kind: 'leg' as const, from: null, to: null, tasKt: null, trueTrackDeg: null, variationDegEast: null, trueHeadingDeg: null, wind: null, windCorrectionDeg: null, accumulatedDistanceNm: null, accumulatedTimeSeconds: null, fuelFlowLph: null, intermediateFuelLitres: null, accumulatedFuelLitres: null, minimumSafeAltitudeFtMsl: null, plannedAltitudeFtMsl: null, groundSpeedKt: null, intermediateDistanceNm: null, intermediateTimeSeconds: null, estimatedTimeUtcMs: null, estimatedFuelRemainingLitres: null, actualTimeUtcMs: null, timeDifferenceSeconds: null, actualFuelRemainingLitres: null, frequency: null, plannedFrequencies: [] };
 
 const model: OfpPdfModel = {
   page1: { departureName: 'ENDU', destinationName: 'ENEV', takeoffTimeUtcMs: Date.UTC(2026, 8, 11, 8), landingTimeUtcMs: Date.UTC(2026, 8, 11, 9), dateUtcMs: Date.UTC(2026, 8, 11), registration: 'LN-UPS', flightTimeSeconds: 3600, fuelDepartureLitres: 224, fuelRemainingLitres: 180, navlogRows: [{ ...emptyRow, from: 'ENDU', to: 'ENEV', tasKt: 107, trueTrackDeg: 20, variationDegEast: 10, trueHeadingDeg: 22, accumulatedDistanceNm: 50, accumulatedTimeSeconds: 1800, intermediateDistanceNm: 50, intermediateTimeSeconds: 1800 }], totals: { accumulatedDistanceNm: 50, accumulatedTimeSeconds: 1800, intermediateFuelLitres: 18, accumulatedFuelLitres: 18, intermediateDistanceNm: 50, intermediateTimeSeconds: 1800, estimatedFuelRemainingLitres: 180 }, alternateRow: null, alternateTotals: null },
@@ -50,5 +50,19 @@ describe('OFP PDF generation', () => {
     const bytes = await generateOfpPdf(model, template);
     expect(bytes.byteLength).toBeGreaterThan(1_000);
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
+  });
+
+  it('rejects frequencies that cannot fit in the physical navlog rows', async () => {
+    const templateDocument = await PDFDocument.create();
+    templateDocument.addPage([792, 612]);
+    templateDocument.addPage([792, 612]);
+    const template = await templateDocument.save();
+    await expect(generateOfpPdf({
+      ...model,
+      page1: {
+        ...model.page1,
+        navlogRows: [{ ...emptyRow, plannedFrequencies: Array.from({ length: 17 }, (_, index) => `118.${index.toString().padStart(3, '0')}`) }],
+      },
+    }, template)).rejects.toThrow('planned frequencies exceed the available rows');
   });
 });

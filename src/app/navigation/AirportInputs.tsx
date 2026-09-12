@@ -51,6 +51,7 @@ import type {
 } from './airportEnvironmentPublication';
 import { deriveAirportStops } from './airportStops';
 import type { AirportOperationContext, AirportStopContext } from './airportStops';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 
 export interface AirportInputsProps {
   flightPlan: FlightPlan;
@@ -117,13 +118,13 @@ function NumberField({
     <label>
       <span>{label}</span>
       <span className="navigation-inputs__control">
-        <input
+        <CommitOnBlurInput
           type="number"
           value={value}
           {...(placeholder === undefined ? {} : { placeholder })}
           {...(min === undefined ? {} : { min })}
           step={step}
-          onChange={(event) => onChange(event.currentTarget.value)}
+          onCommit={onChange}
         />
         <span>{unit}</span>
       </span>
@@ -702,7 +703,7 @@ export function AirportInputs({
             </label>
             <label>
               <span>RWY state</span>
-              <input
+              <CommitOnBlurInput
                 type="text"
                 value={sharedRunwayCondition.value}
                 placeholder={sharedRunwayCondition.differs
@@ -710,7 +711,7 @@ export function AirportInputs({
                   : sharedRcc.value === ''
                     ? 'optional'
                     : getRccPerformanceRule(Number(sharedRcc.value) as 0 | 1 | 2 | 3 | 4 | 5 | 6).runwayCondition}
-                onChange={(event) => updateAirportOperations({ runwayCondition: event.currentTarget.value })}
+                onCommit={(value) => updateAirportOperations({ runwayCondition: value })}
               />
             </label>
           </fieldset>

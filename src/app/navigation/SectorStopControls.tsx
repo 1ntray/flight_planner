@@ -14,6 +14,7 @@ import type {
 import {
   createEmptySectorOperationInputDraft,
 } from './operationalInput';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 import type {
   OperationalInputDraft,
   SectorOperationInputDraft,
@@ -117,7 +118,7 @@ export function SectorStopControls({
             <label>
               <span>Elevation</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0"
                   step="1"
@@ -133,9 +134,7 @@ export function SectorStopControls({
                           ]
                         } (aerodrome)`
                   }
-                  onChange={(event) =>
-                    updateStop(waypoint.id, 'elevationFtMsl', event.currentTarget.value)
-                  }
+                  onCommit={(value) => updateStop(waypoint.id, 'elevationFtMsl', value)}
                 />
                 <span>ft MSL</span>
               </span>
@@ -143,15 +142,13 @@ export function SectorStopControls({
             <label>
               <span>QNH</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0.1"
                   step="0.1"
                   value={stop.qnhHpa}
                   placeholder={`${DEFAULT_PLANNING_QNH_HPA} (standard)`}
-                  onChange={(event) =>
-                    updateStop(waypoint.id, 'qnhHpa', event.currentTarget.value)
-                  }
+                  onCommit={(value) => updateStop(waypoint.id, 'qnhHpa', value)}
                 />
                 <span>hPa</span>
               </span>
@@ -159,14 +156,12 @@ export function SectorStopControls({
             <label>
               <span>ISA deviation</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   step="0.1"
                   value={stop.isaDeviationC}
                   placeholder={`${DEFAULT_PLANNING_ISA_DEVIATION_C} (standard)`}
-                  onChange={(event) =>
-                    updateStop(waypoint.id, 'isaDeviationC', event.currentTarget.value)
-                  }
+                  onCommit={(value) => updateStop(waypoint.id, 'isaDeviationC', value)}
                 />
                 <span>°C</span>
               </span>
@@ -190,19 +185,13 @@ export function SectorStopControls({
             <label>
               <span>Stop duration</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0"
                   step="5"
                   placeholder="0"
                   value={stop.stopDurationMinutes}
-                  onChange={(event) =>
-                    updateStop(
-                      waypoint.id,
-                      'stopDurationMinutes',
-                      event.currentTarget.value,
-                    )
-                  }
+                  onCommit={(value) => updateStop(waypoint.id, 'stopDurationMinutes', value)}
                 />
                 <span>min</span>
               </span>
@@ -211,19 +200,17 @@ export function SectorStopControls({
               <label>
                 <span>Fuel before taxi</span>
                 <span className="navigation-inputs__control">
-                  <input
+                  <CommitOnBlurInput
                     type="number"
                     min="0"
                     step="0.1"
                     placeholder="Carry arrival fuel"
                     value={operation.departureFuelOnboardLitres}
-                    onChange={(event) =>
-                      updateOperation(
-                        waypoint.id,
-                        'departureFuelOnboardLitres',
-                        event.currentTarget.value,
-                      )
-                    }
+                    onCommit={(value) => updateOperation(
+                      waypoint.id,
+                      'departureFuelOnboardLitres',
+                      value,
+                    )}
                   />
                   <span>L</span>
                 </span>

@@ -91,9 +91,14 @@ clicked waypoint is anchored.
   it is not persistent route or calculation state.
 - Keyboard shortcuts are ignored while an input, textarea, select, or editable
   element has focus.
-- Map-popup form text is transient UI state until its documented commit action.
-  Leg altitude commits on blur or Enter, preventing partial numeric input from
-  repeatedly updating planning calculations.
+- Calculation-driving text and number fields keep keystrokes in local editor
+  state. Enter or leaving the field commits once; Escape restores the last
+  committed value. This includes route/weather, loading, alternate, airport,
+  altitude, MSA, and runway inputs, so incomplete numeric text never repeatedly
+  invalidates the derived planning calculations. Selects and checkboxes commit
+  immediately because each interaction supplies a complete value.
+- Map-popup form text follows the same commit boundary. The sequential bulk
+  editors retain their explicit save-and-next keyboard workflow.
 - Opening a waypoint popup does not focus or select its name field. Only the
   explicit `N` shortcut requests name editing, so Delete and other planner
   shortcuts remain available during ordinary selection.

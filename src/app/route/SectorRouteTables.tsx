@@ -179,6 +179,7 @@ export function SectorRouteTables({
                 operationalDraft, aerodromeDetailsByWaypointId,
                 airportOperationEnvironments, departureTimeUtcMs,
                 landingTimeUtcMs: arrivalTimeUtcMs,
+                communicationChangesByLeg,
                 alternate: operationalInputs.alternate === null ? null : {
                   inputs: operationalInputs.alternate,
                   navigationRoute: alternateNavigationRoute,
@@ -272,6 +273,7 @@ export function SectorRouteTables({
                   operationalInputs, legAltitudePlans, operationalDraft,
                   aerodromeDetailsByWaypointId, airportOperationEnvironments,
                   departureTimeUtcMs, landingTimeUtcMs: arrivalTimeUtcMs,
+                  communicationChangesByLeg,
                   alternate: !isFinalSector || operationalInputs.alternate === null ? null : {
                     inputs: operationalInputs.alternate,
                     navigationRoute: alternateNavigationRoute,

@@ -5,6 +5,7 @@ import type { AerodromeDetails, AircraftDefinition, FlightPlan, Wind } from '../
 import type { EffectiveAirportPlanningEnvironment } from '../../weather';
 import { SectorRouteTables } from '../route/SectorRouteTables';
 import { CollapsibleSection } from '../layout/CollapsibleSection';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 import type { NavigationInputDraft } from './navigationInput';
 import { AircraftSelector } from './AircraftSelector';
 import { AirportInputs } from './AirportInputs';
@@ -191,14 +192,12 @@ export function NavigationLog({
         <label className="navigation-inputs__departure">
           <span>Departure</span>
           <span className="navigation-inputs__control">
-            <input
+            <CommitOnBlurInput
               type="datetime-local"
               step="60"
               value={draft.departureTimeUtc}
               aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft('departureTimeUtc', event.currentTarget.value)
-              }
+              onCommit={(value) => updateDraft('departureTimeUtc', value)}
             />
             <span>UTC</span>
           </span>
@@ -240,19 +239,14 @@ export function NavigationLog({
         <label>
           <span>Manual variation</span>
           <span className="navigation-inputs__control navigation-inputs__variation-control">
-            <input
+            <CommitOnBlurInput
               type="number"
               min="0"
               max="180"
               step="0.1"
               value={draft.magneticVariationDeg}
               aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft(
-                  'magneticVariationDeg',
-                  event.currentTarget.value,
-                )
-              }
+              onCommit={(value) => updateDraft('magneticVariationDeg', value)}
             />
             <select
               value={draft.magneticVariationDirection}
@@ -279,17 +273,12 @@ export function NavigationLog({
         <label>
           <span>Wind from</span>
           <span className="navigation-inputs__control">
-            <input
+            <CommitOnBlurInput
               type="number"
               step="1"
               value={draft.windDirectionFromTrueDeg}
               aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft(
-                  'windDirectionFromTrueDeg',
-                  event.currentTarget.value,
-                )
-              }
+              onCommit={(value) => updateDraft('windDirectionFromTrueDeg', value)}
             />
             <span>°T</span>
           </span>
@@ -298,15 +287,13 @@ export function NavigationLog({
         <label>
           <span>Wind speed</span>
           <span className="navigation-inputs__control">
-            <input
+            <CommitOnBlurInput
               type="number"
               min="0"
               step="1"
               value={draft.windSpeedKt}
               aria-invalid={parsedInputs.status === 'invalid'}
-              onChange={(event) =>
-                updateDraft('windSpeedKt', event.currentTarget.value)
-              }
+              onCommit={(value) => updateDraft('windSpeedKt', value)}
             />
             <span>kt</span>
           </span>

@@ -1,5 +1,6 @@
 import { MAX_SUPPORTED_PLANNING_ALTITUDE_FT } from '../../domain';
 import type { AircraftPerformanceProfile } from '../../domain';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 import type {
   PerformanceInputDefaults,
   PerformanceInputDraft,
@@ -52,7 +53,7 @@ function NumericField({
     <label>
       <span>{label}</span>
       <span className="navigation-inputs__control">
-        <input
+        <CommitOnBlurInput
           type="number"
           min={min}
           max={max}
@@ -60,9 +61,7 @@ function NumericField({
           value={draft[field]}
           placeholder={placeholder}
           aria-invalid={invalid}
-          onChange={(event) =>
-            onChange({ ...draft, [field]: event.currentTarget.value })
-          }
+          onCommit={(value) => onChange({ ...draft, [field]: value })}
         />
         <span>{unit}</span>
       </span>

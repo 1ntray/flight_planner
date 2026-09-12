@@ -2,6 +2,7 @@ import type {
   CalculatedNavigationRoute,
   CalculatedPerformanceLeg,
   CalculatedSectorOperationalFlightPlan,
+  CommunicationChange,
   RunwayPerformanceWorksheet,
 } from '../calculations';
 import {
@@ -68,6 +69,8 @@ export interface BuildOfpPdfModelInput {
   readonly departureTimeUtcMs: number | null;
   readonly landingTimeUtcMs: number | null;
   readonly alternate?: OfpAlternateDisplayData | null;
+  /** Derived route communications displayed beside this sector's navlog. */
+  readonly communicationChangesByLeg?: ReadonlyMap<string, readonly CommunicationChange[]>;
 }
 
 export class OfpPdfModelError extends Error {}
@@ -100,7 +103,7 @@ function emptyNavlogRow(kind: OfpNavlogRow['kind']): OfpNavlogRow {
     intermediateTimeSeconds: null, estimatedTimeUtcMs: null,
     estimatedFuelRemainingLitres: null, actualTimeUtcMs: null,
     timeDifferenceSeconds: null, actualFuelRemainingLitres: null,
-    frequency: null,
+    frequency: null, plannedFrequencies: [],
   };
 }
 
@@ -108,11 +111,22 @@ function fuelFlowLph(leg: CalculatedPerformanceLeg): number | null {
   return leg.eetSeconds <= 0 ? null : leg.fuelLitres / (leg.eetSeconds / 3600);
 }
 
+function plannedFrequencies(changes: readonly CommunicationChange[]): readonly string[] {
+  return changes.flatMap(({ selection }) =>
+    selection.operatingFrequency.status === 'selected'
+      ? [selection.operatingFrequency.candidate.frequency.valueMHz]
+      : selection.operatingFrequency.candidates.map(
+          ({ frequency }) => `${frequency.valueMHz}?`,
+        ),
+  );
+}
+
 function buildLegRow(
   calculated: CalculatedSectorOperationalFlightPlan['rows'][number],
   names: ReadonlyMap<string, string>,
   navigationByLeg: ReadonlyMap<string, CalculatedNavigationRoute['legs'][number]>,
   msaByLeg: ReadonlyMap<string, number>,
+  communicationChangesByLeg: ReadonlyMap<string, readonly CommunicationChange[]>,
 ): OfpNavlogRow {
   const navigation = navigationByLeg.get(legKey(calculated.leg.fromId, calculated.leg.toId));
   const summary = calculatePerformanceLegNavigationSummary(calculated.leg);
@@ -138,6 +152,11 @@ function buildLegRow(
     intermediateTimeSeconds: calculated.intermediate.airborneSeconds,
     estimatedTimeUtcMs: calculated.leg.endTimeUtcMs,
     estimatedFuelRemainingLitres: calculated.estimatedFuelRemainingLitres,
+    plannedFrequencies: plannedFrequencies(
+      communicationChangesByLeg.get(
+        legKey(calculated.leg.fromId, calculated.leg.toId),
+      ) ?? [],
+    ),
   };
 }
 
@@ -276,7 +295,10 @@ export function buildOfpPdfModel(input: BuildOfpPdfModelInput): OfpPdfModel {
   ));
   const pattern = buildPatternRow(input.sector, names);
   const navlogRows = [
-    ...input.sector.rows.map((calculated) => buildLegRow(calculated, names, navigationByLeg, msaByLeg)),
+    ...input.sector.rows.map((calculated) => buildLegRow(
+      calculated, names, navigationByLeg, msaByLeg,
+      input.communicationChangesByLeg ?? new Map(),
+    )),
     ...(pattern === null ? [] : [pattern]),
   ];
   const fromName = names.get(input.sector.fromWaypointId) ?? null;

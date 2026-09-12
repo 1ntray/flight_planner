@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import type { AircraftDefinition } from '../../domain';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 import {
   DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL,
   DEFAULT_BAGGAGE_MASS_KG,
@@ -42,7 +43,6 @@ interface NumericFieldProps {
   min?: string;
   max?: string;
   step?: string;
-  deferCommit?: boolean;
   onChange: (draft: OperationalInputDraft) => void;
 }
 
@@ -56,61 +56,21 @@ function NumericField({
   min,
   max,
   step = '1',
-  deferCommit = false,
   onChange,
 }: NumericFieldProps) {
-  const [deferredValue, setDeferredValue] = useState<string | null>(null);
-  const lastCommittedValueRef = useRef(draft[field]);
-  const value = deferCommit && deferredValue !== null
-    ? deferredValue
-    : draft[field];
-
-  useEffect(() => {
-    if (deferCommit && draft[field] !== lastCommittedValueRef.current) {
-      setDeferredValue(null);
-    }
-    lastCommittedValueRef.current = draft[field];
-  }, [deferCommit, draft[field]]);
-
-  const commitDeferredValue = () => {
-    if (!deferCommit || deferredValue === null) {
-      return;
-    }
-    onChange({ ...draft, [field]: deferredValue });
-    setDeferredValue(null);
-  };
-
   return (
     <label>
       <span>{label}</span>
       <span className="navigation-inputs__control">
-        <input
+        <CommitOnBlurInput
           type="number"
-          value={value}
+          value={draft[field]}
           placeholder={placeholder}
           aria-invalid={invalid}
           {...(min === undefined ? {} : { min })}
           {...(max === undefined ? {} : { max })}
           step={step}
-          onChange={(event) => {
-            const nextValue = event.currentTarget.value;
-            if (deferCommit) {
-              setDeferredValue(nextValue);
-            } else {
-              onChange({ ...draft, [field]: nextValue });
-            }
-          }}
-          {...(deferCommit
-            ? {
-                onBlur: commitDeferredValue,
-                onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    commitDeferredValue();
-                  }
-                },
-              }
-            : {})}
+          onCommit={(value) => onChange({ ...draft, [field]: value })}
         />
         <span>{unit}</span>
       </span>
@@ -169,7 +129,6 @@ export function OperationalPlanningInputs({
         unit="L"
         min="0"
         placeholder={String(DEFAULT_FUEL_ONBOARD_LITRES)}
-        deferCommit
         {...(capacity === undefined ? {} : { max: String(capacity) })}
         draft={draft}
         invalid={invalid}

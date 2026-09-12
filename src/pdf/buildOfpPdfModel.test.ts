@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calculateNavigationRoute, calculateOperationalFlightPlan } from '../calculations';
+import type { CommunicationChange } from '../calculations';
 import { PROJECT_AIRCRAFT_DEFINITION, type AircraftPerformancePlanInputs, type FlightPlan, type OperationalPlanningInputs, type RoutePlanningInputs } from '../domain';
 import { createEmptyOperationalInputDraft } from '../app/navigation/operationalInput';
 import { buildOfpPdfModel, OfpPdfModelError } from './buildOfpPdfModel';
@@ -33,5 +34,20 @@ describe('buildOfpPdfModel', () => {
   it('rejects a navlog larger than the physical template', () => {
     const input = modelInput();
     expect(() => buildOfpPdfModel({ ...input, sector: { ...input.sector, rows: Array.from({ length: 17 }, () => input.sector.rows[0]!) } })).toThrow(OfpPdfModelError);
+  });
+
+  it('maps all planned communication frequencies in retune order', () => {
+    const changes = [
+      { selection: { operatingFrequency: { status: 'selected', candidate: { frequency: { valueMHz: '118.805' } } } } },
+      { selection: { operatingFrequency: { status: 'ambiguous', candidates: [{ frequency: { valueMHz: '120.105' } }, { frequency: { valueMHz: '121.855' } }] } } },
+    ] as unknown as readonly CommunicationChange[];
+    const model = buildOfpPdfModel({
+      ...modelInput(),
+      communicationChangesByLeg: new Map([['A\0B', changes]]),
+    });
+
+    expect(model.page1.navlogRows[0]!.plannedFrequencies).toEqual([
+      '118.805', '120.105?', '121.855?',
+    ]);
   });
 });

@@ -24,6 +24,7 @@ import {
   findManualLegWindOverride,
 } from './legWindOverrideState';
 import type { LegWindDefault } from './legWindOverrideState';
+import { CommitOnBlurInput } from '../interaction/CommitOnBlurInput';
 
 export type { AltitudePlacementLeg } from './altitudePlanState';
 
@@ -106,15 +107,15 @@ export function LegAltitudeControls({
       <label className="leg-altitude-controls__default-altitude">
         <span>Default leg altitude</span>
         <span className="navigation-inputs__control">
-          <input
+          <CommitOnBlurInput
             type="number"
             min="0"
             step="100"
             value={draft.defaultAltitudeFtMsl}
             placeholder={`${DEFAULT_PLANNING_ALTITUDE_FT_MSL} (standard)`}
-            onChange={(event) => onDraftChange({
+            onCommit={(value) => onDraftChange({
               ...draft,
-              defaultAltitudeFtMsl: event.currentTarget.value,
+              defaultAltitudeFtMsl: value,
             })}
           />
           <span>ft MSL</span>
@@ -186,14 +187,13 @@ export function LegAltitudeControls({
             <label>
               <span>MSA</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0"
                   step="100"
                   value={plan?.minimumSafeAltitudeFtMsl ?? ''}
                   placeholder="not entered"
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
+                  onCommit={(value) => {
                     onDraftChange({
                       ...draft,
                       legAltitudePlans: setLegMinimumSafeAltitude(
@@ -211,7 +211,7 @@ export function LegAltitudeControls({
             <label>
               <span>Planned altitude</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0"
                   step="100"
@@ -220,8 +220,7 @@ export function LegAltitudeControls({
                     draft.defaultAltitudeFtMsl ||
                     String(DEFAULT_PLANNING_ALTITUDE_FT_MSL)
                   }
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
+                  onCommit={(value) => {
                     onDraftChange({
                       ...draft,
                       legAltitudePlans: setLegAltitudeOverride(
@@ -239,7 +238,7 @@ export function LegAltitudeControls({
             <label>
               <span>Reach at</span>
               <span className="navigation-inputs__control">
-                <input
+                <CommitOnBlurInput
                   type="number"
                   min="0"
                   max={leg.distanceNm}
@@ -250,8 +249,7 @@ export function LegAltitudeControls({
                       : Number(placementDistance.toFixed(2))
                   }
                   placeholder="automatic"
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
+                  onCommit={(value) => {
                     onDraftChange({
                       ...draft,
                       legAltitudePlans: setLegAltitudeTargetDistance(
@@ -288,14 +286,13 @@ export function LegAltitudeControls({
               <label>
                 <span>End altitude (optional)</span>
                 <span className="navigation-inputs__control">
-                  <input
+                  <CommitOnBlurInput
                     type="number"
                     min="0"
                     step="100"
                     value={plan?.endAltitudeFtMsl ?? ''}
                     placeholder="same as planned"
-                    onChange={(event) => {
-                      const value = event.currentTarget.value;
+                    onCommit={(value) => {
                       onDraftChange({
                         ...draft,
                         legAltitudePlans: setLegEndAltitudeOverride(
@@ -313,7 +310,7 @@ export function LegAltitudeControls({
               <label>
                 <span>Reach end at</span>
                 <span className="navigation-inputs__control">
-                  <input
+                  <CommitOnBlurInput
                     type="number"
                     min="0"
                     max={leg.distanceNm}
@@ -325,8 +322,7 @@ export function LegAltitudeControls({
                         : Number(endPlacementDistance.toFixed(2))
                     }
                     placeholder="automatic"
-                    onChange={(event) => {
-                      const value = event.currentTarget.value;
+                    onCommit={(value) => {
                       onDraftChange({
                         ...draft,
                         legAltitudePlans: setLegEndAltitudeTargetDistance(

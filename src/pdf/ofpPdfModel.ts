@@ -50,11 +50,14 @@ export interface OfpNavlogRow {
   readonly intermediateTimeSeconds: number | null;
   readonly estimatedTimeUtcMs: number | null;
   readonly estimatedFuelRemainingLitres: number | null;
-  /** Actuals and frequencies have no authoritative app input in this export. */
+  /** Actuals have no authoritative app input in this export. */
   readonly actualTimeUtcMs: number | null;
   readonly timeDifferenceSeconds: number | null;
   readonly actualFuelRemainingLitres: number | null;
+  /** Any explicitly entered frequency. Planned frequencies are listed separately. */
   readonly frequency: string | null;
+  /** Derived route/OFP frequencies for this leg, in retune order. */
+  readonly plannedFrequencies: readonly string[];
 }
 
 export interface OfpNavlogTotals {

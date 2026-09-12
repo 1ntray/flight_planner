@@ -279,6 +279,12 @@ Calculated legs, geometry expansions, OFP rows, forecast responses, layer and
 viewport state, selections, drag state, and raw text-field drafts are excluded.
 The local working draft retains the last valid document during invalid editing.
 
+Calculation-driving text and number controls stage keystrokes locally. They
+commit to planning state on Enter or blur, while Escape discards the pending
+edit. Selects and checkboxes remain immediate. Derived route, performance,
+operational, frequency, and OFP calculations therefore run after a completed
+field edit rather than after every character.
+
 ## Deployment and local tooling
 
 The Vite app deploys to GitHub Pages from main. Windows launch/stop scripts
