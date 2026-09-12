@@ -150,8 +150,11 @@ is headwind and negative is tailwind; the OFP displays crosswind magnitude.
 RCC 6 defaults a blank runway-state field to DRY and RCC 5 defaults it to WET;
 lower codes have no invented default. The OFP `Brk action` cell shows only the
 selected RCC number. Personal and Instructor crosswind policy is global, while
-runway, state, and RCC remain airport-panel inputs. Full calculation details and
-the fail-closed AFM boundary are in [runway-performance.md](runway-performance.md).
+runway, state, and RCC remain airport-panel inputs. Reviewed piecewise-linear
+nomogram geometry now provides Figure 5-10 takeoff and Figure 5-26 Hot-brakes
+landing distances from pressure altitude, actual OAT, and sector mass. Inputs
+or intermediate coordinates outside the printed chart envelope fail closed.
+Full calculation details are in [runway-performance.md](runway-performance.md).
 
 ## Wind and weather
 
@@ -288,12 +291,12 @@ typecheck, pnpm test, and pnpm build.
 - No NOTAM, runway-state, or live airspace-status feed. Airport METAR/TAF and
   numerical surface forecast are explicit-load planning-review data, not a
   briefing or go/no-go service.
-- Zlin Z242L runway-performance groundwork is implemented: airport-panel runway/RCC
-  selection, sector masses, effective airport wind/QNH/OAT, UTSA atmosphere and
-  correction rules, crosswind checks, semantic persistence, and OFP-style
-  tables. Operational AFM distances remain unavailable until independently
-  reviewed Figure 5-10 and Figure 5-26 control values are supplied; no raster/OCR
-  values are guessed. See [runway-performance.md](runway-performance.md).
+- Zlin Z242L runway performance uses the reviewed Figure 5-10 takeoff and
+  Figure 5-26 Hot-brakes landing digitizations, UTSA atmosphere/wind/RCC rules,
+  sector masses, published TODA/LDA, crosswind checks, semantic persistence,
+  and OFP-style tables. It remains limited to the printed nomogram envelopes
+  and the precision of the scanned graphs. See
+  [runway-performance.md](runway-performance.md).
 - No PDF OFP generation; the on-screen navlog is OFP-oriented.
 - No automatic terrain/obstacle scan or terrain-derived MSA.
 - The approved edition's 47 published VAC charts are covered, but they remain

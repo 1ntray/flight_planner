@@ -8,6 +8,24 @@ export interface PublishedAirportEnvironment {
   readonly environment: EffectiveAirportPlanningEnvironment | null;
 }
 
+export const AIRPORT_WEATHER_CONTEXT_STALE_TOLERANCE_MS = 5 * 60 * 1000;
+
+/**
+ * Forecast route winds refine ETA. That refinement must not invalidate the
+ * airport environment that is itself an input to the performance route.
+ */
+export function isAirportWeatherContextStale(
+  loadedPlannedTimeUtcMs: number | undefined,
+  currentPlannedTimeUtcMs: number | undefined,
+  suppressForecastWindEtaChange: boolean,
+): boolean {
+  return !suppressForecastWindEtaChange &&
+    loadedPlannedTimeUtcMs !== undefined &&
+    currentPlannedTimeUtcMs !== undefined &&
+    Math.abs(loadedPlannedTimeUtcMs - currentPlannedTimeUtcMs) >
+      AIRPORT_WEATHER_CONTEXT_STALE_TOLERANCE_MS;
+}
+
 function windsEqual(
   first: AirportWind | undefined,
   second: AirportWind | undefined,

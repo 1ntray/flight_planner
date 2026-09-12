@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { EffectiveAirportPlanningEnvironment } from '../../weather';
 import {
   airportPlanningEnvironmentsEqual,
+  isAirportWeatherContextStale,
   shouldPublishAirportEnvironment,
 } from './airportEnvironmentPublication';
 
@@ -50,5 +51,12 @@ describe('airport environment publication', () => {
         wind: { kind: 'fixed', directionFromTrueDeg: 190, speedKt: 12 },
       },
     )).toBe(false);
+  });
+
+  it('does not invalidate airport weather solely because its selected route wind refined ETA', () => {
+    const loadedAt = Date.UTC(2026, 8, 12, 8, 0);
+    expect(isAirportWeatherContextStale(loadedAt, loadedAt + 6 * 60 * 1000, false)).toBe(true);
+    expect(isAirportWeatherContextStale(loadedAt, loadedAt + 6 * 60 * 1000, true)).toBe(false);
+    expect(isAirportWeatherContextStale(loadedAt, loadedAt + 2 * 60 * 1000, false)).toBe(false);
   });
 });

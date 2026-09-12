@@ -15,6 +15,42 @@ export interface PerformanceLegNavigationSummary {
   readonly trueHeadingDeg: number;
 }
 
+/**
+ * The representative TAS used by the displayed navlog: the longest cruise
+ * segment at target altitude where available, otherwise a time-weighted leg
+ * average. This is presentation selection, not a new performance calculation.
+ */
+export function calculatePerformanceLegTrueAirspeedKt(
+  leg: CalculatedPerformanceLeg,
+): number | null {
+  const cruiseSteps = leg.steps.filter((step) => step.phase === 'cruise');
+  const targetCruise = cruiseSteps.filter(
+    (step) =>
+      Math.abs(step.representativeAltitudeFtMsl - leg.targetAltitudeFtMsl) <=
+      1e-9,
+  );
+  const cruise = (targetCruise.length > 0 ? targetCruise : cruiseSteps).reduce<
+    CalculatedPerformanceStep | null
+  >(
+    (longest, step) =>
+      longest === null || step.durationSeconds > longest.durationSeconds
+        ? step
+        : longest,
+    null,
+  );
+  if (cruise !== null) return cruise.trueAirspeedKt;
+  const durationSeconds = leg.steps.reduce(
+    (total, step) => total + step.durationSeconds,
+    0,
+  );
+  return durationSeconds <= 0
+    ? null
+    : leg.steps.reduce(
+        (total, step) => total + step.trueAirspeedKt * step.durationSeconds,
+        0,
+      ) / durationSeconds;
+}
+
 function circularAverageDeg(
   steps: readonly CalculatedPerformanceStep[],
   select: (step: CalculatedPerformanceStep) => number,

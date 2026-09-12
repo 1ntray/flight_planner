@@ -21,6 +21,7 @@ import type { ForecastLegWind } from '../../weather';
 import { RouteTable } from './RouteTable';
 import { OperationalSectorSummary } from './OperationalSectorSummary';
 import { formatUtcRouteTime } from './routeFormatting';
+import { OfpExportButton } from '../../pdf/OfpExportButton';
 
 export interface SectorRouteTablesProps {
   flightPlan: FlightPlan;
@@ -171,6 +172,21 @@ export function SectorRouteTables({
               <div><dt>DEST</dt><dd>{toName}</dd></div>
               <div><dt>Landing / pattern</dt><dd>{arrivalTimeUtcMs === null || departureTimeUtcMs === null ? '—' : formatUtcRouteTime(arrivalTimeUtcMs, departureTimeUtcMs)}</dd></div>
             </dl>
+            {operationalSector === undefined || operationalInputs === null ? null : (
+              <OfpExportButton input={{
+                flightPlan, navigationRoute: route, sector: operationalSector,
+                aircraft: aircraftDefinition, operationalInputs, legAltitudePlans,
+                operationalDraft, aerodromeDetailsByWaypointId,
+                airportOperationEnvironments, departureTimeUtcMs,
+                landingTimeUtcMs: arrivalTimeUtcMs,
+                alternate: operationalInputs.alternate === null ? null : {
+                  inputs: operationalInputs.alternate,
+                  navigationRoute: alternateNavigationRoute,
+                  trueAirspeedKt: alternateTrueAirspeedKt,
+                  progress: alternateProgress,
+                },
+              }} />
+            )}
           </div>
         )}
         <RouteTable
@@ -249,6 +265,21 @@ export function SectorRouteTables({
                 <div><dt>DEST</dt><dd>{toName}</dd></div>
                 <div><dt>Landing / pattern</dt><dd>{arrivalTimeUtcMs === null || departureTimeUtcMs === null ? '—' : formatUtcRouteTime(arrivalTimeUtcMs, departureTimeUtcMs)}</dd></div>
               </dl>
+              {operationalSector === undefined || operationalInputs === null ? null : (
+                <OfpExportButton input={{
+                  flightPlan: sector.flightPlan, navigationRoute: navigation,
+                  sector: operationalSector, aircraft: aircraftDefinition,
+                  operationalInputs, legAltitudePlans, operationalDraft,
+                  aerodromeDetailsByWaypointId, airportOperationEnvironments,
+                  departureTimeUtcMs, landingTimeUtcMs: arrivalTimeUtcMs,
+                  alternate: !isFinalSector || operationalInputs.alternate === null ? null : {
+                    inputs: operationalInputs.alternate,
+                    navigationRoute: alternateNavigationRoute,
+                    trueAirspeedKt: alternateTrueAirspeedKt,
+                    progress: alternateProgress,
+                  },
+                }} />
+              )}
             </div>
             <RouteTable
               waypoints={sector.flightPlan.waypoints}

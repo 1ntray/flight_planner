@@ -1655,7 +1655,7 @@ export function App() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <div>
+        <div className="app-header__brand">
           <p className="eyebrow">MVP 0.20</p>
           <h1>Flight Planner</h1>
         </div>

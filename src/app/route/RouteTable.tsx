@@ -15,7 +15,10 @@ import type {
 } from '../../domain';
 import type { ForecastLegWind } from '../../weather';
 import { formatForecastWindCollectionDetails } from '../navigation/weatherFormatting';
-import { calculatePerformanceLegNavigationSummary } from './performanceLegSummary';
+import {
+  calculatePerformanceLegNavigationSummary,
+  calculatePerformanceLegTrueAirspeedKt,
+} from './performanceLegSummary';
 import {
   calculateNavlogDirectionDisplay,
   roundNavlogAccumulatedIncrement,
@@ -63,35 +66,6 @@ function getNoSolutionMessage(result: WindAdjustedLegResult): string | null {
   return result.reason === 'crosswind-exceeds-true-airspeed'
     ? 'Crosswind exceeds TAS'
     : 'No forward groundspeed';
-}
-
-function representativeTasKt(leg: CalculatedPerformanceLeg): number | null {
-  const cruiseSteps = leg.steps.filter((step) => step.phase === 'cruise');
-  const targetCruise = cruiseSteps.filter(
-    (step) =>
-      Math.abs(step.representativeAltitudeFtMsl - leg.targetAltitudeFtMsl) <=
-      1e-9,
-  );
-  const cruise = (targetCruise.length > 0 ? targetCruise : cruiseSteps).reduce<
-    CalculatedPerformanceLeg['steps'][number] | null
-  >(
-    (longest, step) =>
-      longest === null || step.durationSeconds > longest.durationSeconds
-        ? step
-        : longest,
-    null,
-  );
-  if (cruise !== null) return cruise.trueAirspeedKt;
-  const duration = leg.steps.reduce(
-    (total, step) => total + step.durationSeconds,
-    0,
-  );
-  return duration <= 0
-    ? null
-    : leg.steps.reduce(
-        (total, step) => total + step.trueAirspeedKt * step.durationSeconds,
-        0,
-      ) / duration;
 }
 
 function formatVariation(variationDegEast: number | null): string {
@@ -463,7 +437,7 @@ export function RouteTable({
               return (
                 <tr key={legKey(leg.fromId, leg.toId)}>
                   <td>{waypointNames.get(leg.fromId) ?? leg.fromId}</td>
-                  <td>{performanceLeg === undefined ? '—' : formatTas(representativeTasKt(performanceLeg))}</td>
+                  <td>{performanceLeg === undefined ? '—' : formatTas(calculatePerformanceLegTrueAirspeedKt(performanceLeg))}</td>
                   <td>{formatTrueTrackDeg(directions.trueTrackDeg)}</td>
                   <td title={magneticVariationDetails}>{formatVariation(directions.variationDegEast)}</td>
                   <td>{formatMagneticTrackDeg(directions.magneticTrackDeg)}</td>

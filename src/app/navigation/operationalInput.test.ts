@@ -6,6 +6,7 @@ import {
   createOperationalInputDraft,
   createOperationalInputOverrides,
   createRunwayPerformanceOperationInputDraft,
+  DEFAULT_RUNWAY_OAT_C,
   parseOperationalInputDraft,
   reconcileRunwayPerformanceOperations,
 } from './operationalInput';
@@ -268,5 +269,29 @@ describe('operational input parsing', () => {
       status: 'valid',
       value: { runwayPerformance: { operations: [{ kind: 'takeoff' }] } },
     });
+  });
+
+  it('uses 15 C as the blank runway OAT default and keeps it visually implicit', () => {
+    const operation = createRunwayPerformanceOperationInputDraft(
+      'takeoff', 'A', 'B', 'A',
+    );
+    const parsed = parseOperationalInputDraft({
+      ...createEmptyOperationalInputDraft(),
+      runwayPerformanceOperations: [operation],
+    }, PROJECT_AIRCRAFT_DEFINITION);
+
+    expect(parsed).toMatchObject({
+      status: 'valid',
+      value: {
+        runwayPerformance: {
+          operations: [{ manualOatC: DEFAULT_RUNWAY_OAT_C }],
+        },
+      },
+    });
+
+    if (parsed.status !== 'valid') {
+      throw new Error('Expected the operational draft to be valid');
+    }
+    expect(createOperationalInputDraft(parsed.value).runwayPerformanceOperations[0]?.manualOatC).toBe('');
   });
 });

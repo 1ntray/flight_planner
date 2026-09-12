@@ -66,6 +66,11 @@ const EMPTY_CALCULATED_ROUTE: CalculatedNavigationRoute = {
   totalEetSeconds: null,
   estimatedArrivalTimeUtcMs: null,
 };
+const EMPTY_FLIGHT_PLAN: FlightPlan = {
+  waypoints: [],
+  legShapes: [],
+  sectorBoundaryWaypointIds: [],
+};
 
 function calculationContext(
   flightPlan: FlightPlan,
@@ -524,6 +529,80 @@ export function usePlanningCalculations({
     parsedInputs,
     performanceRoute,
   ]);
+  const alternateForecastInput = useMemo(() => {
+    if (
+      calculationsSuspended ||
+      parsedInputs.status !== 'valid' ||
+      parsedPerformance.status !== 'valid' ||
+      parsedOperational.status !== 'valid' ||
+      legacyPlanning === null ||
+      operationalPlan?.status !== 'ok'
+    ) {
+      return null;
+    }
+    const finalWaypoint = flightPlan.waypoints.at(-1);
+    const alternate = parsedOperational.value.alternate;
+    if (finalWaypoint === undefined || alternate === null) return null;
+
+    const environment = calculatePlanningEnvironment(
+      parsedPerformance.value.departureWeather,
+      parsedPerformance.value.destinationWeather,
+    );
+    const planning = {
+      ...legacyPlanning,
+      trueAirspeedKt: calculateTasFromIas(
+        aircraftDefinition.performance.cruise.iasKt,
+        alternate.plannedAltitudeFtMsl,
+        environment.qnhHpa,
+        environment.isaDeviationC,
+      ),
+      plannedAltitudeFtMsl: alternate.plannedAltitudeFtMsl,
+      departureTimeUtcMs:
+        manualPerformanceRoute?.status === 'ok'
+          ? manualPerformanceRoute.estimatedArrivalTimeUtcMs
+          : legacyPlanning.departureTimeUtcMs,
+    };
+    const alternateFlightPlan: FlightPlan = {
+      waypoints: [finalWaypoint, alternate.waypoint],
+      legShapes: [],
+      sectorBoundaryWaypointIds: [],
+    };
+    return {
+      flightPlan: alternateFlightPlan,
+      planning,
+      preliminaryRoute: calculateNavigationRoute({
+        flightPlan: alternateFlightPlan,
+        planning,
+        legWinds: createEffectiveLegWinds(
+          [],
+          parsedInputs.value.manualLegWindOverrides ?? [],
+        ),
+      }),
+    };
+  }, [
+    aircraftDefinition,
+    calculationsSuspended,
+    flightPlan.waypoints,
+    legacyPlanning,
+    manualPerformanceRoute,
+    operationalPlan,
+    parsedInputs,
+    parsedOperational,
+    parsedPerformance,
+  ]);
+  const alternateForecast = useForecastRouteWinds({
+    enabled: !calculationsSuspended && useForecastWinds && alternateForecastInput !== null,
+    flightPlan: alternateForecastInput?.flightPlan ?? EMPTY_FLIGHT_PLAN,
+    planning: alternateForecastInput?.planning ?? null,
+    preliminaryRoute: alternateForecastInput?.preliminaryRoute ?? EMPTY_CALCULATED_ROUTE,
+    requestKey: forecastRequestKey,
+    model: parsedInputs.status === 'valid'
+      ? parsedInputs.value.windForecastModel ?? 'ecmwf_ifs025'
+      : 'ecmwf_ifs025',
+    manualOverrides: parsedInputs.status === 'valid'
+      ? parsedInputs.value.manualLegWindOverrides ?? []
+      : [],
+  });
   const alternateCalculatedRoute = useMemo(() => {
     if (
       calculationsSuspended ||
@@ -573,6 +652,7 @@ export function usePlanningCalculations({
       () => calculateNavigationRoute({
         flightPlan: alternateFlightPlan,
         planning: alternatePlanning,
+        legWinds: alternateForecast.legWinds,
       }),
       context,
     );
@@ -595,6 +675,7 @@ export function usePlanningCalculations({
     flightPlan.waypoints,
     legacyPlanning,
     baseCalculatedRoute.estimatedArrivalTimeUtcMs,
+    alternateForecast.legWinds,
     operationalPlan,
     parsedInputs,
     parsedPerformance,

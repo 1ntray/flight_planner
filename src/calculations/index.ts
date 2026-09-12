@@ -148,6 +148,7 @@ export {
 } from './operationalPlanning';
 export {
   calculateLandingDistanceSequence,
+  calculateRunwayPerformanceWorksheet,
   calculateRunwayWindComponents,
   calculateTakeoffDistanceSequence,
   calculateUtsaDensityAltitudeFt,
@@ -167,12 +168,15 @@ export {
 } from './runwayPerformance';
 export type {
   RccPerformanceRule,
+  RunwayPerformanceWorksheet,
+  RunwayPerformanceWorksheetInput,
   RunwayPerformanceModelProvenance,
   RunwayWindComponentResult,
   RunwayWindComponents,
   WindDistanceCorrection,
   Z242AfmDistanceResult,
   Z242AfmDistanceInput,
+  Z242AfmEnvelopeBoundary,
 } from './runwayPerformance';
 export type {
   CalculatedFuelRequirementLine,

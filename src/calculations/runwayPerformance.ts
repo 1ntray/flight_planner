@@ -1,5 +1,10 @@
 import type { AerodromeRunway, RunwayDirection } from '../domain';
 import type { AirportWind } from '../weather';
+import {
+  Z242_LANDING_FIGURE_5_26_HOT_BRAKES,
+  Z242_TAKEOFF_FIGURE_5_10,
+} from './z242AfmNomogramData';
+import type { Z242AfmNomogramData } from './z242AfmNomogramData';
 
 export const DEFAULT_PERSONAL_CROSSWIND_LIMIT_KT = 9;
 export const TAKEOFF_PERFORMANCE_FACTOR = 1.25;
@@ -11,6 +16,8 @@ export interface RunwayPerformanceModelProvenance {
   readonly landingSource: 'AFM Figure 5-26, landing distance from 50 ft (15 m), Hot brakes';
   readonly brakingSource: 'UTSA OM-C 4.7.1';
   readonly methodSource: 'UTSA Operational Flightplan v2.0, 10.08.2026';
+  readonly takeoffRepresentationRevision: 'z242l-afm-fig-5-10-v1';
+  readonly landingRepresentationRevision: 'z242l-afm-fig-5-26-hot-brakes-v1';
 }
 
 export const Z242L_RUNWAY_PERFORMANCE_PROVENANCE: RunwayPerformanceModelProvenance = {
@@ -19,6 +26,8 @@ export const Z242L_RUNWAY_PERFORMANCE_PROVENANCE: RunwayPerformanceModelProvenan
   landingSource: 'AFM Figure 5-26, landing distance from 50 ft (15 m), Hot brakes',
   brakingSource: 'UTSA OM-C 4.7.1',
   methodSource: 'UTSA Operational Flightplan v2.0, 10.08.2026',
+  takeoffRepresentationRevision: 'z242l-afm-fig-5-10-v1',
+  landingRepresentationRevision: 'z242l-afm-fig-5-26-hot-brakes-v1',
 };
 
 export function calculateUtsaPressureAltitudeFt(
@@ -200,37 +209,261 @@ export function resolveRunwayDirection(
   return null;
 }
 
-export type Z242AfmDistanceResult = {
-  readonly status: 'unavailable';
-  readonly reason: 'reviewed-digitization-required';
-};
+/** Input and derived values for the paper OFP runway-performance worksheet. */
+export interface RunwayPerformanceWorksheetInput {
+  readonly kind: 'takeoff' | 'landing';
+  readonly runways: readonly AerodromeRunway[];
+  readonly elevationFt: number | null | undefined;
+  readonly qnhHpa: number | null | undefined;
+  readonly temperatureC: number | null | undefined;
+  readonly wind: AirportWind | undefined;
+  readonly runwayDesignator: string | undefined;
+  readonly runwayCondition: string | undefined;
+  readonly rcc: 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined;
+  readonly massKg: number;
+  readonly modelSupported: boolean;
+}
+
+export interface RunwayPerformanceWorksheet {
+  readonly uncorrectedDistanceM: number | null;
+  /** Positive is headwind and negative is tailwind. */
+  readonly headwindKt: number | null;
+  readonly runwayState: string | null;
+  readonly rcc: number | null;
+  readonly correctionPercent: number | null;
+  readonly correctedDistanceM: number | null;
+  readonly performanceFactorPercent: number | null;
+  readonly requiredDistanceM: number | null;
+  readonly availableDistanceM: number | null;
+}
+
+/**
+ * Reuses the reviewed AFM/UTSA calculation chain for one OFP worksheet.
+ * Null fields are deliberate: a missing authoritative input must not create
+ * a fabricated performance figure.
+ */
+export function calculateRunwayPerformanceWorksheet(
+  input: RunwayPerformanceWorksheetInput,
+): RunwayPerformanceWorksheet {
+  const resolved = input.runwayDesignator === undefined || input.runwayDesignator === ''
+    ? null
+    : resolveRunwayDirection(input.runways, input.runwayDesignator);
+  const direction = resolved?.direction;
+  const rccRule = input.rcc === undefined ? undefined : getRccPerformanceRule(input.rcc);
+  const pressureAltitude = input.elevationFt == null || input.qnhHpa == null
+    ? null
+    : calculateUtsaPressureAltitudeFt(input.elevationFt, input.qnhHpa);
+  const isaDeviation = input.temperatureC == null
+    ? null
+    : calculateUtsaIsaDeviationC(input.temperatureC);
+  const runwayHeading = direction === undefined
+    ? null
+    : runwayDesignatorHeadingDeg(direction.designator);
+  const windComponents = runwayHeading === null || input.wind === undefined
+    ? null
+    : calculateRunwayWindComponents(runwayHeading, input.wind);
+  const components = windComponents?.status === 'available'
+    ? windComponents.components
+    : null;
+  const afm = !input.modelSupported || pressureAltitude === null || input.temperatureC == null ||
+      !Number.isFinite(input.massKg) || input.massKg <= 0
+    ? null
+    : input.kind === 'takeoff'
+      ? calculateZ242TakeoffDistanceTo50Ft({
+          pressureAltitudeFt: pressureAltitude,
+          temperatureC: input.temperatureC,
+          massKg: input.massKg,
+        })
+      : calculateZ242HotBrakesLandingDistanceFrom50Ft({
+          pressureAltitudeFt: pressureAltitude,
+          temperatureC: input.temperatureC,
+          massKg: input.massKg,
+        });
+  const uncorrectedDistanceM = afm?.status === 'available' ? afm.distanceM : null;
+  const sequence = uncorrectedDistanceM === null || components === null
+    ? null
+    : input.kind === 'takeoff'
+      ? calculateTakeoffDistanceSequence(uncorrectedDistanceM, components.parallelKt)
+      : input.rcc === undefined
+        ? null
+        : calculateLandingDistanceSequence(
+            uncorrectedDistanceM,
+            components.parallelKt,
+            input.rcc,
+          );
+  const distances = sequence?.status === 'available' ? sequence : null;
+  const availableDistanceM = input.kind === 'takeoff'
+    ? direction?.declaredDistances.todaM ?? null
+    : direction?.declaredDistances.ldaM ?? null;
+  return {
+    uncorrectedDistanceM,
+    headwindKt: components?.parallelKt ?? null,
+    runwayState: input.runwayCondition === undefined || input.runwayCondition.trim() === ''
+      ? rccRule?.runwayCondition ?? null
+      : input.runwayCondition,
+    rcc: input.rcc ?? null,
+    correctionPercent: input.kind === 'takeoff'
+      ? (input.rcc === undefined ? null : 0)
+      : rccRule?.landingCorrectionFraction === null || rccRule === undefined
+        ? null
+        : rccRule.landingCorrectionFraction * 100,
+    correctedDistanceM: distances?.correctedDistanceM ?? null,
+    performanceFactorPercent: distances === null
+      ? null
+      : input.kind === 'takeoff' ? 25 : 43,
+    requiredDistanceM: distances?.requiredDistanceM ?? null,
+    availableDistanceM,
+  };
+}
+
+export type Z242AfmEnvelopeBoundary =
+  | 'temperature'
+  | 'pressure-altitude'
+  | 'mass'
+  | 'entry-frame'
+  | 'final-frame';
+
+export type Z242AfmDistanceResult =
+  | { readonly status: 'available'; readonly distanceM: number }
+  | {
+      readonly status: 'unavailable';
+      readonly reason: 'outside-reviewed-envelope';
+      readonly boundary: Z242AfmEnvelopeBoundary;
+    };
 
 export interface Z242AfmDistanceInput {
   readonly pressureAltitudeFt: number;
-  readonly isaDeviationC: number;
+  readonly temperatureC: number;
   readonly massKg: number;
 }
 
 function validateAfmInput(input: Z242AfmDistanceInput): void {
   if (!Number.isFinite(input.pressureAltitudeFt) ||
-      !Number.isFinite(input.isaDeviationC) ||
+      !Number.isFinite(input.temperatureC) ||
       !Number.isFinite(input.massKg) || input.massKg <= 0) {
     throw new RangeError('AFM inputs must be finite and mass must be positive');
   }
 }
 
+function betweenInclusive(value: number, bounds: readonly [number, number]): boolean {
+  return value >= bounds[0] && value <= bounds[1];
+}
+
+function segmentIndex(value: number, coordinates: readonly number[]): number {
+  for (let index = 1; index < coordinates.length; index += 1) {
+    if (value <= coordinates[index]!) return index - 1;
+  }
+  return coordinates.length - 2;
+}
+
 /**
- * The supplied AFM pages are scanned raster nomograms. No reviewed numeric
- * control-point set was supplied, so this fail-closed boundary deliberately
- * refuses to manufacture operational distances from OCR or pixel estimates.
+ * Piecewise-linear interpolation with a monotonic coordinate key. Paired
+ * values may increase or decrease independently. Edge continuation is used
+ * only for the reviewed weight-guide slope step.
  */
-export function calculateZ242TakeoffDistanceTo50Ft(input: Z242AfmDistanceInput): Z242AfmDistanceResult {
+export function interpolateZ242NomogramAxis(
+  coordinate: number,
+  coordinates: readonly number[],
+  values: readonly number[],
+  continueAtEdges = false,
+): number | null {
+  if (coordinates.length < 2 || coordinates.length !== values.length) {
+    throw new RangeError('Nomogram axes require matching arrays with at least two points');
+  }
+  for (let index = 0; index < coordinates.length; index += 1) {
+    if (!Number.isFinite(coordinates[index]) || !Number.isFinite(values[index])) {
+      throw new RangeError('Nomogram axis values must be finite');
+    }
+    if (index > 0 && coordinates[index]! <= coordinates[index - 1]!) {
+      throw new RangeError('Nomogram coordinate keys must be strictly increasing');
+    }
+  }
+  if (!Number.isFinite(coordinate)) throw new RangeError('Nomogram coordinate must be finite');
+  if (!continueAtEdges &&
+      (coordinate < coordinates[0]! || coordinate > coordinates[coordinates.length - 1]!)) {
+    return null;
+  }
+  const index = coordinate <= coordinates[0]!
+    ? 0
+    : coordinate >= coordinates[coordinates.length - 1]!
+      ? coordinates.length - 2
+      : segmentIndex(coordinate, coordinates);
+  const startCoordinate = coordinates[index]!;
+  const endCoordinate = coordinates[index + 1]!;
+  const fraction = (coordinate - startCoordinate) / (endCoordinate - startCoordinate);
+  return values[index]! + fraction * (values[index + 1]! - values[index]!);
+}
+
+function outside(boundary: Z242AfmEnvelopeBoundary): Z242AfmDistanceResult {
+  return { status: 'unavailable', reason: 'outside-reviewed-envelope', boundary };
+}
+
+function calculateZ242NomogramDistance(
+  model: Z242AfmNomogramData,
+  input: Z242AfmDistanceInput,
+): Z242AfmDistanceResult {
   validateAfmInput(input);
-  return { status: 'unavailable', reason: 'reviewed-digitization-required' };
+  if (!betweenInclusive(input.temperatureC, model.chartBounds.temperatureC)) {
+    return outside('temperature');
+  }
+  if (!betweenInclusive(input.pressureAltitudeFt, model.chartBounds.pressureAltitudeFt)) {
+    return outside('pressure-altitude');
+  }
+  if (!betweenInclusive(input.massKg, model.chartBounds.massKg)) {
+    return outside('mass');
+  }
+
+  const temperatureX = interpolateZ242NomogramAxis(
+    input.temperatureC,
+    model.temperatureAxis.valuesC,
+    model.temperatureAxis.x,
+  )!;
+  const pressureAltitudeCoordinates = model.pressureAltitudeLines.map(
+    (line) => line.pressureAltitudeFt,
+  );
+  const yAtPressureAltitudeLines = model.pressureAltitudeLines.map(
+    (line) => line.slope * temperatureX + line.intercept,
+  );
+  const entryY = interpolateZ242NomogramAxis(
+    input.pressureAltitudeFt,
+    pressureAltitudeCoordinates,
+    yAtPressureAltitudeLines,
+  )!;
+  const distanceFrame: readonly [number, number] = [
+    model.distanceAxis.y[0]!,
+    model.distanceAxis.y[model.distanceAxis.y.length - 1]!,
+  ];
+  if (!betweenInclusive(entryY, distanceFrame)) return outside('entry-frame');
+
+  const massX = interpolateZ242NomogramAxis(
+    input.massKg,
+    model.massAxis.valuesKg,
+    model.massAxis.x,
+  )!;
+  const guideSlope = interpolateZ242NomogramAxis(
+    entryY,
+    model.weightGuideLines.map((guide) => guide.entryY),
+    model.weightGuideLines.map((guide) => guide.slope),
+    true,
+  )!;
+  const finalY = entryY + guideSlope * (massX - model.weightPanelReferenceX);
+  if (!betweenInclusive(finalY, distanceFrame)) return outside('final-frame');
+
+  const distanceM = interpolateZ242NomogramAxis(
+    finalY,
+    model.distanceAxis.y,
+    model.distanceAxis.valuesM,
+  )!;
+  if (!Number.isFinite(distanceM)) throw new RangeError('AFM interpolation produced a non-finite distance');
+  return { status: 'available', distanceM };
+}
+
+/** Reviewed digitization of AFM Figure 5-10. */
+export function calculateZ242TakeoffDistanceTo50Ft(input: Z242AfmDistanceInput): Z242AfmDistanceResult {
+  return calculateZ242NomogramDistance(Z242_TAKEOFF_FIGURE_5_10, input);
 }
 
 /** Uses Figure 5-26 Hot brakes only; Figure 5-25 is intentionally excluded. */
 export function calculateZ242HotBrakesLandingDistanceFrom50Ft(input: Z242AfmDistanceInput): Z242AfmDistanceResult {
-  validateAfmInput(input);
-  return { status: 'unavailable', reason: 'reviewed-digitization-required' };
+  return calculateZ242NomogramDistance(Z242_LANDING_FIGURE_5_26_HOT_BRAKES, input);
 }

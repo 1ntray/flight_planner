@@ -460,6 +460,10 @@ export function NavigationLog({
         defaults={performanceInputDefaults}
         aerodromeDetailsByWaypointId={aerodromeDetailsByWaypointId}
         plannedTimeUtcMsByOperationKey={airportPlannedTimes}
+        suppressForecastWindEtaStaleness={
+          forecast.status.status === 'loading' ||
+          forecast.status.status === 'success'
+        }
         {...(onEffectivePlanningEnvironmentChange === undefined
           ? {}
           : { onEffectivePlanningEnvironmentChange })}

@@ -2,16 +2,17 @@
 
 ## Status and safety boundary
 
-The planner now contains the pure UTSA runway atmosphere, wind, RCC,
-crosswind-limit, correction-order, runway-resolution, persistence, weather-context,
-and OFP presentation boundaries. It deliberately does **not** yet produce an
-uncorrected Zlin takeoff or landing distance: the supplied AFM pages are scanned
-raster nomograms and no independently reviewed numeric control-point set was
-provided. OCR or visually estimated pixels are not accepted as operational data.
+The planner contains the pure UTSA runway atmosphere, wind, RCC,
+crosswind-limit, correction-order, runway-resolution, persistence,
+weather-context, AFM-distance, and OFP presentation boundaries. The Zlin AFM
+distance model is a reviewed numeric digitization of the original scanned
+nomograms. Runtime calculations use checked-in nomogram coordinates and never
+read the source PDF or raster pixels.
 
-Until reviewed graph values are checked in, both AFM lookup functions return
-`reviewed-digitization-required`. Consequently required distance and runway
-margin remain unavailable. This is a fail-closed state, not a software error.
+The implementation was validated against twelve independently and manually
+read representative graph points: six from each figure, with a graph-reading
+tolerance of ±10 m. This validates reproduction of the reviewed digitization;
+it does not claim more precision than the scanned nomograms support.
 
 ## Authoritative project method
 
@@ -22,11 +23,34 @@ margin remain unavailable. This is a fail-closed state, not a software error.
 - Presentation and factors: UTSA Operational Flightplan v2.0, 10.08.2026.
 - The reference PDFs remain local reference material and are not runtime assets.
 
-The future AFM representation must be deterministic, reviewable breakpoints or
-piecewise interpolation derived from approved graph control values. Interpolation
-will be allowed only inside the reviewed envelope. Extrapolation must return an
-explicit unavailable result. No polynomial or regression approximation is
-permitted.
+The numeric representation revisions are `z242l-afm-fig-5-10-v1` and
+`z242l-afm-fig-5-26-hot-brakes-v1`. They reproduce the reviewed two-panel
+nomogram geometry with deterministic piecewise-linear interpolation. They are
+not polynomial or regression performance models.
+
+For each figure, actual OAT is interpolated to the printed temperature-axis X
+coordinate. Every published pressure-altitude line evaluates its Y coordinate
+at that X, after which Y is interpolated between the bounding 0, 3000, 6000,
+9000, and 12000 ft lines. Mass is independently interpolated to the weight-axis
+X coordinate. The weight-guide slope is interpolated at the entry Y coordinate
+and applies the horizontal mass displacement from the figure's reviewed
+reference X. Finally, the resulting Y coordinate is interpolated through the
+printed distance axis to metres.
+
+The supported printed bounds are:
+
+| Figure | OAT | Pressure altitude | Mass | Distance frame |
+|---|---:|---:|---:|---:|
+| 5-10 takeoff | -60 to +50 °C | 0 to 12,000 ft | 800 to 1,100 kg | 400 to 1,600 m |
+| 5-26 Hot brakes landing | -50 to +50 °C | 0 to 12,000 ft | 850 to 1,050 kg | 400 to 900 m |
+
+Inputs are never clamped. Temperature, pressure altitude, or mass outside the
+published bounds returns `outside-reviewed-envelope`. Entry and final Y must
+also remain within the printed distance frame. The small printed portions above
+or below the outer reviewed weight-guide anchors linearly continue the nearest
+two reviewed guide slopes, but only while every input and both Y coordinates
+remain inside their published frames. This is controlled continuation within
+the chart, not extrapolation beyond it.
 
 ## Atmosphere
 
@@ -38,9 +62,11 @@ ISA deviation C      = round(OAT C - 15)
 Density altitude ft  = pressure altitude ft + 120 * rounded ISA deviation C
 ```
 
-The whole-degree ISA rounding occurs before density altitude and before any
-future AFM lookup. Aerodrome elevation is the published ARP elevation, not a
-threshold elevation.
+The whole-degree ISA rounding occurs before density altitude. Density altitude
+is an OFP display calculation only: the AFM lookup receives pressure altitude,
+actual OAT, and mass directly. Neither density altitude nor the simplified ISA
+deviation replaces OAT in the nomogram. Aerodrome elevation is the published
+ARP elevation, not a threshold elevation.
 
 ## Wind and crosswind
 
@@ -128,8 +154,10 @@ material to this planning use, that stop uses one reviewed weather context for
 both operations. The representative time is the derived arrival time; no second
 timeline or route is created.
 
-Manual surface wind and OAT, runway direction, condition/RCC, personal limit,
-and Instructor mode are persisted as semantic inputs. Personal/Instructor
+Manual surface wind and explicit OAT overrides, runway direction, condition/RCC,
+personal limit, and Instructor mode are persisted as semantic inputs. A blank
+runway OAT uses the standard 15 °C default and is presented as a grey placeholder;
+selected METAR/forecast temperatures and manual entries override it. Personal/Instructor
 crosswind policy is global, while runway direction, condition and RCC are edited
 only in the airport-planning panel. The navlog runway tables are read-only and
 retain the OFP's three-pair airport grid and separate distance-worksheet row
@@ -164,16 +192,16 @@ GOOD/MEDIUM label.
 Availability problems are still derived for every runway operation. They
 include missing aerodrome/runway/RCC/weather data, invalid designators,
 unsupported runway/RCC/aircraft cases, missing declared distance, and the
-pending AFM digitization boundary. The repeated red issue list is intentionally
+reviewed AFM chart envelope. The repeated red issue list is intentionally
 not drawn beneath each worksheet; the operation retains a ready/blocked status
 and non-visual issue detail. Crosswind-limit feedback remains visible when a
-component and applicable limit are available. This is a presentation choice,
-not removal of validation or fail-closed behaviour.
+component and applicable limit are available. An outside-envelope AFM result is
+shown explicitly because no distance may be presented. This is a presentation
+choice, not removal of validation or fail-closed behaviour.
 
-## Remaining validation work
+## Remaining limitations
 
-A qualified reviewer must supply independent Figure 5-10 and Figure 5-26 graph
-control values covering mass, pressure-altitude, and ISA axes, plus boundary and
-interpolation check cases. Only then can supported ranges, interpolation surfaces,
-uncorrected distances, required distances, and margins be enabled and checked
-against manually completed UTSA OFPs.
+The model is limited to the reviewed Figure 5-10 and Figure 5-26 Hot-brakes
+frames and to the precision supported by their scanned nomograms. Further
+validation against complete manually prepared operational flight plans remains
+required. Figure 5-25 is excluded and cannot be selected.

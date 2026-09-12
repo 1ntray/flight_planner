@@ -16,6 +16,7 @@ export const DEFAULT_BAGGAGE_MASS_KG = 15;
 export const DEFAULT_EXTRA_FUEL_LITRES = 18;
 export const DEFAULT_FINAL_RESERVE_LITRES = 36;
 export const DEFAULT_ALTERNATE_PLANNED_ALTITUDE_FT_MSL = 2500;
+export const DEFAULT_RUNWAY_OAT_C = 15;
 
 export interface SectorOperationInputDraft {
   waypointId: string;
@@ -195,7 +196,11 @@ export function createOperationalInputDraft(
       manualWindDirectionFromTrueDeg: operation.manualSurfaceWind === undefined ? '' : String(operation.manualSurfaceWind.directionFromTrueDeg),
       manualWindSpeedKt: operation.manualSurfaceWind === undefined ? '' : String(operation.manualSurfaceWind.speedKt),
       manualWindGustKt: operation.manualSurfaceWind?.gustKt === undefined ? '' : String(operation.manualSurfaceWind.gustKt),
-      manualOatC: operation.manualOatC === undefined ? '' : String(operation.manualOatC),
+      manualOatC:
+        operation.manualOatC === undefined ||
+        operation.manualOatC === DEFAULT_RUNWAY_OAT_C
+          ? ''
+          : String(operation.manualOatC),
     })),
   };
 }
@@ -555,8 +560,10 @@ export function parseOperationalInputDraft(
     if (direction !== undefined && (!Number.isFinite(direction) || direction < 0 || direction >= 360)) return { status: 'invalid', message: 'Manual surface wind direction must be from 0 to less than 360° true' };
     if (speed !== undefined && (!Number.isFinite(speed) || speed < 0)) return { status: 'invalid', message: 'Manual surface wind speed must be non-negative' };
     if (gust !== undefined && (!Number.isFinite(gust) || gust < 0 || speed === undefined || gust < speed)) return { status: 'invalid', message: 'Manual surface wind gust must be at least the base speed' };
-    const oat = operation.manualOatC.trim() === '' ? undefined : Number(operation.manualOatC);
-    if (oat !== undefined && !Number.isFinite(oat)) return { status: 'invalid', message: 'Manual OAT must be a number' };
+    const oat = operation.manualOatC.trim() === ''
+      ? DEFAULT_RUNWAY_OAT_C
+      : Number(operation.manualOatC);
+    if (!Number.isFinite(oat)) return { status: 'invalid', message: 'Manual OAT must be a number' };
     runwayPerformanceOperations.push({
       kind: operation.kind,
       sectorFromWaypointId: operation.sectorFromWaypointId,
@@ -566,7 +573,7 @@ export function parseOperationalInputDraft(
       ...(operation.runwayCondition.trim() === '' ? {} : { runwayCondition: operation.runwayCondition.trim() }),
       ...(rccValue === undefined ? {} : { rcc: rccValue as 0 | 1 | 2 | 3 | 4 | 5 | 6 }),
       ...(direction === undefined || speed === undefined ? {} : { manualSurfaceWind: { directionFromTrueDeg: direction, speedKt: speed, ...(gust === undefined ? {} : { gustKt: gust }) } }),
-      ...(oat === undefined ? {} : { manualOatC: oat }),
+      manualOatC: oat,
     });
   }
 

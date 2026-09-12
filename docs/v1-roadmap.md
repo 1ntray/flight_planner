@@ -19,18 +19,7 @@ subject to authoritative aircraft, aerodrome, and operational source material.
 **Why first:** reliable boundaries and reproducible review are prerequisites
 for trusting later operational features.
 
-### 2. Complete and validate takeoff and landing AFM digitization
-
-The runway-performance architecture, UTSA atmosphere/wind/RCC rules, semantic
-inputs, combined airport-stop weather contexts, and OFP-style presentation are
-in place. A qualified human review must still provide numeric control values
-from Z242L AFM Figures 5-10 and 5-26. Until then, the AFM lookup fails closed and
-no required runway distance or margin is presented.
-
-This closes the largest operational gap between the existing enroute/performance
-planning and airport operations.
-
-### 3. Validate against manually prepared real flight plans
+### 2. Validate against manually prepared real flight plans
 
 Prepare a small controlled set of real, manually checked Zlin planning examples.
 Compare route geometry, headings, timing, altitude transitions, fuel, patterns,
@@ -54,6 +43,15 @@ persisted fallback. Fetched reports, parsed data, and caches are runtime-only.
 Runway performance consumes this explicit effective environment rather than
 coupling calculations to a provider.
 
+### Reviewed Zlin AFM runway distances
+
+The Z242L Figure 5-10 takeoff and Figure 5-26 Hot-brakes landing nomograms are
+implemented as reviewed, deterministic piecewise-linear chart geometry. Twelve
+representative points were independently checked against manual graph readings.
+The model fails closed outside the printed temperature, pressure-altitude,
+mass, entry-coordinate, or final-coordinate envelope; Figure 5-25 remains
+excluded.
+
 ### Runway-performance groundwork
 
 Zlin-specific runway planning now uses stable per-sector takeoff and landing
@@ -61,8 +59,8 @@ operation keys, one shared reviewed weather context for each displayed airport
 stop, published TODA/LDA, sector loading masses, UTSA simplified atmosphere and
 discrete wind rules, the project designator-based whole-knot wind-component
 method, OM-C RCC/crosswind limits, and semantic saved inputs. See
-[runway-performance.md](runway-performance.md). Operational AFM
-distances remain deliberately unavailable pending reviewed graph control data.
+[runway-performance.md](runway-performance.md). Reviewed AFM distances now feed
+the existing wind/RCC/factor sequences without changing their order.
 
 ### Zlin OFP PDF generation
 

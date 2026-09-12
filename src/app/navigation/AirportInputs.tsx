@@ -23,6 +23,7 @@ import {
   createEmptyAerodromePatternInputDraft,
   createEmptySectorOperationInputDraft,
   createRunwayPerformanceOperationInputDraft,
+  DEFAULT_RUNWAY_OAT_C,
   runwayPerformanceOperationDraftKey,
 } from './operationalInput';
 import type {
@@ -42,6 +43,7 @@ import type {
   SectorStopInputDraft,
 } from './performanceInput';
 import {
+  isAirportWeatherContextStale,
   shouldPublishAirportEnvironment,
 } from './airportEnvironmentPublication';
 import type {
@@ -58,6 +60,8 @@ export interface AirportInputsProps {
   defaults: PerformanceInputDefaults;
   aerodromeDetailsByWaypointId: ReadonlyMap<string, AerodromeDetails>;
   plannedTimeUtcMsByOperationKey?: ReadonlyMap<string, number>;
+  /** Prevent a selected route-wind forecast from invalidating its own ETA context. */
+  suppressForecastWindEtaStaleness?: boolean;
   onEffectivePlanningEnvironmentChange?: (
     operationKey: string,
     waypointId: string,
@@ -91,11 +95,6 @@ function formatTac(rawTac: string): string {
     return `${formatted}${index === 0 ? '' : startsNewGroup ? '\n' : ' '}${token}`;
   }, '') + (rawTac.trim().endsWith('=') ? '=' : '');
 }
-
-// Locationforecast is hourly and a weather-driven TAS adjustment can move a
-// calculated ETA by seconds. Treat only a material schedule/context change as
-// stale so the selected source cannot create its own invalidation loop.
-const WEATHER_CONTEXT_STALE_TOLERANCE_MS = 5 * 60 * 1000;
 
 function NumberField({
   label,
@@ -172,6 +171,7 @@ export function AirportInputs({
   defaults,
   aerodromeDetailsByWaypointId,
   plannedTimeUtcMsByOperationKey = new Map(),
+  suppressForecastWindEtaStaleness = false,
   onEffectivePlanningEnvironmentChange,
   onDraftChange,
   onOperationalDraftChange,
@@ -240,7 +240,9 @@ export function AirportInputs({
       const tabIsa = isaDraft.trim() === '' ? DEFAULT_PLANNING_ISA_DEVIATION_C : Number(isaDraft);
       const tabOperation = operationalDraft.runwayPerformanceOperations.find((candidate) => runwayPerformanceOperationDraftKey(candidate) === primary.key)
         ?? createRunwayPerformanceOperationInputDraft(primary.kind, primary.sectorFromWaypointId, primary.sectorToWaypointId, primary.waypointId);
-      const tabOat = tabOperation.manualOatC.trim() === '' ? undefined : Number(tabOperation.manualOatC);
+      const tabOat = tabOperation.manualOatC.trim() === ''
+        ? DEFAULT_RUNWAY_OAT_C
+        : Number(tabOperation.manualOatC);
       const tabWind = tabOperation.manualWindDirectionFromTrueDeg.trim() === '' || tabOperation.manualWindSpeedKt.trim() === '' ? undefined : {
         kind: 'fixed' as const,
         directionFromTrueDeg: Number(tabOperation.manualWindDirectionFromTrueDeg),
@@ -256,14 +258,17 @@ export function AirportInputs({
         taf: { status: 'unavailable' as const, message: 'Not loaded' },
         forecast: { status: 'unavailable' as const, message: 'Not loaded' },
       });
-      const stale = tabLoadedWeather !== undefined &&
-        Math.abs(tabLoadedWeather.request.plannedTimeUtcMs - (plannedTimeUtcMsByOperationKey.get(primary.key) ?? tabLoadedWeather.request.plannedTimeUtcMs)) > WEATHER_CONTEXT_STALE_TOLERANCE_MS;
+      const stale = isAirportWeatherContextStale(
+        tabLoadedWeather?.request.plannedTimeUtcMs,
+        plannedTimeUtcMsByOperationKey.get(primary.key),
+        suppressForecastWindEtaStaleness,
+      );
       const environment = tabWeather === undefined || stale || !Number.isFinite(tabQnh) || !Number.isFinite(tabIsa)
         ? null
         : resolveEffectiveAirportPlanningEnvironment({
             qnhHpa: tabQnh,
             isaDeviationC: tabIsa,
-            ...(tabOat === undefined || !Number.isFinite(tabOat) ? {} : { temperatureC: tabOat }),
+            ...(Number.isFinite(tabOat) ? { temperatureC: tabOat } : {}),
             ...(tabWind === undefined ? {} : { wind: tabWind }),
           }, tabWeather, tabSelection);
       for (const operation of stop.operations) {
@@ -297,7 +302,7 @@ export function AirportInputs({
     }
 
     publishedEnvironments.current = nextPublished;
-  }, [draft, onEffectivePlanningEnvironmentChange, operationalDraft.runwayPerformanceOperations, plannedTimeUtcMsByOperationKey, stops, weatherByStopKey, weatherSelectionsByStopKey]);
+  }, [draft, onEffectivePlanningEnvironmentChange, operationalDraft.runwayPerformanceOperations, plannedTimeUtcMsByOperationKey, stops, suppressForecastWindEtaStaleness, weatherByStopKey, weatherSelectionsByStopKey]);
 
   const active = stops.find((stop) => stop.key === activeKey) ?? stops[0];
 
@@ -391,15 +396,20 @@ export function AirportInputs({
   const selection = weatherSelectionsByStopKey.get(active.key) ?? MANUAL_AIRPORT_WEATHER_SELECTION;
   const weather = weatherByStopKey.get(active.key);
   const plannedTimeUtcMs = plannedTimeUtcMsByOperationKey.get(weatherOperation.key);
-  const weatherIsStale = weather !== undefined && plannedTimeUtcMs !== undefined &&
-    Math.abs(weather.request.plannedTimeUtcMs - plannedTimeUtcMs) > WEATHER_CONTEXT_STALE_TOLERANCE_MS;
+  const weatherIsStale = isAirportWeatherContextStale(
+    weather?.request.plannedTimeUtcMs,
+    plannedTimeUtcMs,
+    suppressForecastWindEtaStaleness,
+  );
   const canLoadWeather = airportWeatherRequest(active) !== null;
   const manualQnh = qnhValue.trim() === '' ? DEFAULT_PLANNING_QNH_HPA : Number(qnhValue);
   const manualIsa = isaValue.trim() === '' ? DEFAULT_PLANNING_ISA_DEVIATION_C : Number(isaValue);
   const runwayOperation = operationalDraft.runwayPerformanceOperations.find(
     (candidate) => runwayPerformanceOperationDraftKey(candidate) === weatherOperation.key,
   ) ?? createRunwayPerformanceOperationInputDraft(weatherOperation.kind, weatherOperation.sectorFromWaypointId, weatherOperation.sectorToWaypointId, weatherOperation.waypointId);
-  const manualOat = runwayOperation.manualOatC.trim() === '' ? undefined : Number(runwayOperation.manualOatC);
+  const manualOat = runwayOperation.manualOatC.trim() === ''
+    ? DEFAULT_RUNWAY_OAT_C
+    : Number(runwayOperation.manualOatC);
   const manualWind = runwayOperation.manualWindDirectionFromTrueDeg.trim() === '' || runwayOperation.manualWindSpeedKt.trim() === '' ? undefined : {
     kind: 'fixed' as const,
     directionFromTrueDeg: Number(runwayOperation.manualWindDirectionFromTrueDeg),
@@ -426,6 +436,11 @@ export function AirportInputs({
     : selection.temperature === 'forecast' && effectiveWeather !== undefined
       ? `${effectiveWeather.isaDeviationC.toFixed(1)} (MET Norway forecast)`
       : `${DEFAULT_PLANNING_ISA_DEVIATION_C} (standard)`;
+  const selectedOatPlaceholder = selection.temperature === 'manual'
+    ? `${DEFAULT_RUNWAY_OAT_C.toFixed(1)} (standard ISA)`
+    : effectiveWeather?.temperatureC === undefined
+      ? 'Required for runway performance'
+      : `${effectiveWeather.temperatureC.toFixed(1)} (${selection.temperature})`;
   const setSelection = (field: keyof AirportWeatherSelection, value: AirportWeatherSelection[typeof field]) => setWeatherSelectionsByStopKey((current) => new Map(current).set(active.key, { ...selection, [field]: value }));
 
   const operationDraft = (context: AirportOperationContext) =>
@@ -634,7 +649,7 @@ export function AirportInputs({
         <NumberField
           label="Runway OAT"
           value={selection.temperature === 'manual' ? runwayOperation.manualOatC : ''}
-          placeholder={effectiveWeather?.temperatureC === undefined ? 'Required for runway performance' : `${effectiveWeather.temperatureC.toFixed(1)} (${selection.temperature})`}
+          placeholder={selectedOatPlaceholder}
           unit="°C"
           step="0.1"
           onChange={(value) => { if (selection.temperature !== 'manual') setSelection('temperature', 'manual'); updateAirportOperations({ manualOatC: value }); }}
@@ -785,7 +800,7 @@ export function AirportInputs({
                 <option value="forecast" disabled={weather.forecast.status !== 'available' || weather.forecast.value.pressureMslHpa === undefined}>Forecast MSL — {weather.forecast.status === 'available' && weather.forecast.value.pressureMslHpa !== undefined ? `${weather.forecast.value.pressureMslHpa.toFixed(0)} hPa` : 'Unavailable'}</option>
               </select></label>
               <label><span>Temperature source</span><select value={selection.temperature} onChange={(event) => setSelection('temperature', event.currentTarget.value as AirportWeatherSelection['temperature'])}>
-                <option value="manual">Manual OAT — {manualOat === undefined ? 'not entered' : `${manualOat}°C`}</option>
+                <option value="manual">Manual OAT — {runwayOperation.manualOatC.trim() === '' ? `${DEFAULT_RUNWAY_OAT_C}°C (standard ISA)` : `${manualOat}°C`}</option>
                 <option value="metar" disabled={weather.metar.status !== 'available' || weather.metar.value.temperatureC === undefined}>METAR — {weather.metar.status === 'available' && weather.metar.value.temperatureC !== undefined ? `${weather.metar.value.temperatureC}°C` : 'Unavailable'}</option>
                 <option value="forecast" disabled={weather.forecast.status !== 'available' || weather.forecast.value.temperatureC === undefined}>Forecast — {weather.forecast.status === 'available' && weather.forecast.value.temperatureC !== undefined ? `${weather.forecast.value.temperatureC.toFixed(1)}°C` : 'Unavailable'}</option>
               </select></label>

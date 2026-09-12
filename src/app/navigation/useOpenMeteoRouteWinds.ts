@@ -198,7 +198,9 @@ export function useForecastRouteWinds({
   );
 
   return {
-    legWinds: status.status === 'success' ? status.winds : NO_WINDS,
+    legWinds: status.status === 'success'
+      ? createEffectiveLegWinds(status.winds, manualOverrides)
+      : NO_WINDS,
     status,
     canLoad,
   };

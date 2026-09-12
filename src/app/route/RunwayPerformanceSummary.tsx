@@ -1,5 +1,7 @@
 import {
   calculateRunwayWindComponents,
+  calculateLandingDistanceSequence,
+  calculateTakeoffDistanceSequence,
   calculateUtsaDensityAltitudeFt,
   calculateUtsaIsaDeviationC,
   calculateUtsaPressureAltitudeFt,
@@ -78,11 +80,22 @@ function OperationPanel(props: OperationPanelProps) {
   const gustCrosswind = components?.gustCrosswindKt === undefined ? undefined : Math.abs(components.gustCrosswindKt);
   const availableDistance = props.kind === 'takeoff'
     ? direction?.declaredDistances.todaM : direction?.declaredDistances.ldaM;
-  const afmInput = pressureAltitude === undefined || isaDeviation === undefined
-    ? null : { pressureAltitudeFt: pressureAltitude, isaDeviationC: isaDeviation, massKg: props.massKg };
+  const afmInput = pressureAltitude === undefined || oat === undefined ||
+      !Number.isFinite(props.massKg) || props.massKg <= 0
+    ? null : { pressureAltitudeFt: pressureAltitude, temperatureC: oat, massKg: props.massKg };
   const afm = !props.modelSupported || afmInput === null ? null : props.kind === 'takeoff'
     ? calculateZ242TakeoffDistanceTo50Ft(afmInput)
     : calculateZ242HotBrakesLandingDistanceFrom50Ft(afmInput);
+  const distanceSequence = afm?.status !== 'available' || components === undefined
+    ? null
+    : props.kind === 'takeoff'
+      ? calculateTakeoffDistanceSequence(afm.distanceM, components.parallelKt)
+      : rcc === undefined
+        ? null
+        : calculateLandingDistanceSequence(afm.distanceM, components.parallelKt, rcc);
+  const calculatedDistances = distanceSequence?.status === 'available'
+    ? distanceSequence
+    : null;
   const blocking = [
     ...(props.details === undefined ? ['Aerodrome data unavailable'] : []),
     ...(operation.runwayDesignator === '' ? ['Runway not selected'] : []),
@@ -95,7 +108,8 @@ function OperationPanel(props: OperationPanelProps) {
     ...(windComponents?.status === 'unavailable' ? ['Variable wind: components unavailable'] : []),
     ...(oat === undefined ? ['OAT unavailable'] : []),
     ...(!props.modelSupported ? ['Selected aircraft has no approved Z242L/UTSA runway profile'] : []),
-    ...(afm?.status === 'unavailable' ? ['Reviewed AFM graph digitization required'] : []),
+    ...(afm?.status === 'unavailable' ? ['Outside reviewed AFM chart envelope'] : []),
+    ...(distanceSequence?.status === 'unavailable' ? ['Wind correction unavailable'] : []),
   ];
   const crosswindText = baseCrosswind === undefined
     ? '—'
@@ -165,7 +179,7 @@ function OperationPanel(props: OperationPanelProps) {
             <col className="runway-performance__value-column" />
           </colgroup>
           <tbody>
-            <tr><th scope="row" colSpan={5}>{uncorrectedLabel}</th><td>—</td></tr>
+            <tr><th scope="row" colSpan={5}>{uncorrectedLabel}</th><td>{valueM(afm?.status === 'available' ? afm.distanceM : null)}</td></tr>
             <tr><th scope="row">H-Wind</th><td colSpan={5}>{components === undefined ? '—' : `${components.parallelKt} kt`}</td></tr>
             <tr>
               <th scope="row">RWY stat</th><td>{runwayState}</td>
@@ -173,10 +187,10 @@ function OperationPanel(props: OperationPanelProps) {
               <th scope="row">Corr.</th><td>{props.kind === 'takeoff' ? '0%' : rccRule?.landingCorrectionFraction == null ? '—' : `${rccRule.landingCorrectionFraction * 100}%`}</td>
             </tr>
             {[0, 1, 2, 3].map((row) => <tr key={row} className="runway-performance__worksheet-row" aria-hidden="true"><td colSpan={6}></td></tr>)}
-            <tr><th scope="row" colSpan={5}>{correctedLabel}</th><td>—</td></tr>
+            <tr><th scope="row" colSpan={5}>{correctedLabel}</th><td>{valueM(calculatedDistances?.correctedDistanceM)}</td></tr>
             <tr>
               <th scope="row" colSpan={2}>Performance factor</th><td>{props.kind === 'takeoff' ? '25%' : '43%'}</td>
-              <th scope="row" colSpan={2} className="runway-performance__dark-cell">{requiredLabel}</th><td>—</td>
+              <th scope="row" colSpan={2} className="runway-performance__dark-cell">{requiredLabel}</th><td>{valueM(calculatedDistances?.requiredDistanceM)}</td>
             </tr>
             <tr>
               <td colSpan={4}></td>
@@ -185,6 +199,11 @@ function OperationPanel(props: OperationPanelProps) {
           </tbody>
         </table>
       </div>
+      {afm?.status === 'unavailable' ? (
+        <p className="runway-performance__warning">
+          Outside reviewed AFM chart envelope.
+        </p>
+      ) : null}
       {crosswindWarning === null ? null : <p className={crosswindWarning.includes('exceeded') ? 'runway-performance__warning' : 'operational-summary__note'}>{crosswindWarning}</p>}
       <ul className="sr-only" aria-label="Runway performance availability issues">
         {blocking.map((message) => <li key={message}>{message}</li>)}
